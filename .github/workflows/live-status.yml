@@ -1,15 +1,22 @@
 # .github/workflows/live-status.yml in a public repo with GitHub Pages enabled (Pages serves Access-Control-Allow-Origin: *)
+# GitHub runs */5 schedules best effort; in practice expect a run every 2 to 3 hours.
+# For on-time checks, trigger workflow_dispatch or repository_dispatch (type: live-check) from an outside cron service. See README.md.
 name: spaces-live-status
-on: {schedule: [{cron: '*/5 * * * *'}], workflow_dispatch: {}}
+on:
+  schedule: [{cron: '*/5 * * * *'}]
+  workflow_dispatch: {}
+  repository_dispatch: {types: [live-check]}
 permissions: {contents: write}
-concurrency: live-status
+concurrency: {group: live-status, cancel-in-progress: false}
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       - run: python3 check_space.py
         env: {X_BEARER_TOKEN: '${{ secrets.X_BEARER_TOKEN }}'}
       - run: |
           git config user.name live-bot; git config user.email live-bot@users.noreply.github.com
-          git add status.json; git commit -m "status $(date -u +%FT%TZ)" || true; git push
+          git add status.json; git commit -m "status $(date -u +%FT%TZ)" || true
+          git push || { git pull --rebase origin main && git push; }
