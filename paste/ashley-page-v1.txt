@@ -1,0 +1,56 @@
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=UnifrakturMaguntia&family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+#ash-page{--ink:#131218;--slate:#45454A;--gold:#DEAE04;--honey:#E5BB04;--sand:#A78D7C;--cream:#F3EEE6;--white:#FFFFFF;background:linear-gradient(180deg,#131218 0%,#1C1E27 55%,#131218 100%);color:var(--cream);font-family:'Quicksand',sans-serif;padding:0 0 60px;margin:0 auto;max-width:1200px;border-radius:18px;overflow:hidden;box-sizing:border-box}
+#ash-page *{box-sizing:border-box}
+#ash-page .ash-hero{position:relative;text-align:center;padding:70px 24px 56px;background:radial-gradient(circle at 50% 0%,rgba(222,174,4,.18),transparent 60%)}
+#ash-page .ash-hero:before{content:"";position:absolute;left:0;right:0;bottom:0;height:6px;background:repeating-linear-gradient(90deg,var(--gold) 0 60px,transparent 60px 100px)}
+#ash-page .ash-heart{font-size:34px;display:block;margin-bottom:6px}
+#ash-page h1.ash-name{font-family:'Great Vibes',cursive;font-weight:400;font-size:clamp(56px,10vw,104px);line-height:1;margin:0;color:var(--white);text-shadow:0 0 18px rgba(255,255,255,.25)}
+#ash-page h1.ash-name span{font-family:'UnifrakturMaguntia',serif;font-size:.62em;color:var(--honey);margin-left:.15em}
+#ash-page .ash-handle{display:inline-block;margin-top:14px;color:var(--sand);letter-spacing:.12em;font-weight:600;text-decoration:none;font-size:15px}
+#ash-page .ash-bio{max-width:640px;margin:26px auto 0;font-size:18px;line-height:1.7;color:var(--cream);background:rgba(255,255,255,.04);border:1px solid rgba(167,141,124,.35);border-radius:16px;padding:18px 22px}
+#ash-page .ash-btns{margin-top:28px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+#ash-page a.ash-btn{display:inline-block;padding:14px 30px;border-radius:999px;font-weight:700;text-decoration:none;font-size:16px;transition:transform .15s,box-shadow .15s}
+#ash-page a.ash-btn:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(222,174,4,.3)}
+#ash-page a.ash-gold{background:var(--gold);color:var(--ink)}
+#ash-page a.ash-ghost{border:2px solid var(--cream);color:var(--cream)}
+#ash-page h2{font-family:'Great Vibes',cursive;font-weight:400;font-size:54px;color:var(--white);text-align:center;margin:56px 0 6px}
+#ash-page .ash-sub{text-align:center;color:var(--sand);margin:0 0 24px;font-size:15px}
+#ash-page .ash-shop{max-width:720px;margin:0 auto;padding:0 20px;text-align:center}
+#ash-page .ash-soon{margin:22px auto 0;padding:16px 20px;border:1px dashed var(--honey);border-radius:14px;color:var(--cream);font-size:16px;max-width:520px}
+#ash-page .ash-soon b{color:var(--honey)}
+#ash-page .ash-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:0 24px}
+#ash-page .ash-grid img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:14px;display:block;border:1px solid rgba(255,255,255,.08)}
+#ash-page .ash-foot{text-align:center;margin-top:40px;color:var(--sand);font-size:14px}
+#ash-page .ash-foot a{color:var(--honey)}
+@media (max-width:640px){#ash-page .ash-hero{padding:50px 18px 44px}#ash-page .ash-bio{font-size:16px}#ash-page .ash-grid{grid-template-columns:repeat(2,1fr);padding:0 14px;gap:8px}#ash-page h2{font-size:44px}}
+</style>
+<div id="ash-page">
+  <section class="ash-hero">
+    <span class="ash-heart">🤍</span>
+    <h1 class="ash-name">Ashley <span>Fragile</span> 🔥</h1>
+    <a class="ash-handle" href="https://x.com/AshleySavvie" target="_blank" rel="noopener">@AshleySavvie</a>
+    <p class="ash-bio">💍Married 2 My King.2gether 23 Yrs👑@therapytoaster👩‍👧‍👦Mom of 4👩‍👧‍👦9🐦🐠 2 🐈‍⬛2🐕 2🐇🐢 💋🤍Modely &amp; Cyberbeast🔥🫦 Cooking🌮Art🎨House DIY🏡Nature🐿</p>
+    <div class="ash-btns">
+      <a class="ash-btn ash-gold" href="https://therapytoaster.myshopify.com/collections/ashley-savvie" target="_blank" rel="noopener">Shop Ashley 🤍</a>
+      <a class="ash-btn ash-ghost" href="https://x.com/AshleySavvie" target="_blank" rel="noopener">Follow on Twitter</a>
+    </div>
+  </section>
+  <section class="ash-shop">
+    <h2>Shop Ashley</h2>
+    <p class="ash-sub">Shirts &amp; goodies with her touch 🌼</p>
+    <a class="ash-btn ash-gold" href="https://therapytoaster.myshopify.com/collections/ashley-savvie" target="_blank" rel="noopener">Visit Her Shop</a>
+    <div class="ash-soon"><b>Her shirts are coming soon</b> 🤍 check back, they're on the way..</div>
+  </section>
+  <h2>From Her Feed</h2>
+  <p class="ash-sub">Flowers, plants, birdies &amp; the Cyberbeast 🐦🌿</p>
+  <div class="ash-grid">
+    <img src="https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@main/ashley/flowers-0.jpg" alt="Yellow flowers" loading="lazy">
+    <img src="https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@main/ashley/birdies-0.jpg" alt="Blue parakeet" loading="lazy">
+    <img src="https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@main/ashley/plants-3.jpg" alt="Plant by a salt lamp" loading="lazy">
+    <img src="https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@main/ashley/flowers-1.jpg" alt="White flower" loading="lazy">
+    <img src="https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@main/ashley/plants-2.jpg" alt="Houseplant leaves" loading="lazy">
+    <img src="https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@main/ashley/cybertruck-0.jpg" alt="Cybertruck in nature" loading="lazy">
+  </div>
+  <p class="ash-foot">More of her on <a href="https://x.com/AshleySavvie" target="_blank" rel="noopener">Twitter</a> · Married to <a href="https://www.therapytoaster.com">TherapyToaster</a> 👑</p>
+</div>
