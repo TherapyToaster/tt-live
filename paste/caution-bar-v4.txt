@@ -1,0 +1,36 @@
+/* TT CAUTION BAR v4: scrolling caution-tape announcement bar, big flashing text + digital glitch + independent irregular TRUST NO ONE / BE NICE swaps */
+.sqs-announcement-bar{background:repeating-linear-gradient(-45deg,#FFD400 0 22px,#000 22px 44px)!important;background-size:62.23px 62.23px!important;animation:ttcb-stripes 1.2s linear infinite;padding:10px 0!important;overflow:hidden!important}
+.sqs-announcement-bar-text{padding:0!important;overflow:hidden!important}
+.sqs-announcement-bar-text-inner{display:block!important;overflow:hidden!important;background:#000!important;border-top:3px solid #FFD400;border-bottom:3px solid #FFD400;max-width:none!important;width:100%!important}
+.sqs-announcement-bar-text-inner p{position:relative;display:inline-block!important;white-space:nowrap!important;padding-left:100%!important;margin:6px 0!important;font-family:'Space Mono','Courier New',monospace!important;font-weight:700!important;font-size:clamp(20px,3.2vw,36px)!important;line-height:1.2!important;letter-spacing:.12em!important;text-transform:uppercase!important;color:#FFD400!important;text-shadow:0 0 10px rgba(255,212,0,.7);animation:ttcb-marquee 14s linear infinite,ttcb-flash 1s steps(1) infinite,ttcb-chroma 4.8s steps(1,end) infinite}
+.sqs-announcement-bar-text-inner p *{color:#FFD400!important}
+.sqs-announcement-bar-close{background:#000!important;color:#FFD400!important;z-index:2}
+@keyframes ttcb-stripes{from{background-position:0 0}to{background-position:62.23px 0}}
+@keyframes ttcb-marquee{from{transform:translateX(0)}to{transform:translateX(-100%)}}
+@keyframes ttcb-flash{0%{opacity:1}50%{opacity:.3}}
+/* Independent CSS-only 17s / 23s loops; irregular timing, not true randomness.
+   Separate inline flex phrases keep all four combinations aligned without overlays. */
+.sqs-announcement-bar-text-inner p{display:inline-flex!important;align-items:baseline;column-gap:clamp(12px,1.5vw,20px);font-size:0!important;letter-spacing:0!important;color:transparent!important;text-shadow:none;animation:ttcb-marquee 14s linear infinite,ttcb-flash 1s steps(1) infinite}
+.sqs-announcement-bar-text-inner p *{color:transparent!important;font-size:0!important}
+.sqs-announcement-bar-text-inner p::before,.sqs-announcement-bar-text-inner p::after{position:relative;display:block;flex:none;white-space:nowrap;pointer-events:none;font-size:clamp(20px,3.2vw,36px);letter-spacing:.12em;color:#FFD400;text-shadow:0 0 10px rgba(255,212,0,.7)}
+.sqs-announcement-bar-text-inner p::before{content:"Trust Everyone." / "";animation:ttcb-trust 17s steps(1,end) infinite,ttcb-chroma 4.8s steps(1,end) infinite}
+.sqs-announcement-bar-text-inner p::after{content:"Be Mean." / "";animation:ttcb-kind 23s steps(1,end) infinite,ttcb-chroma 5.3s steps(1,end) infinite}
+@keyframes ttcb-trust{
+0%,16%,18%,20%,44%,47%,71%,73%,92%,95%,100%{content:"Trust Everyone." / ""}
+14%,17%,19%,42%,45%,69%,72%,90%,93%{content:"Trust No One." / ""}
+}
+@keyframes ttcb-kind{
+0%,15%,17%,18.8%,40%,43.3%,64%,65.6%,89%,92%,100%{content:"Be Mean." / ""}
+14%,16%,18%,39%,41%,63%,88%,90%{content:"Be Nice." / ""}
+}
+@keyframes ttcb-chroma{
+0%,78%,88%,100%{text-shadow:0 0 10px rgba(255,212,0,.7);transform:none;filter:none}
+79%,84%{text-shadow:-3px 0 #00edff,3px 0 #ff37cf;transform:translateX(2px) skewX(-5deg);filter:contrast(1.2)}
+81%,86%{text-shadow:3px 0 #00edff,-3px 0 #ff37cf;transform:translateX(-2px) skewX(4deg);filter:none}
+}
+@media (prefers-reduced-motion:reduce){
+.sqs-announcement-bar,.sqs-announcement-bar-text-inner p{animation:none!important}
+.sqs-announcement-bar-text-inner p{display:block!important;padding-left:0!important;white-space:normal!important;font-size:clamp(20px,3.2vw,36px)!important;letter-spacing:.12em!important;color:#FFD400!important;text-align:center;filter:none!important;text-shadow:none!important}
+.sqs-announcement-bar-text-inner p *{color:#FFD400!important;font-size:inherit!important}
+.sqs-announcement-bar-text-inner p::before,.sqs-announcement-bar-text-inner p::after{content:none!important;animation:none!important}
+}
