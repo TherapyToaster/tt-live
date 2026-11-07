@@ -1,0 +1,18 @@
+/* TT CAUTION BAR v2: scrolling caution-tape announcement bar, big flashing text + digital glitch */
+.sqs-announcement-bar{background:repeating-linear-gradient(-45deg,#FFD400 0 22px,#000 22px 44px)!important;background-size:62.23px 62.23px!important;animation:ttcb-stripes 1.2s linear infinite;padding:10px 0!important;overflow:hidden!important}
+.sqs-announcement-bar-text{padding:0!important;overflow:hidden!important}
+.sqs-announcement-bar-text-inner{display:block!important;overflow:hidden!important;background:#000!important;border-top:3px solid #FFD400;border-bottom:3px solid #FFD400;max-width:none!important;width:100%!important}
+.sqs-announcement-bar-text-inner p{position:relative;display:inline-block!important;white-space:nowrap!important;padding-left:100%!important;margin:6px 0!important;font-family:'Space Mono','Courier New',monospace!important;font-weight:700!important;font-size:clamp(20px,3.2vw,36px)!important;line-height:1.2!important;letter-spacing:.12em!important;text-transform:uppercase!important;color:#FFD400!important;text-shadow:0 0 10px rgba(255,212,0,.7);animation:ttcb-marquee 14s linear infinite,ttcb-flash 1s steps(1) infinite,ttcb-chroma 4.8s steps(1,end) infinite}
+.sqs-announcement-bar-text-inner p *{color:#FFD400!important}
+.sqs-announcement-bar-close{background:#000!important;color:#FFD400!important;z-index:2}
+@keyframes ttcb-stripes{from{background-position:0 0}to{background-position:62.23px 0}}
+@keyframes ttcb-marquee{from{transform:translateX(0)}to{transform:translateX(-100%)}}
+@keyframes ttcb-flash{0%{opacity:1}50%{opacity:.3}}
+/* Glitch layers mirror only the current announcement; update this string if the slogan changes. */
+.sqs-announcement-bar-text-inner p::before,.sqs-announcement-bar-text-inner p::after{content:"Trust Everyone. Be Mean." / "";position:absolute;right:0;top:0;pointer-events:none;white-space:nowrap;opacity:0;color:#00edff;text-shadow:-2px 0 #00edff;animation:ttcb-slice 4.8s steps(1,end) infinite}
+.sqs-announcement-bar-text-inner p::after{color:#ff37cf;text-shadow:2px 0 #ff37cf;animation-delay:.08s;animation-direction:reverse}
+@keyframes ttcb-chroma{0%,78%,88%,100%{text-shadow:0 0 10px rgba(255,212,0,.7)}79%,84%{text-shadow:-3px 0 #00edff,3px 0 #ff37cf;filter:contrast(1.2)}81%,86%{text-shadow:3px 0 #00edff,-3px 0 #ff37cf;filter:none}}
+@keyframes ttcb-slice{0%,78%,89%,100%{opacity:0;clip-path:inset(0);transform:none}79%,83%{opacity:.95;clip-path:inset(16% 0 59% 0);transform:translateX(5px) skewX(-7deg)}81%,86%{opacity:.9;clip-path:inset(63% 0 12% 0);transform:translateX(-5px) skewX(5deg)}85%{opacity:.6;clip-path:inset(38% 0 37% 0);transform:translateX(3px)}}
+@media (prefers-reduced-motion:reduce){.sqs-announcement-bar,.sqs-announcement-bar-text-inner p{animation:none!important}.sqs-announcement-bar-text-inner p{padding-left:0!important;white-space:normal!important}}
+
+@media (prefers-reduced-motion:reduce){.sqs-announcement-bar-text-inner p{filter:none!important;text-shadow:none!important}.sqs-announcement-bar-text-inner p::before,.sqs-announcement-bar-text-inner p::after{content:none!important;animation:none!important}}
