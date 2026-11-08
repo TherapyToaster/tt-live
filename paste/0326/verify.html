@@ -1,0 +1,21 @@
+<!doctype html><meta charset='utf-8'><title>verify</title>
+<p>Paste editor contents into the box below:</p>
+<textarea id='v' rows='10' cols='120' oninput='run()'></textarea>
+<div id='out'>waiting</div>
+<script>
+async function run(){
+  const s = document.getElementById('v').value;
+  const cps = Array.from(s).length;
+  const u16 = s.length;
+  const buf = new TextEncoder().encode(s);
+  const d = await crypto.subtle.digest('SHA-256', buf);
+  const hex = Array.from(new Uint8Array(d)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  const bad = /\u00c3|\u00e2\u20ac|\ufffd/.test(s);
+  document.getElementById('out').textContent = 'CPS=' + cps + ' U16=' + u16 + ' SHA256=' + hex
+    + ' MOJIBAKE=' + bad
+    + ' HAS_ALWAYS=' + s.includes('Always Watching: Gold Melt Skull')
+    + ' HAS_253_B=' + s.includes('<b>253</b> glitch pieces')
+    + ' HAS_253_TEASER=' + s.includes('253 glitch pieces by Mr. Toasty')
+    + ' START=' + JSON.stringify(s.slice(0,40)) + ' END=' + JSON.stringify(s.slice(-40));
+}
+</script>
