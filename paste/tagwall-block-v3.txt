@@ -1,0 +1,98 @@
+<div class="ttpw-root" id="ttpw-root">
+<style>
+.ttpw-root{width:100%;max-width:1100px;margin-left:auto;margin-right:auto;--y:#FFD400;--r:#ff2a4d;--c:#00e5ff;background:#000;color:#eee;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;padding:32px 16px;box-sizing:border-box;}
+.ttpw-root *{box-sizing:border-box}
+.ttpw-h{font-size:clamp(30px,6vw,72px);font-weight:900;color:var(--y);margin:0;line-height:1;text-shadow:3px 0 var(--r),-3px 0 var(--c)}
+.ttpw-sub{margin:8px 0 18px;color:#ccc;font-size:16px}
+.ttpw-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+.ttpw-grp{display:flex;gap:6px;flex-wrap:wrap}
+.ttpw-sw{width:30px;height:30px;border:2px solid #333;cursor:pointer;padding:0}
+.ttpw-sw.ttpw-on{border-color:#fff;box-shadow:0 0 0 2px var(--y)}
+.ttpw-b{background:#111;border:1px solid #333;color:#ddd;font:inherit;font-size:12px;padding:7px 10px;cursor:pointer}
+.ttpw-b:hover{border-color:var(--y)}
+.ttpw-b.ttpw-on{background:var(--y);color:#000;border-color:var(--y);font-weight:800}
+.ttpw-act{margin-left:auto}
+.ttpw-dl{background:var(--y);color:#000;font-weight:800;border-color:var(--y)}
+.ttpw-wrap{position:relative;height:520px;border:1px solid var(--y);overflow:hidden;touch-action:none}
+.ttpw-cv{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:none}
+.ttpw-fx{pointer-events:none}
+.ttpw-can{position:absolute;left:0;top:0;width:34px;height:46px;pointer-events:none;display:none;transform:translate(-4px,-4px)}
+.ttpw-tip{font-size:12px;color:#888;margin-top:8px}
+@media(max-width:700px){.ttpw-wrap{height:420px}.ttpw-act{margin-left:0}}
+</style>
+<h2 class="ttpw-h">THERAPY TOASTER TAG WALL</h2>
+<p class="ttpw-sub">Grab a can. Leave your mark.</p>
+<div class="ttpw-bar">
+ <div class="ttpw-grp" id="ttpw-sw"></div>
+ <div class="ttpw-grp" id="ttpw-md"></div>
+ <div class="ttpw-grp ttpw-act"><button type="button" class="ttpw-b" id="ttpw-clr">Clear wall</button><button type="button" class="ttpw-b ttpw-dl" id="ttpw-dl">Download your tag</button></div>
+</div>
+<div class="ttpw-wrap" id="ttpw-wrap">
+ <canvas class="ttpw-cv" id="ttpw-cv" aria-label="Spray paint wall"></canvas>
+ <canvas class="ttpw-cv ttpw-fx" id="ttpw-fx"></canvas>
+ <svg class="ttpw-can" id="ttpw-can" viewBox="0 0 34 46"><rect x="12" y="0" width="8" height="6" fill="#ccc"/><circle cx="4" cy="4" r="2" fill="#fff" id="ttpw-dot"/><rect x="6" y="6" width="22" height="38" rx="5" fill="#d9d9d9" stroke="#000"/><rect x="6" y="18" width="22" height="12" id="ttpw-band" fill="#FFD400"/><rect x="10" y="12" width="5" height="2" fill="#000"/><rect x="19" y="12" width="5" height="2" fill="#000"/></svg>
+</div>
+<p class="ttpw-tip">Hold to spray · Toast stamp drops toast or a Cybertruck wedge · Double-click / double-tap for a toast burst · Share your tag on Twitter</p>
+<script>
+(function(){
+var R=document.getElementById('ttpw-root');if(!R)return;(function(el){function fit(){try{var b=el.closest&&el.closest('.fe-block');if(!b)return;var g=b.closest('.fluid-engine')||b.parentElement;if(!g)return;var cs=getComputedStyle(g),cols=(cs.gridTemplateColumns||'').split(' ').filter(Boolean).length;
+b.style.gridColumn=cols>=6?'2 / -2':'1 / -1';b.style.height='auto';b.style.overflow='visible';
+var rows=(cs.gridTemplateRows||'').split(' ').map(parseFloat).filter(function(n){return n>0});var rh=rows.length?rows[0]:0,gap=parseFloat(cs.rowGap)||0;
+if(rh>0){var n=Math.ceil((el.getBoundingClientRect().height+gap)/(rh+gap))+1;b.style.gridRowEnd='span '+n;}
+[].forEach.call(b.querySelectorAll('.sqs-block,.sqs-block-content'),function(z){z.style.height='auto';z.style.overflow='visible'});}catch(e){}}
+var q=0;function sch(){if(q)return;q=requestAnimationFrame(function(){q=0;fit()});}
+fit();window.addEventListener('load',sch);window.addEventListener('resize',sch);if(window.ResizeObserver)new ResizeObserver(sch).observe(el);})(R);var $=function(i){return R.querySelector('#'+i)};
+var wrap=$('ttpw-wrap'),cv=$('ttpw-cv'),fx=$('ttpw-fx'),x=cv.getContext('2d'),fxx=fx.getContext('2d'),can=$('ttpw-can');
+var W=0,H=0,dpr=1,col='#FFD400',mode='spray',down=false,lx=0,ly=0,lastT=0,stampN=0;
+var COLS=[['Yellow','#FFD400'],['Red','#ff2a4d'],['Cyan','#00e5ff'],['White','#ffffff'],['Chrome','chrome']];
+var MODES=[['spray','Spray'],['marker','Fat marker'],['stamp','Toast stamp'],['glitch','Glitch']];
+function bg(c,w,h){c.fillStyle='#0d0d0d';c.fillRect(0,0,w,h);for(var i=0;i<1400;i++){c.fillStyle='rgba(255,255,255,'+(Math.random()*.04)+')';c.fillRect(Math.random()*w,Math.random()*h,1.5,1.5);}
+c.strokeStyle='rgba(255,212,0,.07)';c.lineWidth=1;c.beginPath();for(var gx=0;gx<w;gx+=40){c.moveTo(gx+.5,0);c.lineTo(gx+.5,h);}for(var gy=0;gy<h;gy+=40){c.moveTo(0,gy+.5);c.lineTo(w,gy+.5);}c.stroke();}
+function size(){var r=wrap.getBoundingClientRect();var old=null;if(W){old=document.createElement('canvas');old.width=cv.width;old.height=cv.height;old.getContext('2d').drawImage(cv,0,0);}
+dpr=Math.min(window.devicePixelRatio||1,2);W=r.width;H=r.height;[cv,fx].forEach(function(c){c.width=Math.round(W*dpr);c.height=Math.round(H*dpr);});
+x.setTransform(dpr,0,0,dpr,0,0);fxx.setTransform(dpr,0,0,dpr,0,0);bg(x,W,H);if(old)x.drawImage(old,0,0,old.width/dpr*1,old.height/dpr*1);}
+function paint(c){if(c!=='chrome')return c;var g=x.createLinearGradient(lx-20,ly-20,lx+20,ly+20);g.addColorStop(0,'#fff');g.addColorStop(.5,'#8a8f98');g.addColorStop(1,'#e6e6e6');return g;}
+function spray(px,py){x.fillStyle=paint(col);for(var i=0;i<26;i++){var a=Math.random()*6.283,d=Math.pow(Math.random(),1.6)*22;x.globalAlpha=.25+Math.random()*.4;x.beginPath();x.arc(px+Math.cos(a)*d,py+Math.sin(a)*d,Math.random()*1.6+.4,0,6.283);x.fill();}x.globalAlpha=.06;x.beginPath();x.arc(px,py,14,0,6.283);x.fill();x.globalAlpha=1;}
+function line(ax,ay,bx,by,c,w,a){x.globalAlpha=a||1;x.strokeStyle=c;x.lineWidth=w;x.lineCap='round';x.lineJoin='round';x.beginPath();x.moveTo(ax,ay);x.lineTo(bx,by);x.stroke();x.globalAlpha=1;}
+function toast(c,px,py,s,fill){c.save();c.translate(px,py);c.scale(s,s);c.fillStyle=fill;c.beginPath();c.moveTo(-20,22);c.lineTo(-20,-6);c.bezierCurveTo(-30,-10,-28,-28,-12,-28);c.bezierCurveTo(-6,-34,6,-34,12,-28);c.bezierCurveTo(28,-28,30,-10,20,-6);c.lineTo(20,22);c.closePath();c.fill();
+c.fillStyle='rgba(0,0,0,.55)';c.fillRect(-9,-6,4,3);c.fillRect(5,-6,4,3);c.beginPath();c.arc(0,6,5,0,3.14);c.fill();c.restore();}
+function truck(px,py,fill){x.save();x.translate(px,py);x.fillStyle=fill;x.beginPath();x.moveTo(-50,8);x.lineTo(-48,-6);x.lineTo(-6,-22);x.lineTo(50,-6);x.lineTo(50,8);x.closePath();x.fill();x.fillStyle='#000';[-30,30].forEach(function(w){x.beginPath();x.arc(w,8,9,0,6.283);x.fill();});x.fillStyle='rgba(0,0,0,.5)';x.beginPath();x.moveTo(-30,-8);x.lineTo(-6,-18);x.lineTo(20,-10);x.closePath();x.fill();x.restore();}
+function stamp(px,py){var f=paint(col);if(stampN++%2===0)toast(x,px,py,1.2,f);else truck(px,py,f);}
+function strokeTo(px,py){if(mode==='spray'){var d=Math.hypot(px-lx,py-ly),n=Math.max(1,Math.floor(d/6));for(var i=1;i<=n;i++)spray(lx+(px-lx)*i/n,ly+(py-ly)*i/n);}
+else if(mode==='marker')line(lx,ly,px,py,paint(col),14,.92);
+else if(mode==='glitch'){line(lx-4,ly,px-4,py,'#ff2a4d',8,.85);line(lx+4,ly,px+4,py,'#00e5ff',8,.85);line(lx,ly,px,py,col==='chrome'?'#fff':col,4,1);}
+lx=px;ly=py;}
+function pos(e){var r=cv.getBoundingClientRect(),t=e.touches?e.touches[0]||e.changedTouches[0]:e;return[t.clientX-r.left,t.clientY-r.top];}
+var timer=null;
+function start(e){e.preventDefault();var p=pos(e),now=Date.now();if(now-lastT<300){burst(p[0],p[1]);lastT=0;return;}lastT=now;down=true;lx=p[0];ly=p[1];
+if(mode==='stamp'){stamp(lx,ly);down=false;return;}if(mode==='spray'){spray(lx,ly);timer=setInterval(function(){if(down)spray(lx,ly)},40);}else strokeTo(lx+.1,ly+.1);}
+function move(e){var p=pos(e);can.style.display='block';can.style.left=p[0]+'px';can.style.top=p[1]+'px';if(!down)return;e.preventDefault();strokeTo(p[0],p[1]);}
+function end(){down=false;clearInterval(timer);}
+cv.addEventListener('mousedown',start);cv.addEventListener('mousemove',move);window.addEventListener('mouseup',end);cv.addEventListener('mouseleave',function(){can.style.display='none'});
+cv.addEventListener('touchstart',start,{passive:false});cv.addEventListener('touchmove',move,{passive:false});cv.addEventListener('touchend',function(){end();can.style.display='none'});
+var parts=[],raf=0;
+function burst(px,py){for(var i=0;i<22;i++){var a=Math.random()*6.283,s=2+Math.random()*4;parts.push({x:px,y:py,vx:Math.cos(a)*s,vy:Math.sin(a)*s-2,l:1,t:Math.random()<.5,c:['#FFD400','#ff2a4d','#00e5ff','#fff'][i%4]});}if(!raf)raf=requestAnimationFrame(tick);}
+function tick(){fxx.clearRect(0,0,W,H);parts=parts.filter(function(p){p.x+=p.vx;p.y+=p.vy;p.vy+=.15;p.l-=.022;if(p.l<=0)return false;fxx.globalAlpha=p.l;if(p.t)toast(fxx,p.x,p.y,.3,'#e0a84a');else{fxx.fillStyle=p.c;fxx.fillRect(p.x,p.y,3,3);}return true;});fxx.globalAlpha=1;raf=parts.length?requestAnimationFrame(tick):0;if(!raf)fxx.clearRect(0,0,W,H);}
+COLS.forEach(function(c,i){var b=document.createElement('button');b.type='button';b.className='ttpw-sw'+(i?'':' ttpw-on');b.title=c[0];b.setAttribute('aria-label',c[0]);b.style.background=c[1]==='chrome'?'linear-gradient(135deg,#fff,#8a8f98,#e6e6e6)':c[1];
+b.onclick=function(){col=c[1];[].forEach.call($('ttpw-sw').children,function(z){z.classList.remove('ttpw-on')});b.classList.add('ttpw-on');$('ttpw-band').setAttribute('fill',c[1]==='chrome'?'#aab':c[1]);$('ttpw-dot').setAttribute('fill',c[1]==='chrome'?'#fff':c[1]);};$('ttpw-sw').appendChild(b);});
+MODES.forEach(function(m,i){var b=document.createElement('button');b.type='button';b.className='ttpw-b'+(i?'':' ttpw-on');b.textContent=m[1];b.onclick=function(){mode=m[0];[].forEach.call($('ttpw-md').children,function(z){z.classList.remove('ttpw-on')});b.classList.add('ttpw-on');};$('ttpw-md').appendChild(b);});
+$('ttpw-clr').onclick=function(){x.setTransform(dpr,0,0,dpr,0,0);bg(x,W,H);};
+$('ttpw-dl').onclick=function(){var a=document.createElement('a');a.download='therapy-toaster-tag.png';a.href=cv.toDataURL('image/png');document.body.appendChild(a);a.click();a.remove();};
+size();var rt;window.addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(function(){if(Math.abs(wrap.getBoundingClientRect().width-W)>1)size();},150);});
+})();
+</script>
+</div>
+<!-- TTPW DOCK v1 START: moves the Tag Wall to just above Ride Starship (Choose Your Path stays up top) -->
+<style>#ttpw-dock{width:100%;max-width:1100px;margin:0 auto 32px;padding:0 4vw;box-sizing:content-box}@media(max-width:767px){#ttpw-dock{padding:0 6vw;max-width:none;box-sizing:border-box}}#ttpw-dock .ttpw-root{max-width:100%}</style>
+<script>(function(){if(window.ttpwDock)return;window.ttpwDock=1;var n=0,done=0;
+function refit(b){try{var g=b.closest('.fluid-engine');if(!g)return;var c=b.querySelector('.sqs-block-content');if(!c)return;var cs=getComputedStyle(g),rows=(cs.gridTemplateRows||'').split(' ').map(parseFloat).filter(function(x){return x>0}),rh=rows.length?rows[0]:0,gap=parseFloat(cs.rowGap)||0;var h=c.scrollHeight;if(!h){b.style.display='none';return}b.style.display='';if(rh>0)b.style.gridRowEnd='span '+(Math.ceil((h+gap)/(rh+gap))+1)}catch(e){}}
+function go(){if(done)return;try{var R=document.getElementById('ttpw-root'),P=document.querySelector('.ttpop-wrap'),S=document.getElementById('ttps');
+if(!R||!P){if(n++<60)setTimeout(go,100);return}
+if(S&&!S.getAttribute('data-mv')&&!window.ttcsNoMove&&n++<40){setTimeout(go,50);return}
+var A=P.closest('.fluid-engine')||P;var D=document.createElement('div');D.id='ttpw-dock';A.parentNode.insertBefore(D,A);
+var B=R.closest('.fe-block');D.appendChild(R);done=1;
+if(B){var q=0,f=function(){if(q)return;q=requestAnimationFrame(function(){q=0;refit(B)})};refit(B);window.addEventListener('load',f);window.addEventListener('resize',f);var c=B.querySelector('.sqs-block-content');if(window.ResizeObserver&&c)new ResizeObserver(f).observe(c)}
+try{window.dispatchEvent(new Event('resize'))}catch(e){}}catch(e){}}
+function st(){setTimeout(go,0)}
+if(document.readyState=='loading')document.addEventListener('DOMContentLoaded',st);else st();})();</script>
+<!-- TTPW DOCK v1 END -->
