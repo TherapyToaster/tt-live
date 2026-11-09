@@ -1,0 +1,15 @@
+<!doctype html><meta charset='utf-8'><title>verify</title>
+<p>Paste editor contents into the box below:</p>
+<textarea id='v' rows='10' cols='120' oninput='run()'></textarea>
+<div id='out'>waiting</div>
+<script>
+async function run(){
+  const s=document.getElementById('v').value;
+  const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));
+  const hex=Array.from(new Uint8Array(d)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  document.getElementById('out').textContent='U16='+s.length+' SHA256='+hex
+    +' HAS_257_B='+s.includes('<b>257</b> glitch pieces')+' HAS_257_TEASER='+s.includes('257 glitch pieces by Mr. Toasty')
+    +' HAS_CREATORS='+s.includes('Creators Gonna Create: Flame Static')
+    +' START='+JSON.stringify(s.slice(0,40))+' END='+JSON.stringify(s.slice(-40));
+}
+</script>
