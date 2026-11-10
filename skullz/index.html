@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.7.0"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.7.1"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <link rel="icon" href="data:,"><title>MR. TOASTY'S NO SIGNAL SKULLZ — Therapy Toaster</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Anton&family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
@@ -83,7 +83,7 @@ body.attract .ov h1.tth{background:radial-gradient(ellipse at 50% 55%,rgba(0,0,0
 #tsil{display:block;width:min(52vw,320px);height:auto;aspect-ratio:160/34;image-rendering:pixelated;visibility:hidden;margin:2px auto 0}
 .ov h1.tth small{max-width:94vw;margin-left:auto;margin-right:auto;letter-spacing:1px;line-height:1.6}
 @media (orientation:portrait){body.attract #title{background:radial-gradient(ellipse at 50% 35%,rgba(0,0,0,.35) 0,rgba(0,0,0,.7) 60%,rgba(0,0,0,.88) 100%)}}
-body.cardmode #title>*:not(h1):not(#tcap):not(#tsil){display:none!important}body.cardmode #title{justify-content:center}body.cardmode .ov h1.tth small{display:none}
+body.cardmode #title>*:not(h1):not(#tcap):not(#tsil){display:none!important}body.cardmode #title{justify-content:flex-start!important;padding:1vh 0 5vh!important}body.cardmode #tcap{margin-top:auto!important}body.cardmode #tcap{font-size:clamp(14px,3.4vw,34px)}body.cardmode .ov h1.tth small{display:none}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 #tcap{min-height:clamp(16px,3vw,30px);font-size:clamp(12px,2.6vw,26px);color:#fff;letter-spacing:3px;text-shadow:3px 0 #ff00c8,-3px 0 #00f0ff,0 0 12px #00f0ff;margin:4px 0 0}
 #tcap.in{animation:capin .45s steps(6) both}@keyframes capin{0%{opacity:0;transform:translateX(-30px) skewX(-30deg);clip-path:inset(0 100% 0 0)}60%{opacity:1;transform:translateX(6px) skewX(10deg)}100%{transform:none;clip-path:inset(0 0 0 0)}}
@@ -1766,7 +1766,7 @@ function drawLogo(g,t,o={}){const W2=LOGO_W,H2=LOGO_H,still=o.still,soft=o.shade
  g.drawImage(LOGO.scan,0,0)}
 // mount on the title overlay
 const LOGOV=(()=>{const c=$('tlogo');if(!c)return null;const g=c.getContext('2d');let t0=performance.now(),done=false;
- const fit=()=>{const dpr=devicePixelRatio||1,av=Math.min(innerWidth*.94,innerHeight*(CARDMODE?.78:.42)*1.5,CARDMODE?2400:960)*dpr,k=Math.max(1,Math.floor(av/LOGO_W));c.style.width=(k*LOGO_W/dpr)+'px';c.style.height=(k*LOGO_H/dpr)+'px'};fit();addEventListener('resize',fit);
+ const fit=()=>{const dpr=devicePixelRatio||1,av=Math.min(innerWidth*.94,innerHeight*(CARDMODE?.62:.42)*1.5,CARDMODE?2400:960)*dpr,k=Math.max(1,Math.floor(av/LOGO_W));c.style.width=(k*LOGO_W/dpr)+'px';c.style.height=(k*LOGO_H/dpr)+'px'};fit();addEventListener('resize',fit);
  function frame(ts){if(state=='title'){const still=RMOTION.matches;if(!(still&&done)){drawLogo(g,ts-t0,{still,shades:shadesOn});done=true}}requestAnimationFrame(frame)}requestAnimationFrame(frame);
  return{replay(){t0=performance.now();},finish(){t0=performance.now()-1600},canvas:c,draw:(t,o)=>drawLogo(g,t,o)}})();
 
@@ -1774,42 +1774,83 @@ const LOGOV=(()=>{const c=$('tlogo');if(!c)return null;const g=c.getContext('2d'
 // Plays only on the title screen, muted (no audio before or during the demo), skippable by any key/tap,
 // never touches meta/unlocks (start() makes a brand-new run), and is disabled for prefers-reduced-motion (one still frame instead).
 const ATTRACT=(()=>{
- const SC=[{f:2,cap:'15 FLOORS',w:0},{f:5,cap:'8 WEAPONS',w:1,w2:2},{f:8,cap:'COLLECT SKULLZ',w:3,skz:14},{f:11,cap:'BUY TOAST ARMOR',w:6,armor:1},{f:14,cap:'5 COTY BOSSES',w:2,boss:1}];
+ const SC=[{f:2,cap:'15 FLOORS',w:0,mode:'run'},{f:5,cap:'8 WEAPONS',w:1,w2:2,mode:'fight'},{f:4,cap:'FIND THE SECRETS',w:0,mode:'secret'},{f:8,cap:'COLLECT SKULLZ',w:3,skz:12,mode:'screen'},{f:11,cap:'BUY TOAST ARMOR',w:6,armor:1,mode:'run'},{f:3,cap:'5 COTY BOSSES',w:2,boss:1,mode:'boss'}];
  const DUR=4300;let on=false,skipped=false,si=-1,st=0,path=[],pk=0,idleT=0,lastIn=performance.now(),frames=0,buildMs=[];
  const capEl=()=>$('tcap');
  function setCap(s){const e=capEl();if(!e)return;e.textContent=s;e.classList.remove('in');void e.offsetWidth;e.classList.add('in')}
+ // v0.7.1: human-like camera. The BFS cell route is smoothed into a corner-cutting curve (Chaikin), the camera rides it with
+ // varying speed (accelerates, eases into corners, backpedals when a foe pops out), strafes/circle-strafes in fights, and the
+ // view is a damped spring (slight overshoot + settle) that looks ahead around corners, wanders a little, and flick-aims at foes.
+ let curve=[],clen=[],L=0,cs=0,cv=0,lat=0,av=0,bt=0,dist=0,backT=0,seenFoe=null,aimOff=0,orbitA=0,phase=0,flags={},bobPx=0;
+ function bfsFrom(start,block){const w=MW,h=MH,prev=new Int32Array(w*h).fill(-1),seen=new Uint8Array(w*h),q=[start];seen[start]=1;
+  for(let k=0;k<q.length;k++){const c=q[k];for(const d of[1,-1,w,-w]){const j=c+d;if(j<0||j>=w*h||seen[j]||map[j]||block.has(j))continue;seen[j]=1;prev[j]=c;q.push(j)}}return{q,prev,seen}}
+ function route(B,to){const p=[];for(let c=to;c!=-1;c=B.prev[c])p.unshift(c);return p}
+ function smooth(cells){const w=MW;let pts=cells.map(c=>[c%w+.5,((c/w)|0)+.5]);
+  for(let it=0;it<3;it++){if(pts.length<3)break;const o=[pts[0]];for(let i=0;i<pts.length-1;i++){const a=pts[i],b=pts[i+1];o.push([a[0]*.75+b[0]*.25,a[1]*.75+b[1]*.25],[a[0]*.25+b[0]*.75,a[1]*.25+b[1]*.75])}o.push(pts[pts.length-1]);pts=o}
+  curve=pts.filter(p=>!solid(p[0],p[1]));if(curve.length<2)curve=[[P.x,P.y],[P.x+Math.cos(P.a)*.01,P.y+Math.sin(P.a)*.01]];
+  clen=[0];for(let i=1;i<curve.length;i++)clen.push(clen[i-1]+Math.hypot(curve[i][0]-curve[i-1][0],curve[i][1]-curve[i-1][1]));L=clen[clen.length-1]}
+ function at(s){s=Math.max(0,Math.min(L,s));let lo=0,hi=clen.length-1;while(hi-lo>1){const m=(lo+hi)>>1;if(clen[m]<=s)lo=m;else hi=m}const a=curve[lo],b=curve[hi]||a,seg=(clen[hi]-clen[lo])||1,k=(s-clen[lo])/seg;return[a[0]+(b[0]-a[0])*k,a[1]+(b[1]-a[1])*k]}
+ function heading(s){const a=at(s-.15),b=at(s+.15);return Math.atan2(b[1]-a[1],b[0]-a[0])}
  function scene(i){si=i%SC.length;const S=SC[si];const t0=performance.now();MUTE=true;
   try{run.floor=S.f;run.special=null;shopCtx=null;buildFloor();
-   if(boss){run.floor=S.f+1;buildFloor()}
+   if(boss&&!S.boss){run.floor=S.f+1;buildFloor()}
    P.god=true;P.w=S.w;for(const k of['bul','sh','cell','rk'])P[k]=999;P.at=S.armor?2:0;P.ap=S.armor?50:0;
-   // camera path: BFS from the start to the farthest reachable cell
-   const w=MW,h=MH,sx=P.x|0,sy=P.y|0,prev=new Int32Array(w*h).fill(-1),seen=new Uint8Array(w*h),q=[sy*w+sx];seen[q[0]]=1;
-   for(let k=0;k<q.length;k++){const c=q[k];for(const d of[1,-1,w,-w]){const j=c+d;if(j<0||j>=w*h||seen[j]||map[j])continue;
-    if(props.some(p=>p.D.solid&&((p.y|0)*w+(p.x|0))==j))continue;seen[j]=1;prev[j]=c;q.push(j)}}
-   let far=q[Math.min(q.length-1,Math.max(12,(q.length*.6)|0))];path=[];for(let c=far;c!=-1;c=prev[c])path.unshift(c);if(path.length<4)path=[q[0],q[0]];
-   path=path.slice(0,16);pk=0;
-   // stage some action along the route: wake two floor enemies a few cells ahead, sprinkle Skullz
-   const live=ents.filter(e=>e.hp>0&&e.t!='boss');let n=0;for(const e of live){if(n>=2)break;const c=path[Math.min(path.length-1,5+n*5)];if(c==null)break;
-    const cx=c%w+.5,cy=((c/w)|0)+.5;e.x=e.hx=cx+(Math.random()-.5)*.3;e.y=e.hy=cy+(Math.random()-.5)*.3;e.awake=false;n++}
-   for(let k=2;k<path.length&&k<2+(S.skz||5);k++){const c=path[k];pickups.push({t:'skz',v:1,x:c%w+.5+(Math.random()-.5)*.4,y:((c/w)|0)+.5+(Math.random()-.5)*.4})}
-   const c1=path[1]||path[0];P.a=Math.atan2(((c1/w)|0)+.5-P.y,c1%w+.5-P.x);
+   const w=MW,block=new Set(props.filter(p=>p.D.solid).map(p=>((p.y|0)*w+(p.x|0))));let B=bfsFrom((P.y|0)*w+(P.x|0),block),cells=null;flags={};
+   if(S.mode=='secret'&&MAIN_SEC>=0&&ART_POCKET>=0){const oc=MAIN_SEC-(ART_POCKET-MAIN_SEC);if(B.seen[oc]){const r=route(B,oc);cells=r.slice(Math.max(0,r.length-6));flags.secret=oc}}
+   if(S.mode=='screen'){for(const[c,Sp]of WSPEC)if(Sp.screen&&B.seen[Sp.face]){const r=route(B,Sp.face);if(r.length>=5){cells=r.slice(Math.max(0,r.length-8));flags.screen=c;break}}}
+   if(S.mode=='boss'&&boss){flags.boss=1;orbitA=Math.atan2(P.y-boss.y,P.x-boss.x);const R=3.4;P.x=boss.x+Math.cos(orbitA)*R;P.y=boss.y+Math.sin(orbitA)*R;if(solid(P.x,P.y)){P.x=boss.x+Math.cos(orbitA)*2.2;P.y=boss.y+Math.sin(orbitA)*2.2}
+    P.a=Math.atan2(boss.y-P.y,boss.x-P.x)+.9;boss.awake=true;cells=[(P.y|0)*w+(P.x|0)]}
+   if(!cells){const far=B.q[Math.min(B.q.length-1,Math.max(14,(B.q.length*.6)|0))];cells=route(B,far).slice(0,22)}
+   if(cells.length&&!flags.boss){const c0=cells[0];P.x=c0%w+.5;P.y=((c0/w)|0)+.5}
+   smooth(cells.length>1?cells:[cells[0],cells[0]]);
+   // clear the stage: no stray enemies along the route (only the staged ones below)
+   if(!flags.boss){const near=e=>curve.some(p=>Math.hypot(p[0]-e.x,p[1]-e.y)<6.5);for(const e of ents)if(e.t!='boss'&&e.hp>0&&near(e)){e.x=e.hx=-50;e.y=e.hy=-50;e.hp=0;e.gone=1}ents=ents.filter(e=>!e.gone)}
+   // stage action along the route: two floor enemies a few metres ahead (off the line a bit), Skullz to grab in passing
+   if(!flags.boss){const live=ents.filter(e=>e.hp>0&&e.t!='boss');let n=0;for(const e of live){if(n>=(S.mode=='fight'?3:2)||flags.secret||flags.screen)break;const p=at(Math.min(L-.5,3.2+n*3.4));if(!p)break;
+     const hd=heading(Math.min(L-.5,3.2+n*3.4)),side=(n%2?1:-1)*.28;let x=p[0]-Math.sin(hd)*side,y=p[1]+Math.cos(hd)*side;if(solid(x,y)){x=p[0];y=p[1]}e.x=e.hx=x;e.y=e.hy=y;e.awake=false;n++}
+    for(let k=0;k<(S.skz||5);k++){const s=1+k*(L-1.5)/Math.max(1,(S.skz||5)),p=at(s),hd=heading(s),o=Math.sin(k*1.7)*.22;const x=p[0]-Math.sin(hd)*o,y=p[1]+Math.cos(hd)*o;if(!solid(x,y))pickups.push({t:'skz',v:k%5==4?5:1,x,y})}}
+   if(!flags.boss)P.a=heading(.2)+(Math.random()-.5)*.5;
+   cs=0;cv=flags.boss?0:1.2;lat=0;av=0;backT=0;seenFoe=null;aimOff=0;phase=Math.random()*6;dist=0;
   }finally{MUTE=on}
   buildMs.push(performance.now()-t0);st=0;setCap(S.cap)}
  const ang=a=>Math.atan2(Math.sin(a),Math.cos(a));
  function tick(t,rdt){if(!on)return;const dt=Math.min(rdt,.05);st+=dt*1000;if(st>DUR||si<0)scene(si+1);const S=SC[si];
-  const w=MW,prevState=state;MUTE=true;state='play';
-  try{// glide along the path
-   const tgt=path[Math.min(path.length-1,pk+1)],tx=tgt%w+.5,ty=((tgt/w)|0)+.5,dx=tx-P.x,dy=ty-P.y,d=Math.hypot(dx,dy);
-   let foe=null,fd=9;for(const e of ents){if(e.hp<=0||e.t=='boss')continue;const ed=Math.hypot(e.x-P.x,e.y-P.y);if(ed<fd&&los(P.x,P.y,e.x,e.y)){fd=ed;foe=e}}
-   const sp=foe&&fd<4?.6:2.3;if(d<.08){if(pk<path.length-2)pk++}else{const m=Math.min(d,sp*dt);P.x+=dx/d*m;P.y+=dy/d*m}
-   const look=foe?Math.atan2(foe.y-P.y,foe.x-P.x):Math.atan2(dy,dx),da=ang(look-P.a);P.a+=da*Math.min(1,dt*(foe?7:3.2));
-   if(S.w2&&st>DUR/2)P.w=S.w2;
-   if(foe&&Math.abs(da)<.12&&P.cd<=0)fire();
+  const w=MW,prevState=state;MUTE=true;state='play';const T=st/1000;
+  try{let foe=null,fd=8;for(const e of ents){if(e.hp<=0||(e.t=='boss'&&!flags.boss)||(e.t=='boss'&&e.freed))continue;const ed=Math.hypot(e.x-P.x,e.y-P.y);if(ed<fd&&los(P.x,P.y,e.x,e.y)){fd=ed;foe=e}}
+   if(foe&&foe!==seenFoe){seenFoe=foe;backT=foe.t=='boss'||flags.backed?0:.3;flags.backed=1;aimOff=(Math.random()<.5?-1:1)*(.12+Math.random()*.1);if(S.w2&&st>DUR*.35)P.w=S.w2}
+   if(!foe)seenFoe=null;aimOff*=Math.exp(-dt*5);backT-=dt;
+   let desired;
+   if(flags.boss&&boss){// circle-strafe around the boss, facing it
+    orbitA+=dt*.55;const R=3.2+Math.sin(T*1.3)*.4;let nx=boss.x+Math.cos(orbitA)*R,ny=boss.y+Math.sin(orbitA)*R;if(!solid(nx,ny)){P.x+=(nx-P.x)*Math.min(1,dt*3);P.y+=(ny-P.y)*Math.min(1,dt*3)}
+    desired=Math.atan2(boss.y-P.y,boss.x-P.x)+aimOff;cv=1}
+   else{// speed: cruise with a little rhythm, ease into corners, slow in fights, brief backpedal when a foe pops out, ease to a drift at the end
+    const turn=Math.abs(ang(heading(cs+.9)-heading(cs+.05)));let vt=2.5+.45*Math.sin(T*1.1+phase)-Math.min(1.1,turn*1.3);
+    if(foe)vt=fd<2.2?.6:1.5;if(backT>0)vt=-.9;
+    if(flags.secret!=null&&!flags.opened){const left=L-cs;vt=Math.min(vt,.35+left*1.2)}
+    if(L-cs<1.2&&!flags.opened)vt=Math.min(vt,.25+(L-cs)*.8);
+    cv+=(vt-cv)*Math.min(1,dt*(vt<cv?3.2:2.2));cs=Math.max(0,Math.min(L,cs+cv*dt));
+    // strafe: side-to-side in fights, a lazy drift otherwise (only where the wall allows)
+    const lt=foe?Math.sin(T*2.6+phase)*.3:Math.sin(T*.7+phase)*.07;lat+=(lt-lat)*Math.min(1,dt*4);
+    const p=at(cs),hd=heading(cs);let x=p[0]-Math.sin(hd)*lat,y=p[1]+Math.cos(hd)*lat;if(solid(x,y)||solid(x+.18,y)||solid(x-.18,y)||solid(x,y+.18)||solid(x,y-.18)){x=p[0];y=p[1];lat*=.5}
+    dist+=Math.hypot(x-P.x,y-P.y);P.x=x;P.y=y;
+    const la=at(cs+1.5);desired=Math.hypot(la[0]-P.x,la[1]-P.y)>.3?Math.atan2(la[1]-P.y,la[0]-P.x):hd;
+    desired+=.07*Math.sin(T*1.3+phase)+.035*Math.sin(T*2.9);
+    if(foe)desired=Math.atan2(foe.y-P.y,foe.x-P.x)+aimOff;
+    // v0.7 beats: open the secret wall, step in and admire the painting / stop and watch the wall screen
+    if(flags.secret!=null){const sc=MAIN_SEC;if(!flags.opened&&L-cs<.35){if(map[sc]&&!OPENING.has(sc)){OPENING.set(sc,.001);run.secrets++;stats.found=(stats.found||0)+1;flash('#FFD400',.12);gib(sc%w+.5,((sc/w)|0)+.5,['#FFD400','#fff','#8a7a60'],16,.1,1.2)}flags.opened=1;flags.ot=T}
+     if(flags.opened){desired=Math.atan2(((ART_POCKET/w)|0)+.5-P.y,ART_POCKET%w+.5-P.x);if(T-flags.ot>.75&&!map[sc]){const tx=sc%w+.5,ty=((sc/w)|0)+.5;P.x+=(tx-P.x)*Math.min(1,dt*1.3);P.y+=(ty-P.y)*Math.min(1,dt*1.3)}}}
+    if(flags.screen!=null&&L-cs<2.2){const c=flags.screen;desired=Math.atan2(((c/w)|0)+.5-P.y,c%w+.5-P.x)+.05*Math.sin(T*1.7)}}
+   // the view: damped spring (slight overshoot + settle); stiffer while flick-aiming
+   const err=ang(desired-P.a),K=foe?150:55,C=foe?17:10.5;av+=(K*err-C*av)*dt;P.a+=av*dt;
+   if(foe&&Math.abs(err)<.07&&P.cd<=0)fire();
    for(const k of['bul','sh','cell','rk'])P[k]=999;P.hp=P.maxhp;
-   update(dt);
+   // the demo never takes doors, opens the shop, or frees a boss
+   const ea=exitAt,ia=insiderAt,ca=cursedAt;exitAt=insiderAt=cursedAt=-1;for(const q of props)if(q.D.vendor)q.cool=true;if(boss&&boss.hp>0)boss.hp=Math.max(boss.hp,boss.max*.6);
+   try{update(dt)}finally{exitAt=ea;insiderAt=ia;cursedAt=ca}P.moving=Math.abs(cv)>.4;
+   bt+=dt*Math.abs(cv);bobPx=flags.boss?Math.sin(T*6)*1:Math.sin(bt*5.2)*1.4*Math.min(1,Math.abs(cv)/2);
   }catch(e){console.warn('attract',e)}finally{state=prevState}
   if(state!='title'){end();return}
-  render(t,dt);if(S.boss)bossTease(st/DUR);if(st<220)cut(1-st/220);const vis=!!(S.boss||S.armor||S.skz);if(strip){strip.style.visibility=vis?'visible':'hidden';if(vis)drawStrip(S,st/DUR)}frames++}
+  render(t,dt);if(bobPx){const b=Math.round(bobPx);if(b)ctx.drawImage(ctx.canvas,0,b)}if(S.boss)bossTease(st/DUR);if(st<220)cut(1-st/220);const vis=!!(S.boss||S.armor||S.skz);if(strip){strip.style.visibility=vis?'visible':'hidden';if(vis)drawStrip(S,st/DUR)}frames++}
  // the Coty boss tease: black silhouettes sliding in with glowing eyes
  const SIL=(()=>{const o={};for(const k of['fat','toasty','trig','blankey','nit']){const s=COTY_ART[k],c=document.createElement('canvas');c.width=s.width;c.height=s.height;const g=c.getContext('2d');g.drawImage(s,0,0);g.globalCompositeOperation='source-in';g.fillStyle='#07000c';g.fillRect(0,0,c.width,c.height);o[k]=c}return o})();
  // scene cut: a burst of TV static (also hides the floor-build hitch)
@@ -1819,7 +1860,7 @@ const ATTRACT=(()=>{
  const SIL0={};for(const k in SIL){SIL[k].__k=k;SIL0[k]=SIL[k]}const RIM={};for(const k in SIL)RIM[k]=rim(SIL[k],k=='nit'?'#00f0ff':'#ff00c8');
  const eyes=(g,x,y,s,i)=>{if(((performance.now()/120)|0)%7!=i){g.fillStyle='#ff0040';g.fillRect((x+s*.37)|0,(y+s*.42)|0,Math.max(2,s/20)|0,Math.max(1,s/32)|0);g.fillRect((x+s*.56)|0,(y+s*.42)|0,Math.max(2,s/20)|0,Math.max(1,s/32)|0)}};
  // engine: big rim-lit silhouettes at the screen edges (outside the logo column)
- function bossTease(p){if(p<.15)return;const k=Math.min(1,(p-.15)/.3),ks=['fat','toasty','trig','blankey'];ctx.fillStyle=`rgba(40,0,30,${.45*k})`;ctx.fillRect(0,0,W,H);
+ function bossTease(p){if(p<.42)return;const k=Math.min(1,(p-.42)/.3),ks=['fat','toasty','trig','blankey'];ctx.fillStyle=`rgba(40,0,30,${.45*k})`;ctx.fillRect(0,0,W,H);
   ks.forEach((n,i)=>{const s=58,x=(i<2?4+i*44:W-62-(3-i)*44)+(1-k)*(i<2?-140:140),y=58+(i%2)*26+Math.sin(performance.now()*.003+i)*2;ctx.globalAlpha=k;ctx.drawImage(RIM[n],x|0,y|0,s+4,s+4);eyes(ctx,x+2,y+2,s,i);ctx.globalAlpha=1})}
  // caption strip (in the menu flow, so it shows on phones too): a tiny animated sticker per scene
  const strip=$('tsil'),sg=strip&&strip.getContext('2d');if(sg)sg.imageSmoothingEnabled=false;
@@ -1834,7 +1875,7 @@ const ATTRACT=(()=>{
  function skip(){if(!on&&skipped)return;skipped=true;lastIn=performance.now();end();ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);LOGOV&&LOGOV.finish()}
  // resume after 40s idle on the title
  setInterval(()=>{if(state=='title'&&skipped&&!on&&performance.now()-lastIn>40000)begin()},2000);
- return{tick,begin,end,skip,get st(){return st},get on(){return on},get scene(){return si},get cap(){return si>=0?SC[si].cap:''},get frames(){return frames},get buildMs(){return buildMs},poke(){lastIn=performance.now()},SC}})();
+ return{tick,begin,end,skip,get st(){return st},get on(){return on},get scene(){return si},get cap(){return si>=0?SC[si].cap:''},get frames(){return frames},get buildMs(){return buildMs},get flags(){return flags},get L(){return L},get cs(){return cs},poke(){lastIn=performance.now()},SC}})();
 // any key (except Enter/Space, which start a run) or a tap on empty title space skips the intro
 addEventListener('keydown',e=>{if(state=='title'){const k=e.key.toLowerCase();if(k!='enter'&&k!=' ')ATTRACT.skip();else ATTRACT.poke()}},true);
 (()=>{const T=$('title');const h=e=>{if(state!='title')return;if(e.target.closest('button,a,summary,details,input'))return;ATTRACT.skip()};T.addEventListener('pointerdown',h)})();
@@ -1950,21 +1991,34 @@ function texCanvas(T){const c=mk(64,64),g=c.getContext('2d'),d=g.createImageData
 function canvasU32(c,w,h){const u=new Uint32Array(c.getContext('2d').getImageData(0,0,w,h).data.buffer.slice(0));for(let i=0;i<u.length;i++)u[i]=(u[i]|0xff000000)>>>0;return u}
 function artDraw(g,i,f,x,y,w,h){const M=ART_META[i];if(!M||!ARTC)return false;g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';g.drawImage(ARTC,(f%M.n)*128+M.ox,M.row*128+M.oy,M.w,M.h,x,y,w,h);return true}
 function fitIn(i,bw,bh){const M=ART_META[i];if(!M)return[bw,bh];const k=Math.min(bw/M.w,bh/M.h);return[Math.round(M.w*k),Math.round(M.h*k)]}
-// framed painting (128x128 per frame): the wall it hangs on, a gold glitch frame, the art, a little plaque
-function paintingTexs(wallTile,piece){const M=ART_META[piece],n=M?M.n:1,out=[],bg=texCanvas(TEX[wallTile-1]||TEX[0]);const[aw,ah]=fitIn(piece,92,98),x=64-aw/2|0,y=56-ah/2|0;
- for(let f=0;f<n;f++){const c=mk(128,128),g=c.getContext('2d');g.imageSmoothingEnabled=false;g.drawImage(bg,0,0,128,128);
+// v0.7.1: paintings/screens are composed from a per-piece transparent "block" (frame/bezel + art, drawn once per piece and cached)
+// blitted onto the wall texture with typed arrays — no canvas readbacks during floor builds (the attract loop builds a floor per scene).
+const BLOCKS=new Map(),TEXCACHE=new Map();
+function rawU32(c){return new Uint32Array(c.getContext('2d',{willReadFrequently:true}).getImageData(0,0,128,128).data.buffer.slice(0))}
+function paintBlock(piece){const k='p'+piece;if(BLOCKS.has(k))return BLOCKS.get(k);const M=ART_META[piece],n=M?M.n:1,out=[];const[aw,ah]=fitIn(piece,92,98),x=64-aw/2|0,y=56-ah/2|0;
+ for(let f=0;f<n;f++){const c=mk(128,128),g=c.getContext('2d',{willReadFrequently:true});
   g.fillStyle='#0008';g.fillRect(x-5,y-3,aw+14,ah+14);g.fillStyle='#5a3a08';g.fillRect(x-7,y-7,aw+14,ah+14);g.fillStyle='#e3b303';g.fillRect(x-6,y-6,aw+12,ah+12);
   g.fillStyle='#fff3a0';g.fillRect(x-6,y-6,aw+12,1);g.fillRect(x-6,y-6,1,ah+12);g.fillStyle='#8a5a10';g.fillRect(x-3,y-3,aw+6,ah+6);g.fillStyle='#000';g.fillRect(x-1,y-1,aw+2,ah+2);
   for(const[cx,cy]of[[x-6,y-6],[x+aw+3,y-6],[x-6,y+ah+3],[x+aw+3,y+ah+3]]){g.fillStyle='#ff00c8';g.fillRect(cx,cy,3,3)}
   if(!artDraw(g,piece,f,x,y,aw,ah)){g.fillStyle='#120018';g.fillRect(x,y,aw,ah);g.fillStyle='#FFD400';g.font='bold 40px monospace';g.textAlign='center';g.fillText('?',64,y+ah/2+14)}
   g.fillStyle='#1a1206';g.fillRect(46,y+ah+9,36,9);g.fillStyle='#e3b303';g.fillRect(47,y+ah+10,34,7);g.fillStyle='#1a1206';g.font='bold 7px monospace';g.textAlign='center';g.fillText('#'+(piece+1)+'/'+ART_N,64,y+ah+16);
-  out.push(canvasU32(c,128,128))}return out}
-// NO SIGNAL TV screen looping an animated piece (bezel sized to the art)
-function screenTexs(wallTile,piece){const M=ART_META[piece],n=M?M.n:1,out=[],bg=texCanvas(TEX[wallTile-1]||TEX[0]);const[aw,ah]=fitIn(piece,104,88),x=64-aw/2|0,y=58-ah/2|0;
- for(let f=0;f<n;f++){const c=mk(128,128),g=c.getContext('2d');g.imageSmoothingEnabled=false;g.drawImage(bg,0,0,128,128);
+  out.push(rawU32(c))}if(ARTC)BLOCKS.set(k,out);return out}
+function screenBlock(piece){const k='s'+piece;if(BLOCKS.has(k))return BLOCKS.get(k);const M=ART_META[piece],n=M?M.n:1,out=[];const[aw,ah]=fitIn(piece,104,88),x=64-aw/2|0,y=58-ah/2|0;
+ for(let f=0;f<n;f++){const c=mk(128,128),g=c.getContext('2d',{willReadFrequently:true});
   g.fillStyle='#0009';g.fillRect(x-4,y-4,aw+12,ah+18);g.fillStyle='#14141c';g.fillRect(x-6,y-6,aw+12,ah+18);g.fillStyle='#2a2a36';g.fillRect(x-4,y-4,aw+8,ah+14);g.fillStyle='#050508';g.fillRect(x-1,y-1,aw+2,ah+2);
-  artDraw(g,piece,f,x,y,aw,ah);const d=g.getImageData(x,y,aw,ah),p=d.data;for(let yy=0;yy<ah;yy+=2)for(let xx=0;xx<aw;xx++){const k=(yy*aw+xx)*4;p[k]*=.8;p[k+1]*=.8;p[k+2]*=.8}g.putImageData(d,x,y);// scanlines
-  g.fillStyle='#ff0040';g.fillRect(x+aw-6,y+ah+4,3,2);g.fillStyle='#e3b303';g.font='bold 5px monospace';g.textAlign='left';g.fillText('NO SIGNAL TV',x,y+ah+7);out.push(canvasU32(c,128,128))}return out}
+  artDraw(g,piece,f,x,y,aw,ah);g.fillStyle='rgba(0,0,0,.2)';for(let yy=0;yy<ah;yy+=2)g.fillRect(x,y+yy,aw,1);// scanlines
+  g.fillStyle='#ff0040';g.fillRect(x+aw-6,y+ah+4,3,2);g.fillStyle='#e3b303';g.font='bold 5px monospace';g.textAlign='left';g.fillText('NO SIGNAL TV',x,y+ah+7);out.push(rawU32(c))}if(ARTC)BLOCKS.set(k,out);return out}
+function onWall(wallTile,blk,key){if(TEXCACHE.has(key))return TEXCACHE.get(key);const T=TEX[wallTile-1]||TEX[0],base=new Uint32Array(16384);
+ for(let y=0;y<128;y++){const r=(y>>1)*64;for(let x=0;x<128;x++)base[y*128+x]=(T[r+(x>>1)]|0xff000000)>>>0}
+ const out=blk.map(F=>{const u=base.slice();for(let i=0;i<16384;i++){const c=F[i],a=c>>>24;if(!a)continue;if(a==255){u[i]=c;continue}const b=u[i],k=a/255,q=1-k;
+   u[i]=(0xff000000|((((b>>>16)&255)*q+((c>>>16)&255)*k)<<16)|((((b>>>8)&255)*q+((c>>>8)&255)*k)<<8)|(((b&255)*q+(c&255)*k)|0))>>>0}return u});
+ if(ARTC)TEXCACHE.set(key,out);return out}
+function paintingTexs(wallTile,piece){return onWall(wallTile,paintBlock(piece),'p'+wallTile+'/'+piece)}
+function screenTexs(wallTile,piece){return onWall(wallTile,screenBlock(piece),'s'+wallTile+'/'+piece)}
+// warm the per-piece blocks in idle time after load so the first floors/attract scenes don't pay for them
+function warmBlocks(){if(!ARTC){setTimeout(warmBlocks,300);return}const jobs=[];for(let i=0;i<ART_N;i++){jobs.push(()=>paintBlock(i));if(ART_META[i].n>1)jobs.push(()=>screenBlock(i))}
+ const step=()=>{const j=jobs.shift();if(!j)return;j();(window.requestIdleCallback||setTimeout)(step,{timeout:200})};setTimeout(step,600)}
+warmBlocks();
 // reachability from the player with closed walls solid; HIDDEN = open cells you can't reach yet (secret pockets/vaults)
 function v07Reach(){const w=MW,h=MH,seen=new Uint8Array(w*h),s=(P.y|0)*w+(P.x|0),q=[s];seen[s]=1;
  for(let k=0;k<q.length;k++){const c=q[k];for(const d of[1,-1,w,-w]){const j=c+d;if(j<0||j>=w*h||seen[j]||map[j])continue;seen[j]=1;q.push(j)}}return seen}
