@@ -1,5 +1,5 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.5"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<link rel="icon" href="data:,"><title>MR. TOASTY'S SKULLZ — Therapy Toaster</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.5.1"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<link rel="icon" href="data:,"><title>MR. TOASTY'S NO SIGNAL SKULLZ — Therapy Toaster</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Anton&family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
 html,body{margin:0;height:100%;background:#000;overflow:hidden;color:#FFD400;font-family:'Press Start 2P',monospace;touch-action:none;user-select:none;-webkit-user-select:none}
@@ -8,7 +8,7 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden;color:#FFD400;fon
 #hud{pointer-events:none}#hud b{display:block;font-size:.6em;color:#fff;opacity:.7}
 #msg{position:fixed;top:12px;left:0;right:0;text-align:center;font-size:clamp(8px,1.3vw,13px);color:#FFD400;text-shadow:0 0 6px #000,1px 1px #000;pointer-events:none}
 .ov{position:fixed;inset:0;display:none;overflow:auto;flex-direction:column;align-items:center;justify-content:safe center;text-align:center;background:#000}
-.ov h1{font-family:Anton,Impact,sans-serif;font-weight:400;font-size:min(10vw,11vh,120px);margin:0;line-height:.95;letter-spacing:2px;color:#FFD400;text-shadow:4px 0 #ff00c8,-4px 0 #00f0ff}
+.ov h1{font-family:Anton,Impact,sans-serif;font-weight:400;font-size:min(10vw,11vh,120px);}.ov h1.tth{font-size:min(9vw,10vh,110px)}.ov h1{margin:0;line-height:.95;letter-spacing:2px;color:#FFD400;text-shadow:4px 0 #ff00c8,-4px 0 #00f0ff}
 .ov h1 small{display:block;font-size:.38em;color:#fff;text-shadow:none;letter-spacing:6px}
 .ov p{font-size:clamp(8px,1.2vw,12px);line-height:2;color:#ddd;max-width:760px;padding:0 12px}
 .btn{font:inherit;background:#FFD400;color:#000;border:0;padding:min(14px,2vh) 22px;margin:min(14px,2vh);cursor:pointer;font-size:clamp(10px,1.4vw,14px);box-shadow:4px 4px 0 #ff00c8}
@@ -54,7 +54,7 @@ html,body{color:#e3b303}.ov{background:radial-gradient(ellipse at 50% 30%,#1a140
 <div id="pad"><div id="joy"><div id="knob"></div></div></div>
 <div class="tb" id="bFire">FIRE</div><div class="tb" id="bUse">USE</div><div class="tb" id="bWpn">WPN</div><div class="tb" id="bMap">MAP</div>
 <div class="ov" id="title" style="display:flex"><canvas id="tart" width="320" height="200"></canvas>
-<p id="greet"></p><h1>MR. TOASTY'S<br>SKULLZ<small>A 404 DUNGEON CRAWLER · STARRING MR. TOASTY</small></h1><div class="drip"></div><p id="quip"></p>
+<p id="greet"></p><h1 class="tth">MR. TOASTY'S<br><span style="white-space:nowrap">NO SIGNAL SKULLZ</span><small>A 404 DUNGEON CRAWLER · STARRING MR. TOASTY</small></h1><div class="drip"></div><p id="quip"></p>
 <div class="modes"><button class="btn" data-start="standard">START RUN<small>15 FLOORS · BEAT THE GLITCH</small></button><button class="btn" id="bdaily" data-start="daily">DAILY</button><button class="btn" id="bendless" data-start="endless">ENDLESS</button></div>
 <p id="load">LOADING SIGNAL…</p>
 <div class="lo"><button id="lw"></button><button id="lp"></button><button id="lsh"></button><button id="lsg"></button></div>
