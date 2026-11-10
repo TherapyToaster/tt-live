@@ -14,6 +14,10 @@ var NAME="Mr. Toasty's No Signal Skullz",NAME_UP="MR. TOASTY'S NO SIGNAL SKULLZ"
 function hideStyle(){if(!HIDE_ORIGINAL||document.getElementById('tt-sk-hide'))return;var st=document.createElement('style');st.id='tt-sk-hide';
  st.textContent='#tt-arc .tt-ns:not([data-sk-card]){display:none!important}';(document.head||document.documentElement).appendChild(st)}
 hideStyle();
+/* v0.6.1: compact player bar on short (landscape phone) screens so the game gets the height */
+(function(){if(document.getElementById('tt-sk-ovcss'))return;var st=document.createElement('style');st.id='tt-sk-ovcss';
+ st.textContent='@media (max-height:500px){#tt-sk-ov .tt-ns-ov-bar{padding:2px 8px;font-size:10px;gap:8px;border-bottom-width:1px}#tt-sk-ov .tt-ns-ov-bar a{font-size:10px}#tt-sk-ov .tt-ns-ov-x{width:26px;height:26px;font-size:15px}}';
+ (document.head||document.documentElement).appendChild(st)})();
 var U='https://therapytoaster.github.io/tt-live/skullz/';
 /* v0.6: animated card art. A ~0.8MB muted looping preview of the attract loop, lazy-loaded only when the card
    scrolls into view; skipped for prefers-reduced-motion and Save-Data; the thumbnail stays as poster/fallback. */
