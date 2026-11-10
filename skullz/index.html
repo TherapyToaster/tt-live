@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.5.1"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.5.2"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <link rel="icon" href="data:,"><title>MR. TOASTY'S NO SIGNAL SKULLZ — Therapy Toaster</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Anton&family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
@@ -536,7 +536,7 @@ const PROPS={
   chest:{spr:'chest',open:'chestO',s:.5,chest:1},
   gchest:{spr:'chestG',open:'chestGO',s:.55,chest:2,light:[255,200,60,2.2,70]},
   brazier:{anim:['brazier0','brazier1'],s:.7,light:[255,140,40,4.2,150],ember:1},
-  crt:{anim:['crt0','crt1'],s:.55,solid:1,light:[80,220,255,2.6,90]},
+  crt:{anim:['crt0','crt1'],s:.55,solid:1,hp:12,crt:1,light:[80,220,255,2.6,90]}, // v0.5.2: breakable (sparks + small skullz)
   bonepile:{spr:'bonepile',s:.5},
   spike:{spr:'spikeD',s:.45,spike:1},
   vendor:{spr:'vendor',s:.9,solid:1,vendor:1,light:[255,212,0,3.4,120]},
@@ -1022,6 +1022,24 @@ function chestLoot(p){const gold=p.D.chest==2||p.gold,f=run.floor,x=p.x,y=p.y,L=
   else if(r<.62)L.push({t:f>=9&&rnd()<.4?'armor2':'armor1'});else L.push({t:rnd()<.5?'ammo':'health'});
   if(gold&&rnd()<.5)L.push({t:f>=8?'armor3':'armor2'});
   for(const q of L){const a=rnd()*6.28,d=.25+rnd()*.45;let px=x+Math.cos(a)*d,py=y+Math.sin(a)*d;if(solid(px,py)){px=x;py=y}pickups.push(Object.assign({x:px,y:py},q))}}
+// v0.5.2: solid props (crates, barrels, CRTs, vendor) must never block the way. A solid prop is OK only if it stands in an
+// open 3x3 room interior, at the end of a dead end (breakable ones), or (template props like the vendor/store crates)
+// in a cell with 3+ open sides whose blocking doesn't cut off any walkable cell. Anything else is moved or removed.
+function fixSolidProps(list,w,h,start){const open=i=>i>=0&&i<w*h&&!map[i];const n4=i=>[1,-1,w,-w].filter(d=>open(i+d)).length;
+ const roomy=i=>{for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)if(!open(i+dy*w+dx))return false;return true};
+ const cellOf=q=>((q.y|0)*w+(q.x|0));
+ const count=blk=>{const seen=new Uint8Array(w*h);if(blk.has(start))return 0;const Q=[start];seen[start]=1;for(let k=0;k<Q.length;k++){const i=Q[k];for(const d of[1,-1,w,-w]){const j=i+d;if(open(j)&&!seen[j]&&!blk.has(j)){seen[j]=1;Q.push(j)}}}return Q.length};
+ const keep=[],blk=new Set(),used=new Set(list.map(cellOf));
+ for(const q of list){if(!q.D.solid){keep.push(q);continue}const c=cellOf(q),n=n4(c),brk=!!q.D.hp;
+  const base=count(blk),cut=count(new Set([...blk,c]))<base-1;
+  let ok=c!=start&&!cut&&(roomy(c)||(brk&&n==1)||(n>=3&&(q.D.vendor||q.tpl)));
+  if(ok){keep.push(q);blk.add(c);continue}
+  if(q.D.vendor||q.k=='crt'){ // relocate to the nearest open room interior
+   let best=-1,bd=1e9;for(let i=0;i<w*h;i++){if(!open(i)||used.has(i)||i==start||!roomy(i))continue;const dd=Math.hypot(i%w-q.x,((i/w)|0)-q.y);if(dd<bd&&count(new Set([...blk,i]))>=count(blk)-1){bd=dd;best=i}}
+   if(best>=0){used.add(best);q.x=best%w+.5;q.y=((best/w)|0)+.5;keep.push(q);blk.add(best);continue}}
+  if(q.D.chest==null&&!q.D.vendor){ // crate/barrel/crt that can't stay: drop it (crates leave their loot roll to other crates)
+   continue}keep.push(q)}
+ return keep}
 function buildFloor(){
   const f=run.floor;seed=((runSeed*31+f*7919)%2147483646)+1;seed2=((runSeed*17+f*104729)%2147483646)+1;
   const B=bossFor(f);theme=themeFor(f);if(B){const AT=ARENA_THEMES[B.arena];theme=Object.assign({},theme,AT)}buildBg(theme);
@@ -1065,8 +1083,8 @@ function buildFloor(){
       else if(c=='p')pickups.push({t:shuffle(['ammo','shells','health','cells'])[0],x,y});else if(c=='b')pickups.push({t:'skz',x,y,v:3});
       else if(c=='c'){const mim=rid!='svault'&&f>=4&&rnd()<.12;addProp(rid=='svault'?'gchest':'chest',x,y,{mimic:mim})}
       else if(c=='w'){const ww=rollWeapon(rnd,wPlaced);if(ww>=0){wPlaced.push(ww);pickups.push({t:'wpn',w:ww,x,y})}else pickups.push({t:'skz',v:5,x,y})}
-      else if(c=='x')addProp(rnd()<.25?'barrel':'crate',x,y);else if(c=='l')addProp('brazier',x,y);else if(c=='s')addProp('spike',x,y,{t0:rnd()*2});
-      else if(c=='v')addProp('vendor',x,y,{stock:null});
+      else if(c=='x')addProp(rnd()<.25?'barrel':'crate',x,y,{tpl:1});else if(c=='l')addProp('brazier',x,y);else if(c=='s')addProp('spike',x,y,{t0:rnd()*2});
+      else if(c=='v')addProp('vendor',x,y,{stock:null,tpl:1});
       else if(c=='k'){for(let q=0;q<3;q++)pickups.push({t:'skz',v:1,x:x+(rnd()-.5)*.6,y:y+(rnd()-.5)*.6});pickups.push({t:'skz',v:rnd()<.5?5:1,x,y})}}
     const open=shuffle(cells.filter(i=>i!=pocket&&d[i]>=5&&!taken.has(i)));
     const ne=Math.min(open.length,Math.round((5+f*2)*(FL.enemyMul||1))-Math.min(4,marks.filter(m=>m[1]=='e'||m[1]=='E').length));
@@ -1079,7 +1097,9 @@ function buildFloor(){
     const nCh=(f==1?1:1+(rnd()<.5?1:0)),nCr=2+((rnd()*3)|0)+(f>6?1:0);
     for(let k=0;k<nCh&&deadEnds.length;k++){const i=deadEnds.pop();taken.add(i);addProp('chest',i%w+.5,((i/w)|0)+.5,{mimic:f>=4&&rnd()<.12})}
     for(let k=0;k<nCr&&deadEnds.length;k++){const i=deadEnds.pop();taken.add(i);addProp(rnd()<.3?'barrel':'crate',i%w+.5,((i/w)|0)+.5)}
-    if(f==1){const c1=cells.filter(i=>!taken.has(i)&&d[i]>=3&&d[i]<=8);if(c1.length){const i=c1[0];taken.add(i);addProp('crate',i%w+.5,((i/w)|0)+.5)}}
+    // v0.5.2: solid props only where you can walk around them (open room interior) or at the end of a dead end
+    const n4=i=>N4.filter(([dx,dy])=>!g[i+dy*w+dx]).length,roomy=i=>{for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)if(g[i+dy*w+dx])return false;return true};
+    if(f==1){const c1=cells.filter(i=>!taken.has(i)&&d[i]>=3&&d[i]<=12&&(roomy(i)||n4(i)==1));if(c1.length){const i=c1[0];taken.add(i);addProp('crate',i%w+.5,((i/w)|0)+.5)}}
     // a weapon lying on the floor every normal floor (if the template didn't already give one)
     if(!wPlaced.length){const ww=rollWeapon(rnd);const c2=free().filter(i=>d[i]>=(f==1?4:6)&&d[i]<=(f==1?14:99));if(ww>=0&&c2.length){const i=c2[0];taken.add(i);pickups.push({t:'wpn',w:ww,x:i%w+.5,y:((i/w)|0)+.5})}}
     // armor on the floor sometimes
@@ -1088,7 +1108,7 @@ function buildFloor(){
     const nTr=3+((f/3)|0);for(const i of free().slice(0,nTr)){const dirs=N4.filter(([dx,dy])=>!g[i+dy*w+dx]);if(!dirs.length)continue;const[dx,dy]=dirs[(rnd()*dirs.length)|0];
       let x=i%w+.5,y=((i/w)|0)+.5;for(let q=0;q<5;q++){const ci=((y|0)*w)+(x|0);if(g[ci]||ci==sec)break;pickups.push({t:'skz',v:q==4&&rnd()<.3?5:1,x,y});x+=dx*.5;y+=dy*.5}}
     // decor + light sources
-    const nDec=3+((f/2)|0);for(const i of free().slice(0,nDec)){taken.add(i);addProp(wpick(theme.props||{brazier:1}),i%w+.5,((i/w)|0)+.5)}
+    const nDec=3+((f/2)|0);for(let q=0;q<nDec;q++){const k=wpick(theme.props||{brazier:1}),c4=free().filter(i=>!PROPS[k].solid||roomy(i));if(!c4.length)continue;const i=c4[0];taken.add(i);addProp(k,i%w+.5,((i/w)|0)+.5)}
   }
   MW=w;MH=h;map=new Int8Array(w*h);seen=new Uint8Array(w*h);setupLook(f,B,rk,w); // v0.5: per-floor look (walls mix, floor, ceiling/sky)
   for(let y=0;y<h;y++)for(let x=0;x<w;x++){const i=y*w+x;if(g[i])map[i]=g[i]==2?TILE[theme.pillar]||mixWall(x,y):(x>0&&y>0&&x<w-1&&y<h-1&&rnd()<.06&&!Sset.has(i))?8:mixWall(x,y)}
@@ -1100,6 +1120,7 @@ function buildFloor(){
     if(!B&&rnd()<.5)addProp('gchest',px-.22,py+.22);
     if(!B&&f==5&&!run.truck){run.truck=1;pickups.push({t:'truck',x:px-.25,y:py-.25})}} // easter egg: THE TOASTER (stainless truck) in floor 5's secret pocket
   pickups=pickups.filter(p=>!map[(p.y|0)*w+(p.x|0)]);props=props.filter(p=>!map[(p.y|0)*w+(p.x|0)]); // safety: nothing inside walls
+  props=fixSolidProps(props,w,h,start); // v0.5.2: no solid prop may block a corridor, doorway or chokepoint
   for(const p of props)if(p.D.light){const[r,g2,b,R,I]=p.D.light;lights.push({x:p.x,y:p.y,r,g:g2,b,R,I,ph:p.ph,src:p})}
   FL.baseFog=FL.fog||0;P.shield=perk('blankey')?30:0;P.slowT=0;P.lockT=0;P.lowMsg=0;
   P.x=start%w+.5;P.y=((start/w)|0)+.5;P.a=face;P.cd=0;P.flash=0;P.freedT=0;P.hurtT=0;P.calm=0;
@@ -1179,6 +1200,8 @@ function dropBones(e,n){if(FL.curse)n*=2;if(run.mean)n*=2;while(n>0){const v=n>=
 let skzCombo=0,skzT=0;function gainSkullz(n,p){P.bones+=n;run.bonesTotal+=n;skzCombo=skzT>0?skzCombo+1:0;skzT=.6;SFX.skz(skzCombo);if(n>=5&&p)pop(p.x,p.y,'+'+n+' SKULLZ',n>=25?'#00f0ff':'#FFD400');if(p)gib(p.x,p.y,['#fff','#FFD400'],3,.2,.8)}
 // props: crates drop loot, butter barrels explode, chests open (or bite)
 function breakProp(q){if(q.broken)return;q.broken=true;q.hp=0;const x=q.x,y=q.y;run.crates=(run.crates||0)+1;
+ lights=lights.filter(L=>L.src!==q); // its glow goes out
+ if(q.D.crt){SFX.zap&&SFX.zap();shake(1.2);gib(x,y,['#00f0ff','#ffffff','#80dcff','#FFD400'],22,.35,3);pop(x,y,'NO SIGNAL','#00f0ff');lightPulse(x,y,80,220,255,3,200,.25);for(let k=0;k<2+((rnd()*3)|0);k++)pickups.push({t:'skz',v:1,x:x+(rnd()-.5)*.5,y:y+(rnd()-.5)*.5});return}
  if(q.D.boom){gib(x,y,['#FFD400','#fff7a0','#ff5a00','#fff'],26,.3,3.5);pop(x,y,'BUTTER BOOM','#FFD400');blast(x,y,2.1,60,1);if(Math.hypot(x-P.x,y-P.y)<1.7)hurt(14,'proj')}
  else{SFX.crate();shake(1.5);gib(x,y,['#8a5020','#6b3a14','#e3b303'],18,.3,2.4);const r=rnd();if(r<.55)for(let k=0;k<2+((rnd()*4)|0);k++)pickups.push({t:'skz',v:1,x:x+(rnd()-.5)*.5,y:y+(rnd()-.5)*.5});else if(r<.75)pickups.push({t:rnd()<.5?'ammo':'shells',x,y});else if(r<.85&&!FL.noHealth)pickups.push({t:'health',x,y});else if(r<.95)pickups.push({t:'crumbs',x,y});else pickups.push({t:P.owned.includes(6)?'rockets':'cells',x,y})}}
 function openChest(q){if(q.opened)return;q.opened=true;run.chests=(run.chests||0)+1;
@@ -1600,7 +1623,7 @@ window.TT={get state(){return state},get P(){return P},get ents(){return ents},g
  // fight a given boss on the current floor number (e.g. TT.fight('blankey')); 'nit' is the secret boss
  fight(id,f){if(f)run.floor=f;run.special=id;buildFloor();floorMsg()},set shards(n){run.shards=n},get insider(){return insiderAt<0?null:{x:insiderAt%MW+.5,y:((insiderAt/MW)|0)+.5}},enterInsider,
  get hazards(){return hazards.length},drop(t,x,y){pickups.push({t,x,y})},get pickups(){return pickups.map(p=>p.t)},perks:()=>crewPerks(),get itia(){return itia},set itia(v){itia=v},spawn(t,o={}){const e=spawnEnemy(t,P.x+Math.cos(P.a)*(o.d||3),P.y+Math.sin(P.a)*(o.d||3),{awake:false,elite:o.elite!=null?(typeof o.elite=='number'?ELITE_MODS[o.elite]:o.elite):false});stats.total++;return e},
- get props(){return props},get pp(){return pickups},get lights(){return lights.length},get AL(){return AL.length},get secrets(){return [...secretSet].map(i=>({x:i%MW,y:(i/MW)|0}))},giveWeapon,giveArmor,hurt:(n)=>hurt(n,'test'),openChest,breakProp,openVendor,get shopCtx(){return !!shopCtx},get rooms(){return stats.rooms},
+ get props(){return props},get pp(){return pickups},get lights(){return lights.length},lightFor:(q)=>lights.some(L=>L.src===q),get AL(){return AL.length},get secrets(){return [...secretSet].map(i=>({x:i%MW,y:(i/MW)|0}))},giveWeapon,giveArmor,hurt:(n)=>hurt(n,'test'),openChest,breakProp,openVendor,get shopCtx(){return !!shopCtx},get rooms(){return stats.rooms},
  get look(){const C=CUR;return C?{sub:C.L.sub,floor:C.L.floor,ceil:C.ceil?C.L.ceil:null,sky:C.sky?C.sky.id:null,skyName:C.sky?C.sky.S.n:null,mode:C.mode,walls:Object.assign({},C.stats),skylights:C.SM?C.SM.reduce((a,b)=>a+b,0):0}:null},get anims(){return ANIMS.map(a=>({k:a.k,n:a.n,i:a.i}))},castWorld,setLook:(f)=>{},
  data:{LOOKS,ARENA_LOOKS,SKIES,WALL_ANIM,FLOOR_ART,CEIL_ART,PROPS,ARMOR,FINAL_FLOOR,BOSS_POOL,ARENA_THEMES,TILE,ENEMIES,WEAPONS,THEMES,BOSSES,ROOMS,UPS,SYNERGIES,CURSES,SHOP_ITEMS,UNLOCKS,ELITE_MODS}};
 </script>
