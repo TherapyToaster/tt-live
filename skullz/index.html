@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.5.2"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.6.0"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <link rel="icon" href="data:,"><title>MR. TOASTY'S NO SIGNAL SKULLZ — Therapy Toaster</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Anton&family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
@@ -47,14 +47,34 @@ details{font-size:9px;color:#ddd;margin:6px}summary{cursor:pointer;color:#FFD400
 html,body{color:#e3b303}.ov{background:radial-gradient(ellipse at 50% 30%,#1a1406 0,#000 65%)}.ov:before{content:'';position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,#ffffff06 0 1px,transparent 1px 3px)}
 #hud span{color:#ecfdff}#face{border-color:#e3b303}#quip{color:#e3b303;font-size:clamp(9px,1.3vw,13px);min-height:2em}#greet{color:#00f0ff;font-size:9px;margin:4px}#cotys{color:#f8387f;font-size:8px}
 .btn small{display:block;font-size:.55em;margin-top:4px}#xname{transition:color .2s}
+
+/* v0.6 title: animated pixel-chrome logo + attract loop behind the menu */
+#tlogo{display:block;margin:0 auto;width:min(92vw,62vh,620px);height:auto;aspect-ratio:3/2;image-rendering:pixelated}
+body.attract .ov h1.tth{background:radial-gradient(ellipse at 50% 55%,rgba(0,0,0,.7) 0,rgba(0,0,0,.45) 45%,transparent 70%)}
+.ov h1.tth{font-size:min(9vw,10vh,110px);text-shadow:none;margin-top:min(2vh,16px)}.ov h1.tth small{font-family:'Press Start 2P',monospace;font-size:clamp(7px,1.3vw,12px);letter-spacing:2px;margin-top:4px;text-shadow:2px 0 #ff00c8,-2px 0 #00f0ff}
+#tsil{display:block;width:min(52vw,320px);height:auto;aspect-ratio:160/34;image-rendering:pixelated;visibility:hidden;margin:2px auto 0}
+.ov h1.tth small{max-width:94vw;margin-left:auto;margin-right:auto;letter-spacing:1px;line-height:1.6}
+@media (orientation:portrait){body.attract #title{background:radial-gradient(ellipse at 50% 35%,rgba(0,0,0,.35) 0,rgba(0,0,0,.7) 60%,rgba(0,0,0,.88) 100%)}}
+body.cardmode #title>*:not(h1):not(#tcap):not(#tsil){display:none!important}body.cardmode #title{justify-content:center}body.cardmode .ov h1.tth small{display:none}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+#tcap{min-height:clamp(16px,3vw,30px);font-size:clamp(12px,2.6vw,26px);color:#fff;letter-spacing:3px;text-shadow:3px 0 #ff00c8,-3px 0 #00f0ff,0 0 12px #00f0ff;margin:4px 0 0}
+#tcap.in{animation:capin .45s steps(6) both}@keyframes capin{0%{opacity:0;transform:translateX(-30px) skewX(-30deg);clip-path:inset(0 100% 0 0)}60%{opacity:1;transform:translateX(6px) skewX(10deg)}100%{transform:none;clip-path:inset(0 0 0 0)}}
+body.attract #title{background:radial-gradient(ellipse at 50% 42%,rgba(0,0,0,.18) 0,rgba(0,0,0,.55) 55%,rgba(0,0,0,.85) 100%)}
+body.attract #title>*:not(h1):not(#tcap):not(.drip){position:relative}
+body.attract #title .modes,body.attract #title .lo{background:rgba(0,0,0,.35)}
+body.attract #title p{text-shadow:0 0 4px #000,1px 1px 0 #000}
+body.attract #c{object-fit:cover}
+body.attract #msg{display:none}
+@media (prefers-reduced-motion:reduce){#tcap.in{animation:none}}
 </style></head><body>
 <canvas id="c" width="320" height="200"></canvas>
 <div id="msg"></div>
 <div id="hud"><canvas id="face" width="64" height="64"></canvas><div><b id="xname">MR. TOASTY</b><span id="hp">100</span></div><div><b>AMMO</b><span id="am">0</span></div><div><b>ARMOR</b><span id="ap">0</span></div><div><b>WEAPON</b><span id="wn"></span></div><div><b>SKULLZ</b><span id="bn">0</span></div><div><b>FLOOR</b><span id="fl">1</span></div><div><b>KILLS</b><span id="kl"></span></div></div>
 <div id="pad"><div id="joy"><div id="knob"></div></div></div>
 <div class="tb" id="bFire">FIRE</div><div class="tb" id="bUse">USE</div><div class="tb" id="bWpn">WPN</div><div class="tb" id="bMap">MAP</div>
-<div class="ov" id="title" style="display:flex"><canvas id="tart" width="320" height="200"></canvas>
-<p id="greet"></p><h1 class="tth">MR. TOASTY'S<br><span style="white-space:nowrap">NO SIGNAL SKULLZ</span><small>A 404 DUNGEON CRAWLER · STARRING MR. TOASTY</small></h1><div class="drip"></div><p id="quip"></p>
+<div class="ov" id="title" style="display:flex">
+<h1 class="tth"><canvas id="tlogo" width="240" height="160" role="img" aria-label="Mr. Toasty's No Signal Skullz"></canvas><span class="sr">MR. TOASTY'S NO SIGNAL SKULLZ</span><small>A 404 DUNGEON CRAWLER · STARRING MR. TOASTY</small></h1>
+<p id="greet"></p><div id="tcap" aria-live="off"></div><canvas id="tsil" width="160" height="34" aria-hidden="true"></canvas><div class="drip"></div><p id="quip"></p>
 <div class="modes"><button class="btn" data-start="standard">START RUN<small>15 FLOORS · BEAT THE GLITCH</small></button><button class="btn" id="bdaily" data-start="daily">DAILY</button><button class="btn" id="bendless" data-start="endless">ENDLESS</button></div>
 <p id="load">LOADING SIGNAL…</p>
 <div class="lo"><button id="lw"></button><button id="lp"></button><button id="lsh"></button><button id="lsg"></button></div>
@@ -118,7 +138,7 @@ function skull(g,m='crystal'){
   else{sparkle(g,52,10,3,'#fff');sparkle(g,10,44,2,'#3ad7ff')}
 }
 function tint(c,col,a){const g=c.getContext('2d');g.globalCompositeOperation='source-atop';g.globalAlpha=a;g.fillStyle=col;g.fillRect(0,0,64,64);g.globalAlpha=1;g.globalCompositeOperation='source-over';return c}
-let AC;function au(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(AC&&AC.state=='suspended')AC.resume();return AC}
+let AC,MUTE=false;function au(){if(MUTE)return null;if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(AC&&AC.state=='suspended')AC.resume();return AC}
 function tone(f,d,type='square',v=.08,f2){const a=au();if(!a)return;const o=a.createOscillator(),g=a.createGain(),t=a.currentTime;o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(a.destination);o.start(t);o.stop(t+d)}
 function noise(d,v=.15,fq=1200){const a=au();if(!a)return;const n=a.createBuffer(1,(a.sampleRate*d)|0,a.sampleRate),ch=n.getChannelData(0);for(let i=0;i<ch.length;i++)ch[i]=(Math.random()*2-1)*(1-i/ch.length);const s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();s.buffer=n;f.type='lowpass';f.frequency.value=fq;g.gain.value=v;s.connect(f).connect(g).connect(a.destination);s.start()}
 function ray(x,y,dx,dy){let mx=x|0,my=y|0;const ddx=Math.abs(1/dx),ddy=Math.abs(1/dy);let sx,sy,sdx,sdy,side=0;
@@ -1520,7 +1540,7 @@ function show(id){for(const o of document.querySelectorAll('.ov'))o.style.displa
 function lockPtr(){try{cv.requestPointerLock()?.catch?.(()=>{})}catch(_){}}
 function floorMsg(){if(P.sight)seen.fill(1);const B=boss&&boss.B;
  msg(B?(B.secret?'SECRET FLOOR // ':'FLOOR '+run.floor+' // ')+(B.finale?'FINALE: DESTROY ':'BOSS: FREE ')+B.n+' // '+theme.n+(CUR?' // '+(CUR.sky?CUR.sky.S.n:''):''):FL.curse?'CURSED FLOOR: '+FL.curse.n+' — '+FL.curse.d+' (x2 SKULLZ)':'FLOOR '+run.floor+'/'+FINAL_FLOOR+' // '+theme.n+(CUR?': '+CUR.L.sub:'')+' // FIND THE EXIT'+(cursedAt>=0?' (OR THE RED CURSED DOOR)':'')+(props.some(q=>q.D.vendor)?' // TOASTY\'S CART IS HERE':''))}
-function start(mode='standard'){au();if(mode=='endless'&&!unlocked('endless'))mode='standard';newRun(mode);const M=meta();M.runs++;saveMeta(M);state='play';show(null);floorMsg();lockPtr()}
+function start(mode='standard'){ATTRACT.end();au();if(mode=='endless'&&!unlocked('endless'))mode='standard';newRun(mode);const M=meta();M.runs++;saveMeta(M);state='play';show(null);floorMsg();lockPtr()}
 function fmt(s){s=s|0;return((s/60)|0)+':'+String(s%60).padStart(2,'0')}
 let offer=[];
 function cardHTML(u,i){const c=tagCount(u.tag),nx=SYNERGIES.filter(s=>s.tag==u.tag&&s.need>c).sort((a,b)=>a.need-b.need)[0];
@@ -1588,7 +1608,7 @@ function titleUI(){const M=meta();$('tcrew').textContent='CREW: '+roster()+' (+'
  $('unl').innerHTML='UNLOCKS '+M.unlocked.length+'/'+UNLOCKS.length+'<br>'+UNLOCKS.map(u=>M.unlocked.includes(u.id)?`<b>✔ ${u.n}</b>`:`<s>🔒 ${u.n} — ${u.how}</s>`).join('<br>');
  $('tstats').textContent=M.runs?`RUNS ${M.runs} · WINS ${M.wins} · BEST FLOOR ${M.bestFloor} · KILLS ${M.kills}`:''}
 for(const b of document.querySelectorAll('[data-start]'))b.addEventListener('click',()=>start(b.dataset.start||'standard'));
-for(const b of document.querySelectorAll('[data-menu]'))b.addEventListener('click',()=>{state='title';titleUI();show('title')});
+for(const b of document.querySelectorAll('[data-menu]'))b.addEventListener('click',()=>{state='title';titleUI();show('title');ATTRACT.begin()});
 $('fcont').addEventListener('click',toUpgrade);$('vcont').addEventListener('click',keepGoing);$('leave').addEventListener('click',leaveShop);$('reroll').addEventListener('click',reroll);
 $('dretry').addEventListener('click',()=>start(run.mode=='endless'?'standard':run.mode));
 
@@ -1598,9 +1618,7 @@ const CLEAR_LINES=['#ITIA','THIS IS ART!','BAG SECURED.','CLEARED'];
 setInterval(()=>{if(state=='title'&&$('quip'))$('quip').textContent=QUIPS[(Math.random()*QUIPS.length)|0]},4000);
 
 // ---------- title / freed / victory art ----------
-(function(){const t=$('tart'),g=t.getContext('2d');g.imageSmoothingEnabled=false;function frame(ts){if(state=='title'){g.fillStyle='#000';g.fillRect(0,0,320,200);for(const s of stars){if((Math.sin(ts*.002+s[2]*50)+1)>1.2){g.fillStyle=s[2]>.8?'#fff':'#FFD400';g.fillRect(s[0],s[1]*2,1,1)}}
- const bob=k=>Math.sin(ts*.003+k)*3;g.drawImage(COTY_ART.fat,0,110+bob(1),64,64);g.drawImage(COTY_ART.toasty,58,124+bob(2),56,56);g.drawImage(COTY_ART.trig,206,124+bob(3),56,56);g.drawImage(COTY_ART.blankey,256,110+bob(4),64,64);g.drawImage(HERO,96,30,128,128);
- if(Math.random()<.2){const y=(Math.random()*200)|0,h=2+((Math.random()*8)|0);g.drawImage(t,0,y,320,h,((Math.random()-.5)*24)|0,y,320,h)}}requestAnimationFrame(frame)}requestAnimationFrame(frame)})();
+// v0.6: the old title art loop is replaced by the animated logo + attract loop (72-v06-title.js)
 const GLITCHC=draw(SPRITES.glitch);
 // freed Cotys turn gold (the Glitch leaves them) — gold-tinted portrait for the freed screen and victory crew
 const FREED_ART={};for(const b of BOSSES)if(b.freed){const c=draw(SPRITES[b.phases[0].spr]);tint(c,'#e3b303',.35);FREED_ART[b.id]=c}
@@ -1612,13 +1630,14 @@ const FREED_ART={};for(const b of BOSSES)if(b.freed){const c=draw(SPRITES[b.phas
 let last=performance.now(),fpsA=60;
 function loop(t){const rdt=Math.min(.05,(t-last)/1000);last=t;fpsA=fpsA*.95+(1/Math.max(rdt,1e-3))*.05;
  if(state=='play'&&!window.TT_HOLD){let dt=rdt;if(hs>0){hs-=rdt;dt=0}if(dt>0)run.time+=dt;update(dt);if(state=='play'||state=='freed'||state=='up'){render(t,rdt);hud()}}
+ else if(state=='title'&&ATTRACT.on)ATTRACT.tick(t,rdt);
  requestAnimationFrame(loop)}
-loadAtlas(()=>{newRun();titleUI();requestAnimationFrame(loop);$('load').textContent='PRESS ENTER / CLICK START'});
+loadAtlas(()=>{newRun();titleUI();ATTRACT.begin();requestAnimationFrame(loop);$('load').textContent='PRESS ENTER / CLICK START'});
 // ---------- test hooks ----------
 window.TT={get state(){return state},get P(){return P},get ents(){return ents},get boss(){return boss},get run(){return run},get FL(){return FL},get theme(){return theme},
  get exit(){return{x:exitAt%MW+.5,y:((exitAt/MW)|0)+.5,open:exitOpen}},get cursed(){return cursedAt<0?null:{x:cursedAt%MW+.5,y:((cursedAt/MW)|0)+.5}},get secret(){return secretAt<0?null:{x:secretAt%MW,y:(secretAt/MW)|0}},
  get map(){return{w:MW,h:MH,data:map}},get parts(){return parts.length},start,render,pick,buy,leaveShop,toUpgrade,nextFloor,keepGoing,get offer(){return offer.map(u=>u.n)},get stock(){return stock.map(s=>s.it.n+(s.sold?'*':''))},
- get fps(){return fpsA},set showMap(v){showMap=v},seen:()=>seen,use,crew,meta,saveMeta,score,
+ get fps(){return fpsA},get attract(){return ATTRACT},logo:()=>LOGOV,set showMap(v){showMap=v},seen:()=>seen,use,crew,meta,saveMeta,score,
  warp(f){run.floor=f;run.special=null;shopCtx=null;state='play';show(null);buildFloor();floorMsg()},
  // fight a given boss on the current floor number (e.g. TT.fight('blankey')); 'nit' is the secret boss
  fight(id,f){if(f)run.floor=f;run.special=id;buildFloor();floorMsg()},set shards(n){run.shards=n},get insider(){return insiderAt<0?null:{x:insiderAt%MW+.5,y:((insiderAt/MW)|0)+.5}},enterInsider,
@@ -1626,5 +1645,146 @@ window.TT={get state(){return state},get P(){return P},get ents(){return ents},g
  get props(){return props},get pp(){return pickups},get lights(){return lights.length},lightFor:(q)=>lights.some(L=>L.src===q),get AL(){return AL.length},get secrets(){return [...secretSet].map(i=>({x:i%MW,y:(i/MW)|0}))},giveWeapon,giveArmor,hurt:(n)=>hurt(n,'test'),openChest,breakProp,openVendor,get shopCtx(){return !!shopCtx},get rooms(){return stats.rooms},
  get look(){const C=CUR;return C?{sub:C.L.sub,floor:C.L.floor,ceil:C.ceil?C.L.ceil:null,sky:C.sky?C.sky.id:null,skyName:C.sky?C.sky.S.n:null,mode:C.mode,walls:Object.assign({},C.stats),skylights:C.SM?C.SM.reduce((a,b)=>a+b,0):0}:null},get anims(){return ANIMS.map(a=>({k:a.k,n:a.n,i:a.i}))},castWorld,setLook:(f)=>{},
  data:{LOOKS,ARENA_LOOKS,SKIES,WALL_ANIM,FLOOR_ART,CEIL_ART,PROPS,ARMOR,FINAL_FLOOR,BOSS_POOL,ARENA_THEMES,TILE,ENEMIES,WEAPONS,THEMES,BOSSES,ROOMS,UPS,SYNERGIES,CURSES,SHOP_ITEMS,UNLOCKS,ELITE_MODS}};
+
+// ---------- v0.6: animated pixel-chrome logo + in-engine attract loop on the title screen ----------
+const RMOTION=matchMedia('(prefers-reduced-motion: reduce)');
+// ?card : attract + logo only (used to capture the arcade thumbnail / preview loop)
+const CARDMODE=/[?&]card\b/.test(location.search);if(CARDMODE)document.body.classList.add('cardmode');
+// chunky 5x7 pixel font (only the glyphs the logo needs)
+const LFONT={M:['11...11','111.111','1111111','11.1.11','11...11','11...11','11...11'],R:['11111.','11..11','11..11','11111.','11.11.','11..11','11..11'],
+ '.':['..','..','..','..','..','11','11'],T:['111111','..11..','..11..','..11..','..11..','..11..','..11..'],O:['.1111.','11..11','11..11','11..11','11..11','11..11','.1111.'],
+ A:['.1111.','11..11','11..11','111111','11..11','11..11','11..11'],S:['.11111','11....','11....','.1111.','....11','....11','11111.'],Y:['11..11','11..11','.1111.','..11..','..11..','..11..','..11..'],
+ "'":['11','11','.1','..','..','..','..'],N:['11..11','111.11','111111','11.111','11..11','11..11','11..11'],I:['1111','.11.','.11.','.11.','.11.','.11.','1111'],
+ G:['.1111.','11..11','11....','11.111','11..11','11..11','.1111.'],L:['11....','11....','11....','11....','11....','11....','111111'],K:['11..11','11.11.','1111..','111...','1111..','11.11.','11..11'],
+ U:['11..11','11..11','11..11','11..11','11..11','11..11','.1111.'],Z:['111111','....11','...11.','..11..','.11...','11....','111111'],' ':['...','...','...','...','...','...','...']};
+const LOGO_W=240,LOGO_H=160;
+const LOGO=(()=>{const mk=(w,h)=>{const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');g.imageSmoothingEnabled=false;return[c,g]};
+ const textW=(s,k)=>[...s].reduce((a,ch)=>a+(LFONT[ch][0].length+1)*k,-k);
+ function mask(s,k){const w=textW(s,k),[c,g]=mk(w,7*k);let x=0;g.fillStyle='#fff';for(const ch of s){const G=LFONT[ch];for(let r=0;r<7;r++)for(let q=0;q<G[r].length;q++)if(G[r][q]=='1')g.fillRect(x+q*k,r*k,k,k);x+=(G[0].length+1)*k}return c}
+ function tint(m,col){const[c,g]=mk(m.width,m.height);g.drawImage(m,0,0);g.globalCompositeOperation='source-in';if(typeof col=='function')col(g,m.width,m.height);else{g.fillStyle=col;g.fillRect(0,0,m.width,m.height)}return c}
+ // a styled word: dark extrusion, 1px black outline, chrome gradient face, hard specular line
+ function word(s,k,stops,ext,depth,spec){const m=mask(s,k),pad=depth+2,[c,g]=mk(m.width+pad*2,m.height+pad*2);
+  const E=tint(m,ext),B=tint(m,'#000'),F=tint(m,(g2,w,h)=>{const gr=g2.createLinearGradient(0,0,0,h);for(const[o,cl]of stops)gr.addColorStop(o,cl);g2.fillStyle=gr;g2.fillRect(0,0,w,h);
+   if(spec){g2.globalCompositeOperation='source-atop';g2.fillStyle=spec;for(let r=0;r<7;r++)g2.fillRect(0,r*k,w,Math.max(1,k/4|0))}});
+  for(let d=depth;d>=1;d--)g.drawImage(E,pad+d,pad+d);for(const[dx,dy]of[[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[1,1],[-1,1],[1,-1]])g.drawImage(B,pad+dx,pad+dy);
+  for(let d=depth;d>=1;d--)if(d==depth)g.drawImage(B,pad+d+1,pad+d+1);g.drawImage(F,pad,pad);return{c,m,pad}}
+ const gold=[[0,'#fffbe0'],[.35,'#FFD400'],[.5,'#ffb000'],[.52,'#7a3a00'],[.6,'#ff9a00'],[1,'#ff5a00']];
+ const neon=[[0,'#ffffff'],[.3,'#9ff8ff'],[.5,'#00f0ff'],[.52,'#0060a0'],[.65,'#00c8ff'],[1,'#00f0ff']];
+ const chrome=[[0,'#ffffff'],[.45,'#e8eef8'],[.5,'#8a90a8'],[.55,'#ffffff'],[1,'#c8d0e0']];
+ const A=word("MR. TOASTY'S",2,chrome,'#ff00c8',2),Bw=word('NO SIGNAL',3,neon,'#ff00c8',3,'#ffffff55'),C=word('SKULLZ',5,gold,'#7a2a00',4,'#ffffff44');
+ // base composite (text only; skull is drawn live so it can bob)
+ const [base,bg]=mk(LOGO_W,LOGO_H),place=(w,y)=>{const x=((LOGO_W-w.c.width)/2)|0;bg.drawImage(w.c,x,y);return{x,y}};
+ const yA=50,yB=68,yC=96;const pa=place(A,yA),pb=place(Bw,yB),pc=place(C,yC);
+ // butter drips under SKULLZ (deterministic)
+ let s=1234;const r=()=>(s=s*16807%2147483647)/2147483647;const drips=[];
+ for(let i=0;i<9;i++){const x=pc.x+C.pad+6+((r()*(C.m.width-12))|0),y=pc.y+C.pad+C.m.height-1,l=4+((r()*12)|0);drips.push({x,y,l,ph:r()*6});bg.fillStyle='#000';bg.fillRect(x-1,y,5,l+2);bg.fillStyle='#ffb000';bg.fillRect(x,y,3,l);bg.fillStyle='#fff7a0';bg.fillRect(x,y,1,l-1);bg.fillStyle='#ffb000';bg.fillRect(x-1,y+l-2,5,3)}
+ // little toast + crystal-skull sparkles beside MR. TOASTY'S
+ const toast=(x,y)=>{bg.fillStyle='#000';bg.fillRect(x-1,y-1,12,12);bg.fillStyle='#c47a2c';bg.fillRect(x,y+2,10,8);bg.fillRect(x+1,y,8,3);bg.fillStyle='#ffd88a';bg.fillRect(x+2,y+3,6,5);bg.fillStyle='#FFD400';bg.fillRect(x+3,y+4,3,2)};
+ toast(pa.x-12,yA+3);toast(pa.x+A.c.width+1,yA+3);
+ const sil=(col)=>tint(base,col),CY=sil('#00f0ff'),MG=sil('#ff00c8');
+ // glow: soft halo built from offset copies (no ctx.filter, works on Safari)
+ const [glow,gg]=mk(LOGO_W,LOGO_H);gg.globalAlpha=.08;for(let d=1;d<=6;d++)for(const[dx,dy]of[[-d,0],[d,0],[0,-d],[0,d],[-d,-d],[d,d],[-d,d],[d,-d]])gg.drawImage(sil('#FFD400'),dx,dy);
+ const [scan,sg]=mk(LOGO_W,LOGO_H);sg.fillStyle='rgba(0,0,0,.22)';for(let y=0;y<LOGO_H;y+=2)sg.fillRect(0,y,LOGO_W,1);
+ const textMask=tint(base,'#fff');return{base,CY,MG,glow,scan,textMask,drips,skullY:2}})();
+// draw one logo frame. t = ms since reveal start; opts: {still, shades}
+function drawLogo(g,t,o={}){const W2=LOGO_W,H2=LOGO_H,still=o.still,soft=o.shades;g.clearRect(0,0,W2,H2);g.imageSmoothingEnabled=false;
+ const rev=still?1:Math.min(1,t/1500),R=Math.random;
+ // periodic glitch burst: ~0.18s every 3.2-5.5s (seeded by time bucket so it looks irregular)
+ const cyc=4300,ph=(t%cyc),bucket=(t/cyc)|0,burst=!still&&rev>=1&&ph<(soft?60:180)&&bucket%3!=2;
+ const pulse=still?.7:.55+.35*Math.sin(t*.004);g.globalAlpha=pulse*rev;g.drawImage(LOGO.glow,0,0);g.globalAlpha=1;
+ // skull (Mr. Toasty: ACID cap + gold shades) drops in, then bobs
+ const sp=still?1:Math.min(1,Math.max(0,(t-250)/700)),ease=1-Math.pow(1-sp,3),bob=still?0:Math.sin(t*.0032)*2.5;
+ if(sp>0){const sy=LOGO.skullY-(1-ease)*70+bob+(sp<1?0:0);g.globalAlpha=sp<1?Math.min(1,sp*2):1;g.drawImage(HERO,(W2-60)/2|0,sy|0,60,60);g.globalAlpha=1}
+ const split=still?1:soft?(burst?2:0):(rev<1?2+(1-rev)*10:burst?3+R()*4:1+Math.max(0,Math.sin(t*.0021))*0.8);
+ if(rev<1){// glitch-in reveal: bands of the logo snap in with jitter and heavy RGB split
+  const bands=14,bh=Math.ceil(H2/bands);for(let b=0;b<bands;b++){const th=((b*7919)%bands)/bands;if(rev<th*.85)continue;const j=(1-rev)*(R()-.5)*60|0,y=b*bh;
+   g.globalCompositeOperation='screen';g.drawImage(LOGO.CY,0,y,W2,bh,j-split|0,y,W2,bh);g.drawImage(LOGO.MG,0,y,W2,bh,j+split|0,y,W2,bh);g.globalCompositeOperation='source-over';
+   if(R()<rev)g.drawImage(LOGO.base,0,y,W2,bh,j,y,W2,bh)}
+  for(let i=0;i<(1-rev)*30;i++){g.fillStyle=R()<.5?'#fff':R()<.5?'#00f0ff':'#ff00c8';g.fillRect(R()*W2|0,R()*H2|0,1+R()*18|0,1)}
+ }else{g.globalCompositeOperation='screen';g.globalAlpha=.85;g.drawImage(LOGO.CY,-split|0,0);g.drawImage(LOGO.MG,split|0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';
+  if(burst){for(let i=0,n=3+(R()*4|0);i<n;i++){const y=R()*H2|0,h=2+(R()*10|0),dx=((R()-.5)*(soft?6:26))|0;g.drawImage(LOGO.base,0,y,W2,h,dx,y,W2,h)}
+   g.drawImage(LOGO.base,0,0);if(!soft&&R()<.5){const y=R()*H2|0;g.globalCompositeOperation='difference';g.fillStyle='#fff';g.fillRect(0,y,W2,2+(R()*4|0));g.globalCompositeOperation='source-over'}}
+  else g.drawImage(LOGO.base,0,0);
+  // chrome glint sweeping across the letters every ~4s
+  if(!still){const gx=((t%4000)/4000)*(W2+160)-80;if(gx>-40&&gx<W2+40){const[c2,g2]=LOGO.tmp||(LOGO.tmp=(()=>{const c=document.createElement('canvas');c.width=W2;c.height=H2;return[c,c.getContext('2d')]})());
+   g2.clearRect(0,0,W2,H2);g2.globalCompositeOperation='source-over';g2.drawImage(LOGO.textMask,0,0);g2.globalCompositeOperation='source-in';g2.fillStyle='rgba(255,255,255,.75)';g2.beginPath();g2.moveTo(gx,0);g2.lineTo(gx+10,0);g2.lineTo(gx-30,H2);g2.lineTo(gx-40,H2);g2.fill();
+   g.drawImage(c2,0,0)}}
+  // a butter droplet falling from a drip now and then
+  if(!still)for(const d of LOGO.drips){const k=((t*.001+d.ph)%3)/3;if(k<.5){const yy=d.y+d.l+k*2*14;g.globalAlpha=1-k*2;g.fillStyle='#ffb000';g.fillRect(d.x,yy|0,3,3);g.globalAlpha=1}}}
+ g.drawImage(LOGO.scan,0,0)}
+// mount on the title overlay
+const LOGOV=(()=>{const c=$('tlogo');if(!c)return null;const g=c.getContext('2d');let t0=performance.now(),done=false;
+ const fit=()=>{const dpr=devicePixelRatio||1,av=Math.min(innerWidth*.94,innerHeight*(CARDMODE?.78:.5)*1.5,CARDMODE?2400:960)*dpr,k=Math.max(1,Math.floor(av/LOGO_W));c.style.width=(k*LOGO_W/dpr)+'px';c.style.height=(k*LOGO_H/dpr)+'px'};fit();addEventListener('resize',fit);
+ function frame(ts){if(state=='title'){const still=RMOTION.matches;if(!(still&&done)){drawLogo(g,ts-t0,{still,shades:shadesOn});done=true}}requestAnimationFrame(frame)}requestAnimationFrame(frame);
+ return{replay(){t0=performance.now();},finish(){t0=performance.now()-1600},canvas:c,draw:(t,o)=>drawLogo(g,t,o)}})();
+
+// ---------- attract loop: a scripted in-engine flythrough behind the title menu ----------
+// Plays only on the title screen, muted (no audio before or during the demo), skippable by any key/tap,
+// never touches meta/unlocks (start() makes a brand-new run), and is disabled for prefers-reduced-motion (one still frame instead).
+const ATTRACT=(()=>{
+ const SC=[{f:2,cap:'15 FLOORS',w:0},{f:5,cap:'8 WEAPONS',w:1,w2:2},{f:8,cap:'COLLECT SKULLZ',w:3,skz:14},{f:11,cap:'BUY TOAST ARMOR',w:6,armor:1},{f:14,cap:'5 COTY BOSSES',w:2,boss:1}];
+ const DUR=4300;let on=false,skipped=false,si=-1,st=0,path=[],pk=0,idleT=0,lastIn=performance.now(),frames=0,buildMs=[];
+ const capEl=()=>$('tcap');
+ function setCap(s){const e=capEl();if(!e)return;e.textContent=s;e.classList.remove('in');void e.offsetWidth;e.classList.add('in')}
+ function scene(i){si=i%SC.length;const S=SC[si];const t0=performance.now();MUTE=true;
+  try{run.floor=S.f;run.special=null;shopCtx=null;buildFloor();
+   if(boss){run.floor=S.f+1;buildFloor()}
+   P.god=true;P.w=S.w;for(const k of['bul','sh','cell','rk'])P[k]=999;P.at=S.armor?2:0;P.ap=S.armor?50:0;
+   // camera path: BFS from the start to the farthest reachable cell
+   const w=MW,h=MH,sx=P.x|0,sy=P.y|0,prev=new Int32Array(w*h).fill(-1),seen=new Uint8Array(w*h),q=[sy*w+sx];seen[q[0]]=1;
+   for(let k=0;k<q.length;k++){const c=q[k];for(const d of[1,-1,w,-w]){const j=c+d;if(j<0||j>=w*h||seen[j]||map[j])continue;
+    if(props.some(p=>p.D.solid&&((p.y|0)*w+(p.x|0))==j))continue;seen[j]=1;prev[j]=c;q.push(j)}}
+   let far=q[Math.min(q.length-1,Math.max(12,(q.length*.6)|0))];path=[];for(let c=far;c!=-1;c=prev[c])path.unshift(c);if(path.length<4)path=[q[0],q[0]];
+   path=path.slice(0,16);pk=0;
+   // stage some action along the route: wake two floor enemies a few cells ahead, sprinkle Skullz
+   const live=ents.filter(e=>e.hp>0&&e.t!='boss');let n=0;for(const e of live){if(n>=2)break;const c=path[Math.min(path.length-1,5+n*5)];if(c==null)break;
+    const cx=c%w+.5,cy=((c/w)|0)+.5;e.x=e.hx=cx+(Math.random()-.5)*.3;e.y=e.hy=cy+(Math.random()-.5)*.3;e.awake=false;n++}
+   for(let k=2;k<path.length&&k<2+(S.skz||5);k++){const c=path[k];pickups.push({t:'skz',v:1,x:c%w+.5+(Math.random()-.5)*.4,y:((c/w)|0)+.5+(Math.random()-.5)*.4})}
+   const c1=path[1]||path[0];P.a=Math.atan2(((c1/w)|0)+.5-P.y,c1%w+.5-P.x);
+  }finally{MUTE=on}
+  buildMs.push(performance.now()-t0);st=0;setCap(S.cap)}
+ const ang=a=>Math.atan2(Math.sin(a),Math.cos(a));
+ function tick(t,rdt){if(!on)return;const dt=Math.min(rdt,.05);st+=dt*1000;if(st>DUR||si<0)scene(si+1);const S=SC[si];
+  const w=MW,prevState=state;MUTE=true;state='play';
+  try{// glide along the path
+   const tgt=path[Math.min(path.length-1,pk+1)],tx=tgt%w+.5,ty=((tgt/w)|0)+.5,dx=tx-P.x,dy=ty-P.y,d=Math.hypot(dx,dy);
+   let foe=null,fd=9;for(const e of ents){if(e.hp<=0||e.t=='boss')continue;const ed=Math.hypot(e.x-P.x,e.y-P.y);if(ed<fd&&los(P.x,P.y,e.x,e.y)){fd=ed;foe=e}}
+   const sp=foe&&fd<4?.6:2.3;if(d<.08){if(pk<path.length-2)pk++}else{const m=Math.min(d,sp*dt);P.x+=dx/d*m;P.y+=dy/d*m}
+   const look=foe?Math.atan2(foe.y-P.y,foe.x-P.x):Math.atan2(dy,dx),da=ang(look-P.a);P.a+=da*Math.min(1,dt*(foe?7:3.2));
+   if(S.w2&&st>DUR/2)P.w=S.w2;
+   if(foe&&Math.abs(da)<.12&&P.cd<=0)fire();
+   for(const k of['bul','sh','cell','rk'])P[k]=999;P.hp=P.maxhp;
+   update(dt);
+  }catch(e){console.warn('attract',e)}finally{state=prevState}
+  if(state!='title'){end();return}
+  render(t,dt);if(S.boss)bossTease(st/DUR);if(st<220)cut(1-st/220);const vis=!!(S.boss||S.armor||S.skz);if(strip){strip.style.visibility=vis?'visible':'hidden';if(vis)drawStrip(S,st/DUR)}frames++}
+ // the Coty boss tease: black silhouettes sliding in with glowing eyes
+ const SIL=(()=>{const o={};for(const k of['fat','toasty','trig','blankey','nit']){const s=COTY_ART[k],c=document.createElement('canvas');c.width=s.width;c.height=s.height;const g=c.getContext('2d');g.drawImage(s,0,0);g.globalCompositeOperation='source-in';g.fillStyle='#07000c';g.fillRect(0,0,c.width,c.height);o[k]=c}return o})();
+ // scene cut: a burst of TV static (also hides the floor-build hitch)
+ function cut(k){const R=Math.random;ctx.globalAlpha=Math.min(1,k*1.2);for(let i=0;i<90;i++){const v=(R()*255)|0;ctx.fillStyle=R()<.08?(R()<.5?'#00f0ff':'#ff00c8'):`rgb(${v},${v},${v})`;ctx.fillRect(0,(R()*H)|0,W,1+((R()*3)|0))}ctx.globalAlpha=1}
+ const rim=(src,col)=>{const c=document.createElement('canvas');c.width=src.width+4;c.height=src.height+4;const g=c.getContext('2d');const t=document.createElement('canvas');t.width=src.width;t.height=src.height;const tg=t.getContext('2d');tg.drawImage(src,0,0);tg.globalCompositeOperation='source-in';tg.fillStyle=col;tg.fillRect(0,0,t.width,t.height);
+  for(const[dx,dy]of[[-1,0],[1,0],[0,-1],[0,1],[-2,0],[2,0],[0,-2],[0,2]])g.drawImage(t,2+dx,2+dy);g.drawImage(SIL0[src.__k]||src,2,2);return c};
+ const SIL0={};for(const k in SIL){SIL[k].__k=k;SIL0[k]=SIL[k]}const RIM={};for(const k in SIL)RIM[k]=rim(SIL[k],k=='nit'?'#00f0ff':'#ff00c8');
+ const eyes=(g,x,y,s,i)=>{if(((performance.now()/120)|0)%7!=i){g.fillStyle='#ff0040';g.fillRect((x+s*.37)|0,(y+s*.42)|0,Math.max(2,s/20)|0,Math.max(1,s/32)|0);g.fillRect((x+s*.56)|0,(y+s*.42)|0,Math.max(2,s/20)|0,Math.max(1,s/32)|0)}};
+ // engine: big rim-lit silhouettes at the screen edges (outside the logo column)
+ function bossTease(p){if(p<.15)return;const k=Math.min(1,(p-.15)/.3),ks=['fat','toasty','trig','blankey'];ctx.fillStyle=`rgba(40,0,30,${.45*k})`;ctx.fillRect(0,0,W,H);
+  ks.forEach((n,i)=>{const s=58,x=(i<2?4+i*44:W-62-(3-i)*44)+(1-k)*(i<2?-140:140),y=58+(i%2)*26+Math.sin(performance.now()*.003+i)*2;ctx.globalAlpha=k;ctx.drawImage(RIM[n],x|0,y|0,s+4,s+4);eyes(ctx,x+2,y+2,s,i);ctx.globalAlpha=1})}
+ // caption strip (in the menu flow, so it shows on phones too): a tiny animated sticker per scene
+ const strip=$('tsil'),sg=strip&&strip.getContext('2d');if(sg)sg.imageSmoothingEnabled=false;
+ function drawStrip(S,p){if(!sg)return;sg.clearRect(0,0,strip.width,strip.height);const now=performance.now();
+  if(S.boss){['fat','toasty','trig','blankey','nit'].forEach((n,i)=>{const kk=Math.min(1,Math.max(0,p*5-i*.4));if(kk<=0)return;const y=2+(1-kk)*30+Math.sin(now*.004+i)*1.5;sg.globalAlpha=kk;sg.drawImage(RIM[n],4+i*31,y|0,30,30);eyes(sg,6+i*31,y+2,26,i);sg.globalAlpha=1})}
+  else if(S.armor){sg.drawImage(MRTOASTY,4,1+Math.sin(now*.005)*1.5,30,30);for(let i=0;i<4;i++){const b=Math.abs(Math.sin(now*.006+i))*6;sg.drawImage(GOLD,44+i*28,6-b|0,24,24)}}
+  else if(S.skz){for(let i=0;i<6;i++){const ph=((now*.0015+i*.17)%1),b=Math.abs(Math.sin(ph*Math.PI))*14;sg.drawImage(GOLD,4+i*26,14-b|0,22,22)}}}
+ function still(){// reduced motion: one quiet frame of floor 1, no movement
+  MUTE=true;try{run.floor=2;buildFloor();P.god=true;const ps=state;state='play';try{render(1000,.016)}finally{state=ps}}finally{MUTE=false}setCap('15 FLOORS · 8 WEAPONS · 5 COTY BOSSES')}
+ function begin(){if(state!='title')return;skipped=false;lastIn=performance.now();document.body.classList.add('attract');if(RMOTION.matches){on=false;still();return}on=true;MUTE=true;si=-1;st=DUR+1}
+ function end(){on=false;MUTE=false;if(strip)strip.style.visibility='hidden';document.body.classList.remove('attract');const e=capEl();if(e)e.textContent=''}
+ function skip(){if(!on&&skipped)return;skipped=true;lastIn=performance.now();end();ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);LOGOV&&LOGOV.finish()}
+ // resume after 40s idle on the title
+ setInterval(()=>{if(state=='title'&&skipped&&!on&&performance.now()-lastIn>40000)begin()},2000);
+ return{tick,begin,end,skip,get st(){return st},get on(){return on},get scene(){return si},get cap(){return si>=0?SC[si].cap:''},get frames(){return frames},get buildMs(){return buildMs},poke(){lastIn=performance.now()},SC}})();
+// any key (except Enter/Space, which start a run) or a tap on empty title space skips the intro
+addEventListener('keydown',e=>{if(state=='title'){const k=e.key.toLowerCase();if(k!='enter'&&k!=' ')ATTRACT.skip();else ATTRACT.poke()}},true);
+(()=>{const T=$('title');const h=e=>{if(state!='title')return;if(e.target.closest('button,a,summary,details,input'))return;ATTRACT.skip()};T.addEventListener('pointerdown',h)})();
 </script>
 </body></html>
