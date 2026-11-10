@@ -1946,7 +1946,7 @@ const TOUCH=(()=>{const z=$('tzone'),joy=$('joy'),kn=$('knob'),bF=$('bFire'),bU=
   autoOn=!!(S.auto&&tg&&Math.abs(tg.da)<tg.rad*1.05&&(w.kind!='melee'||tg.d<(w.reach||1.2)+.3));bF.classList.toggle('auto',autoOn&&!held);touch.fire=held||autoOn;
   const u=canUse();if(u!==useOn){useOn=u;bU.classList.toggle('show',u)}
   if(wShown!==P.w){wShown=P.w;$('wpi').textContent=P.owned.indexOf(P.w)+1;$('wps').textContent=w.n.split(' ').slice(-1)[0]}}
- function buzz(ms){if(!isTouch||!sets().haptic||!navigator.vibrate)return;const now=performance.now();if(now<buzzT)return;buzzT=now+(ms>20?120:70);try{navigator.vibrate(ms)}catch(e){}}
+ function buzz(ms){if(!isTouch||MUTE||!sets().haptic||!navigator.vibrate)return;const now=performance.now();if(now<buzzT)return;buzzT=now+(ms>20?120:70);try{navigator.vibrate(ms)}catch(e){}}
  function reset(){jid=lid=fid=wid=null;held=false;touch.mx=touch.my=0;touch.fire=false;K.shift=0;bF.classList.remove('down','auto');wh.className='';wMode=0;idleJoy()}
  idleJoy();addEventListener('resize',idleJoy);
  return{tick,buzz,reset,canUse,target,get auto(){return autoOn},get held(){return held}}})();
