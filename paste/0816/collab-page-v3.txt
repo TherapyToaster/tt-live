@@ -1,0 +1,104 @@
+<!-- TT COLLAB PAGE v3 : Mr. Toasty's NFTs to TEEs Collab -->
+<script>
+/* ===== EDIT HERE: [pick#, title, Shopify handle, Messed and Mixed NFT #] =====
+   Handles confirmed live on Shopify Nov 10, 2026. Buy links go to SHOP + handle. */
+var TTC_SHOP="https://therapytoaster.myshopify.com/products/";
+var TTC_COLLECTION="https://therapytoaster.myshopify.com/collections/nfts-to-tees-collab";
+var TTC_PRICE="$34.99 USD", TTC_SIZES=["S","M","L","XL","2XL"];
+var TTC_TEES=[
+["01","Halo Roar Tiger Collab Tee","halo-roar-tiger-collab-tee","157"],
+["02","Pink Shades Skull Collab Tee","pink-shades-skull-collab-tee","125"],
+["03","Top Banana Collab Tee","top-banana-collab-tee","135"],
+["04","X-Eye Bunny Collab Tee","x-eye-bunny-collab-tee","136"],
+["05","Little Green Soldier Collab Tee","little-green-soldier-collab-tee","169"],
+["06","AHHHH Skull Collab Tee","ahhhh-skull-collab-tee","156"],
+["07","Trash Bag Art Collab Tee","trash-bag-art-collab-tee","120"],
+["08","Graffiti Kiss Collab Tee","graffiti-kiss-collab-tee","187"],
+["09","Never Stop Trying Collab Tee","never-stop-trying-collab-tee","170"],
+["10","Strawberry Love Collab Tee","strawberry-love-collab-tee","186"],
+["11","X-Eye Rubber Duck Collab Tee","x-eye-rubber-duck-collab-tee","165"],
+["12","Cream Cash Collab Tee","cream-cash-collab-tee","155"],
+["13","Lick Me Baby Lollipop Collab Tee","lick-me-baby-lollipop-collab-tee","162"],
+["14","No F*cks Given Collab Tee","no-f-cks-given-collab-tee","158"],
+["15","Bite Me Gummy Bear Collab Tee","bite-me-gummy-bear-collab-tee","168"],
+["16","Smoke Break Collab Tee","smoke-break-collab-tee","112"],
+["17","Split Skull Collab Tee","split-skull-collab-tee","71"],
+["18","Wild Halo Collab Tee","wild-halo-collab-tee","60"],
+["19","Armored Artist Collab Tee","armored-artist-collab-tee","152"],
+["20","Poisoned Gas Mask Collab Tee","poisoned-gas-mask-collab-tee","160"]
+];
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Rubik+Wet+Paint&display=swap" rel="stylesheet">
+<style id="ttcollab-css">
+#ttcollab-x{width:100vw;max-width:none;position:relative;left:50%;margin-left:-50vw;box-sizing:border-box;overflow-x:hidden;background:#000;z-index:2}
+#ttcollab{background:#000;color:#fff;font-family:'Courier New',monospace;text-align:center}
+#ttcollab *{box-sizing:border-box}
+#ttcollab .hero{position:relative;background:#000}
+#ttcollab .wall{position:relative;width:100%;aspect-ratio:2048/960;max-height:82vh;min-height:300px;background:#000 url('https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@60f26f03577f658a76d2cc5761a3d011d151baf6/assets/collab/wall/mr-toasty-wall-3200.jpg') center 45%/cover no-repeat}
+@media (max-width:1400px){#ttcollab .wall{background-image:url('https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@60f26f03577f658a76d2cc5761a3d011d151baf6/assets/collab/wall/mr-toasty-wall-1920.jpg')}}
+@media (max-width:700px){#ttcollab .wall{min-height:0;background-position:center}}
+#ttcollab .wall:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,0) 62%,rgba(0,0,0,.75) 88%,#000 100%)}
+#ttcollab .head{position:relative;z-index:1;margin-top:-70px;padding:0 20px 34px;display:flex;flex-direction:column;align-items:center}
+#ttcollab .tag{display:inline-block;font-family:'Permanent Marker','Courier New',cursive;color:#000;background:#FFD400;padding:6px 16px;transform:rotate(-3deg);font-size:clamp(14px,2vw,20px);box-shadow:4px 4px 0 #ff2a2a,-4px -4px 0 #00e5ff;margin-bottom:18px}
+#ttcollab h1{font-family:'Rubik Wet Paint','Permanent Marker',cursive;font-weight:400;font-size:clamp(34px,6.4vw,84px);line-height:1.02;margin:0 0 14px;color:#FFD400;letter-spacing:1px;text-shadow:4px 4px 0 #000,7px 7px 0 #ff2a2a,-3px -3px 0 #00e5ff;max-width:1100px}
+#ttcollab .lede{font-family:'Permanent Marker',cursive;font-size:clamp(17px,2.4vw,26px);margin:0 auto;max-width:820px;color:#fff;text-shadow:2px 2px 0 #000}
+#ttcollab .lede b{color:#FFD400;font-weight:400}
+#ttcollab .drip{display:block;width:100%;height:56px}
+#ttcollab .wrap{max-width:1240px;margin:0 auto;padding:30px 20px 70px}
+#ttcollab .credit{max-width:860px;margin:0 auto 34px;padding:18px 20px;border:3px dashed #FFD400;background:repeating-linear-gradient(45deg,#0a0a0a 0 12px,#121212 12px 24px);font-size:15px;line-height:1.6}
+#ttcollab .credit b{color:#FFD400}
+#ttcollab .credit .x{font-family:'Permanent Marker',cursive;font-size:22px;color:#fff}
+#ttcollab .credit .x i{font-style:normal;color:#ff2a2a}
+#ttcollab .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:30px 24px;text-align:left}
+#ttcollab .card{--c:#FFD400;position:relative;background:#0d0d0d;border:3px solid var(--c);display:flex;flex-direction:column;transform:rotate(var(--r,0deg));box-shadow:6px 6px 0 rgba(0,0,0,.9),0 0 0 1px #000;transition:transform .2s,box-shadow .2s}
+#ttcollab .card:before{content:"";position:absolute;top:-12px;left:50%;width:86px;height:24px;margin-left:-43px;background:rgba(255,240,170,.82);transform:rotate(calc(var(--r,0deg) * -3));z-index:2;box-shadow:0 1px 3px rgba(0,0,0,.5)}
+#ttcollab .card:hover{transform:rotate(0) translateY(-4px) scale(1.02);box-shadow:7px 7px 0 #ff2a2a,-7px -7px 0 #00e5ff;z-index:3}
+#ttcollab .card img{width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;display:block;background:#222}
+#ttcollab .nft{position:absolute;top:12px;right:10px;background:var(--c);color:#000;font:900 12px 'Courier New',monospace;padding:4px 8px;transform:rotate(4deg);letter-spacing:.5px;box-shadow:2px 2px 0 #000}
+#ttcollab .body{padding:16px;display:flex;flex-direction:column;gap:10px;flex:1}
+#ttcollab .t{font-family:'Permanent Marker',cursive;font-size:22px;line-height:1.15;color:var(--c);margin:0;text-shadow:2px 2px 0 #000}
+#ttcollab .by{font-size:12px;color:#bbb;letter-spacing:.3px}
+#ttcollab .p{font-size:22px;font-weight:900;color:#fff}
+#ttcollab .sz{display:flex;flex-wrap:wrap;gap:6px}
+#ttcollab .sz span{border:1px solid #00e5ff;color:#00e5ff;font-size:12px;padding:3px 7px}
+#ttcollab .btn{margin-top:auto;display:block;text-align:center;background:#FFD400;color:#000!important;font-weight:900;padding:14px 20px;text-decoration:none!important;text-transform:uppercase;letter-spacing:1px;border:2px solid #FFD400;box-shadow:4px 4px 0 #ff2a2a,-4px -4px 0 #00e5ff;transition:background .2s,color .2s}
+#ttcollab .btn:hover{background:#000;color:#FFD400!important}
+#ttcollab .allbtn{display:inline-block;margin:16px 0 0;background:#FFD400;color:#000!important;font-weight:900;padding:14px 26px;text-decoration:none!important;text-transform:uppercase;letter-spacing:1px;border:2px solid #FFD400;box-shadow:4px 4px 0 #ff2a2a,-4px -4px 0 #00e5ff;transition:background .2s,color .2s}
+#ttcollab .allbtn:hover{background:#000;color:#FFD400!important}
+#ttcollab .note{color:#aaa;font-size:13px;margin-top:40px;line-height:1.6}
+#ttcollab .note a{color:#00e5ff}
+@media (max-width:640px){#ttcollab .grid{grid-template-columns:1fr;gap:34px}#ttcollab .head{margin-top:-8px;padding:0 14px 26px}#ttcollab .wrap{padding:24px 14px 50px}}
+@media (prefers-reduced-motion:reduce){#ttcollab .card{transition:none}}
+</style>
+<div id="ttcollab-x"><div id="ttcollab">
+  <section class="hero">
+    <div class="wall" role="img" aria-label="Mr. Toasty graffiti wall"></div>
+    <div class="head"><span class="tag">Mr. Toasty &times; Shahr crew</span>
+    <h1>Mr. Toasty's NFTs to TEEs Collab</h1>
+    <p class="lede">20 pieces from <b>Messed and Mixed</b> by <b>Shahr crew</b>, pulled off the wall and onto black tees.</p></div>
+  </section>
+  <svg class="drip" viewBox="0 0 1200 56" preserveAspectRatio="none" aria-hidden="true"><path fill="#FFD400" d="M0 0H1200V10C1180 10 1176 30 1170 30S1162 12 1140 12 1120 44 1112 44 1104 10 1080 10 1030 22 1024 22 1018 10 990 10 960 52 952 52 944 12 920 12 880 26 874 26 868 9 840 9 806 38 800 38 794 11 760 11 712 20 706 20 700 10 670 10 640 48 632 48 624 12 600 12 560 28 554 28 548 9 520 9 490 36 484 36 478 11 450 11 402 22 396 22 390 10 360 10 330 54 322 54 314 13 290 13 250 30 244 30 238 9 210 9 178 40 172 40 166 11 140 11 96 24 90 24 84 10 60 10 34 46 28 46 22 12 0 12Z"/></svg>
+  <div class="wrap">
+    <div class="credit">
+      <div class="x">Messed and Mixed by Shahr crew <i>x</i> Mr. Toasty</div>
+      All art by <b>Shahr crew</b> (digital mixed media: Photoshop, Illustrator, Procreate). Each tee is printed from an original Messed and Mixed NFT in Mr. Toasty's collection, with the artist's OK.<br>
+      <a class="allbtn" id="ttcollab-all" href="https://therapytoaster.myshopify.com/collections/nfts-to-tees-collab" target="_blank" rel="noopener">Shop the whole Collab on Shopify &rarr;</a>
+    </div>
+    <div class="grid" id="ttcollab-grid"></div>
+    <p class="note">Black unisex tees, S to 2XL, printed and shipped through Mr. Toasty's Shop on Shopify. <a href="https://therapytoaster.myshopify.com/collections/nfts-to-tees-collab" target="_blank" rel="noopener">See all 20 in the Collab collection</a>.<br>Follow Mr. Toasty on <a href="https://twitter.com/TherapyToaster" target="_blank" rel="noopener">Twitter</a> for new drops.</p>
+  </div>
+</div></div>
+<script>(function(){
+var IMG="https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@2ba7c9d7b35b726c2ff9c0e8fccb3fa54d7a0bbd/assets/collab/nobg/",RAW="https://raw.githubusercontent.com/TherapyToaster/tt-live/60f26f03577f658a76d2cc5761a3d011d151baf6/assets/collab/",RAWM="https://raw.githubusercontent.com/TherapyToaster/tt-live/2ba7c9d7b35b726c2ff9c0e8fccb3fa54d7a0bbd/assets/collab/nobg/",COL=["#FFD400","#ff2a2a","#00e5ff","#3cd34a","#ff8c1a","#ff3fa4","#4d7cff"],ROT=[-1.4,.9,-.6,1.3,-1.0,.5,1.1,-1.2];
+function e(s){return String(s).replace(/[&<>"']/g,function(c){return'&#'+c.charCodeAt(0)+';'});}
+function build(){var g=document.getElementById('ttcollab-grid');if(!g||g.getAttribute('data-built'))return;g.setAttribute('data-built','1');
+TTC_TEES.forEach(function(t,i){var u=TTC_SHOP+t[2],d=document.createElement('div');d.className='card';
+d.style.setProperty('--c',COL[i%COL.length]);d.style.setProperty('--r',ROT[i%ROT.length]+'deg');
+d.innerHTML='<img src="'+e(IMG+'pick'+t[0]+'-900.jpg')+'" alt="'+e(t[1])+' on a black tee" loading="lazy" width="900" height="855" onerror="if(!this.dataset.f){this.dataset.f=1;this.src=\''+RAWM+'pick'+t[0]+'-900.jpg\'}">'+
+'<span class="nft">NFT #'+e(t[3])+'</span><div class="body"><p class="t">'+e(t[1])+'</p><div class="by">Messed and Mixed #'+e(t[3])+' by Shahr crew x Mr. Toasty</div>'+
+'<div class="p">'+e(TTC_PRICE)+'</div><div class="sz">'+TTC_SIZES.map(function(s){return'<span>'+e(s)+'</span>'}).join('')+'</div>'+
+'<a class="btn" href="'+e(u)+'" target="_blank" rel="noopener">Buy on Shopify &rarr;</a></div>';g.appendChild(d);});}
+var w=document.querySelector('#ttcollab .wall');if(w){var bi=getComputedStyle(w).backgroundImage.match(/url\("?([^")]+)/);if(bi){var pr=new Image();pr.onerror=function(){w.style.backgroundImage="url('"+RAW+"wall/mr-toasty-wall-1920.jpg')";};pr.src=bi[1];}}
+build();document.addEventListener('DOMContentLoaded',build);})();</script>
+<!-- /TT COLLAB PAGE v3 -->
