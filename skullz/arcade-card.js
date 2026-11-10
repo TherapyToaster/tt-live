@@ -21,7 +21,7 @@ hideStyle();
 var U='https://therapytoaster.github.io/tt-live/skullz/';
 /* v0.6: animated card art. A ~0.8MB muted looping preview of the attract loop, lazy-loaded only when the card
    scrolls into view; skipped for prefers-reduced-motion and Save-Data; the thumbnail stays as poster/fallback. */
-var ART_V='71',PREVIEW=U+'card-preview.mp4?v='+ART_V;
+var ART_V='72',PREVIEW=U+'card-preview.mp4?v='+ART_V;
 var CARD='<button type="button" class="tt-ns-shot" data-sk-play aria-label="Play '+NAME.replace("'","&#39;")+'" style="background-image:url('+U+'thumb.jpg?v='+ART_V+');position:relative;overflow:hidden"><span class="tt-ns-new">NEW</span></button>'+
  '<div><p class="tt-ns-k">// new machine</p><h2 class="tt-ns-t">'+NAME.replace("'","&#39;")+'</h2>'+
  '<p class="tt-ns-d">A 404 roguelike: play as Mr. Toasty, free the Cotys, break the Glitch.</p>'+
