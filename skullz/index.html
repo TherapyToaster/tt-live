@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.7.2"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.7.3"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <link rel="icon" href="data:,"><title>MR. TOASTY'S NO SIGNAL SKULLZ — Therapy Toaster</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Anton&family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
@@ -1890,7 +1890,7 @@ addEventListener('keydown',e=>{if(state=='title'){const k=e.key.toLowerCase();if
 (()=>{const T=$('title');const h=e=>{if(state!='title')return;if(e.target.closest('button,a,summary,details,input'))return;ATTRACT.skip()};T.addEventListener('pointerdown',h)})();
 
 // ---------- v0.6.1: screen fit, FOV, settings, phone controls (twin-stick FPS layout), pause, tutorial ----------
-const SET_DEF={fov:80,sens:1,assist:1,auto:1,left:0,size:1,haptic:1,fs:1};
+const SET_DEF={fov:80,sens:1,assist:1,auto:1,left:0,size:1,haptic:1,fs:1,stick:'one',turn:1};
 let SETC=null;function sets(){return SETC||(SETC=Object.assign({},SET_DEF,meta().set||{}))}
 function saveSet(o){const m=meta();m.set=Object.assign({},SET_DEF,m.set||{},o);saveMeta(m);SETC=null;applySet()}
 function applySet(){const S=sets();setFov(S.fov);document.body.classList.toggle('lefty',!!S.left);document.documentElement.style.setProperty('--bs',S.size)}
@@ -1900,7 +1900,7 @@ for(const ev of['gesturestart','gesturechange','dblclick'])document.addEventList
 document.addEventListener('contextmenu',e=>{if(isTouch)e.preventDefault()});
 document.addEventListener('touchmove',e=>{if(state=='play'||e.touches.length>1)e.preventDefault()},{passive:false});
 const TOUCH=(()=>{const z=$('tzone'),joy=$('joy'),kn=$('knob'),bF=$('bFire'),bU=$('bUse'),bW=$('bWpn'),wh=$('wheel');
- let jid=null,jx=0,jy=0,lid=null,lx=0,fid=null,fx0=0,held=false,autoOn=false,buzzT=0,useOn=false,wid=null,wx=0,wy=0,wT=0,wMode=0,wHi=-1,wLast=-1;
+ let sx0=0,sy0=0,jid=null,jx=0,jy=0,lid=null,lx=0,fid=null,fx0=0,held=false,autoOn=false,buzzT=0,useOn=false,wid=null,wx=0,wy=0,wT=0,wMode=0,wHi=-1,wLast=-1;
  const R=()=>56*sets().size,leftSide=x=>sets().left?x>innerWidth*.55:x<innerWidth*.45;
  const look=dx=>{if(P&&state=='play')P.a+=dx*.0055*sets().sens};
  const idleJoy=()=>{const S=sets();joy.style.left=(S.left?innerWidth-110:110)+'px';joy.style.top=(innerHeight-100)+'px';joy.className='idle';kn.style.transform=''};
@@ -1909,9 +1909,10 @@ const TOUCH=(()=>{const z=$('tzone'),joy=$('joy'),kn=$('knob'),bF=$('bFire'),bU=
  z.addEventListener('touchmove',e=>{e.preventDefault();for(const t of e.changedTouches){if(t.identifier===jid){let dx=t.clientX-jx,dy=t.clientY-jy;const r=R(),l=Math.hypot(dx,dy);
    if(l>r){// floating stick follows the thumb past the rim
     jx+=dx*(1-r/l);jy+=dy*(1-r/l);dx*=r/l;dy*=r/l;joy.style.left=jx+'px';joy.style.top=jy+'px'}
-   kn.style.transform=`translate(${dx}px,${dy}px)`;const m=Math.hypot(dx,dy)/r,k=m<.14?0:(m-.14)/.86/m;touch.mx=dx/r*k;touch.my=-dy/r*k;K.shift=m>.96?1:0}
+   kn.style.transform=`translate(${dx}px,${dy}px)`;const m=Math.hypot(dx,dy)/r,k=m<.14?0:(m-.14)/.86/m;sx0=dx/r;sy0=-dy/r;
+   if(sets().stick=='twin'){touch.mx=dx/r*k;touch.my=-dy/r*k;K.shift=m>.96?1:0}else{const ay=Math.abs(sy0),fy=ay<.12?0:Math.sign(sy0)*(ay-.12)/.88;touch.my=fy;touch.mx=0;K.shift=fy>.93?1:0}}
   else if(t.identifier===lid){look(t.clientX-lx);lx=t.clientX}}},{passive:false});
- const zend=e=>{for(const t of e.changedTouches){if(t.identifier===jid){jid=null;touch.mx=touch.my=0;K.shift=0;idleJoy()}if(t.identifier===lid)lid=null}};
+ const zend=e=>{for(const t of e.changedTouches){if(t.identifier===jid){jid=null;sx0=sy0=0;touch.mx=touch.my=0;K.shift=0;idleJoy()}if(t.identifier===lid)lid=null}};
  z.addEventListener('touchend',zend);z.addEventListener('touchcancel',zend);
  // FIRE: hold to fire; dragging the thumb on it also turns the view
  bF.addEventListener('touchstart',e=>{e.preventDefault();au();const t=e.changedTouches[0];if(fid===null){fid=t.identifier;fx0=t.clientX;held=true;bF.classList.add('down')}},{passive:false});
@@ -1941,15 +1942,22 @@ const TOUCH=(()=>{const z=$('tzone'),joy=$('joy'),kn=$('knob'),bF=$('bFire'),bU=
  function target(){let best=null,bs=1e9;for(const e of ents){if(e.hp<=0||(e.t=='boss'&&e.freed))continue;const dx=e.x-P.x,dy=e.y-P.y,d=Math.hypot(dx,dy);if(d>14||d<.2)continue;
   let da=Math.atan2(dy,dx)-P.a;da=Math.atan2(Math.sin(da),Math.cos(da));const rad=Math.atan((e.r||.3)/d);if(Math.abs(da)>.14+rad)continue;if(!los(P.x,P.y,e.x,e.y))continue;const sc=Math.abs(da)/(rad+.01)+d*.05;if(sc<bs){bs=sc;best={e,da,rad,d}}}return best}
  let wShown=-1;
- function tick(dt){if(!isTouch||state!='play')return;const S=sets();const tg=target(),w=WEAPONS[P.w];
+ // v0.7.3 ONE-STICK: stick Y = walk forward/back, stick X = turn (small deadzone, gentle near the centre, fast at the rim) with a
+ // light sidestep blended in (STRAFE share of X) so pushing sideways also slides a little. Turning eases off while an enemy sits
+ // on the crosshair so aim assist + auto-fire can do their job.
+ const ONE={dead:.1,strafe:.3,rate:3.3};
+ function oneStick(dt,tg){const S=sets();if(S.stick=='twin'||jid===null){if(S.stick!='twin'&&jid===null)touch.mx=0;return 0}const ax=Math.abs(sx0);if(ax<ONE.dead){touch.mx=0;return 0}
+  const u=Math.min(1,(ax-ONE.dead)/(1-ONE.dead)),c=.22*u+.78*u*u*u,slow=tg&&Math.abs(tg.da)<tg.rad*2.2?.5:1,rate=Math.sign(sx0)*c*ONE.rate*(+S.turn||1)*slow;
+  P.a+=rate*dt;touch.mx=Math.sign(sx0)*u*ONE.strafe;return rate}
+ function tick(dt){if(!isTouch||state!='play')return;const S=sets();const tg=target(),w=WEAPONS[P.w];oneStick(dt,tg);
   if(tg&&S.assist&&(lid!==null||fid!==null||jid!==null)&&Math.abs(tg.da)>tg.rad*.35)P.a+=tg.da*Math.min(1,dt*2.6); // gentle pull, never a snap
   autoOn=!!(S.auto&&tg&&Math.abs(tg.da)<tg.rad*1.05&&(w.kind!='melee'||tg.d<(w.reach||1.2)+.3));bF.classList.toggle('auto',autoOn&&!held);touch.fire=held||autoOn;
   const u=canUse();if(u!==useOn){useOn=u;bU.classList.toggle('show',u)}
   if(wShown!==P.w){wShown=P.w;$('wpi').textContent=P.owned.indexOf(P.w)+1;$('wps').textContent=w.n.split(' ').slice(-1)[0]}}
  function buzz(ms){if(!isTouch||MUTE||!sets().haptic||!navigator.vibrate)return;const now=performance.now();if(now<buzzT)return;buzzT=now+(ms>20?120:70);try{navigator.vibrate(ms)}catch(e){}}
- function reset(){jid=lid=fid=wid=null;held=false;touch.mx=touch.my=0;touch.fire=false;K.shift=0;bF.classList.remove('down','auto');wh.className='';wMode=0;idleJoy()}
+ function reset(){sx0=sy0=0;jid=lid=fid=wid=null;held=false;touch.mx=touch.my=0;touch.fire=false;K.shift=0;bF.classList.remove('down','auto');wh.className='';wMode=0;idleJoy()}
  idleJoy();addEventListener('resize',idleJoy);
- return{tick,buzz,reset,canUse,target,get auto(){return autoOn},get held(){return held}}})();
+ return{tick,buzz,reset,canUse,target,ONE,get stick(){return{x:sx0,y:sy0,on:jid!==null,mx:touch.mx,my:touch.my}},get auto(){return autoOn},get held(){return held}}})();
 // haptics: being hit, and a tiny tick when your shots land
 {const _h=hurt;hurt=function(n,s){const hp=P.hp,ap=P.ap;_h(n,s);if(P.hp<hp||P.ap<ap)TOUCH.buzz(35)}}
 {const _d=damage;damage=function(e,...a){const r=_d(e,...a);TOUCH.buzz(8);return r}}
@@ -1964,19 +1972,25 @@ $('sback').addEventListener('click',()=>{if(setBack=='pause'){state='pause';show
 function drawSettings(){const S=sets(),on=v=>v?'ON':'OFF',rows=[];
  rows.push(['FIELD OF VIEW',`<button data-k="fov">${S.fov}° ${S.fov==80?'(DEFAULT)':S.fov<=66?'(CLASSIC)':''}</button>`]);
  rows.push(['<h3>PHONE / TOUCH</h3>','']);
+ rows.push(['MOVE STICK',`<button data-k="stick">${S.stick=='twin'?'TWIN-STICK (MOVE + STRAFE)':'ONE-STICK (WALK + TURN)'}</button>`]);
+ if(S.stick!='twin')rows.push(['TURN SPEED (ONE-STICK)',`<input type="range" min="0.4" max="2" step="0.1" value="${S.turn}" data-k="turn"> <span id="turnv">${(+S.turn).toFixed(1)}</span>`]);
  rows.push(['LOOK SENSITIVITY',`<input type="range" min="0.3" max="2.5" step="0.1" value="${S.sens}" data-k="sens"> <span id="sensv">${(+S.sens).toFixed(1)}</span>`]);
  rows.push(['AIM ASSIST',`<button data-k="assist">${on(S.assist)}</button>`]);rows.push(['AUTO-FIRE ON TARGET',`<button data-k="auto">${on(S.auto)}</button>`]);
  rows.push(['LEFT-HANDED (SWAP SIDES)',`<button data-k="left">${on(S.left)}</button>`]);rows.push(['BUTTON SIZE',`<button data-k="size">${S.size<1?'SMALL':S.size>1?'LARGE':'MEDIUM'}</button>`]);
  rows.push(['VIBRATION',`<button data-k="haptic">${on(S.haptic)}</button>`]);rows.push(['FULLSCREEN ON START',`<button data-k="fs">${on(S.fs)}</button>`]);
  const el=$('setrows');el.innerHTML=rows.map(([a,b])=>b?`<div class="row"><span>${a}</span><span>${b}</span></div>`:a).join('');
- for(const b of el.querySelectorAll('button[data-k]'))b.onclick=()=>{const k=b.dataset.k,S2=sets();let v;if(k=='fov'){const L=[66,74,80,86,92];v=L[(L.indexOf(S2.fov)+1)%L.length]}else if(k=='size'){const L=[.85,1,1.2];v=L[(L.indexOf(S2.size)+1)%L.length]}else v=S2[k]?0:1;saveSet({[k]:v});drawSettings()};
- const r=el.querySelector('input[data-k=sens]');r.oninput=()=>{$('sensv').textContent=(+r.value).toFixed(1)};r.onchange=()=>saveSet({sens:+r.value})}
+ for(const b of el.querySelectorAll('button[data-k]'))b.onclick=()=>{const k=b.dataset.k,S2=sets();let v;if(k=='fov'){const L=[66,74,80,86,92];v=L[(L.indexOf(S2.fov)+1)%L.length]}else if(k=='size'){const L=[.85,1,1.2];v=L[(L.indexOf(S2.size)+1)%L.length]}else if(k=='stick')v=S2.stick=='twin'?'one':'twin';else v=S2[k]?0:1;saveSet({[k]:v});drawSettings()};
+ const r=el.querySelector('input[data-k=sens]');r.oninput=()=>{$('sensv').textContent=(+r.value).toFixed(1)};r.onchange=()=>saveSet({sens:+r.value});
+ const tr=el.querySelector('input[data-k=turn]');if(tr){tr.oninput=()=>{$('turnv').textContent=(+tr.value).toFixed(1)};tr.onchange=()=>saveSet({turn:+tr.value})}}
 // touch start: fullscreen + landscape lock (where the browser allows it), first-time controls tutorial, rotate hint in portrait
 let tutOn=false;
 {const _s=start;start=function(mode){if(isTouch&&sets().fs){try{const d=document.documentElement,rq=d.requestFullscreen||d.webkitRequestFullscreen;if(rq&&!document.fullscreenElement){const p=rq.call(d);p&&p.then&&p.then(()=>{try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{})}catch(e){}},()=>{})}}catch(e){}}
- _s(mode);TOUCH.reset();if(isTouch&&!load('skullz_tut',0)){tutOn=true;state='tut';$('ttut').className='on'}rotHint()}}
-$('ttut').addEventListener('touchstart',e=>{e.preventDefault();if(!tutOn)return;tutOn=false;save('skullz_tut',1);$('ttut').className='';state='play';TOUCH.reset()},{passive:false});
-$('ttut').addEventListener('click',()=>{if(!tutOn)return;tutOn=false;save('skullz_tut',1);$('ttut').className='';state='play'});
+ _s(mode);TOUCH.reset();if(isTouch&&!load('skullz_tut2',0)){tutText();tutOn=true;state='tut';$('ttut').className='on'}rotHint()}}
+function tutText(){const one=sets().stick!='twin',q=s=>$('ttut').querySelector(s);if(!q('.tl'))return;
+ q('.tl').innerHTML=one?'LEFT THUMB · ONE-STICK<br>UP / DOWN = WALK<br>LEFT / RIGHT = TURN<br>(+ A LITTLE SIDESTEP)<br><br>(STICK APPEARS<br>WHERE YOU TOUCH)':'LEFT THUMB<br>MOVE + STRAFE<br><br>(STICK APPEARS<br>WHERE YOU TOUCH)';
+ q('.tr').innerHTML=one?'RIGHT THUMB<br>DRAG TO FINE-AIM<br><br>⚙ SETTINGS: TWIN-STICK,<br>TURN SPEED':'RIGHT THUMB<br>DRAG ANYWHERE<br>TO LOOK'}
+$('ttut').addEventListener('touchstart',e=>{e.preventDefault();if(!tutOn)return;tutOn=false;save('skullz_tut2',1);$('ttut').className='';state='play';TOUCH.reset()},{passive:false});
+$('ttut').addEventListener('click',()=>{if(!tutOn)return;tutOn=false;save('skullz_tut2',1);$('ttut').className='';state='play'});
 let rotDone=false;function rotHint(){const el=$('rot');const show=isTouch&&!rotDone&&(state=='play'||state=='tut')&&innerHeight>innerWidth;el.className=show?'on':'';if(show)setTimeout(()=>{el.className='';rotDone=true},5000)}
 $('rot').addEventListener('touchstart',e=>{e.preventDefault();rotDone=true;$('rot').className=''},{passive:false});
 // leaving the page/app mid-run on a phone pauses the game
