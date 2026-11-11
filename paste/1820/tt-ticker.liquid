@@ -17,7 +17,7 @@
   if tt_sep == blank
     assign tt_sep = "☠"
   endif
-  assign tt_speed = section.settings.speed | default: 20
+  assign tt_speed = section.settings.speed | default: 26
 -%}
 
 {% style %}
@@ -59,7 +59,7 @@
     --tt-ticker-yellow: #FFD400;
     --tt-ticker-black: #000000;
     --tt-ticker-gap: clamp(1.1rem, 2.4vw, 1.85rem);
-    --tt-ticker-speed: 20s;
+    --tt-ticker-speed: 26s;
     --tt-ticker-stripe: 62.23px;
     display: block;
     width: 100%;
@@ -266,7 +266,7 @@
       "max": 40,
       "step": 1,
       "unit": "s",
-      "default": 20,
+      "default": 26,
       "info": "Seconds for one full loop. Higher is slower."
     }
   ],
