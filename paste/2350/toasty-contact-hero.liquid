@@ -1,0 +1,406 @@
+{% comment %}
+  Contact page — graffiti wall hero + styled Shopify contact form.
+  Scoped to #tt-toasty-contact-root only. Preview with ?view=toasty-contact.
+{% endcomment %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik+Wet+Paint&display=swap" rel="stylesheet">
+
+<div id="tt-toasty-contact-root" data-toasty-contact="v1">
+<style>
+body:has(#tt-toasty-contact-root) {
+  background-color: #000 !important;
+  color: #fffefa;
+}
+body:has(#tt-toasty-contact-root) .shopify-section-group-header-group,
+body:has(#tt-toasty-contact-root) header-component,
+body:has(#tt-toasty-contact-root) .header-section,
+body:has(#tt-toasty-contact-root) .header,
+body:has(#tt-toasty-contact-root) .header__row,
+body:has(#tt-toasty-contact-root) .header__row--top {
+  background: #000 !important;
+  --color-background-top-row: #000 !important;
+  --color-background-bottom-row: #000 !important;
+  color: #fffefa !important;
+  border-color: #000 !important;
+  box-shadow: none !important;
+}
+body:has(#tt-toasty-contact-root) .header a,
+body:has(#tt-toasty-contact-root) .header button,
+body:has(#tt-toasty-contact-root) .header .header__heading,
+body:has(#tt-toasty-contact-root) .header span,
+body:has(#tt-toasty-contact-root) .header p {
+  color: #fffefa !important;
+}
+body:has(#tt-toasty-contact-root) [id*="header_announcements"],
+body:has(#tt-toasty-contact-root) [id*="header_announcements"] .section-background,
+body:has(#tt-toasty-contact-root) .announcement-bar {
+  background: #000 !important;
+  --color-background: #000 !important;
+  --color-background-rgb: 0 0 0 !important;
+  --color: #FFD400 !important;
+  --color-foreground: #FFD400 !important;
+  color: #FFD400 !important;
+  border-color: #000 !important;
+}
+body:has(#tt-toasty-contact-root) .announcement-bar a,
+body:has(#tt-toasty-contact-root) .announcement-bar span,
+body:has(#tt-toasty-contact-root) .announcement-bar p,
+body:has(#tt-toasty-contact-root) .announcement-bar .text-block {
+  color: #FFD400 !important;
+}
+body:has(#tt-toasty-contact-root) .shopify-section-group-footer-group,
+body:has(#tt-toasty-contact-root) footer,
+body:has(#tt-toasty-contact-root) .footer {
+  background: #000 !important;
+  color: rgba(255, 250, 230, 0.92) !important;
+}
+body:has(#tt-toasty-contact-root) footer a,
+body:has(#tt-toasty-contact-root) .footer a {
+  color: #FFD400 !important;
+}
+
+#tt-toasty-contact-root {
+  position: relative;
+  isolation: isolate;
+  background: #000;
+  color: #fffefa;
+}
+#tt-toasty-contact-root .ttc-wall {
+  width: 100%;
+  aspect-ratio: 21 / 9;
+  min-height: 260px;
+  background-color: #000;
+  background-image: url("https://cdn.shopify.com/s/files/1/0787/6860/3190/files/toasty-wall-hero.jpg?v=1794370189");
+  background-repeat: no-repeat;
+  background-position: center 42%;
+  background-size: cover;
+  position: relative;
+}
+#tt-toasty-contact-root .ttc-wall::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 28%;
+  background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, #000 100%);
+  pointer-events: none;
+}
+#tt-toasty-contact-root .ttc-band {
+  background: #000;
+  text-align: center;
+  padding: 8px 20px 56px;
+}
+#tt-toasty-contact-root .ttc-headline {
+  margin: 0;
+  font-family: "Rubik Wet Paint", Impact, "Arial Black", cursive, sans-serif;
+  font-weight: 400;
+  font-size: clamp(2.3rem, 6.4vw, 5rem);
+  line-height: 0.98;
+  letter-spacing: 0.01em;
+  color: #FFD400;
+  text-shadow:
+    2px 2px 0 #e10600,
+    3px 3px 0 #c40000,
+    5px 5px 0 #000,
+    0 0 18px rgba(0, 0, 0, 0.85);
+  -webkit-text-stroke: 0.5px #8b0000;
+}
+#tt-toasty-contact-root .ttc-tagline {
+  margin: 14px auto 0;
+  max-width: 34rem;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: clamp(0.95rem, 2.2vw, 1.15rem);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  line-height: 1.45;
+  color: #fffefa;
+  text-shadow: 0 1px 3px #000;
+}
+#tt-toasty-contact-root .ttc-form-wrap {
+  margin: 32px auto 0;
+  max-width: 34rem;
+  text-align: left;
+  padding: 22px 22px 24px;
+  background:
+    linear-gradient(#0a0a0a, #0a0a0a) padding-box,
+    linear-gradient(135deg, #FFD400 0%, #e10600 52%, #FFD400 100%) border-box;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 1px #000,
+    4px 4px 0 #e10600,
+    0 18px 40px rgba(0, 0, 0, 0.55);
+}
+#tt-toasty-contact-root .ttc-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+#tt-toasty-contact-root .ttc-row {
+  display: flex;
+  gap: 14px;
+}
+#tt-toasty-contact-root .ttc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+#tt-toasty-contact-root .ttc-label {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #FFD400;
+}
+#tt-toasty-contact-root .ttc-req {
+  color: #e10600;
+}
+#tt-toasty-contact-root .ttc-input,
+#tt-toasty-contact-root .ttc-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  background: #111;
+  color: #fffefa;
+  border: 2px solid rgba(255, 212, 0, 0.42);
+  border-radius: 2px;
+  padding: 12px 14px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 1rem;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+#tt-toasty-contact-root .ttc-textarea {
+  resize: vertical;
+  min-height: 8.5rem;
+}
+#tt-toasty-contact-root .ttc-input::placeholder,
+#tt-toasty-contact-root .ttc-textarea::placeholder {
+  color: rgba(255, 250, 230, 0.45);
+}
+#tt-toasty-contact-root .ttc-input:focus,
+#tt-toasty-contact-root .ttc-textarea:focus {
+  border-color: #FFD400;
+  box-shadow: 0 0 0 3px rgba(255, 212, 0, 0.28);
+}
+#tt-toasty-contact-root .ttc-input[aria-invalid="true"] {
+  border-color: #e10600;
+}
+#tt-toasty-contact-root .ttc-submit {
+  align-self: flex-start;
+  margin-top: 4px;
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+  background: #FFD400;
+  color: #000;
+  font-family: "Rubik Wet Paint", Impact, "Arial Black", cursive, sans-serif;
+  font-size: 1.35rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  padding: 14px 28px 12px;
+  border-radius: 2px;
+  text-shadow: none;
+  box-shadow: 3px 3px 0 #e10600;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+#tt-toasty-contact-root .ttc-submit:hover,
+#tt-toasty-contact-root .ttc-submit:focus-visible {
+  background: #ffe14a;
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 #e10600;
+  outline: none;
+}
+#tt-toasty-contact-root .ttc-submit:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 #e10600;
+}
+#tt-toasty-contact-root .ttc-alert {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.4;
+  padding: 10px 12px;
+  border-radius: 2px;
+}
+#tt-toasty-contact-root .ttc-alert--error {
+  color: #fffefa;
+  background: #3a0000;
+  border: 2px solid #e10600;
+}
+#tt-toasty-contact-root .ttc-alert--success {
+  color: #111;
+  background: #FFD400;
+  border: 2px solid #000;
+}
+#tt-toasty-contact-root .ttc-links {
+  margin: 28px auto 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 22px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+#tt-toasty-contact-root .ttc-links a {
+  color: #FFD400;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 212, 0, 0.45);
+  padding-bottom: 1px;
+}
+#tt-toasty-contact-root .ttc-links a:hover,
+#tt-toasty-contact-root .ttc-links a:focus-visible {
+  border-bottom-color: #FFD400;
+  outline: none;
+}
+@media (max-width: 767px) {
+  #tt-toasty-contact-root .ttc-wall {
+    aspect-ratio: 16 / 9;
+    min-height: 180px;
+    background-position: center 36%;
+  }
+  #tt-toasty-contact-root .ttc-band {
+    padding: 6px 16px 40px;
+  }
+  #tt-toasty-contact-root .ttc-headline {
+    font-size: clamp(2rem, 11vw, 3rem);
+    text-shadow:
+      2px 2px 0 #e10600,
+      4px 4px 0 #000,
+      0 0 12px rgba(0, 0, 0, 0.85);
+  }
+  #tt-toasty-contact-root .ttc-tagline {
+    font-size: 0.92rem;
+    letter-spacing: 0.02em;
+    max-width: 20rem;
+  }
+  #tt-toasty-contact-root .ttc-row {
+    flex-direction: column;
+  }
+  #tt-toasty-contact-root .ttc-form-wrap {
+    padding: 18px 16px 20px;
+    box-shadow:
+      0 0 0 1px #000,
+      3px 3px 0 #e10600;
+  }
+  #tt-toasty-contact-root .ttc-submit {
+    width: 100%;
+  }
+}
+</style>
+
+<div class="ttc-hero">
+  <div class="ttc-wall" role="img" aria-label="Colorful Mr. Toasty graffiti wall"></div>
+  <div class="ttc-band">
+    <h1 class="ttc-headline">Contact Mr. Toasty</h1>
+    <p class="ttc-tagline">Got a question, a collab idea, or just want to say hey? Drop a note below.</p>
+
+    <div class="ttc-form-wrap">
+      {% assign form_id = 'ContactForm-toasty' %}
+      {%- form 'contact', id: form_id, class: 'ttc-form' -%}
+        <input name="contact[id]" type="hidden" value="{{ form_id }}">
+
+        {% liquid
+          assign form_matches = false
+          if form.id == form_id or form.id == blank
+            assign form_matches = true
+          endif
+        %}
+
+        {%- if form.errors and form_matches -%}
+          <div class="ttc-alert ttc-alert--error" tabindex="-1" autofocus>
+            {{ form.errors.translated_fields.email | capitalize }}
+            {{ form.errors.messages.email }}
+          </div>
+        {%- endif -%}
+
+        {%- if form.posted_successfully? and form_matches -%}
+          <div class="ttc-alert ttc-alert--success" tabindex="-1" autofocus>
+            Thanks — Toasty got your note and will get back to you.
+          </div>
+        {%- endif -%}
+
+        <div class="ttc-row">
+          <div class="ttc-field">
+            <label class="ttc-label" for="ContactForm-toasty-name">Name</label>
+            <input
+              type="text"
+              id="ContactForm-toasty-name"
+              class="ttc-input"
+              autocomplete="name"
+              name="contact[name]"
+              value="{% if form.name %}{{ form.name }}{% elsif customer %}{{ customer.name }}{% endif %}"
+              placeholder="Your name"
+            >
+          </div>
+          <div class="ttc-field">
+            <label class="ttc-label" for="ContactForm-toasty-email">Email <span class="ttc-req" aria-hidden="true">*</span></label>
+            <input
+              type="email"
+              id="ContactForm-toasty-email"
+              class="ttc-input"
+              autocomplete="email"
+              name="contact[email]"
+              spellcheck="false"
+              autocapitalize="off"
+              required
+              aria-required="true"
+              value="{% if form.email %}{{ form.email }}{% elsif customer %}{{ customer.email }}{% endif %}"
+              {% if form.errors contains 'email' and form_matches %}
+                aria-invalid="true"
+              {% endif %}
+              placeholder="you@email.com"
+            >
+          </div>
+        </div>
+
+        <div class="ttc-field">
+          <label class="ttc-label" for="ContactForm-toasty-body">Message</label>
+          <textarea
+            rows="7"
+            id="ContactForm-toasty-body"
+            class="ttc-textarea"
+            name="contact[body]"
+            placeholder="What's on your mind?"
+          >{{- form.body -}}</textarea>
+        </div>
+
+        <button type="submit" class="ttc-submit">Send it</button>
+      {%- endform -%}
+    </div>
+
+    <nav class="ttc-links" aria-label="Other ways to reach Mr. Toasty">
+      <a href="https://twitter.com/TherapyToaster" rel="noopener">Twitter @TherapyToaster</a>
+      <a href="https://www.therapytoaster.com" rel="noopener">therapytoaster.com</a>
+    </nav>
+  </div>
+</div>
+</div>
+
+{% schema %}
+{
+  "name": "Toasty contact",
+  "tag": "section",
+  "class": "toasty-contact-hero-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Graffiti-wall contact page. Scoped to this section only; assign the toasty-contact page template to use it."
+    }
+  ],
+  "presets": [
+    {
+      "name": "Toasty contact"
+    }
+  ]
+}
+{% endschema %}
