@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.11.1"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.11.2"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <link rel="icon" href="data:,"><title>MR. TOASTY'S NO SIGNAL SKULLZ — Therapy Toaster</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Anton&family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
@@ -5337,9 +5337,9 @@ TT.hoseI=()=>hoseI;
 // v0.11.1 — first-person viewmodels (foreshortened, from behind/slightly
 // above, barrel toward the crosshair). Mr. Toasty gloved hands clearly
 // gripping. Recoil animates the gun only — no camera kick, yaw, or
-// shot-shake. SMALL default (~28–32% view height) / NORMAL in GRAPHICS.
+// shot-shake. SMALL default (~28–32% view height, ~15% closer in v0.11.2) / NORMAL in GRAPHICS.
 (function(){
-const GUN_VER='0.11.1';
+const GUN_VER='0.11.2';
 function wepSmall(){return (typeof sets!=='function')||sets().wepSz!=='normal'}
 function wepMul(){return wepSmall()?0.46:1}
 
@@ -5729,16 +5729,19 @@ drawWeapon=function(rdt){
     }
   }
 
-  // SMALL ~28% of view height; slightly right of center at the bottom.
+  // SMALL ~28% of view height at 0.11.1; v0.11.2 brings the gun ~15% closer
+  // (bigger + lower) at both SMALL and NORMAL, still well under the old huge size.
   // Leave the right-side aim stick / SWAP / PARRY clear on touch.
+  const CLOSE=1.15;
   const k=(H/200)*1.12*mul;
-  const dw=240*k*.68, dh=160*k*.68;
+  const dw=240*k*.68*CLOSE, dh=160*k*.68*CLOSE;
   const touch=typeof isTouch!=='undefined'&&isTouch;
   const lefty=typeof sets==='function'&&!!sets().left;
   const portrait=typeof isTouch!=='undefined'&&isTouch&&(typeof innerWidth==='number')&&innerWidth<innerHeight*1.1;
   let ax=W*(touch?(lefty?.48:.50):.54);
-  // desktop HUD covers the bottom of the canvas; lift hands above it. Touch HUD is at the top.
-  const lift=(touch?4:28)*(H/200);
+  // Lower in the frame so the gun sits closer to the camera. Desktop still
+  // keeps a little HUD clearance; touch HUD is at the top.
+  const lift=(touch?0:12)*(H/200);
   let ay=H-lift;
   if(portrait)ax=W*(lefty?.48:.50);
   ctx.save();
@@ -5795,7 +5798,7 @@ update=function(dt){
 };
 
 if(typeof TT==='object'){
-  TT.gunVer=GUN_VER;TT.GUN=GUN3;TT.wepSmall=wepSmall;TT.wepMul=wepMul;
+  TT.gunVer=GUN_VER;TT.GUN=GUN3;TT.wepSmall=wepSmall;TT.wepMul=wepMul;TT.wepClose=1.15;
   TT.bakeGunView=bakeGunView;TT.installViewmodels=installViewmodels;
 }
 })();
