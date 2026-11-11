@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.9.1"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.9.2"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <link rel="icon" href="data:,"><title>MR. TOASTY'S NO SIGNAL SKULLZ — Therapy Toaster</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Anton&family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
@@ -3888,6 +3888,405 @@ drawWeapon=function(rdt){
 };
 
 if(typeof TT==='object'){TT.gunVer=GUN_VER;TT.GUN=GUN;TT.GNAMES=GNAMES;TT.announceWep=announceWep}
+})();
+
+// =====================================================================
+// v0.9.2 GUNS — smaller viewmodels + original SULFUR-style art (not
+// copied from SULFUR). Worn blued steel, oiled wood, brass, grime.
+// WEAPON SIZE SMALL (default) / NORMAL in ⚙ GRAPHICS.
+// =====================================================================
+(function(){
+const GUN_VER='0.9.2';
+function wepSmall(){return (typeof sets!=='function')||sets().wepSz!=='normal'}
+function wepMul(){return wepSmall()?0.46:1}
+
+// muted, warm, desaturated materials — not neon, not chrome-bright
+const ST='#5a6268', DK='#2a2e32', PKR='#3a3e38', HL='#8a8c84',
+      WD='#5a3820', WD2='#3d2414', WD3='#7a5230',
+      BR='#b8924a', BR2='#8a6a32', CU='#8a5a38', CU2='#6a3a28',
+      BT='#c4a44a', SK='#e8dcc8', CY='#3a6a6e', BK='#12100e', RS='#5a3a28';
+
+function bake(w,h,fn){const c=mk(w,h),g=c.getContext('2d');g.imageSmoothingEnabled=false;g.clearRect(0,0,w,h);fn(g,w,h);return hdCanvas(c,{epx:false,shade:true,ink:true,diag:true}).canvas()}
+function rr(g,x,y,w,h,r,c){g.fillStyle=c;g.beginPath();if(g.roundRect)g.roundRect(x,y,w,h,r);else g.rect(x,y,w,h);g.fill()}
+function scratch(g,x,y,w,h,n){g.fillStyle=HL;for(let i=0;i<n;i++){const sx=x+((i*13+7)%Math.max(1,w)),sy=y+((i*9+3)%Math.max(1,h));g.fillRect(sx,sy,1+(i%3),1)}}
+function grime(g,x,y,w,h,n){g.fillStyle=RS;for(let i=0;i<n;i++){const sx=x+((i*17+5)%Math.max(1,w)),sy=y+((i*11+2)%Math.max(1,h));g.fillRect(sx,sy,1+(i%2),1+(i%2))}}
+function rivet(g,x,y){g.fillStyle=BR2;g.fillRect(x,y,3,3);g.fillStyle=BK;g.fillRect(x+1,y+1,1,1)}
+function wood(g,x,y,w,h,r){rr(g,x,y,w,h,r||2,WD);g.fillStyle=WD2;for(let i=0;i<h;i+=6)g.fillRect(x,y+i,w,1);g.fillStyle=WD3;g.fillRect(x+1,y,2,h);scratch(g,x,y,w,h,4)}
+function steel(g,x,y,w,h,r){rr(g,x,y,w,h,r||1,ST);g.fillStyle=DK;g.fillRect(x,y+h-2,w,2);g.fillStyle=HL;g.fillRect(x+1,y,w-2,1);scratch(g,x,y,w,h,5);grime(g,x,y,w,h,3)}
+function hand(g,x,y,flip){rr(g,x-7,y,14,9,2,SK);
+  for(let k=0;k<4;k++)rr(g,x-7+k*3.8,y-5,3,7,1,SK);
+  rr(g,x+(flip?-13:8),y-2,5,7,1,SK);
+  g.fillStyle='#4a5a66';for(let k=0;k<4;k++)g.fillRect(x-6+k*3.8,y-1,2,1);
+  g.fillStyle=CY;g.fillRect(x-7,y+9,14,2);
+  rr(g,x-3,y+11,7,14,2,SK);grime(g,x-6,y,14,20,2)}
+function charm(g,x,y){g.strokeStyle=BR2;g.lineWidth=1;g.beginPath();g.moveTo(x,y-7);g.lineTo(x,y-1);g.stroke();
+  rr(g,x-3,y-1,7,7,2,BR);g.fillStyle=BK;g.fillRect(x-2,y+1,1,2);g.fillRect(x+1,y+1,1,2);g.fillRect(x-1,y+4,2,1)}
+
+// ---- original grounded silhouettes (barrel toward top) ----
+function drawPistol(g,anim){
+  const sl=anim&&anim.slide||0, magY=anim&&anim.magY||0, ext=anim&&anim.ext||0;
+  // wood grip panels
+  wood(g,122,98,24,50,3);g.fillStyle=BR2;g.fillRect(128,116,3,3);g.fillRect(128,136,3,3);
+  // trigger guard (loop)
+  g.fillStyle=DK;g.fillRect(108,94,20,4);g.fillRect(108,94,4,20);g.fillRect(108,110,20,4);g.fillRect(124,94,4,20);
+  g.fillStyle=BR;g.fillRect(116,100,3,10); // trigger
+  // receiver
+  steel(g,110,58,36,42,2);
+  // slide racks back
+  g.save();g.translate(0,sl*14);
+  steel(g,108,16,40,50,2);
+  g.fillStyle=HL;g.fillRect(110,18,36,3);
+  // rear serrations
+  g.fillStyle=DK;for(let y=48;y<62;y+=3)g.fillRect(110,y,10,2);
+  // ejection port
+  g.fillStyle=BK;g.fillRect(132,28,14,12);
+  // tiny crumb engraving on the slide (subtle parody)
+  g.fillStyle=BR2;g.fillRect(122,22,6,2);g.fillRect(124,20,2,6);
+  // barrel
+  steel(g,116,4,20,16,1);g.fillStyle=BK;g.fillRect(120,0,12,6);
+  g.fillStyle=BR;g.fillRect(124,1,4,4); // front sight
+  g.restore();
+  // hammer
+  rr(g,140,86,7,10,1,DK);
+  // mag (long stick — 30rd, longer if ext)
+  const mh=30+(ext?14:0);
+  steel(g,112,116+magY,16,mh,1);g.fillStyle=BR2;g.fillRect(114,116+magY,12,2);
+  for(let y=122;y<116+mh-2;y+=4){g.fillStyle=DK;g.fillRect(114,y+magY,12,1)}
+  charm(g,152,150);
+  hand(g,100,110,true);hand(g,148,118,false);
+}
+function drawShotgun(g,anim){
+  const pump=anim&&anim.pump||0, ext=anim&&anim.ext||0;
+  const pY=pump<=0?0:pump<.45?pump/.45*20:(1-(pump-.45)/.55)*20;
+  // stock
+  wood(g,118,104,38,48,4);g.fillStyle=WD2;g.fillRect(148,120,8,32); // rec pad
+  // receiver
+  steel(g,108,62,42,46,2);
+  g.fillStyle=BK;g.fillRect(140,70,8,14); // ejection port
+  g.fillStyle=BR;g.fillRect(141,72,6,4); // brass hull peek
+  // trigger
+  g.fillStyle=DK;g.fillRect(110,100,16,16);g.fillStyle=BR;g.fillRect(116,106,3,8);
+  // barrel (top) + mag tube (below) — classic pump silhouette
+  steel(g,122,2,14,64,1);g.fillStyle=BK;g.fillRect(125,0,8,5);
+  steel(g,124,28,10,42,1);
+  g.fillStyle=BR;g.fillRect(126,2,4,4); // bead
+  // pump forend slides on the tube
+  g.save();g.translate(0,pY);
+  wood(g,112,34,40,22,3);g.fillStyle=WD2;for(let i=0;i<5;i++)g.fillRect(116+i*7,38,4,14);
+  g.restore();
+  // sidesaddle shells
+  const n=ext?6:4;for(let i=0;i<n;i++){const y=76+i*7;g.fillStyle=BR;g.fillRect(98,y,10,5);g.fillStyle=BT;g.fillRect(98,y,3,5)}
+  charm(g,156,150);
+  g.save();g.translate(0,pY);hand(g,100,48,true);g.restore();
+  hand(g,150,118,false);
+}
+function drawSMG(g,anim){
+  const sl=anim&&anim.slide||0, magY=anim&&anim.magY||0, ext=anim&&anim.ext||0;
+  // collapsing stock
+  g.fillStyle=DK;g.fillRect(136,98,26,4);g.fillRect(158,98,4,24);wood(g,150,118,14,10,2);
+  // receiver
+  steel(g,108,50,40,52,2);
+  // subtle butter stripe (parody, not neon)
+  g.fillStyle=BT;g.fillRect(108,52,40,2);
+  // charging handle
+  g.save();g.translate(0,sl*8);g.fillStyle=HL;g.fillRect(144,54,10,5);g.restore();
+  // perforated jacket + barrel
+  steel(g,118,12,18,42,1);
+  g.fillStyle=DK;for(let y=16;y<44;y+=5){g.fillRect(120,y,3,2);g.fillRect(131,y,3,2)}
+  g.fillStyle=DK;g.fillRect(116,4,22,10);g.fillStyle=BK;g.fillRect(122,0,10,6);
+  // mag
+  const mh=30+(ext?14:0);
+  steel(g,118,100,20,10,1);
+  steel(g,120,106+magY,16,mh,1);g.fillStyle=BR2;g.fillRect(122,106+magY,12,2);
+  g.fillStyle=BR;g.fillRect(116,94,3,9);
+  charm(g,154,150);
+  hand(g,100,96,true);hand(g,146,112,false);
+}
+function drawChain(g,anim){
+  // cylindrical motor housing
+  rr(g,98,52,68,66,8,ST);g.fillStyle=DK;g.fillRect(106,60,52,18);scratch(g,98,52,68,66,8);grime(g,98,52,68,66,6);
+  g.fillStyle=BR2;g.fillRect(98,72,68,3);
+  for(let i=0;i<5;i++){g.fillStyle=DK;g.fillRect(110+i*10,82,6,12)}
+  // carry handle
+  g.fillStyle=DK;g.fillRect(120,42,20,12);g.fillRect(124,36,12,8);
+  // belt box + brass belt
+  steel(g,82,96,22,38,2);g.fillStyle=BR2;g.fillRect(84,100,18,3);
+  for(let i=0;i<6;i++){g.fillStyle=BR;g.fillRect(88,108+i*4,12,3);g.fillStyle=BT;g.fillRect(88,108+i*4,3,3)}
+  wood(g,110,116,16,28,2);wood(g,142,116,16,28,2);
+  rivet(g,104,64);rivet(g,156,64);rivet(g,104,100);
+  charm(g,168,148);
+  hand(g,92,122,true);hand(g,158,122,false);
+}
+function drawLauncher(g,anim){
+  const load=anim&&anim.slide||0;
+  wood(g,116,108,40,44,4);
+  // steel tube
+  rr(g,102,18,52,96,8,ST);g.fillStyle=DK;g.fillRect(102,48,52,4);scratch(g,102,18,52,96,7);grime(g,102,18,52,96,4);
+  for(let i=0;i<4;i++)rivet(g,108,28+i*18);
+  // iron sights
+  g.fillStyle=DK;g.fillRect(122,12,10,8);g.fillStyle=BR;g.fillRect(124,10,6,4);
+  // warhead just in the muzzle (brass, not a cartoon toast)
+  g.save();g.translate(0,load*16);
+  rr(g,118,6,20,16,3,BR2);g.fillStyle=DK;g.fillRect(122,6,12,4);
+  g.restore();
+  g.fillStyle=DK;g.fillRect(106,2,44,10);g.fillStyle=BK;g.fillRect(118,0,20,6);
+  // grip + trigger
+  steel(g,118,96,20,16,2);g.fillStyle=BR;g.fillRect(126,102,3,10);
+  charm(g,158,150);
+  hand(g,100,108,true);hand(g,152,118,false);
+}
+function drawRail(g,anim){
+  const magY=anim&&anim.magY||0, ext=anim&&anim.ext||0;
+  // wooden rifle furniture
+  wood(g,112,70,36,80,3);
+  // iron/copper beam "lightbar" — improvised period tech
+  steel(g,114,8,28,70,1);
+  g.fillStyle=CU;g.fillRect(114,10,3,66);g.fillRect(139,10,3,66);
+  g.fillStyle=CU2;g.fillRect(116,10,1,66);g.fillRect(139,10,1,66);
+  for(let y=16;y<70;y+=10)rivet(g,122,y);
+  // cloth wrap
+  g.fillStyle=WD2;g.fillRect(114,40,28,8);
+  // muzzle cap
+  g.fillStyle=DK;g.fillRect(116,2,24,10);g.fillStyle=CU;g.fillRect(122,0,12,5);
+  // wooden battery box with copper terminals
+  const mh=22+(ext?10:0);
+  wood(g,116,108+magY,28,mh,2);g.fillStyle=CU;g.fillRect(120,110+magY,6,4);g.fillRect(134,110+magY,6,4);
+  // stamped brass plate
+  g.fillStyle=BR2;g.font='bold 6px monospace';g.fillText('850',118,96);
+  charm(g,154,150);
+  hand(g,100,112,true);hand(g,148,118,false);
+}
+function drawZapper(g,anim){
+  const magY=anim&&anim.magY||0, ext=anim&&anim.ext||0;
+  wood(g,108,58,40,62,3);
+  // copper coils on two wood/ceramic posts
+  g.fillStyle=WD2;g.fillRect(114,18,8,44);g.fillRect(134,18,8,44);
+  for(let y=20;y<52;y+=5){g.fillStyle=CU;g.fillRect(112,y,12,3);g.fillRect(132,y,12,3);g.fillStyle=CU2;g.fillRect(112,y,12,1)}
+  // ceramic insulators
+  rr(g,112,8,12,12,3,HL);rr(g,132,8,12,12,3,HL);
+  g.fillStyle=CU;g.fillRect(116,6,4,4);g.fillRect(136,6,4,4);
+  rivet(g,112,70);rivet(g,140,70);rivet(g,112,96);
+  // cell pack
+  const mh=20+(ext?10:0);
+  wood(g,116,116+magY,24,mh,2);g.fillStyle=CU;g.fillRect(120,118+magY,16,3);
+  wood(g,118,132,28,20,2);
+  g.fillStyle=BR;g.fillRect(116,100,3,10);
+  charm(g,154,150);
+  hand(g,100,110,true);hand(g,148,118,false);
+}
+function drawKnife(g){
+  g.save();g.translate(148,128);g.rotate(-.42);
+  g.fillStyle=ST;g.beginPath();g.moveTo(0,-88);g.lineTo(12,-18);g.lineTo(-5,-14);g.closePath();g.fill();
+  g.fillStyle=HL;g.fillRect(2,-78,2,48);
+  // butter smear on the ricasso — subtle
+  g.fillStyle=BT;g.fillRect(-2,-42,10,8);g.fillRect(1,-34,3,8);
+  wood(g,-7,-16,16,40,3);g.fillStyle=BR2;g.fillRect(-7,-4,16,2);rivet(g,-2,4);rivet(g,-2,16);
+  g.restore();
+  hand(g,140,118,false);
+  charm(g,166,148);
+}
+
+function bakeGun(id,anim){
+  return bake(240,160,g=>{
+    if(id=='rifle')drawPistol(g,anim);
+    else if(id=='shotgun')drawShotgun(g,anim);
+    else if(id=='smg')drawSMG(g,anim);
+    else if(id=='chain')drawChain(g,anim);
+    else if(id=='launcher')drawLauncher(g,anim);
+    else if(id=='rail')drawRail(g,anim);
+    else if(id=='zapper')drawZapper(g,anim);
+    else if(id=='knife')drawKnife(g);
+    else drawPistol(g,anim);
+  });
+}
+
+const GUN2={};
+for(const w of WEAPONS){
+  GUN2[w.id]={body:bakeGun(w.id,{slide:0,pump:0,magY:0,ext:0}),
+              bodyExt:bakeGun(w.id,{slide:0,pump:0,magY:0,ext:1})};
+}
+for(let i=0;i<WEAPONS.length;i++)WC[i]=GUN2[WEAPONS[i].id].body;
+if(typeof GUN==='object')Object.assign(GUN,GUN2);else window.GUN=GUN2;
+
+const MUZ={rifle:{x:126,y:4},shotgun:{x:128,y:2},smg:{x:127,y:2},chain:{x:128,y:6},
+           launcher:{x:128,y:2},rail:{x:126,y:1},zapper:{x:128,y:6},knife:{x:110,y:20}};
+const EJT={rifle:{x:146,y:34},shotgun:{x:148,y:76},smg:{x:148,y:54},chain:{x:92,y:110},
+           launcher:{x:128,y:18},rail:{x:140,y:40},zapper:{x:128,y:24},knife:{x:140,y:80}};
+const MAGP={rifle:{x:112,y:116},shotgun:{x:98,y:76},smg:{x:120,y:106},chain:{x:82,y:96},
+            launcher:{x:118,y:6},rail:{x:116,y:108},zapper:{x:116,y:116},knife:{x:0,y:0}};
+
+// pickup icons — muted side silhouettes
+function iconOf(id){
+  const c=mk(64,64),g=c.getContext('2d');g.imageSmoothingEnabled=false;
+  g.strokeStyle=BR2;g.lineWidth=1.5;g.beginPath();g.ellipse(32,58,20,4,0,0,7);g.stroke();
+  g.save();g.translate(8,16);
+  if(id=='rifle'){wood(g,10,20,16,22,2);steel(g,12,6,14,20,1);g.fillStyle=DK;g.fillRect(15,0,8,8);steel(g,14,38,10,14,1)}
+  else if(id=='shotgun'){steel(g,22,0,6,28,1);steel(g,22,12,5,20,1);wood(g,16,20,20,12,2);wood(g,18,30,18,16,3)}
+  else if(id=='smg'){steel(g,14,10,22,16,2);steel(g,20,2,8,10,1);steel(g,20,24,8,18,1);g.fillStyle=BT;g.fillRect(14,10,22,1)}
+  else if(id=='chain'){steel(g,14,20,24,18,3);g.fillStyle=DK;for(let k=0;k<6;k++){const a=k*Math.PI/3;g.fillRect(24+Math.cos(a)*8,16+Math.sin(a)*8,4,10)}g.fillStyle=BR2;g.fillRect(14,26,24,2)}
+  else if(id=='launcher'){steel(g,16,4,22,34,6);g.fillStyle=BR2;g.fillRect(20,2,12,6);wood(g,18,36,16,12,2)}
+  else if(id=='rail'){wood(g,20,16,10,28,2);steel(g,22,0,6,24,1);g.fillStyle=CU;g.fillRect(21,4,2,20);g.fillRect(27,4,2,20)}
+  else if(id=='zapper'){wood(g,16,16,20,22,3);g.fillStyle=CU;g.fillRect(18,6,6,14);g.fillRect(28,6,6,14)}
+  else if(id=='knife'){g.fillStyle=ST;g.beginPath();g.moveTo(20,2);g.lineTo(28,28);g.lineTo(16,30);g.fill();g.fillStyle=BT;g.fillRect(16,20,10,5);wood(g,16,30,12,16,2)}
+  g.restore();
+  try{return texFromCanvas(c,{shade:true,ink:true,diag:true})}catch(e){return null}
+}
+for(const w of WEAPONS){const T=iconOf(w.id);if(T)SPR['w_'+w.id]=T}
+
+function attOf(){return{scope:typeof hasAtt==='function'&&hasAtt('scope'),ext:typeof hasAtt==='function'&&hasAtt('extmag'),butter:typeof hasAtt==='function'&&hasAtt('butter')}}
+function drawAtts(ctx,id,gx,gy,sc,att,t){
+  if(att.scope){
+    const sx=(id=='shotgun'?124:id=='chain'?122:114)*sc, sy=(id=='shotgun'||id=='chain'?14:6)*sc;
+    ctx.fillStyle='#1a1814';ctx.fillRect(gx+sx,gy+sy,32*sc,9*sc);
+    ctx.fillStyle=BR2;ctx.fillRect(gx+sx+2*sc,gy+sy+2*sc,20*sc,5*sc);
+    ctx.fillStyle='#c8c0b0';ctx.beginPath();ctx.arc(gx+sx+28*sc,gy+sy+4.5*sc,5*sc,0,7);ctx.fill();
+    ctx.fillStyle='#1a1814';ctx.beginPath();ctx.arc(gx+sx+28*sc,gy+sy+4.5*sc,2.5*sc,0,7);ctx.fill();
+  }
+  if(att.butter){
+    const bx=(id=='knife'?158:86)*sc, by=(id=='knife'?70:72)*sc;
+    ctx.fillStyle=BT;ctx.fillRect(gx+bx,gy+by,11*sc,9*sc);
+    ctx.fillStyle=BR2;ctx.fillRect(gx+bx+2*sc,gy+by-4*sc,7*sc,5*sc);
+    ctx.globalAlpha=.45;ctx.fillStyle=BT;
+    for(let i=0;i<3;i++)ctx.fillRect(gx+bx+(2+i*3)*sc,gy+by+(10+((t/80+i)|0)%5)*sc,2*sc,3*sc);
+    ctx.globalAlpha=1;
+  }
+}
+function drawBarrels(ctx,gx,gy,sc,ang){
+  const cx=gx+128*sc, cy=gy+46*sc;
+  for(let i=0;i<6;i++){
+    const a=ang+i*Math.PI/3, x=cx+Math.cos(a)*12*sc, y=cy+Math.sin(a)*7*sc;
+    ctx.fillStyle=i%2?ST:DK;
+    ctx.fillRect(x-3.5*sc,y-32*sc,7*sc,34*sc);
+    ctx.fillStyle=BK;ctx.fillRect(x-2*sc,y-34*sc,4*sc,5*sc);
+  }
+  ctx.fillStyle=BR2;ctx.beginPath();ctx.arc(cx,cy,7*sc,0,7);ctx.fill();
+  ctx.fillStyle=DK;ctx.beginPath();ctx.arc(cx,cy,3*sc,0,7);ctx.fill();
+}
+function drawCasings(ctx,gx,gy,sc,dt){
+  const L=P.vmCas;if(!L||!L.length)return;
+  for(let i=L.length-1;i>=0;i--){
+    const c=L[i];c.t-=dt;c.x+=c.vx*dt;c.y+=c.vy*dt;c.vy+=180*dt;c.rot+=c.rv*dt;
+    if(c.t<=0){L.splice(i,1);continue}
+    ctx.save();ctx.globalAlpha=Math.min(1,c.t*3);ctx.translate(gx+c.x*sc,gy+c.y*sc);ctx.rotate(c.rot);
+    if(c.kind=='shell'){ctx.fillStyle=BR;ctx.fillRect(-5*sc,-2.5*sc,10*sc,5*sc);ctx.fillStyle=BT;ctx.fillRect(-5*sc,-2.5*sc,3*sc,5*sc)}
+    else if(c.kind=='toast'){ctx.fillStyle=BR2;ctx.fillRect(-5*sc,-3*sc,10*sc,6*sc)}
+    else if(c.kind=='cell'){ctx.fillStyle=CU;ctx.fillRect(-4*sc,-3*sc,8*sc,6*sc)}
+    else{ctx.fillStyle=BR;ctx.fillRect(-4*sc,-1.5*sc,8*sc,3*sc);ctx.fillStyle=BR2;ctx.fillRect(2*sc,-1.5*sc,2*sc,3*sc)}
+    ctx.restore();
+  }
+  ctx.globalAlpha=1;
+}
+
+const SWAY={
+  rifle:{ax:1.2,ay:1.6,fx:.0017,fy:.0023,r:.01},
+  shotgun:{ax:1.6,ay:2.0,fx:.0014,fy:.0018,r:.014},
+  smg:{ax:.9,ay:1.2,fx:.0026,fy:.0032,r:.008},
+  chain:{ax:1.0,ay:1.1,fx:.0035,fy:.004,r:.006},
+  launcher:{ax:1.8,ay:1.9,fx:.0012,fy:.0015,r:.016},
+  rail:{ax:.55,ay:.7,fx:.001,fy:.0014,r:.004},
+  zapper:{ax:1.2,ay:1.0,fx:.0045,fy:.003,r:.012},
+  knife:{ax:1.4,ay:1.8,fx:.002,fy:.0024,r:.02}
+};
+
+drawWeapon=function(rdt){
+  const w=WEAPONS[P.w];if(!w)return;
+  P.kick=Math.max(0,(P.kick||0)-rdt*52);
+  const r=P.kick|0, id=w.id, now=performance.now(), S=SWAY[id]||SWAY.rifle, mul=wepMul();
+  const buzz=id=='zapper'?Math.sin(now*.06)*1.0:0;
+  const spinShake=(id=='chain'&&(P.spinV||0)>2)?((P.spinV||0)*.03):0;
+  const bobX=(Math.sin(now*S.fx)*S.ax+buzz+spinShake*(Math.random()-.5))*mul;
+  const bobY=(Math.sin(now*S.fy)*S.ay+(P.moving?Math.sin(now*.008)*2:0))*mul;
+  const sw=w.kind=='melee'&&P.swing>0?Math.sin((1-P.swing/.18)*Math.PI):0;
+  if(P.slide>0)P.slide=Math.max(0,P.slide-rdt*(id=='launcher'?3.2:8));
+  if(P.pump>0)P.pump=Math.max(0,P.pump-rdt*2.8);
+  P.spin=(P.spin||0)+(P.spinV||0)*rdt;
+  if((P.flash||0)>0&&id=='chain')P.spinV=Math.max(P.spinV||0,18);
+  P.spinV=Math.max(0,(P.spinV||0)-rdt*((P.flash||0)>0?1.5:9));
+  if(P.wNameT>0)P.wNameT=Math.max(0,P.wNameT-rdt);
+
+  const att=attOf();
+  let drop=0,tilt=0,magY=0,slide=P.slide||0,pump=P.pump||0;
+  if(P.relT>0&&P.relD){
+    const u=1-P.relT/P.relD;
+    if(id=='shotgun'){tilt=.10;drop=6*mul;if(u>.8)pump=Math.min(1,(u-.8)/.2)}
+    else if(id=='launcher'){
+      if(u<.35){drop=u/.35*12*mul;tilt=u/.35*.16;slide=u/.35}
+      else if(u<.7){drop=12*mul;tilt=.16;slide=1}
+      else{drop=12*mul-(u-.7)/.3*12*mul;tilt=.16-(u-.7)/.3*.16;slide=1-(u-.7)/.3}
+    }else{
+      if(u<.28){drop=u/.28*14*mul;tilt=u/.28*.14}
+      else if(u<.6){drop=14*mul;tilt=.14;magY=(u-.28)/.32*28}
+      else if(u<.85){drop=14*mul-(u-.6)/.25*14*mul;tilt=.14-(u-.6)/.25*.14;magY=28-(u-.6)/.25*28;slide=1}
+      else{drop=0;tilt=0;slide=1-(u-.85)/.15}
+    }
+  }
+
+  // SMALL default ~46% of v0.9.1; sit lower-right, mostly below mid, leave stick room on touch
+  const k=(H/200)*1.12*mul;
+  const dw=240*k*.68, dh=160*k*.68;
+  const touch=typeof isTouch!=='undefined'&&isTouch;
+  const lefty=typeof sets==='function'&&!!sets().left;
+  const portrait=typeof isTouch!=='undefined'&&isTouch&&(typeof innerWidth==='number')&&innerWidth<innerHeight*1.1;
+  let ax=W*(touch?(lefty?.60:.52):.60), ay=H+(touch?2:6)*mul;
+  if(portrait&&!lefty)ax=W*.50;
+  ctx.save();
+  ctx.translate(ax+bobX, ay+bobY);
+  ctx.rotate(-0.40-Math.min(.16,(P.kick||0)*.010+(P.vk||0)*.005)*mul-tilt-sw*.30+(Math.sin(now*S.fx)*S.r));
+  ctx.imageSmoothingEnabled=false;
+  const gx=-dw*.18-sw*22*k, gy=-dh+r*k*.50+drop-sw*18*k;
+  const spr=(att.ext&&GUN2[id].bodyExt)||GUN2[id].body;
+  ctx.drawImage(spr,gx,gy,dw,dh);
+  const sc=dw/240;
+  if(id=='chain')drawBarrels(ctx,gx,gy,sc,P.spin||0);
+  if(id=='shotgun'&&pump>0){
+    const pY=(pump<=0?0:pump<.45?pump/.45*20:(1-(pump-.45)/.55)*20)*sc;
+    ctx.fillStyle=WD;ctx.fillRect(gx+112*sc,gy+34*sc+pY,40*sc,22*sc);
+    ctx.fillStyle=WD2;for(let i=0;i<5;i++)ctx.fillRect(gx+(116+i*7)*sc,gy+38*sc+pY,4*sc,14*sc);
+  }
+  drawAtts(ctx,id,gx,gy,sc,att,now);
+  if(magY>0&&MAGP[id]){
+    const m=MAGP[id];
+    ctx.fillStyle=BK;ctx.fillRect(gx+m.x*sc,gy+(m.y+magY)*sc,14*sc,20*sc);
+    ctx.fillStyle=BR2;ctx.fillRect(gx+(m.x+1)*sc,gy+(m.y+magY)*sc,12*sc,2*sc);
+  }
+  drawCasings(ctx,gx,gy,sc,rdt);
+  let flashed=false;
+  if(P.flash>0){
+    const F=w.flash;
+    if(F&&F.r){
+      const m=MUZ[id]||{x:128,y:4}, q=P.flash/F.t, mx=gx+m.x*sc, my=gy+m.y*sc, fl=F.r*(H/200)*mul*1.05;
+      ctx.fillStyle='#fff7e0';ctx.beginPath();ctx.arc(mx,my,fl*q+3,0,7);ctx.fill();
+      ctx.fillStyle=F.c;
+      const rays=id=='smg'||id=='chain'?12:8;
+      for(let i=0;i<rays;i++){const a=i*(6.28/rays)+Math.random()*.4,l=fl*(1.2+Math.random());ctx.fillRect(mx+Math.cos(a)*l-1.5,my+Math.sin(a)*l*.7-1.5,3,3)}
+      ctx.globalAlpha=.65;ctx.beginPath();ctx.arc(mx,my,fl*1.7*q,0,7);ctx.fill();ctx.globalAlpha=1;
+      flashed=F;
+    }
+  }
+  ctx.restore();
+
+  if(flashed){const q=P.flash/flashed.t;ctx.globalAlpha=.12*q;ctx.fillStyle=flashed.c;ctx.fillRect(0,0,W,H);ctx.globalAlpha=1}
+
+  if(P.relT>0){ctx.fillStyle=BR;ctx.font=Math.max(6,Math.round(7*H/200))+'px monospace';ctx.textAlign='center';ctx.fillText('RELOADING',W/2,H-8);ctx.textAlign='left'}
+  if(P.wNameT>0){
+    const a=Math.min(1,P.wNameT*3,(P.wNameT<.25?P.wNameT/.25:1));
+    ctx.save();ctx.globalAlpha=a;ctx.fillStyle=BR;ctx.font=Math.max(8,Math.round(10*H/200))+'px monospace';ctx.textAlign='center';
+    ctx.fillText(w.n,W/2,H*0.36);ctx.fillStyle='#ece6d8';ctx.font=Math.max(6,Math.round(6*H/200))+'px monospace';ctx.fillText(w.d,W/2,H*0.36+Math.round(9*H/200));
+    ctx.textAlign='left';ctx.restore();
+  }
+};
+
+// ⚙ GRAPHICS: WEAPON SIZE SMALL (default) / NORMAL
+const _dsG=drawSettings;
+drawSettings=function(){_dsG();const fx=$('fxbtn');if(!fx)return;
+  const box=fx.parentElement&&fx.parentElement.parentElement&&fx.parentElement.parentElement.parentElement;
+  if(!box)return;
+  const row=document.createElement('div');row.className='row';
+  row.innerHTML='<span>WEAPON SIZE</span><span><button type="button" id="wepsz">'+(wepSmall()?'SMALL':'NORMAL')+'</button></span>';
+  box.appendChild(row);
+  $('wepsz').onclick=()=>{saveSet({wepSz:wepSmall()?'normal':'small'});drawSettings()}};
+
+if(typeof TT==='object'){TT.gunVer=GUN_VER;TT.GUN=GUN2;TT.wepSmall=wepSmall;TT.wepMul=wepMul}
 })();
 </script>
 </body></html>
