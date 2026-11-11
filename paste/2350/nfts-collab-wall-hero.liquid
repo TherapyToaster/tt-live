@@ -1,0 +1,223 @@
+{% comment %}
+  NFTs to TEEs Collab collection hero — graffiti wall.
+  Scoped to #tt-nfts-collab-wall-root only. Preview with ?view=nfts-collab-wall.
+{% endcomment %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik+Wet+Paint&display=swap" rel="stylesheet">
+
+<div id="tt-nfts-collab-wall-root" data-nfts-collab-wall="v1">
+<style>
+body:has(#tt-nfts-collab-wall-root) {
+  background-color: #000 !important;
+  color: #fffefa;
+}
+body:has(#tt-nfts-collab-wall-root) .shopify-section-group-header-group,
+body:has(#tt-nfts-collab-wall-root) header-component,
+body:has(#tt-nfts-collab-wall-root) .header-section,
+body:has(#tt-nfts-collab-wall-root) .header,
+body:has(#tt-nfts-collab-wall-root) .header__row,
+body:has(#tt-nfts-collab-wall-root) .header__row--top {
+  background: #000 !important;
+  --color-background-top-row: #000 !important;
+  --color-background-bottom-row: #000 !important;
+  color: #fffefa !important;
+  border-color: #000 !important;
+  box-shadow: none !important;
+}
+body:has(#tt-nfts-collab-wall-root) .header a,
+body:has(#tt-nfts-collab-wall-root) .header button,
+body:has(#tt-nfts-collab-wall-root) .header .header__heading,
+body:has(#tt-nfts-collab-wall-root) .header span,
+body:has(#tt-nfts-collab-wall-root) .header p {
+  color: #fffefa !important;
+}
+body:has(#tt-nfts-collab-wall-root) [id*="header_announcements"],
+body:has(#tt-nfts-collab-wall-root) [id*="header_announcements"] .section-background,
+body:has(#tt-nfts-collab-wall-root) .announcement-bar {
+  background: #000 !important;
+  --color-background: #000 !important;
+  --color-background-rgb: 0 0 0 !important;
+  --color: #FFD400 !important;
+  --color-foreground: #FFD400 !important;
+  color: #FFD400 !important;
+  border-color: #000 !important;
+}
+body:has(#tt-nfts-collab-wall-root) .announcement-bar a,
+body:has(#tt-nfts-collab-wall-root) .announcement-bar span,
+body:has(#tt-nfts-collab-wall-root) .announcement-bar p,
+body:has(#tt-nfts-collab-wall-root) .announcement-bar .text-block {
+  color: #FFD400 !important;
+}
+body:has(#tt-nfts-collab-wall-root) .shopify-section-group-footer-group,
+body:has(#tt-nfts-collab-wall-root) footer,
+body:has(#tt-nfts-collab-wall-root) .footer {
+  background: #000 !important;
+  color: rgba(255, 250, 230, 0.92) !important;
+}
+body:has(#tt-nfts-collab-wall-root) footer a,
+body:has(#tt-nfts-collab-wall-root) .footer a {
+  color: #FFD400 !important;
+}
+
+/* Product grid sits on black; cards stay light so titles and prices stay legible */
+body:has(#tt-nfts-collab-wall-root) #shopify-section-{{ section.id }} + .shopify-section,
+body:has(#tt-nfts-collab-wall-root) .shopify-section:has(.main-collection-grid),
+body:has(#tt-nfts-collab-wall-root) .main-collection-grid,
+body:has(#tt-nfts-collab-wall-root) .product-grid {
+  background: #000 !important;
+  --color-background: #000 !important;
+  --color-background-rgb: 0 0 0 !important;
+}
+body:has(#tt-nfts-collab-wall-root) .shopify-section:has(.main-collection-grid) {
+  padding: 8px 16px 48px;
+}
+body:has(#tt-nfts-collab-wall-root) .product-grid {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+body:has(#tt-nfts-collab-wall-root) .product-card,
+body:has(#tt-nfts-collab-wall-root) .product-grid__card,
+body:has(#tt-nfts-collab-wall-root) .product-grid__item .product-card {
+  background: #fffefa !important;
+  color: #111 !important;
+  border-radius: 2px;
+  overflow: hidden;
+}
+body:has(#tt-nfts-collab-wall-root) .product-card a,
+body:has(#tt-nfts-collab-wall-root) .product-card .text-block,
+body:has(#tt-nfts-collab-wall-root) .product-card h2,
+body:has(#tt-nfts-collab-wall-root) .product-card h3,
+body:has(#tt-nfts-collab-wall-root) .product-card p,
+body:has(#tt-nfts-collab-wall-root) .product-card span,
+body:has(#tt-nfts-collab-wall-root) .product-card__content {
+  color: #111 !important;
+}
+@media (prefers-reduced-motion: no-preference) {
+  body:has(#tt-nfts-collab-wall-root) .product-card {
+    transition: transform 0.18s ease;
+  }
+  body:has(#tt-nfts-collab-wall-root) .product-card:hover {
+    transform: translateY(-3px);
+  }
+}
+
+#tt-nfts-collab-wall-root {
+  position: relative;
+  isolation: isolate;
+  background: #000;
+  color: #fffefa;
+}
+#tt-nfts-collab-wall-root .ttn-wall {
+  width: 100%;
+  aspect-ratio: 21 / 9;
+  min-height: 320px;
+  background-color: #000;
+  background-image: url("https://cdn.shopify.com/s/files/1/0787/6860/3190/files/nfts-collab-wall.jpg?v=1794372268");
+  background-repeat: no-repeat;
+  background-position: center 46%;
+  background-size: cover;
+  position: relative;
+}
+#tt-nfts-collab-wall-root .ttn-wall::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 32%;
+  background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, #000 100%);
+  pointer-events: none;
+}
+#tt-nfts-collab-wall-root .ttn-band {
+  background: #000;
+  text-align: center;
+  padding: 10px 20px 34px;
+}
+#tt-nfts-collab-wall-root .ttn-headline {
+  margin: 0;
+  font-family: "Rubik Wet Paint", Impact, "Arial Black", cursive, sans-serif;
+  font-weight: 400;
+  font-size: clamp(2.1rem, 6vw, 4.4rem);
+  line-height: 0.96;
+  letter-spacing: 0.01em;
+  color: #FFD400;
+  text-shadow:
+    2px 2px 0 #e10600,
+    3px 3px 0 #c40000,
+    5px 5px 0 #000,
+    0 0 18px rgba(0, 0, 0, 0.85);
+  -webkit-text-stroke: 0.5px #8b0000;
+}
+#tt-nfts-collab-wall-root .ttn-headline .ttn-line {
+  display: block;
+}
+#tt-nfts-collab-wall-root .ttn-tagline {
+  margin: 14px auto 0;
+  max-width: 36rem;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: clamp(0.95rem, 2.2vw, 1.15rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  color: #fffefa;
+  text-shadow: 0 1px 3px #000;
+}
+@media (max-width: 767px) {
+  #tt-nfts-collab-wall-root .ttn-wall {
+    aspect-ratio: 16 / 9;
+    min-height: 200px;
+    background-position: center 42%;
+    background-size: cover;
+  }
+  #tt-nfts-collab-wall-root .ttn-band {
+    padding: 10px 16px 26px;
+  }
+  #tt-nfts-collab-wall-root .ttn-headline {
+    font-size: clamp(1.7rem, 9.4vw, 2.7rem);
+    text-shadow:
+      2px 2px 0 #e10600,
+      4px 4px 0 #000,
+      0 0 12px rgba(0, 0, 0, 0.85);
+  }
+  #tt-nfts-collab-wall-root .ttn-tagline {
+    font-size: 0.92rem;
+    letter-spacing: 0.02em;
+    max-width: 18.5rem;
+  }
+  body:has(#tt-nfts-collab-wall-root) .shopify-section:has(.main-collection-grid) {
+    padding: 4px 10px 32px;
+  }
+}
+</style>
+
+<div class="ttn-hero">
+  <div class="ttn-wall" role="img" aria-label="Colorful Mr. Toasty graffiti wall"></div>
+  <div class="ttn-band">
+    <h1 class="ttn-headline">
+      <span class="ttn-line">Mr. Toasty's</span>
+      <span class="ttn-line">NFTs to TEEs Collab</span>
+    </h1>
+    <p class="ttn-tagline">Art off the wall and onto a tee.</p>
+  </div>
+</div>
+</div>
+
+{% schema %}
+{
+  "name": "NFTs collab wall hero",
+  "tag": "section",
+  "class": "nfts-collab-wall-hero-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Graffiti-wall hero for the NFTs to TEEs Collab collection. Scoped to this section only; assign the nfts-collab-wall collection template to use it."
+    }
+  ],
+  "presets": [
+    {
+      "name": "NFTs collab wall hero"
+    }
+  ]
+}
+{% endschema %}
