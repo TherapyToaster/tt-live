@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.10.0"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.11.0"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <link rel="icon" href="data:,"><title>MR. TOASTY'S NO SIGNAL SKULLZ — Therapy Toaster</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Anton&family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
@@ -151,7 +151,7 @@ body.lefty #bParry{right:auto;left:calc(var(--sl) + 14px)}
 <div class="ov" id="title" style="display:flex">
 <h1 class="tth"><canvas id="tlogo" width="240" height="160" role="img" aria-label="Mr. Toasty's No Signal Skullz"></canvas><span class="sr">MR. TOASTY'S NO SIGNAL SKULLZ</span><small>A 404 DUNGEON CRAWLER · STARRING MR. TOASTY</small></h1>
 <p id="greet"></p><div id="tcap" aria-live="off"></div><canvas id="tsil" width="160" height="34" aria-hidden="true"></canvas><div class="drip"></div><p id="quip"></p>
-<div class="modes"><button class="btn" data-start="standard">START RUN<small>15 FLOORS · BEAT THE GLITCH</small></button><button class="btn" id="bdaily" data-start="daily">DAILY</button><button class="btn" id="bendless" data-start="endless">ENDLESS</button></div>
+<div class="modes"><button class="btn" data-start="standard">START RUN<small>15 FLOORS · BEAT THE GLITCH</small></button><button class="btn" id="bdaily" data-start="daily">DAILY</button><button class="btn" id="bendless" data-start="endless">ENDLESS</button><button class="btn" id="berrands" data-start="errands">MONDAY ERRANDS<small>SUBURB · 4 SILLY STOPS</small></button></div>
 <p id="load">LOADING SIGNAL…</p>
 <div class="lo"><button id="lset">⚙ SETTINGS</button><button id="lgal">🖼 GALLERY</button><button id="lsnd">🔊 SOUND: ON</button><button id="lw"></button><button id="lp"></button><button id="lsh"></button><button id="lsg"></button></div>
 <p id="tcrew"></p><p id="tstats"></p>
@@ -4956,6 +4956,380 @@ Object.defineProperties(TT,{
   keys:{get(){return P&&P.keys||0},set(v){if(P)P.keys=v},configurable:true}
 });
 TT.breakables=function(){const out=[];if(!wallHP)return out;for(let i=0;i<wallHP.length;i++)if(wallHP[i]>0&&map[i])out.push({i,k:wallKind[i],hp:wallHP[i],x:i%MW,y:(i/MW)|0});return out};
+})();
+
+// v0.11.0 — MONDAY ERRANDS: family-safe suburb floor, checklist objectives,
+// joke weapons, funny barks. Original assets only. No gore, cruelty,
+// civilian targets, politics, or real brands.
+(function(){
+const SUBURB=["############################","#@....#  #.#  #............#","#.....#  #.#  #............#","#.....#. #.#. #............#","#..M....................M..#","#.........c................#","#...............e..........#","#......e..............e....#","#.............##########...#","#.............#    #   #...#","#.............#    # V #...#","#.............#    #   ##X.#","#.............###.##.###...#","#...e..............h.......#","#......#..#........#..#....#","#......#  #........# U#....#","#......#B #...M....#  #....#","############################"];
+const ERRANDS=[
+  {id:'vhs',n:'RETURN CURSED VHS',hint:'DROP IT AT THE VHS HUT'},
+  {id:'bill',n:'PAY TOASTER BILL',hint:'THE UTILITY WINDOW IS OPEN'},
+  {id:'butter',n:'PICK UP BUTTER',hint:'GRAB A STICK AT THE BUTTER NOOK'},
+  {id:'mail',n:'MAIL GLITCHED LETTER',hint:'ANY MAILBOX WILL DO'}
+];
+const BARKS11=['MY TOAST!','YOU HAVE A PACKAGE','LATE FEE!','IS THAT A CHICKEN','MONDAY, AM I RIGHT','RETURN IT ON TIME','THE HOSE??','WETWARE!','SQUAWK OFF','BILL IS PAST DUE','NO SIGNAL, STILL OPEN','BUTTER RUN'];
+let jobs=null, chickenI=-1, hoseI=-1;
+
+function isErrands(){return !!(run&&(run.mode==='errands'||run.special==='errands'))}
+function allDone(){return jobs&&jobs.every(j=>j.done)}
+function remaining(){return jobs?jobs.filter(j=>!j.done).length:0}
+
+// ----- original joke-weapon art -----
+function bakeJoke(id){
+  const c=document.createElement('canvas');c.width=240;c.height=160;
+  const g=c.getContext('2d');g.imageSmoothingEnabled=false;
+  // hands
+  function hand(x,y){g.fillStyle='#ecfdff';g.fillRect(x,y,16,10);g.fillRect(x+2,y-6,4,8);g.fillRect(x+7,y-6,4,8);g.fillRect(x+12,y-6,4,8);g.fillStyle='#4a5a66';g.fillRect(x+2,y-2,4,2);g.fillStyle='#00f0ff';g.fillRect(x,y+10,16,2)}
+  if(id==='chicken'){
+    // tube launcher
+    g.fillStyle='#5a3820';g.fillRect(40,70,130,28);
+    g.fillStyle='#3a2410';g.fillRect(40,78,130,6);
+    g.fillStyle='#8a5a38';g.fillRect(36,66,16,36);
+    g.fillStyle='#2a2e32';g.fillRect(160,64,28,40);
+    g.fillStyle='#1a1a18';g.fillRect(184,72,20,24);
+    // rubber chicken sticking out
+    g.fillStyle='#e8c040';g.beginPath();g.ellipse(214,80,18,12,0,0,7);g.fill();
+    g.fillStyle='#d4a010';g.fillRect(200,78,16,10);
+    g.fillStyle='#c43030';g.beginPath();g.moveTo(228,78);g.lineTo(238,80);g.lineTo(228,84);g.fill(); // beak
+    g.fillStyle='#111';g.fillRect(218,76,3,3);
+    g.fillStyle='#e8c040';g.fillRect(206,88,8,16);g.fillRect(214,88,8,14); // wattle-ish legs
+    g.fillStyle='#c43030';g.fillRect(210,92,6,6);
+    hand(70,102);hand(130,96);
+  }else{
+    // garden hose + nozzle
+    g.fillStyle='#2a6a20';g.fillRect(50,86,120,14);
+    g.fillStyle='#1a4a14';g.fillRect(50,90,120,4);
+    for(let i=0;i<8;i++){g.fillStyle=i%2?'#3a8a28':'#2a6a20';g.fillRect(54+i*14,84,10,18)}
+    g.fillStyle='#5a6268';g.fillRect(168,78,36,28);
+    g.fillStyle='#8a9094';g.fillRect(198,86,28,12);
+    g.fillStyle='#2a2e32';g.fillRect(220,88,10,8);
+    g.fillStyle='#7ec8ff';g.globalAlpha=.7;g.fillRect(230,90,8,4);g.globalAlpha=1;
+    g.fillStyle='#c4a44a';g.fillRect(70,100,18,10); // brass coupler
+    hand(80,108);hand(150,100);
+  }
+  if(typeof hdCanvas==='function')hdCanvas(c,{epx:false,shade:true,ink:true,diag:true});
+  return c;
+}
+
+function gunAtlas(){return (typeof TT==='object'&&TT.GUN)||(typeof GUN==='object'&&GUN)||null}
+
+function installJokeViewmodels(){
+  if(chickenI<0||hoseI<0)return;
+  const g2=gunAtlas();
+  if(g2&&g2.chicken&&g2.hose&&WC[chickenI]&&WC[hoseI])return;
+  const ch=bakeJoke('chicken'), hs=bakeJoke('hose');
+  if(g2){g2.chicken={body:ch,bodyExt:ch};g2.hose={body:hs,bodyExt:hs}}
+  if(typeof WC!=='undefined'){WC[chickenI]=ch;WC[hoseI]=hs}
+}
+
+function addJokeWeapons(){
+  if(WEAPONS.some(w=>w.id==='chicken')){
+    chickenI=WEAPONS.findIndex(w=>w.id==='chicken');
+    hoseI=WEAPONS.findIndex(w=>w.id==='hose');
+    installJokeViewmodels();
+    return;
+  }
+  WEAPONS.push({id:'chicken',n:'CLUCK CANNON',d:'RUBBER CHICKEN LAUNCHER · KNOCKBACK',slot:9,tier:9,price:0,kind:'joke',joke:'chicken',cd:.55,amm:null,dmg:14,pel:1,spr:0,sfx:'chicken',shake:1.4,flash:{c:'#e8c040',r:8,t:.08},kick:6,knock:2.6,reach:9});
+  WEAPONS.push({id:'hose',n:'SOAKER HOSE',d:'GARDEN HOSE · KNOCKS EM BACK',slot:10,tier:9,price:0,kind:'joke',joke:'hose',cd:.14,amm:null,dmg:6,pel:1,spr:.02,sfx:'hose',shake:.4,flash:{c:'#7ec8ff',r:6,t:.04},kick:2,knock:1.7,reach:6});
+  chickenI=WEAPONS.length-2;hoseI=WEAPONS.length-1;
+  SFX.chicken=()=>{tone(520,.08,'square',.06,200);tone(180,.16,'sawtooth',.05,70);noise(.08,.1,1800)};
+  SFX.hose=()=>{noise(.1,.08,4000);tone(900,.06,'sine',.03,400)};
+  installJokeViewmodels();
+  SPR.w_chicken=toTex(draw(g=>{g.fillStyle='#5a3820';g.fillRect(10,28,30,10);g.fillStyle='#e8c040';g.beginPath();g.arc(48,32,10,0,7);g.fill();g.fillStyle='#c43030';g.fillRect(54,30,8,4)}));
+  SPR.w_hose=toTex(draw(g=>{g.fillStyle='#2a6a20';g.fillRect(8,28,36,10);g.fillStyle='#8a9094';g.fillRect(40,26,14,14);g.fillStyle='#7ec8ff';g.fillRect(52,30,8,6)}));
+  SPR.mailbox=toTex(draw(g=>{g.fillStyle='#2a4a8a';g.fillRect(18,16,28,32);g.fillStyle='#1a2a50';g.fillRect(20,18,24,16);g.fillStyle='#e3b303';g.fillRect(22,22,20,6);g.fillStyle='#5a3820';g.fillRect(28,46,8,14);g.fillStyle='#FFD400';g.fillRect(16,14,32,6)}));
+  SPR.butterbox=toTex(draw(g=>{g.fillStyle='#f3e0a0';g.fillRect(14,22,36,26);g.fillStyle='#e3b303';g.fillRect(16,24,32,8);g.fillStyle='#7a4410';g.font='bold 9px monospace';g.fillText('BUTTER',16,42)}));SPR.butterjob=SPR.butterbox;
+  SPR.vhs=toTex(draw(g=>{g.fillStyle='#1a1a18';g.fillRect(12,20,40,26);g.fillStyle='#3a1020';g.fillRect(16,24,32,18);g.fillStyle='#FFD400';g.fillRect(18,26,28,6);g.fillStyle='#00f0ff';g.font='bold 8px monospace';g.fillText('VHS',24,40)}));
+  SPR.chicken=toTex(draw(g=>{g.fillStyle='#e8c040';g.beginPath();g.arc(32,30,16,0,7);g.fill();g.fillStyle='#c43030';g.beginPath();g.moveTo(46,28);g.lineTo(60,32);g.lineTo(46,36);g.fill();g.fillStyle='#111';g.fillRect(26,26,4,4);g.fillStyle='#e8c040';g.fillRect(26,42,6,14);g.fillRect(34,42,6,14)}));
+  PICKUPS.butterjob={s:.42,float:1,a:()=>{finishJob('butter');msg('BUTTER GET!  (ERRAND 3)')}};
+  PICKUPS.w_chicken={s:.5,float:1,a:()=>{giveJoke(chickenI);msg('CLUCK CANNON!  SQUAWK POWER')}};
+  PICKUPS.w_hose={s:.5,float:1,a:()=>{giveJoke(hoseI);msg('SOAKER HOSE!  STAY HYDRATED')}};
+}
+
+function giveJoke(i){
+  if(i<0||P.owned.includes(i)){P.w=i;return}
+  P.owned.push(i);sortOwned();P.w=i;
+  if(typeof announceWep==='function'){try{announceWep(true)}catch(e){}}
+}
+
+function knockback(e,kn){
+  if(!e||e.hp<=0||e.t==='boss')return;
+  const dx=Math.cos(P.a),dy=Math.sin(P.a);
+  tryMove(e,e.x+dx*kn,e.y+dy*kn,e.r||.3);
+  e.stun=Math.max(e.stun||0,.35);e.hit=.15;
+}
+
+function jokeFire(w){
+  P.cd=w.cd*(P.rof||1);P.flash=w.flash.t;P.kick=w.kick;SFX[w.sfx]&&SFX[w.sfx]();shake(w.shake);
+  if(w.joke==='chicken'){
+    projs.push({x:P.x+Math.cos(P.a)*.45,y:P.y+Math.sin(P.a)*.45,vx:Math.cos(P.a)*11,vy:Math.sin(P.a)*11,dmg:w.dmg*P.dmg,T:SPR.chicken,knock:w.knock,joke:1,from:'p'});
+    pop(P.x+Math.cos(P.a),P.y+Math.sin(P.a),'SQUAWK!','#e8c040');
+  }else{
+    const dx=Math.cos(P.a),dy=Math.sin(P.a),R=ray(P.x,P.y,dx,dy);
+    const reach=Math.min(w.reach,R.d);
+    for(let s=.4;s<reach;s+=.25)parts.push({x:P.x+dx*s,y:P.y+dy*s,z:.45,vx:dx*.4,vy:dy*.4,vz:0,c:hexABGR('#7ec8ff'),l:.12,sz:2,fl:1});
+    let hit=false;
+    for(const e of ents){
+      if(e.hp<=0||(e.t==='boss'&&e.freed))continue;
+      const ex=e.x-P.x,ey=e.y-P.y,t=ex*dx+ey*dy;
+      if(t>0&&t<reach&&Math.abs(ex*dy-ey*dx)<(e.r||.32)+.1){
+        damage(e,w.dmg*P.dmg);knockback(e,w.knock);hit=true;
+        pop(e.x,e.y,'WHOOSH!','#7ec8ff');
+      }
+    }
+    if(hit)SFX.hit&&SFX.hit();
+  }
+}
+
+// ----- floor -----
+function resetWorld(){
+  ents=[];pickups=[];projs=[];parts=[];pops=[];fx=[];hazards=[];props=[];pprojs=[];lights=[];
+  secretSet=new Set();hintSaid=new Set();boss=null;secretAt=-1;cursedAt=-1;insiderAt=-1;exitOpen=false;
+}
+
+function buildErrandsFloor(){
+  addJokeWeapons();
+  resetWorld();
+  jobs=ERRANDS.map(j=>({id:j.id,n:j.n,hint:j.hint,done:false,x:0,y:0}));
+  run.errands=jobs;
+  theme={id:'office',n:'GLITCHED SUBURB',sky:[18,10,28],gnd:[24,32,10],line:[219,170,35],walls:['of_brick','th_wood','of_panel','caution','fa_brick'],weights:{skull:2,toaster:2,crumbling:1},props:{crt:1},flick:0,amb:'hum',motes:'#FFD400'};
+  const h=SUBURB.length,w=SUBURB[0].length,g=new Uint8Array(w*h);
+  let start=0,ex=-1,marks={};
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+    const c=SUBURB[y][x],i=y*w+x;
+    if(c==='#')g[i]=1;
+    else{
+      g[i]=0;
+      if(c==='@')start=i;
+      else if(c==='X')ex=i;
+      else if(c!=='.'&&c!==' ')(marks[c]=marks[c]||[]).push(i);
+    }
+  }
+  MW=w;MH=h;MHP=h;map=new Int8Array(w*h);seen=new Uint8Array(w*h);
+  buildBg(theme);
+  // look: open sunset sky, asphalt streets
+  try{
+    setupLook(run.floor||1,null,null,w);
+    CUR.L={sub:'MONDAY MORNING',floor:'asphalt',ceil:null,mode:2,sky:'sunset',tint:[1.08,.98,.9]};
+    CUR.mode=2;CUR.floor=lutFor('f','asphalt');CUR.ceil=null;CUR.sky=buildSky('sunset');CUR.stats={};
+    applyTint(CUR.L.tint);
+  }catch(err){}
+  const house=TILE.of_brick||TILE.th_wood||1, shop=TILE.of_panel||TILE.caution||7, hedge=TILE.th_wood||house;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+    const i=y*w+x;if(!g[i]){map[i]=0;continue}
+    // houses west, shops east, brick elsewhere
+    if(x>=14&&y>=8&&y<=12)map[i]=shop;
+    else if(x<16&&y<=4)map[i]=house;
+    else if((x>=7&&x<=10&&y>=14)||(x>=19&&x<=22&&y>=14))map[i]=house;
+    else map[i]=mixWall(x,y)||hedge;
+  }
+  exitAt=ex;map[ex]=8;exitOpen=false; // sealed until errands done
+  // player
+  P.x=start%w+.5;P.y=((start/w)|0)+.5;P.a=0;P.cd=0;P.flash=0;P.freedT=0;P.hurtT=0;P.calm=0;P.keys=P.keys||0;
+  P.hasVHS=true;P.hasLetter=true;
+  // objectives
+  function at(ch){const i=(marks[ch]||[])[0];return i==null?null:{x:i%w+.5,y:((i/w)|0)+.5,i}}
+  const V=at('V'),U=at('U'),B=at('B');
+  const mail=(marks['M']||[]).map(i=>({x:i%w+.5,y:((i/w)|0)+.5,i}));
+  for(const j of jobs){
+    if(j.id==='vhs'&&V){j.x=V.x;j.y=V.y}
+    if(j.id==='bill'&&U){j.x=U.x;j.y=U.y}
+    if(j.id==='butter'&&B){j.x=B.x;j.y=B.y}
+    if(j.id==='mail'&&mail[0]){j.x=mail[0].x;j.y=mail[0].y}
+  }
+  for(const m of mail)addProp('bonepile',m.x,m.y,{errand:'mail',r:.28,spr:'mailbox',s:.45}); // visual stand-in if prop art overridden
+  // replace spr on those props
+  for(const q of props)if(q.errand==='mail'){q.spr='mailbox';q.s=.48;q.D={spr:'mailbox',s:.48}}
+  if(B)pickups.push({t:'butterjob',x:B.x,y:B.y});
+  if(marks['c'])for(const i of marks['c'])pickups.push({t:'w_chicken',x:i%w+.5,y:((i/w)|0)+.5});
+  if(marks['h'])for(const i of marks['h'])pickups.push({t:'w_hose',x:i%w+.5,y:((i/w)|0)+.5});
+  // enemies with funny barks (toasters/skulls only — no civilians)
+  const types=['skull','toaster','crumbling','skull'];
+  let nE=0;
+  if(marks['e'])for(const i of marks['e']){
+    const t=types[nE%types.length];
+    const e=spawnEnemy(t,i%w+.5,((i/w)|0)+.5,{awake:false});
+    e.D=Object.assign({},e.D,{bark:BARKS11});
+    nE++;
+  }
+  // a couple roamers mid-street
+  for(const [x,y,t] of [[10.5,8.5,'toaster'],[16.5,13.5,'skull']]){
+    if(!solid(x,y)){const e=spawnEnemy(t,x,y,{awake:false});e.D=Object.assign({},e.D,{bark:BARKS11});nE++}
+  }
+  // shop sign pops as static props / labels stored for render
+  run.signs=[
+    {x:16.5,y:10.5,s:'SUDS-O-MAT'},
+    {x:21.5,y:9.5,s:'VHS HUT'},
+    {x:8.5,y:15.5,s:'BUTTER NOOK'},
+    {x:21.5,y:15.5,s:'TOAST UTILITY'}
+  ];
+  stats={kills:0,total:ents.filter(e=>e.hp>0).length,secret:0,glitch:.3,rooms:['suburb'],secretsTotal:0};
+  FL={fog:0,baseFog:0,dmgTaken:1};
+  // start with knife + toaster + we'll leave joke guns as pickups so the street find is fun
+  msg('MONDAY ERRANDS — FOUR STOPS, THEN THE EXIT OPENS');
+}
+
+function finishJob(id){
+  if(!jobs)return;
+  const j=jobs.find(x=>x.id===id);if(!j||j.done)return;
+  j.done=true;
+  pop(P.x+Math.cos(P.a)*.6,P.y+Math.sin(P.a)*.6,'CHECKED OFF','#FFD400');
+  SFX.secret&&SFX.secret();shake(.8);flash('#FFD400',.12);
+  msg(j.n+' — DONE!  ('+remaining()+' LEFT)');
+  if(allDone()){
+    exitOpen=true;map[exitAt]=9;if(seen)seen[exitAt]=1;
+    msg('ERRANDS DONE — THE EXIT IS OPEN!');
+    SFX.win&&SFX.win();flash('#00f0ff',.2);
+  }
+}
+
+function tryErrandUse(){
+  if(!isErrands()||!jobs)return false;
+  const near=(x,y,r)=>Math.hypot(P.x-x,P.y-y)<r;
+  const vhs=jobs.find(j=>j.id==='vhs'), bill=jobs.find(j=>j.id==='bill'), mail=jobs.find(j=>j.id==='mail');
+  if(vhs&&!vhs.done&&near(vhs.x,vhs.y,1.15)){if(!P.hasVHS){msg('YOU ALREADY RETURNED IT');return true}P.hasVHS=false;finishJob('vhs');return true}
+  if(bill&&!bill.done&&near(bill.x,bill.y,1.15)){finishJob('bill');return true}
+  if(mail&&!mail.done){
+    // any mailbox
+    const boxes=props.filter(q=>q.errand==='mail');
+    for(const q of boxes){if(near(q.x,q.y,1.15)){if(!P.hasLetter){msg('NO LETTER LEFT TO MAIL');return true}P.hasLetter=false;finishJob('mail');return true}}
+  }
+  return false;
+}
+
+function showErrandsWin(){
+  run.won=true;state='victory';SFX.win();
+  const r=(typeof recordRun==='function')?recordRun():{sc:stats&&stats.kills||0};
+  const box=$('victory');
+  const h=box&&box.querySelector('h1');
+  if(h){h.setAttribute('data-old',h.innerHTML);h.innerHTML='ERRANDS<br>DONE<small>THE SUBURB IS… SLIGHTLY BETTER</small>'}
+  if($('vs'))$('vs').innerHTML='ALL FOUR STOPS CHECKED OFF.<br>NO CIVILIANS WERE HARMED. THE CHICKEN WILL BE FINE.<br>'+(typeof summary==='function'?summary(r):'');
+  if($('vcont'))$('vcont').style.display='none';
+  show('victory');
+}
+
+// ----- hooks -----
+addJokeWeapons();
+
+const _bf011=buildFloor;
+buildFloor=function(){
+  if(isErrands()){buildErrandsFloor();return}
+  _bf011();
+};
+
+const _use011=use;
+use=function(){
+  if(isErrands()&&tryErrandUse())return;
+  _use011();
+};
+
+const _nf011=nextFloor;
+nextFloor=function(){
+  if(isErrands()){if(allDone()&&exitOpen)showErrandsWin();else msg('FINISH EVERY ERRAND FIRST');return}
+  _nf011();
+};
+
+const _fire011=fire;
+fire=function(){
+  const w=WEAPONS[P.w];
+  if(w&&w.kind==='joke'){
+    if(P.lockT>0){SFX.empty();P.cd=.25;return}
+    jokeFire(w);return;
+  }
+  _fire011();
+};
+
+const _upd011=update;
+update=function(dt){
+  _upd011(dt);
+  if(!isErrands())return;
+  // chicken projectile: knock on enemy hit, feathers not gore
+  for(const p of projs){
+    if(!p.joke||p.hit)continue;
+    for(const e of ents){
+      if(e.hp<=0||(e.t==='boss'&&e.freed))continue;
+      if(Math.hypot(e.x-p.x,e.y-p.y)<(e.r||.32)+.2){
+        damage(e,p.dmg||12);knockback(e,p.knock||2.2);
+        pop(e.x,e.y,'SQUAWK!','#e8c040');
+        gib(e.x,e.y,['#e8c040','#fff','#c43030','#FFD400'],10,.5,2);
+        p.hit=1;p.x=999;break;
+      }
+    }
+  }
+};
+
+const _ren011=render;
+render=function(t,rdt){
+  _ren011(t,rdt);
+  if(!isErrands()||state!=='play'||!jobs)return;
+  // shop signs in world
+  if(run.signs){
+    const dX=Math.cos(P.a),dY=Math.sin(P.a),pX=-dY*PL,pY=dX*PL,inv=1/(pX*dY-dX*pY);
+    ctx.font='7px monospace';ctx.textAlign='center';
+    for(const s of run.signs){
+      const[tx,ty]=proj3(s.x,s.y,dX,dY,pX,pY,inv);if(ty<.4)continue;
+      const sx=(W/2)*(1+tx/ty),sy=H/2-(.8)/ty*(H/2);
+      if(sx<0||sx>=W||sy<0)continue;
+      ctx.globalAlpha=.9;ctx.fillStyle='#000';ctx.fillRect(sx-28,sy-8,56,10);
+      ctx.fillStyle='#FFD400';ctx.fillText(s.s,sx,sy);
+    }
+    ctx.globalAlpha=1;ctx.textAlign='left';
+  }
+  // checklist
+  const lines=jobs, pad=4, bw=148, bh=12+lines.length*9+6;
+  const ox=4, oy=(FL&&FL.curse?22:8);
+  ctx.fillStyle='rgba(0,0,0,.72)';ctx.fillRect(ox,oy,bw,bh);
+  ctx.strokeStyle='#FFD400';ctx.lineWidth=1;ctx.strokeRect(ox,oy,bw,bh);
+  ctx.fillStyle='#FFD400';ctx.font='bold 7px monospace';
+  ctx.fillText('MONDAY ERRANDS',ox+4,oy+9);
+  ctx.font='6px monospace';
+  lines.forEach((j,i)=>{
+    ctx.fillStyle=j.done?'#00f0ff':'#fff';
+    ctx.fillText((j.done?'[x] ':'[ ] ')+j.n,ox+4,oy+18+i*9);
+  });
+  if(P.hasVHS||P.hasLetter){
+    ctx.fillStyle='#e3b303';ctx.font='6px monospace';
+    const bag=(P.hasVHS?'VHS ':'')+(P.hasLetter?'LETTER':'');
+    ctx.fillText('POCKET: '+bag,ox+4,oy+bh+8);
+  }
+};
+
+const _show011=typeof show==='function'?show:null;
+if(_show011){
+  show=function(id){
+    if(id==='title'||id==='pause'||!id){
+      const h=$('victory')&&$('victory').querySelector('h1');
+      if(h&&h.getAttribute('data-old')){h.innerHTML=h.getAttribute('data-old');h.removeAttribute('data-old')}
+    }
+    _show011(id);
+  };
+}
+
+const _fm011=floorMsg;
+floorMsg=function(){
+  if(isErrands()){msg('MONDAY ERRANDS // GLITCHED SUBURB // FOUR STOPS, THEN THE EXIT');return}
+  _fm011();
+};
+
+function startErrands(){if(typeof start==='function')start('errands')}
+function errandsInfo(){return{on:isErrands(),jobs:jobs&&jobs.map(j=>({id:j.id,n:j.n,done:!!j.done,x:j.x,y:j.y})),left:remaining(),exitOpen:!!exitOpen,exitAt,chickenI,hoseI,mw:MW,mh:MH,spawn:{x:P&&P.x,y:P&&P.y}}}
+
+const _dw011=drawWeapon;
+drawWeapon=function(rdt){
+  const w=WEAPONS[P.w];
+  if(w&&(w.id==='chicken'||w.id==='hose'))installJokeViewmodels();
+  return _dw011(rdt);
+};
+
+TT.errandsVer='0.11.0';
+TT.startErrands=startErrands;
+TT.errands=errandsInfo;
+TT.finishJob=finishJob;
+TT.buildErrandsFloor=buildErrandsFloor;
+TT.chickenI=()=>chickenI;
+TT.hoseI=()=>hoseI;
 })();
 </script>
 </body></html>
