@@ -1,0 +1,53 @@
+/* TT burger-pop v1: make the mobile menu button stand out */
+@media screen and (max-width: 799px) {
+  .header-burger .header-burger-btn {
+    position: relative;
+    width: 50px !important;
+    height: 50px !important;
+    padding: 0 !important;
+    background: #FFD400 !important;
+    border: 2px solid #000 !important;
+    border-radius: 10px !important;
+    box-shadow: 3px 3px 0 #e10600, 0 0 0 0 rgba(255,212,0,0.75);
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    animation: ttBurgerPulse 2.2s ease-in-out infinite;
+  }
+  .header-burger .header-burger-btn .burger-box {
+    width: 26px !important;
+    height: 20px !important;
+    margin: 0 auto;
+  }
+  .header-burger .header-burger-btn .burger-inner > div,
+  .header-burger .header-burger-btn .burger-inner::before,
+  .header-burger .header-burger-btn .burger-inner::after {
+    background-color: #000 !important;
+    height: 3px !important;
+  }
+  .header-burger .header-burger-btn::after {
+    content: "MENU";
+    position: absolute;
+    left: 50%;
+    bottom: -17px;
+    transform: translateX(-50%);
+    font: 800 10px/1 Arial, Helvetica, sans-serif;
+    letter-spacing: 0.12em;
+    color: #FFD400;
+    text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+    pointer-events: none;
+  }
+  .header--menu-open .header-burger .header-burger-btn {
+    animation: none;
+  }
+  .header--menu-open .header-burger .header-burger-btn::after {
+    content: "CLOSE";
+  }
+}
+@keyframes ttBurgerPulse {
+  0%, 100% { transform: scale(1) rotate(0deg); box-shadow: 3px 3px 0 #e10600, 0 0 0 0 rgba(255,212,0,0.75); }
+  8% { transform: scale(1.08) rotate(-4deg); }
+  16% { transform: scale(1.08) rotate(4deg); }
+  24% { transform: scale(1) rotate(0deg); }
+  50% { box-shadow: 3px 3px 0 #e10600, 0 0 0 10px rgba(255,212,0,0); }
+}
