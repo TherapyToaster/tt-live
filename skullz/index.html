@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.7.6"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.7.7"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <link rel="icon" href="data:,"><title>MR. TOASTY'S NO SIGNAL SKULLZ — Therapy Toaster</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Anton&family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
@@ -1542,7 +1542,7 @@ function render(t,rdt){
  const fog=FL.fog?(d=>Math.max(0,256*(1-d/FL.fog))):(d=>Math.max(60,Math.min(256,290-d*20)));
  // sprites
  const sp=[],pulse=(t/120|0)&1;for(const e of ents){let T,s=e.s,z=0;
-  if(e.t=='boss'){const ph=e.B.phases[e.phase||0];T=e.freed?(e.B.finale?SPR.glitch2:SPR.gold):e.shielded?SPR.blankeyS:e.mask?SPR[e.mask=='comedy'?'nitC':'nitT']:SPR[ph.spr];z=e.freed?.1+Math.sin(t*.004)*.05:Math.sin(e.ph*.5)*.04}
+  if(e.t=='boss'){const ph=e.B.phases[e.phase||0];T=bossTex(e,t)||(e.freed?(e.B.finale?SPR.glitch2:SPR.gold):e.shielded?SPR.blankeyS:e.mask?SPR[e.mask=='comedy'?'nitC':'nitT']:SPR[ph.spr]);z=e.freed?.1+Math.sin(t*.004)*.05:Math.sin(e.ph*.5)*.04}
   else if(e.hp<=0){T=SPR.corpse;s=.6}else{T=e.tex?e.tex[pulse]:SPR[e.D.spr];z=e.D.bob?e.D.bob+Math.sin(e.ph)*.06:0;s*=1+Math.sin(e.ph*.7)*.035} // idle 'breathing'
   if(e.t=='boss'&&e.freed&&e.B.finale&&P.freedT<=1.2)continue;
   sp.push({x:e.x,y:e.y,s,z,T,hit:e.hit>0&&!e.freed});}
@@ -1555,8 +1555,8 @@ function render(t,rdt){
  for(const p of projs)sp.push({x:p.x,y:p.y,s:p.s||.25,z:.3,T:p.T,glow:1});
  for(const q of fx)sp.push(Object.assign({},q));
  const inv=1/(pX*dY-dX*pY);for(const s of sp){[s.tx,s.ty]=proj3(s.x,s.y,dX,dY,pX,pY,inv)}sp.sort((a,b)=>b.ty-a.ty);
- for(const s of sp){if(s.ty<.15)continue;const scx=(W/2)*(1+s.tx/s.ty),lh=H/s.ty,sh=lh*s.s,bot=H/2+lh/2-s.z*lh,top=bot-sh,x0=scx-sh/2;const f=s.glow?256:fog(s.ty);if(f<=0)continue;const sl=!s.glow&&AL.length&&lightAt(s.x,s.y),slr=LT[0],slg=LT[1],slb=LT[2];
-  for(let x=Math.max(0,x0|0);x<Math.min(W,(x0+sh)|0);x++){if(s.ty>=zbuf[x])continue;const tx=(((x-x0)*TS/sh)|0)&63,yb=s.ty>ZN[x]?Math.min(bot,ZNY[x]):bot;for(let y=Math.max(0,top|0);y<Math.min(H,yb|0);y++){const c=s.T[(((y-top)*TS/sh)|0&63)*TS+tx];if(c)buf[y*W+x]=s.hit?0xffffffff:sl?lit(c,f,slr,slg,slb):shade(c,f)}}}
+ for(const s of sp){if(s.ty<.15)continue;const scx=(W/2)*(1+s.tx/s.ty),lh=H/s.ty,sh=lh*s.s,bot=H/2+lh/2-s.z*lh,top=bot-sh,x0=scx-sh/2;const f=s.glow?256:fog(s.ty),tts=s.T.ts||0;if(f<=0)continue;const sl=!s.glow&&AL.length&&lightAt(s.x,s.y),slr=LT[0],slg=LT[1],slb=LT[2];
+  for(let x=Math.max(0,x0|0);x<Math.min(W,(x0+sh)|0);x++){if(s.ty>=zbuf[x])continue;const tx=s.T.ts?Math.min(s.T.ts-1,((x-x0)*s.T.ts/sh)|0):(((x-x0)*TS/sh)|0)&63,yb=s.ty>ZN[x]?Math.min(bot,ZNY[x]):bot;for(let y=Math.max(0,top|0);y<Math.min(H,yb|0);y++){const c=tts?s.T[Math.min(tts-1,((y-top)*tts/sh)|0)*tts+tx]:s.T[(((y-top)*TS/sh)|0&63)*TS+tx];if(c)buf[y*W+x]=s.hit?0xffffffff:sl?lit(c,f,slr,slg,slb):shade(c,f)}}}
  // particles (gibs, bone shards, sparks) — z-buffered pixel squares
  for(const q of parts){const[tx,ty]=proj3(q.x,q.y,dX,dY,pX,pY,inv);if(ty<.2)continue;const sx=((W/2)*(1+tx/ty))|0;if(sx<0||sx>=W||ty>=zbuf[sx])continue;const lh=H/ty,sy=(H/2+lh/2-q.z*lh)|0,sz=Math.max(1,Math.min(4,(q.sz*2.2/ty)|0)),c=q.dim?shade(q.c,Math.min(150,q.l*90)|0):q.l<.25?shade(q.c,180):q.c;
   for(let y=sy;y<sy+sz;y++)if(y>=0&&y<H)for(let x=sx;x<sx+sz&&x<W;x++)if(ty<zbuf[x]&&!(ty>ZN[x]&&y>=ZNY[x]))buf[y*W+x]=c}
@@ -1991,9 +1991,12 @@ const TOUCH=(()=>{const lk=$('alock'),z=$('tzone'),joy=$('joy'),kn=$('knob'),ajo
  const AA={near:12,far:8,dFar:10,stick:1.5,max:14,pull:6,pullOut:3,heavy:4,override:.35};let lockE=null;
  const coneAt=d=>(AA.near-(AA.near-AA.far)*Math.min(1,Math.max(0,(d-2)/(AA.dFar-2))))*Math.PI/180;
  function wRange(w){if(w.kind=='melee')return[0,(w.reach||1.2)+.3];if(w.kind=='rocket')return[2.4,13];if(w.pel>1)return[0,8];if(w.kind=='chain')return[0,9];return[0,AA.max]}
- function target(){const w=WEAPONS[P.w],rg=wRange(w);let best=null,bs=1e9;for(const e of ents){if(e.hp<=0||(e.t=='boss'&&e.freed))continue;const dx=e.x-P.x,dy=e.y-P.y,d=Math.hypot(dx,dy);if(d>AA.max||d<.2)continue;
+ function target(){const w=WEAPONS[P.w],rg=wRange(w);let best=null,bs=1e9,bb=null,nm=null;for(const e of ents){if(e.hp<=0||(e.t=='boss'&&e.freed))continue;const dx=e.x-P.x,dy=e.y-P.y,d=Math.hypot(dx,dy);if(d>AA.max||d<.2)continue;
   let da=Math.atan2(dy,dx)-P.a;da=Math.atan2(Math.sin(da),Math.cos(da));const rad=Math.atan((e.r||.3)/d),cone=coneAt(d)*(e===lockE?AA.stick:1);if(Math.abs(da)>cone+rad)continue;if(!los(P.x,P.y,e.x,e.y))continue;
-  const sc=Math.abs(da)/(cone+rad)+d*.04-(e===lockE?.35:0);if(sc<bs){bs=sc;best={e,da,rad,d,cone,inR:d>=rg[0]&&d<=rg[1]}}}lockE=best?best.e:null;return best}
+  const sc=Math.abs(da)/(cone+rad)+d*.04-(e===lockE?.35:0);const cand={e,da,rad,d,cone,inR:d>=rg[0]&&d<=rg[1]};if(e.t=='boss')bb=cand;else if(!nm||d<nm.d)nm=cand;if(sc<bs){bs=sc;best=cand}}
+  // v0.7.7: the boss keeps the lock unless a minion is MUCH closer (< .45x the boss distance)
+  if(bb)best=nm&&nm.d<PRIO*bb.d?nm:bb;lockE=best?best.e:null;return best}
+ const PRIO=.45;
  // fire only when: target in range, inside the fire cone (heavy slow guns: tighter 4°), and nothing solid along the barrel before it
  function shouldFire(tg,w){if(!tg||!tg.inR)return false;const fc=(w.cd>=.8?Math.min(tg.cone,AA.heavy*Math.PI/180):tg.cone)+tg.rad;if(Math.abs(tg.da)>fc)return false;
   return ray(P.x,P.y,Math.cos(P.a),Math.sin(P.a)).d>tg.d-(tg.e.r||.3)-.05}
@@ -2332,5 +2335,266 @@ const _uw72=updateWorld;updateWorld=function(dt){_uw72(dt);galTick(dt)};
 const _rd72=render;render=function(t,rdt){_rd72(t,rdt);if(REV){const k=Math.max(0,Math.min(1,REV.t/.18,(REV.dur-REV.t)/.25)),b=Math.round(24*k*k*(3-2*k));if(b>0){ctx.fillStyle='#000';ctx.fillRect(0,0,W,b);ctx.fillRect(0,H-b,W,b);ctx.fillStyle='rgba(227,179,3,'+(.6*k).toFixed(2)+')';ctx.fillRect(0,b,W,1);ctx.fillRect(0,H-b-1,W,1)}}};
 // warm the gallery wall blocks in idle time too
 (function warmGal(){if(!ARTC){setTimeout(warmGal,400);return}let i=0;const step=()=>{if(i>=ART_N)return;galBlock(i++);(window.requestIdleCallback||setTimeout)(step,{timeout:300})};setTimeout(step,1500)})();
+
+// =====================================================================
+// v0.7.7 BOSS ART — 96x96 multi-frame boss sprites (idle x2, move x2, attack, hurt, death; rage set; extra sets)
+// Code-drawn in the house style: black + gold, hot pink / cyan glitch pass, 1px ink outline so they read at 320x200.
+// FAT COTY rides a souped-up motorized wheelchair (rocket exhaust, spinning spoke wheels, safety flag, cup holder).
+// =====================================================================
+const BS=96;
+function b7c(){const c=mk(BS,BS),g=c.getContext('2d',{willReadFrequently:true});g.imageSmoothingEnabled=false;return[c,g]}
+function b7tex(c){const d=c.getContext('2d').getImageData(0,0,BS,BS);const u=new Uint32Array(d.data.buffer.slice(0));for(let i=0;i<u.length;i++){u[i]=(u[i]>>>24)<110?0:(u[i]|0xff000000)>>>0}u.ts=BS;return u}
+// ink outline around everything (reads well when the sprite is tiny), optional glitch tear + rgb split
+function b7ink(g,col='#0a0608'){const d=g.getImageData(0,0,BS,BS),o=new Uint8ClampedArray(d.data),A=(x,y)=>x>=0&&y>=0&&x<BS&&y<BS&&d.data[(y*BS+x)*4+3]>110;const n=parseInt(col.slice(1),16);
+ for(let y=0;y<BS;y++)for(let x=0;x<BS;x++){if(A(x,y))continue;if(A(x+1,y)||A(x-1,y)||A(x,y+1)||A(x,y-1)){const i=(y*BS+x)*4;o[i]=n>>16;o[i+1]=(n>>8)&255;o[i+2]=n&255;o[i+3]=255}}d.data.set(o);g.putImageData(d,0,0)}
+function b7split(g,dx=2){const d=g.getImageData(0,0,BS,BS),o=g.createImageData(BS,BS);for(let y=0;y<BS;y++)for(let x=0;x<BS;x++){const i=(y*BS+x)*4,r=(y*BS+Math.min(BS-1,x+dx))*4,b=(y*BS+Math.max(0,x-dx))*4;
+ o.data[i]=d.data[r];o.data[i+1]=d.data[i+1];o.data[i+2]=d.data[b+2];o.data[i+3]=Math.max(d.data[i+3],d.data[r+3],d.data[b+3])}g.putImageData(o,0,0)}
+function b7tear(g,seed,n){let s=seed*9301+49297;const r=()=>((s=(s*9301+49297)%233280)/233280);for(let i=0;i<n;i++){const y=(r()*86)|0,h=1+((r()*3)|0),dx=((r()-.5)*12)|0;const d=g.getImageData(0,y,BS,h);g.putImageData(d,dx,y)}}
+const E2=(g,x,y,rx,ry,col,a0=0,a1=7)=>{g.fillStyle=col;g.beginPath();g.ellipse(x,y,rx,ry,0,a0,a1);g.fill()};
+const RR=(g,x,y,w,h,r,col)=>{g.fillStyle=col;g.beginPath();g.roundRect(x,y,w,h,r);g.fill()};
+const LN=(g,pts,col,w=2)=>{g.strokeStyle=col;g.lineWidth=w;g.lineCap='round';g.beginPath();g.moveTo(pts[0],pts[1]);for(let i=2;i<pts.length;i+=2)g.lineTo(pts[i],pts[i+1]);g.stroke()};
+function b7shades(g,cx,y,w,col,glint=1){g.fillStyle='#111';g.fillRect(cx-w/2,y,w,2);RR(g,cx-w/2,y,w/2-1,9,3,col);RR(g,cx+1,y,w/2-1,9,3,col);
+ g.fillStyle='#fff9';if(glint){g.fillRect(cx-w/2+3,y+2,5,2);g.fillRect(cx+4,y+2,5,2)}g.fillStyle='#0004';g.fillRect(cx-w/2,y+6,w,3)}
+function b7cap(g,cx,y,w,col,txt,brim='#0a1430',tcol='#fff'){E2(g,cx,y,w,w*.6,col,Math.PI,0);g.fillRect(cx-w,y-1,w*2,3);RR(g,cx-w-2,y+1,w*2+12,5,2,brim);
+ g.fillStyle='#fff3';g.fillRect(cx-w*.6,y-w*.45,w*.5,2);if(txt){g.fillStyle=tcol;g.font='bold 8px monospace';g.fillText(txt,cx-txt.length*2.4,y-4)}}
+function b7spark(g,x,y,s,col){g.fillStyle=col;g.fillRect(x-s,y,2*s+1,1);g.fillRect(x,y-s,1,2*s+1)}
+function b7flame(g,x,y,len,w,dir=1){const c=['#fff7a0','#FFD400','#ff8a00','#ff2a00'];for(let k=3;k>=0;k--){const L=len*(1-k*.18),W=w*(1-k*.2);g.fillStyle=c[3-k];g.beginPath();g.moveTo(x-W,y);g.quadraticCurveTo(x,y+L*dir*1.1,x+W,y);g.fill()}}
+function b7wheel(g,cx,cy,rx,ry,spin,rim='#d8ab59'){E2(g,cx,cy,rx+2,ry+2,'#151517');E2(g,cx,cy,rx,ry,'#2b2b31');E2(g,cx,cy,rx-2,ry-3,'#0c0c0e');
+ g.strokeStyle='#c9ccd6';g.lineWidth=1;for(let k=0;k<6;k++){const a=spin+k*Math.PI/3;g.beginPath();g.moveTo(cx,cy);g.lineTo(cx+Math.cos(a)*(rx-2),cy+Math.sin(a)*(ry-3));g.stroke()}
+ g.strokeStyle=rim;g.lineWidth=1.5;g.beginPath();g.ellipse(cx,cy,rx-1,ry-1.5,0,0,7);g.stroke();E2(g,cx,cy,2,3,rim)}
+// ---------------- FAT COTY on the motorized wheelchair ----------------
+// o: {f:0/1 anim frame, m:'idle'|'move'|'atk'|'hurt'|'death', rage}
+function b7fat(g,o){const rg=o.rage,m=o.m,f=o.f,bob=m=='move'?(f?1:0):(m=='idle'?(f?1:0):0),sp=(m=='move'?f*0.5:f*.25)+(m=='death'?.2:0);
+ // rocket exhausts behind the chair (big when moving / ramming)
+ const fl=m=='move'?(f?16:12):m=='atk'?20:m=='death'?0:(f?5:4);
+ // safety flag pole (rage = siren)
+ LN(g,[84,40,88,8],'#c9ccd6',1.5);if(rg){E2(g,88,8,5,4,(f?'#ff0040':'#ff8a00'));g.fillStyle='#fff';g.fillRect(86,6,2,2)}else{g.fillStyle='#ff8a00';g.beginPath();g.moveTo(88,8);g.lineTo(76,12+f);g.lineTo(88,16);g.fill();g.fillStyle='#111';g.font='bold 5px monospace';g.fillText('BIG',79,14+f)}
+ // big wheels (3/4 front view: tall ellipses at the sides)
+ b7wheel(g,16,74,10,18,sp*6.28,'#e3b303');b7wheel(g,80,74,10,18,-sp*6.28,'#e3b303');
+ // rocket boosters bolted on both sides (drawn over the wheel tops so the exhaust reads head-on)
+ for(const bx of[4,80]){RR(g,bx,30,12,20,4,'#c9ccd6');g.fillStyle='#e3b303';g.fillRect(bx,34,12,2);g.fillRect(bx,43,12,2);RR(g,bx+2,49,8,4,1,'#3a3d46');g.fillStyle='#fff6';g.fillRect(bx+2,31,2,16)}
+ if(fl){b7flame(g,10,53,fl*(rg?1.35:1),5);b7flame(g,86,53,fl*(rg?1.35:1),5)}else{E2(g,10,56,5,6,'#666c');E2(g,86,52,6,7,'#777c');E2(g,14,40,4,4,'#888c')}
+ // chair frame + seat
+ RR(g,22,58,52,8,3,'#c9ccd6');RR(g,24,66,48,10,3,'#f8387f');g.fillStyle='#fff4';g.fillRect(26,67,44,2);
+ RR(g,30,76,36,5,2,'#9aa0ad');LN(g,[34,81,30,92],'#9aa0ad',2);LN(g,[62,81,66,92],'#9aa0ad',2);
+ E2(g,30,92,4,3,'#151517');E2(g,66,92,4,3,'#151517');E2(g,30,92,1.5,1.5,'#e3b303');E2(g,66,92,1.5,1.5,'#e3b303'); // casters
+ RR(g,38,80,20,6,1,'#e3b303');g.fillStyle='#111';g.font='bold 6px monospace';g.fillText('FAT 1',39,85); // plate
+ // body (big pink shirt, belly)
+ const by=bob;E2(g,48,58+by,25,20,rg?'#7c2945':'#f8387f');E2(g,48,62+by,18,13,rg?'#8d3352':'#ff5a96');g.fillStyle='#fff5';g.fillRect(33,48+by,6,2);
+ g.fillStyle='#f6e7da';g.font='bold 6px monospace';g.fillText('BIG',41,62+by);
+ // armrests: joystick (right) + cup holder with giant soda (left)
+ RR(g,18,52,10,5,2,'#c9ccd6');RR(g,68,52,10,5,2,'#c9ccd6');LN(g,[73,52,73,45],'#222',2);E2(g,73,44,2.5,2.5,'#ff0040');
+ RR(g,17,40,10,13,2,'#c81020');g.fillStyle='#fff';g.fillRect(19,44,6,3);LN(g,[24,40,26,32],'#fff',1.5);
+ // arms + hands
+ if(m=='atk'){LN(g,[30,50+by,20,30],'#f2c8a8',6);g.fillStyle='#FFD400';g.beginPath();g.moveTo(14,22);g.lineTo(28,20);g.lineTo(22,34);g.fill();g.fillStyle='#ff5a00';g.fillRect(18,24,3,3);g.fillRect(23,23,2,2)} // pizza slice up
+ else LN(g,[28,50+by,24,46],'#f2c8a8',6);LN(g,[68,50+by,73,47],'#f2c8a8',6);
+ // pizza box on lap
+ if(m!='atk'){RR(g,36,64+by,24,5,1,'#d8ab59');g.fillStyle='#8a5a20';g.fillRect(38,65+by,20,1)}
+ // head
+ const hy=24+by+(m=='hurt'?2:0);E2(g,48,hy+4,17,15,'#f2c8a8');E2(g,48,hy+12,15,9,'#f2c8a8');E2(g,33,hy+6,3,4,'#e8b896');E2(g,63,hy+6,3,4,'#e8b896');
+ b7cap(g,48,hy-6,16,'#13204a','FAT');
+ if(m=='hurt'||m=='death'){g.strokeStyle='#111';g.lineWidth=1.5;for(const x of[41,55]){LN(g,[x-3,hy+1,x+3,hy+5],'#111',1.5);LN(g,[x+3,hy+1,x-3,hy+5],'#111',1.5)}}else b7shades(g,48,hy,30,'#d8ab59');
+ if(rg&&m!='death'){LN(g,[36,hy-2,44,hy+1],'#111',2);LN(g,[60,hy-2,52,hy+1],'#111',2)}
+ E2(g,48,hy+17,6,4,'#6b4a32');// goatee
+ if(m=='atk'||rg){E2(g,48,hy+12,6,4,'#111');g.fillStyle='#fff';g.fillRect(44,hy+9,8,2)}else{g.fillStyle='#111';g.fillRect(43,hy+12,10,2)}
+ if(m=='death'){for(let k=0;k<3;k++)b7spark(g,30+k*18,hy-14+(k%2)*4,3,'#FFD400');g.fillStyle='#8888';E2(g,20,30,7,6,'#6668');E2(g,76,26,8,6,'#5558')}
+ if(rg)b7tear(g,f+3,3)}
+// ---------------- TOASTY COTY — the Original (black skull, ACID cap, gold eyes, halo, cool rocks) ----------------
+function b7toasty(g,o){const rg=o.rage,m=o.m,f=o.f,by=(f?2:0)-(m=='move'?1:0);
+ if(rg){g.strokeStyle='#ff0040';g.lineWidth=3;g.beginPath();g.arc(48,30,26,0,7);g.stroke();E2(g,48,30,22,22,'#1a0006')}
+ // hoodie body with butter drips
+ E2(g,48,78+by,30,24,'#111114');E2(g,48,70+by,22,14,'#1c1c22');g.fillStyle='#e3c42a';for(let x=22;x<76;x+=5){const l=4+((x*7+f*3)%9);g.fillRect(x,58+by,3,l)}
+ LN(g,[36,58+by,48,72+by,60,58+by],'#d8ab59',2);E2(g,48,73+by,4,4,'#d8ab59'); // gold chain + medallion
+ g.fillStyle='#fff';g.font='bold 6px monospace';g.fillText('N\u0336I\u0336C\u0336E\u0336',35,86+by);
+ // hands: hearts on attack
+ if(m=='atk'){LN(g,[24,66+by,12,48],'#111114',7);LN(g,[72,66+by,84,48],'#111114',7);for(const x of[12,84]){E2(g,x-2,44,3,3,'#ff4fd8');E2(g,x+2,44,3,3,'#ff4fd8');g.fillStyle='#ff4fd8';g.beginPath();g.moveTo(x-5,45);g.lineTo(x,51);g.lineTo(x+5,45);g.fill()}}
+ else{LN(g,[24,66+by,20,84],'#111114',7);LN(g,[72,66+by,76,84],'#111114',7)}
+ // skull head
+ const hy=30+by+(m=='hurt'?3:0);E2(g,48,hy,19,18,rg?'#2a0a0e':'#16161a');g.fillRect(36,hy+8,24,12);
+ E2(g,40,hy+1,6,5,'#000');E2(g,56,hy+1,6,5,'#000');
+ const ec=m=='hurt'?'#fff':rg?'#ff0040':'#FFD400';E2(g,40,hy+1,3,3,ec);E2(g,56,hy+1,3,3,ec);if(!(m=='hurt'))for(const x of[40,56])b7spark(g,x,hy+1,4,ec);
+ g.fillStyle='#000';g.beginPath();g.moveTo(48,hy+7);g.lineTo(45,hy+12);g.lineTo(51,hy+12);g.fill();for(let x=39;x<58;x+=4)RR(g,x,hy+14,3,5,1,'#d8d0c0');
+ if(rg){LN(g,[32,hy-8,40,hy-2,37,hy+6],'#ff0040',1.5);LN(g,[60,hy-10,56,hy-3],'#ff0040',1.5)}
+ b7cap(g,48,hy-12,19,'#e3b303','ACID','#0a1430','#111');
+ // halo ring + orbiting cool rocks
+ if(m!='death'){g.strokeStyle='#FFD400';g.lineWidth=2.5;g.beginPath();g.ellipse(48,hy-27,16,4,0,0,7);g.stroke()}
+ const ra=f*.8+(m=='move'?.4:0);for(let k=0;k<3;k++){const a=ra+k*2.09,x=48+Math.cos(a)*36,y=50+Math.sin(a)*8;E2(g,x,y,4,3,['#7dc4c0','#b4b24e','#9e7517'][k]);g.fillStyle='#fff8';g.fillRect(x-2,y-2,2,1)}
+ if(m=='death'){for(let k=0;k<6;k++)b7spark(g,20+k*11,14+(k%3)*6,2,'#FFD400')}
+ if(rg)b7tear(g,f+11,4)}
+// ---------------- TRIGGERED COTY (magenta, steam, veins, cola, glitch hoodie) ----------------
+function b7trig(g,o){const rg=o.rage,m=o.m,f=o.f,sh=m=='idle'?(f?1:-1):m=='move'?(f?2:-2):0,cx=48+sh;
+ E2(g,cx,80,30,22,'#2a0f2a');E2(g,cx,72,22,12,'#3b1537');g.fillStyle='#ff4fd8';g.font='bold 7px monospace';g.fillText('TRIGGERED',cx-27,84);
+ g.fillStyle='#ff00c8';g.fillRect(cx-26,86,52,1);g.fillStyle='#00f0ff';g.fillRect(cx-24,88,40,1);
+ // candle chart on the hoodie
+ for(let k=0;k<5;k++){const up=(k+f)%2,h=4+((k*5)%7);g.fillStyle=up?'#00ff66':'#ff0040';g.fillRect(cx-14+k*6,66-h,3,h);g.fillRect(cx-13+k*6,63-h,1,h+6)}
+ // arms: cola bottle
+ if(m=='atk'){LN(g,[cx+20,66,cx+34,36],'#3b1537',7);RR(g,cx+30,22,8,16,3,'#c81020');g.fillStyle='#fff';g.fillRect(cx+31,28,6,3);RR(g,cx+32,18,4,5,1,'#222')}
+ else{LN(g,[cx+20,66,cx+28,74],'#3b1537',7);RR(g,cx+25,62,8,15,3,'#c81020');g.fillStyle='#fff';g.fillRect(cx+26,67,6,3)}
+ LN(g,[cx-20,66,cx-30,76],'#3b1537',7);E2(g,cx-31,78,4,4,'#f0a0c8');
+ // head
+ const hy=34+(m=='hurt'?3:0),skin=rg?'#ff3070':'#ff7ab8';E2(g,cx,hy,19,19,skin);E2(g,cx-19,hy+2,3,5,skin);E2(g,cx+19,hy+2,3,5,skin);
+ // veins
+ LN(g,[cx-8,hy-13,cx-5,hy-9,cx-8,hy-6],'#b0105a',1.5);if(rg)LN(g,[cx+9,hy-14,cx+6,hy-10,cx+9,hy-7],'#b0105a',1.5);
+ // angry brows + eyes
+ LN(g,[cx-14,hy-6,cx-4,hy-2],'#111',3);LN(g,[cx+14,hy-6,cx+4,hy-2],'#111',3);
+ const ec=m=='hurt'?'#111':rg?'#ff0040':'#fff';E2(g,cx-8,hy+1,4,3,ec);E2(g,cx+8,hy+1,4,3,ec);if(m!='hurt'){E2(g,cx-8,hy+1,1.5,1.5,'#111');E2(g,cx+8,hy+1,1.5,1.5,'#111')}
+ // gritted teeth
+ RR(g,cx-10,hy+8,20,7,2,'#111');g.fillStyle='#fff';g.fillRect(cx-9,hy+9,18,5);g.fillStyle='#111';for(let x=cx-7;x<cx+9;x+=3)g.fillRect(x,hy+9,1,5);g.fillRect(cx-9,hy+11,18,1);
+ // steam from the ears
+ if(m!='death'){const s=m=='atk'||rg?1.4:1;for(const sx of[-1,1]){for(let k=0;k<3;k++){const x=cx+sx*(24+k*5+f*2),y=hy-2-k*7-f*2;E2(g,x,y,(3+k)*s,(2.5+k)*s,'#f2eef4')}}}
+ if(m=='death')for(let k=0;k<4;k++)b7spark(g,26+k*14,12+(k%2)*5,3,'#ff4fd8');
+ if(rg)b7tear(g,f+21,4)}
+// ---------------- YELLOW BLANKEY — CYBER_BOY (blanket ghost, visor, tassels) ----------------
+function b7blankey(g,o){const rg=o.rage,m=o.m,f=o.f,sh=!!o.shield,by=f?2:0,col=rg?'#ffb000':'#FFD400',dk=rg?'#b06000':'#c9a300';
+ if(sh){g.strokeStyle='#fff7a0';g.lineWidth=3;g.beginPath();g.ellipse(48,52,40,44,0,0,7);g.stroke();g.strokeStyle='#FFD40088';g.lineWidth=6;g.beginPath();g.ellipse(48,52,36,40,0,0,7);g.stroke()}
+ // blanket body: dome + wavy hem with tassels
+ g.fillStyle=col;g.beginPath();g.moveTo(14,86);g.quadraticCurveTo(10,20+by,48,12+by);g.quadraticCurveTo(86,20+by,82,86);
+ const w=m=='move'?5:3;for(let k=0;k<=6;k++){const x=82-k*11.3,y=86+((k+f)%2?w:-w);g.lineTo(x,y)}g.closePath();g.fill();
+ // folds + check pattern
+ g.strokeStyle=dk;g.lineWidth=2;for(const x of[30,48,66]){g.beginPath();g.moveTo(x,40+by);g.quadraticCurveTo(x+(f?3:-3),62,x,84);g.stroke()}
+ g.fillStyle='#fff7a055';for(let y=30;y<80;y+=10)for(let x=20+(y/10%2)*5;x<78;x+=10)g.fillRect(x,y+by,4,4);
+ for(let k=0;k<7;k++){const x=16+k*11.3;LN(g,[x,88,x+(f?1:-1),94],dk,2)}
+ // Cyber_Boy visor
+ RR(g,22,30+by,52,13,6,'#0c0c12');const ec=m=='hurt'?'#fff':rg?'#ff0040':'#00f0ff';for(let k=0;k<2;k++){const x=k?56:32;g.fillStyle=ec;g.fillRect(x,34+by,8,5);g.fillStyle='#fff';g.fillRect(x+1,35+by,2,1)}
+ if(m=='atk'){g.fillStyle=ec;g.fillRect(26,40+by,44,2)}
+ // little blanket arms
+ if(m=='atk'){E2(g,8,48,7,5,col);E2(g,88,48,7,5,col);b7spark(g,6,42,4,'#fff');b7spark(g,90,42,4,'#fff')}else{E2(g,12,62+by,6,8,col);E2(g,84,62+by,6,8,col)}
+ g.fillStyle='#111';g.font='bold 7px monospace';g.fillText(rg?'R.E.D.':'#CYBER_BOY',rg?37:27,62+by);
+ if(m=='death'){g.fillStyle='#fff7';for(let k=0;k<8;k++)g.fillRect(14+k*10,20+(k%3)*20,3,3)}
+ if(rg)b7tear(g,f+31,3)}
+// ---------------- NO INSIDER THREAT (gold pyramid head, all-seeing eye, masks, BE MEAN tee) ----------------
+function b7nit(g,o){const m=o.m,f=o.f,rg=o.rage,mask=o.mask,by=f?1:0;
+ E2(g,48,82+by,28,20,'#0c0c0e');g.fillStyle='#e3b303';g.font='bold 6px monospace';g.fillText('TRUST EVERYONE.',25,78+by);g.fillStyle='#ff0040';g.font='bold 8px monospace';g.fillText('BE MEAN.',29,88+by);
+ // chains
+ LN(g,[28,64+by,48,72+by,68,64+by],'#c9ccd6',2);
+ // arms holding a mask
+ LN(g,[24,68+by,14,m=='atk'?44:60],'#0c0c0e',7);LN(g,[72,68+by,82,m=='atk'?44:60],'#0c0c0e',7);
+ const mc=mask=='comedy'?'#FFD400':mask=='tragedy'?'#ff0040':null;
+ // pyramid head + eye
+ const hy=by+(m=='hurt'?3:0);g.fillStyle='#e3b303';g.beginPath();g.moveTo(48,6+hy);g.lineTo(78,58+hy);g.lineTo(18,58+hy);g.fill();
+ g.fillStyle='#9e7517';g.beginPath();g.moveTo(48,6+hy);g.lineTo(78,58+hy);g.lineTo(52,58+hy);g.fill();
+ g.strokeStyle='#6b4a10';g.lineWidth=1;for(let y=18;y<58;y+=8){g.beginPath();g.moveTo(48-(y-6)*.58,y+hy);g.lineTo(48+(y-6)*.58,y+hy);g.stroke()}
+ if(mc){// mask over the face
+  E2(g,48,38+hy,15,13,mc);E2(g,42,35+hy,3,2.5,'#111');E2(g,54,35+hy,3,2.5,'#111');
+  if(mask=='comedy'){g.strokeStyle='#111';g.lineWidth=2;g.beginPath();g.arc(48,40+hy,6,.2,Math.PI-.2);g.stroke()}else{g.strokeStyle='#111';g.lineWidth=2;g.beginPath();g.arc(48,49+hy,6,Math.PI+.3,-.3);g.stroke();g.fillStyle='#00f0ff';g.fillRect(41,39+hy,2,5)}}
+ else{E2(g,48,34+hy,11,7,'#fff');E2(g,48,34+hy,5,5,rg?'#ff0040':'#1a1a1a');E2(g,48,34+hy,2,2,'#fff');for(let k=0;k<8;k++){const a=k*.785;LN(g,[48+Math.cos(a)*13,34+hy+Math.sin(a)*9,48+Math.cos(a)*17,34+hy+Math.sin(a)*12],'#fff7a0',1)}}
+ if(m=='atk')for(let k=0;k<5;k++)b7spark(g,14+k*17,8+(k%2)*6,3,'#FFD400');
+ if(m=='death')for(let k=0;k<5;k++)b7spark(g,18+k*15,16+(k%2)*8,3,'#fff');
+ if(rg)b7tear(g,f+41,3)}
+// ---------------- frame sets ----------------
+const B7DRAW={fat:b7fat,toasty:b7toasty,triggered:b7trig,blankey:b7blankey,nit:b7nit};
+function b7frame(fn,o){const[c,g]=b7c();fn(g,o);b7ink(g);if(o.rage||o.m=='hurt')b7split(g,o.m=='hurt'?3:2);return c}
+function b7set(fn,extra={}){const S={};for(const rage of[0,1]){const k=rage?'rage':'base',mk2=(m,f)=>b7frame(fn,Object.assign({m,f,rage},extra));
+  S[k]={idle:[mk2('idle',0),mk2('idle',1)],move:[mk2('move',0),mk2('move',1)],atk:[mk2('atk',0),mk2('atk',1)],hurt:[mk2('hurt',0)],death:[mk2('death',0),mk2('death',1)]}}return S}
+const B7CAN={};for(const id in B7DRAW)B7CAN[id]=b7set(B7DRAW[id]);
+B7CAN.blankey.shield=b7set(b7blankey,{shield:1}).base;
+B7CAN.nit.comedy=b7set(b7nit,{mask:'comedy'}).base;B7CAN.nit.tragedy=b7set(b7nit,{mask:'tragedy'}).rage;
+const B7TEX={};for(const id in B7CAN){B7TEX[id]={};for(const k in B7CAN[id]){B7TEX[id][k]={};for(const m in B7CAN[id][k])B7TEX[id][k][m]=B7CAN[id][k][m].map(b7tex)}}
+// pick the frame for a boss this render frame
+function bossTex(e,t){const S=B7TEX[e.B.id];if(!S)return null;
+ if(e.freed){if(e.freedAt==null)e.freedAt=t;const dt=t-e.freedAt;if(dt<1100)return S.base.death[((dt/160)|0)%2];return null}
+ let set=e.rage?S.rage:S.base;if(e.shielded&&S.shield)set=S.shield;else if(e.mask&&S[e.mask])set=S[e.mask];
+ const fr=k=>set[k][((t/(k=='move'?110:k=='atk'?90:420))|0)%set[k].length];
+ if((e.hurtT||0)>0&&(e.hit||0)<=0)return fr('hurt');
+ if((e.atkT||0)>0||e.windup>0||e.charge)return fr('atk');
+ if((e.spdNow||0)>.35)return fr('move');return fr('idle')}
+
+// =====================================================================
+// v0.7.7 HARDER BOSS FIGHTS — themed minion waves (telegraphed portals, capped), minion drops (pity), Fat Coty's
+// telegraphed wheelchair RAM (wall crash = stun), a 3rd phase for the 2-phase bosses, +15% HP, moon blades visible again.
+// =====================================================================
+const B7={maxAlive:0,cap:6,portals:[],pity:0,waves:0,spawned:0,drops:0,rams:0,crashes:0,log:[]};
+// ---- themed minion sprites (64px, code-drawn) ----
+const B7SPR={
+ nugget:g=>{E2(g,32,38,17,14,'#c98a2e');E2(g,32,36,15,12,'#e0a848');g.fillStyle='#f6d080';for(const[x,y]of[[24,30],[36,28],[40,40],[28,42]])g.fillRect(x,y,3,2);
+  E2(g,26,35,4,4,'#fff');E2(g,38,35,4,4,'#fff');E2(g,27,36,2,2,'#111');E2(g,39,36,2,2,'#111');LN(g,[22,30,29,32],'#111',2);LN(g,[42,30,35,32],'#111',2);
+  g.fillStyle='#111';g.fillRect(28,43,9,2);LN(g,[26,50,24,60],'#c98a2e',3);LN(g,[38,50,40,60],'#c98a2e',3);E2(g,50,46,5,4,'#f8387f');g.fillStyle='#fff';g.font='bold 5px monospace';g.fillText('DIP',45,48)},
+ colacan:g=>{RR(g,22,16,20,36,4,'#c81020');g.fillStyle='#ddd';g.fillRect(22,16,20,4);g.fillRect(22,48,20,4);g.fillStyle='#fff';g.fillRect(24,28,16,6);g.fillStyle='#c81020';g.font='bold 6px monospace';g.fillText('COLA',24,33);
+  E2(g,28,40,3,3,'#fff');E2(g,36,40,3,3,'#fff');g.fillStyle='#111';g.fillRect(27,40,2,2);g.fillRect(35,40,2,2);LN(g,[25,36,30,38],'#111',1.5);LN(g,[39,36,34,38],'#111',1.5);
+  for(let k=0;k<4;k++)E2(g,26+k*4,12-(k%2)*3,3,3,'#f2eef4')},
+ watcher:g=>{E2(g,32,30,18,16,'#FFD400');E2(g,32,30,14,12,'#fff');E2(g,32,30,7,7,'#00f0ff');E2(g,32,30,3,3,'#111');g.fillStyle='#fff';g.fillRect(34,26,2,2);
+  g.strokeStyle='#ff0040';g.lineWidth=1;for(const[a,b]of[[20,24],[44,36],[24,38]]){g.beginPath();g.moveTo(a,b);g.lineTo(a+(a<32?5:-5),b+2);g.stroke()}
+  for(let k=0;k<4;k++)LN(g,[20+k*8,46,18+k*8+(k%2)*4,56],'#c9a300',2)},
+ moonling:g=>{E2(g,32,32,16,16,'#ff00c8');E2(g,30,32,15,15,'#00f0ff');E2(g,28,32,14,14,'#FFD400');E2(g,36,30,13,14,'#000');
+  E2(g,24,30,2.5,2.5,'#111');g.fillStyle='#111';g.fillRect(20,38,6,2);for(let k=0;k<4;k++)b7spark(g,46+(k%2)*8,14+k*10,2,'#fff')},
+ portalA:g=>{for(let k=0;k<3;k++){g.strokeStyle=['#ff00c8','#00f0ff','#FFD400'][k];g.lineWidth=3;g.beginPath();g.ellipse(32,36,22-k*6,26-k*7,0,0,7);g.stroke()}E2(g,32,36,6,8,'#fff')},
+ portalB:g=>{for(let k=0;k<3;k++){g.strokeStyle=['#00f0ff','#FFD400','#ff00c8'][k];g.lineWidth=3;g.beginPath();g.ellipse(32,36,20-k*6,28-k*7,0,0,7);g.stroke()}E2(g,32,36,4,6,'#fff')},
+ warn:g=>{E2(g,32,32,10,10,'#ff0040');E2(g,32,32,5,5,'#fff')},
+ exhaust:g=>{E2(g,32,32,14,14,'#ff8a00');E2(g,32,32,9,9,'#FFD400');E2(g,32,32,4,4,'#fff')},
+};
+for(const k in B7SPR){SPRITES[k]=B7SPR[k];SPR[k]=toTex(draw(B7SPR[k]))}
+Object.assign(ENEMIES,{
+ nugget:{n:'NUGGET',spr:'nugget',ai:'chase',hp:22,spd:2.5,dmg:5,r:.28,s:.42,bob:.1,bones:0,score:5,gib:['#e0a848','#f6d080','#f8387f'],bark:['NUG LIFE','DIP ME']},
+ colacan:{n:'SHAKEN COLA',spr:'colacan',ai:'kamikaze',hp:18,spd:2.8,dmg:14,r:.26,s:.42,bob:.08,bones:0,score:5,gib:['#c81020','#fff','#5a2a10'],bark:['FIZZ','SHAKEN NOT STIRRED']},
+ watcher:{n:'HATE WATCHER',spr:'watcher',ai:'shooter',hp:30,spd:1.4,dmg:7,r:.3,s:.48,bob:.35,bones:0,score:5,proj:'orb',pspd:5,cd:2,range:12,keep:5,gib:['#FFD400','#fff','#00f0ff'],bark:['WATCHING','YOU ALSO MATTER']},
+ moonling:{n:'MOONLING',spr:'moonling',ai:'blink',hp:26,spd:2.4,dmg:6,r:.28,s:.44,bob:.3,bones:0,score:5,blink:3.6,gib:['#ff00c8','#00f0ff','#FFD400']},
+});
+// ---- themed waves: HP thresholds + every phase change; size grows with phase; never more than B7.cap (6) minions alive ----
+const B7WAVES={fat:{t:['nugget','nugget','crumbling'],at:[.85,.65,.35,.15],tr:7},toasty:{t:['moonling','moonling','hallu'],at:[.85,.6,.35,.15],tr:7.5},
+ triggered:{t:['colacan','colacan','minion'],at:[.85,.65,.4,.15],tr:6.5},blankey:{t:['watcher','glitchling','watcher'],at:[.9,.7,.5,.3,.1],tr:7.5},
+ nit:{t:['fakecrew','minion','fakecrew'],at:[.85,.6,.35,.15],tr:7},glitch:{t:['glitchling','minion','antenna'],at:[.85,.6,.4,.2],tr:7}};
+// ---- tougher, still-fair phases ----
+(function tune(){const by=id=>BOSSES.find(b=>b.id==id);
+ for(const id of['fat','toasty','triggered','blankey','nit'])by(id).hp=Math.round(by(id).hp*1.1);
+ const fat=by('fat');fat.phases[0].attacks.push({p:'ram',spd:8.5,cd:7,first:5,dmg:18,wind:.9});
+ fat.phases[1].attacks=fat.phases[1].attacks.filter(a=>a.p!='charge');fat.phases[1].attacks.push({p:'ram',spd:9.5,cd:4.6,first:1.5,dmg:20,wind:.8});
+ fat.phases.push({hp:.25,spr:'fatR',rage:2,card:'MOTOR MODE: 850 WHEELCHAIR HP',move:{want:2.5,spd:2.3},attacks:[{p:'ram',spd:10.5,cd:4.2,first:1.5,dmg:20,wind:.75},{p:'slam',n:24,spd:5.5,cd:3.6,dmg:12},{p:'spread',n:7,arc:1.1,spd:6,cd:1.7,dmg:9,T:'pizzaP'},{p:'foodrain',n:2,cd:9}]});
+ fat.taunts.ram=['BEEP BEEP!','OUTTA MY WAY, I\'M HUNGRY','FULL THROTTLE','ZERO TO PIZZA IN 3 SECONDS'];fat.taunts.crash='OOF. WHO PUT THAT WALL THERE';
+ const ty=by('toasty');ty.phases.push({hp:.25,spr:'toastyR',rage:2,card:'3•30•2026 — TOTALITY',dark:5.5,orbit:{n:4,r:2.2,spd:2.6,dmg:14},move:{want:3.5,spd:1.8},attacks:[{p:'hearts',n:7,arc:1.3,spd:5,cd:1.4,dmg:10,turn:.5},{p:'ring',n:14,spd:3.6,cd:3,dmg:8,T:'moonb'},{p:'teleport',cd:7,first:4}]});
+ const tr=by('triggered');tr.phases.push({hp:.25,spr:'trigR',rage:2,card:'FULL MELTDOWN',move:{want:3.5,spd:2},attacks:[{p:'candles',n:4,cd:3.2,dmg:15,warn:1},{p:'spread',n:5,arc:.9,spd:6,cd:1.5,dmg:9,T:'balloon'},{p:'bomb',spd:4.5,cd:4.5,dmg:8,n:10,fuse:1},{p:'clone',n:1,cd:12,first:2}]});
+ const nt=by('nit');nt.phases.push({hp:.25,spr:'nitT',rage:2,card:'TRUST NO ONE.',mask:3,move:{want:3.5,spd:1.9},attacks:[{p:'sweep',spd:6,cd:.09,dmg:6,rate:1.3},{p:'spread',n:7,arc:1.2,spd:5.5,cd:1.8,dmg:9,T:'shard'},{p:'teleport',cd:7,first:3}]});
+ // old summons now come from the wave system (same cap) — keep the clone trick, drop the plain summons
+ for(const id of['toasty','nit'])for(const ph of by(id).phases)ph.attacks=ph.attacks.filter(a=>a.p!='summon')})();
+// ---- Fat Coty's wheelchair RAM: wind-up (rev + exhaust + red lane telegraph), dash, wall crash = stun + x1.5 damage ----
+PATTERNS.ram=function(b,A,base){if(b.windup>0||b.charge||b.stun>0)return;b.windup=A.wind||.8;b.windT=b.windup;b.ramA=base;b.ramS=A.spd;b.ramD=A.dmg;B7.rams++;
+ const L=b.B.taunts.ram;if(L){const s=L[(rnd()*L.length)|0];pop(b.x,b.y,s,b.B.col);if(rnd()<.5)msg('FAT COTY: '+s)}tone(70,b.windup,'sawtooth',.07,160)};
+for(const k in PATTERNS){const o=PATTERNS[k];PATTERNS[k]=function(b,A,base){b.atkT=.45;return o.call(this,b,A,base)}}
+// ---- frame-state + waves wrapper around updateBoss ----
+const _b7updateBoss=updateBoss;
+updateBoss=function(b,dt,d,dx,dy,sees){const x0=b.x,y0=b.y;b.atkT=(b.atkT||0)-dt;b.hurtT=(b.hurtT||0)-dt;
+ if(b.stun>0){b.stun-=dt;b.spdNow=0;if(((b.stun*8)|0)%2)gib(b.x,b.y,['#888','#ff8a00'],1,.9,.4);return}
+ if(b.windup>0){b.windup-=dt;const k=1-b.windup/b.windT;if(k<.45)b.ramA=Math.atan2(dy,dx); // tracks you for the first 45%, then locks (side-step to dodge)
+  if(rnd()<.5)gib(b.x-Math.cos(b.ramA)*.6,b.y-Math.sin(b.ramA)*.6,['#ff8a00','#FFD400','#fff'],1,.25,1.2);
+  if(b.windup<=0){b.charge={vx:Math.cos(b.ramA)*b.ramS,vy:Math.sin(b.ramA)*b.ramS,t:1.1,dmg:b.ramD,ram:1,age:0,hit:1,rhit:0};shake(3);SFX.rage();flash('#ff8a00',.1)}
+  b.spdNow=0;return}
+ const ch=b.charge;_b7updateBoss(b,dt,d,dx,dy,sees);
+ if(ch&&ch.ram){ch.age+=dt;if(!ch.rhit&&Math.hypot(P.x-b.x,P.y-b.y)<1){ch.rhit=1;hurt(ch.dmg*b.dm,'melee');shake(5);pop(P.x,P.y,'RAMMED','#f8387f')}const mv=Math.hypot(b.x-x0,b.y-y0),want=Math.hypot(ch.vx,ch.vy)*dt;fx.push({x:b.x-ch.vx*.06,y:b.y-ch.vy*.06,s:.5,z:.2,T:SPR.exhaust,glow:1});
+  if(ch.age>.08&&mv<want*.3){b.charge=null;b.stun=1.4;B7.crashes++;shake(7);hitStop(.12);SFX.boom();gib(b.x,b.y,['#c9ccd6','#e3b303','#ff8a00','#fff'],26,.3,3);pop(b.x,b.y,'CRASH! STUNNED','#00f0ff');msg(b.B.taunts.crash||'CRASH!')}}
+ b.spdNow=(b.spdNow||0)*.8+(Math.hypot(b.x-x0,b.y-y0)/Math.max(dt,1e-4))*.2;
+ b7waves(b,dt)};
+function b7alive(){let n=0;for(const e of ents)if(e.minion&&e.hp>0)n++;return n+B7.portals.length}
+function b7spot(b){for(let k=0;k<40;k++){const a=rnd()*6.283,r=2+rnd()*6,x=b.x+Math.cos(a)*r,y=b.y+Math.sin(a)*r;if(x<1.5||y<1.5||x>MW-1.5||y>MH-1.5||solid(x,y))continue;
+  if(Math.hypot(x-P.x,y-P.y)<4)continue;if(solid(x+.3,y)||solid(x-.3,y)||solid(x,y+.3)||solid(x,y-.3))continue;return[x,y]}return null}
+function b7wave(b,n,why){const W=B7WAVES[b.B.id];if(!W)return 0;let s=0;for(let i=0;i<n&&b7alive()<B7.cap;i++){const p=b7spot(b);if(!p)break;B7.portals.push({x:p[0],y:p[1],t:.9,type:W.t[(B7.spawned+i)%W.t.length],b});B7.minPD=Math.min(B7.minPD??99,Math.hypot(p[0]-P.x,p[1]-P.y));s++}
+ if(s){B7.waves++;B7.log.push({boss:b.B.id,why,n:s,phase:b.phase,hp:+(b.hp/b.max).toFixed(2)});SFX.summon();if(why!='trickle')pop(b.x,b.y,'MINIONS INCOMING','#ff00c8')}return s}
+function b7waves(b,dt){const W=B7WAVES[b.B.id];if(!W||b.freed)return;if(!b.w7){b.w7={done:new Set(),ph:b.phase,tr:W.tr,q:[]}}
+ const f=b.hp/b.max,ph=b.phase||0,rg=b.B.phases[ph].rage?1:0;
+ W.at.forEach((t,i)=>{if(f<=t&&!b.w7.done.has(i)){b.w7.done.add(i);b.w7.q.push({n:2+ph,why:'hp'+t})}});
+ if(ph!=b.w7.ph){b.w7.ph=ph;b.w7.q.push({n:2+ph,why:'phase'+ph})}
+ // queued waves wait for room under the cap (never dropped); partial waves keep the remainder queued
+ while(b.w7.q.length&&b7alive()<B7.cap){const w=b.w7.q[0],s=b7wave(b,w.n,w.why);if(!s)break;w.n-=s;if(w.n<=0)b.w7.q.shift();else{w.why+='+';break}}
+ if((b.w7.tr-=dt)<=0){b.w7.tr=Math.max(6,W.tr-ph);if(!b.w7.q.length&&b7alive()==0&&(b.w7.trk=(b.w7.trk||0)+1)<=4)b7wave(b,1+(ph>1?1:0),'trickle')}}
+// portals: .9s telegraph, then the minion steps out (awake, not elite)
+function b7portals(dt){B7.portals=B7.portals.filter(p=>{p.t-=dt;if(p.t>0){fx.push({x:p.x,y:p.y,s:.7+(.9-p.t)*.3,z:0,T:((p.t*10)|0)%2?SPR.portalA:SPR.portalB,glow:1});return true}
+  if(!p.b||p.b.freed||p.b.hp<=0)return false;const m=spawnEnemy(p.type,p.x,p.y,{minion:true,awake:true,elite:false});stats.total++;B7.spawned++;gib(p.x,p.y,['#ff00c8','#00f0ff','#fff'],14,.5,2);SFX.tele();return false})}
+// ---- update wrapper: portals, ram lane telegraph, visible moon blades (they were cleared before drawing) ----
+// existing summon/clone patterns share the same cap
+for(const k of['summon','clone']){const o=PATTERNS[k];PATTERNS[k]=function(b,A,base){const room=B7.cap-b7alive();if(room<=0){if(k=='clone')PATTERNS.teleport(b);return}return o(b,Object.assign({},A,{n:Math.min(A.n||1,room)}),base)}}
+const _b7update=update;
+update=function(dt){_b7update(dt);if(state!='play'||!boss)return;if(boss.freed){B7.portals=[];return}
+ b7portals(dt);const b=boss;B7.maxAlive=Math.max(B7.maxAlive,b7alive());
+ if(b.windup>0){const k=1-b.windup/b.windT,blink=((b.windup*12)|0)%2;for(let i=1;i<=9;i++){const x=b.x+Math.cos(b.ramA)*i*.8,y=b.y+Math.sin(b.ramA)*i*.8;if(solid(x,y))break;if(i<=2+k*8)fx.push({x,y,s:.18+(blink?.06:0),z:0,T:SPR.warn,glow:1})}
+  fx.push({x:b.x-Math.cos(b.ramA)*.7,y:b.y-Math.sin(b.ramA)*.7,s:.35+k*.4,z:.15,T:SPR.exhaust,glow:1})}
+ const ph=b.B.phases[b.phase||0];if(ph.orbit&&b.orb!=null&&!b.freed){const O=ph.orbit;for(let k=0;k<O.n;k++){const a=b.orb+k*6.283/O.n;fx.push({x:b.x+Math.cos(a)*O.r,y:b.y+Math.sin(a)*O.r,s:.4,z:.25,T:SPR.moonb,glow:1})}}};
+// ---- minion drops while the boss is up: 30% health/ammo (what you need most), guaranteed every 4th minion ----
+const _b7kill=kill;
+kill=function(e,o){_b7kill(e,o);if(!e.minion||!boss||boss.freed)return;B7.pity++;if(rnd()<.3||B7.pity>=4){B7.pity=0;B7.drops++;
+ const w=WEAPONS[P.w],am={bul:'ammo',sh:'shells',cell:'cells',rk:'rockets'}[w.amm];const low=P.hp<P.maxhp*.6;
+ pickups.push({t:(low||!am)&&!FL.noHealth?'health':(am||'ammo'),x:e.x,y:e.y});if(rnd()<.35)pickups.push({t:'ammo',x:e.x+.2,y:e.y+.1})}};
+// ---- hurt frame + stunned bonus damage ----
+const _b7damage=damage;
+damage=function(e,amt,o){if(e&&e.t=='boss'&&!e.freed&&e.hp>0){if(!e.shielded&&!(e.mask=='comedy'))e.hurtT=.28;if(e.stun>0){amt*=1.5;if(rnd()<.2)pop(e.x,e.y,'x1.5 STUNNED','#00f0ff')}}return _b7damage(e,amt,o)};
+// reset per floor
+const _b7build=buildFloor;buildFloor=function(){B7.portals=[];B7.pity=0;return _b7build.apply(this,arguments)};
 </script>
 </body></html>
