@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.7.7"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.7.8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <link rel="icon" href="data:,"><title>MR. TOASTY'S NO SIGNAL SKULLZ — Therapy Toaster</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Anton&family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
@@ -32,8 +32,6 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden;color:#FFD400;fon
 #knob{position:absolute;left:50%;top:50%;width:calc(48px*var(--bs,1));height:calc(48px*var(--bs,1));margin:calc(-24px*var(--bs,1)) 0 0 calc(-24px*var(--bs,1));border-radius:50%;background:rgba(255,212,0,.75)}
 .tb{position:fixed;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:50%;background:rgba(255,212,0,.32);border:2px solid rgba(255,212,0,.8);color:#fff;font:calc(9px*var(--bs,1)) 'Press Start 2P',monospace;text-shadow:1px 1px 0 #000;z-index:5;touch-action:none;-webkit-tap-highlight-color:transparent}
 .tb.down{background:rgba(255,212,0,.7);color:#000;text-shadow:none}
-#bFire{right:calc(var(--sr) + 22px);bottom:calc(var(--sb) + 26px);width:calc(96px*var(--bs,1));height:calc(96px*var(--bs,1));font-size:calc(11px*var(--bs,1))}
-#bFire.auto{box-shadow:0 0 0 4px rgba(255,0,200,.55)}
 #bWpn{right:calc(var(--sr) + 22px + 104px*var(--bs,1));bottom:calc(var(--sb) + 22px);width:calc(60px*var(--bs,1));height:calc(60px*var(--bs,1));border-radius:14px}
 #bWpn b{font-size:1.5em;color:#FFD400}#bWpn small{font-size:.62em;margin-top:3px;max-width:100%;overflow:hidden;white-space:nowrap}
 #bUse{right:calc(var(--sr) + 34px);bottom:calc(var(--sb) + 26px + 110px*var(--bs,1));width:calc(70px*var(--bs,1));height:calc(70px*var(--bs,1));display:none}
@@ -43,7 +41,7 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden;color:#FFD400;fon
 #wheel{position:fixed;inset:0;z-index:6;display:none;background:rgba(0,0,0,.35)}#wheel.on{display:block}
 #wheel button{position:fixed;width:74px;height:74px;margin:-37px 0 0 -37px;border-radius:50%;border:2px solid #FFD400;background:rgba(5,7,13,.85);color:#fff;font:8px 'Press Start 2P',monospace;line-height:1.4;padding:4px}
 #wheel button.cur{border-color:#00f0ff;color:#00f0ff}#wheel button.hi{background:#FFD400;color:#000}
-body.lefty #bFire{right:auto;left:calc(var(--sl) + 22px)}body.lefty #bWpn{right:auto;left:calc(var(--sl) + 22px + 104px*var(--bs,1))}body.lefty #bUse{right:auto;left:calc(var(--sl) + 34px)}
+body.lefty #bWpn{right:auto;left:calc(var(--sl) + 22px + 104px*var(--bs,1))}body.lefty #bUse{right:auto;left:calc(var(--sl) + 34px)}
 :root{--st:env(safe-area-inset-top,0px);--sr:env(safe-area-inset-right,0px);--sb:env(safe-area-inset-bottom,0px);--sl:env(safe-area-inset-left,0px)}
 body.touch .desk{display:none}
 body.touch #hud{top:calc(var(--st) + 4px);bottom:auto;left:calc(var(--sl) + 6px);right:auto;max-width:calc(100vw - 140px);padding:3px 8px;gap:10px;justify-content:flex-start;flex-wrap:wrap;background:rgba(0,0,0,.4);border-radius:6px;font-size:9px;z-index:2}
@@ -114,13 +112,17 @@ body.attract #msg{display:none}
 @keyframes eggin{0%{filter:hue-rotate(90deg) contrast(3);transform:translateX(-12%) scaleY(.04);clip-path:inset(40% 0 40% 0)}30%{transform:translateX(8%) scaleY(1.1);clip-path:inset(10% 0 55% 0);filter:hue-rotate(200deg) saturate(4)}55%{transform:translateX(-4%);clip-path:inset(45% 0 5% 0)}75%{transform:skewX(8deg);filter:invert(1)}100%{transform:none;clip-path:inset(0);filter:none}}
 @keyframes eggout{0%{opacity:1}40%{transform:translateX(6%) scaleY(.6);filter:invert(1)}100%{opacity:0;transform:scaleY(.02)}}
 
-/* v0.7.5 easy phone controls: small corner FIRE / USE / WEAPON, screen is mostly the two sticks */
-#bFire{right:calc(var(--sr) + 14px);bottom:calc(var(--sb) + 14px);width:calc(64px*var(--bs,1));height:calc(64px*var(--bs,1));font-size:calc(8px*var(--bs,1))}
-#bWpn{right:calc(var(--sr) + 14px + 6px*var(--bs,1));bottom:calc(var(--sb) + 24px + 64px*var(--bs,1));width:calc(52px*var(--bs,1));height:calc(52px*var(--bs,1));border-radius:12px}
-#bUse{right:calc(var(--sr) + 24px + 64px*var(--bs,1));bottom:calc(var(--sb) + 18px);width:calc(56px*var(--bs,1));height:calc(56px*var(--bs,1));font-size:calc(8px*var(--bs,1))}
-body.lefty #bFire{right:auto;left:calc(var(--sl) + 14px)}
-body.lefty #bWpn{right:auto;left:calc(var(--sl) + 14px + 6px*var(--bs,1))}
-body.lefty #bUse{right:auto;left:calc(var(--sl) + 24px + 64px*var(--bs,1))}
+/* v0.7.8 phone controls: NO fire button (the AIM stick's centre is the trigger). SWAP WEAPON sits in FIRE's old corner, USE small beside it */
+#bWpn{right:calc(var(--sr) + 14px);bottom:calc(var(--sb) + 14px);width:calc(88px*var(--bs,1));height:calc(64px*var(--bs,1));border-radius:14px;gap:calc(3px*var(--bs,1));padding:0}
+#bWpn .wr{display:flex;align-items:center;gap:calc(4px*var(--bs,1))}#bWpn canvas{width:calc(30px*var(--bs,1));height:calc(30px*var(--bs,1));image-rendering:pixelated}
+#bWpn b{font-size:calc(10px*var(--bs,1));color:#FFD400}#bWpn small{font-size:calc(6px*var(--bs,1));letter-spacing:0;white-space:nowrap;color:#fff}#bWpn.down b{color:#000}#bWpn.down small{color:#000}#bWpn i,#bWpn em{display:none}
+#bUse{right:calc(var(--sr) + 22px + 88px*var(--bs,1));bottom:calc(var(--sb) + 20px);width:calc(52px*var(--bs,1));height:calc(52px*var(--bs,1));font-size:calc(8px*var(--bs,1))}
+body.lefty #bWpn{right:auto;left:calc(var(--sl) + 14px)}
+body.lefty #bUse{right:auto;left:calc(var(--sl) + 22px + 88px*var(--bs,1))}
+/* AIM stick knob = FIRE: crosshair + FIRE label in the middle */
+#aknob{background-size:2px 30%,30% 2px!important;background-position:50% 30%,50% 30%!important}
+#aknob:after{content:'FIRE';position:absolute;left:0;right:0;top:56%;text-align:center;font:calc(7px*var(--bs,1)) 'Press Start 2P',monospace;color:#000;letter-spacing:0}
+#ajoy.idle{opacity:.6}#ajoy.auto{box-shadow:0 0 0 3px rgba(255,0,200,.55)}
 #alock{position:fixed;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;pointer-events:none;z-index:4;display:none;
  background:linear-gradient(#ff00c8,#ff00c8) 0 0/12px 2px,linear-gradient(#ff00c8,#ff00c8) 0 0/2px 12px,linear-gradient(#ff00c8,#ff00c8) 100% 0/12px 2px,linear-gradient(#ff00c8,#ff00c8) 100% 0/2px 12px,
  linear-gradient(#ff00c8,#ff00c8) 0 100%/12px 2px,linear-gradient(#ff00c8,#ff00c8) 0 100%/2px 12px,linear-gradient(#ff00c8,#ff00c8) 100% 100%/12px 2px,linear-gradient(#ff00c8,#ff00c8) 100% 100%/2px 12px;background-repeat:no-repeat;opacity:.8}
@@ -133,9 +135,9 @@ body.lefty #bUse{right:auto;left:calc(var(--sl) + 24px + 64px*var(--bs,1))}
 <div id="msg"></div><div id="secban" aria-live="polite"></div><div id="egg" role="dialog" aria-label="Easter egg video"></div>
 <div id="hud"><canvas id="face" width="64" height="64"></canvas><div><b id="xname">MR. TOASTY</b><span id="hp">100</span></div><div><b>AMMO</b><span id="am">0</span></div><div><b>ARMOR</b><span id="ap">0</span></div><div class="hx"><b>WEAPON</b><span id="wn"></span></div><div><b>SKULLZ</b><span id="bn">0</span></div><div class="hx"><b>FLOOR</b><span id="fl">1</span></div><div><b>KILLS</b><span id="kl"></span></div></div>
 <div id="tc" aria-hidden="true"><div id="tzone"></div><div id="joy"><div id="knob"></div></div><div id="ajoy"><div id="aknob"></div></div><div id="alock"></div>
-<div class="tb" id="bFire">FIRE</div><div class="tb" id="bUse">USE</div><div class="tb" id="bWpn"><b id="wpi">1</b><small id="wps"></small></div>
+<div class="tb" id="bUse">USE</div><div class="tb" id="bWpn"><span class="wr"><canvas id="wpc" width="64" height="64"></canvas><b id="wpa">80</b></span><small id="wpl">SWAP WEAPON</small><i id="wpi">1</i><em id="wps"></em></div>
 <div class="tb sm" id="bMap">MAP</div><div class="tb sm" id="bPause">II</div><div id="wheel"></div></div>
-<div id="ttut"><div class="tl">LEFT THUMB<br>MOVE<br><br>(STICK APPEARS<br>WHERE YOU TOUCH)</div><div class="tr">RIGHT THUMB<br>DRAG ANYWHERE<br>TO LOOK</div><div class="tf">HOLD FIRE<br>(DRAG IT TO AIM)<br>TAP WEAPON = NEXT<br>HOLD = WHEEL</div><div class="tm">MAP · PAUSE ▲</div><p>TAP TO PLAY</p></div>
+<div id="ttut"><div class="tl">LEFT THUMB<br>MOVE<br><br>(STICK APPEARS<br>WHERE YOU TOUCH)</div><div class="tr">RIGHT THUMB<br>DRAG ANYWHERE<br>TO LOOK</div><div class="tf">SWAP WEAPON<br>BUTTON SWITCHES GUNS</div><div class="tm">MAP · PAUSE ▲</div><p>TAP TO PLAY</p></div>
 <div id="rot">↻ ROTATE FOR THE BEST VIEW <span id="rotx">✕</span></div>
 <div class="ov" id="pause"><h1>PAUSED<small>THE GLITCH WAITS</small></h1><div class="drip"></div><div><button class="btn" id="presume">RESUME</button><button class="btn" id="pset">SETTINGS</button><button class="btn" id="pgal">GALLERY</button><button class="btn" data-menu>MAIN MENU</button></div></div>
 <div class="ov" id="gal"><h1>GALLERY<small>COTY LAKE · SECRET ART</small></h1><div class="drip"></div><p id="galn"></p><div id="galg"></div><button class="btn" id="gback">BACK</button><div id="galv"></div></div>
@@ -1941,12 +1943,12 @@ for(const ev of['gesturestart','gesturechange','dblclick'])document.addEventList
 document.addEventListener('contextmenu',e=>{if(isTouch)e.preventDefault()});
 document.addEventListener('touchmove',e=>{if(state=='play'||e.touches.length>1)e.preventDefault()},{passive:false});
 if(isTouch)EXIT_NEAR=.5; // walls keep you >=.75 from a door centre, so on touch only the push-to-enter dwell can trigger it
-const TOUCH=(()=>{const lk=$('alock'),z=$('tzone'),joy=$('joy'),kn=$('knob'),ajoy=$('ajoy'),akn=$('aknob'),bF=$('bFire'),bU=$('bUse'),bW=$('bWpn'),wh=$('wheel');
+const TOUCH=(()=>{const lk=$('alock'),z=$('tzone'),joy=$('joy'),kn=$('knob'),ajoy=$('ajoy'),akn=$('aknob'),bU=$('bUse'),bW=$('bWpn'),wh=$('wheel');
  let aX0=0,aY0=0,aDrag=false,aHold=false,tapQ=0,taps=0,tapShots=0,sx0=0,sy0=0,aid=null,ajx=0,ajy=0,asx=0,asy=0,aT=0,jid=null,jx=0,jy=0,lid=null,lx=0,fid=null,fx0=0,held=false,autoOn=false,buzzT=0,useOn=false,wid=null,wx=0,wy=0,wT=0,wMode=0,wHi=-1,wLast=-1;
  const R=()=>56*sets().size,leftSide=x=>sets().left?x>innerWidth*.55:x<innerWidth*.45;
  const look=dx=>{if(P&&state=='play')P.a+=dx*.0055*sets().sens};
- // v0.7.4 visible AIM stick: rests just inside the FIRE/weapon buttons (landscape) or above USE (portrait); mirrored for left-handed
- const aimHome=()=>{const S=sets(),bs=+S.size||1,W=innerWidth,H=innerHeight;let x,y;if(W>=H*1.1){x=W-(30+190*bs);y=H-100}else{x=W-(30+60*bs);y=H-(40+180*bs)}if(S.left)x=W-x;return[x,y]};
+ // v0.7.4 visible AIM stick: rests just inside the SWAP WEAPON/USE buttons (landscape) or above USE (portrait); mirrored for left-handed
+ const aimHome=()=>{const S=sets(),bs=+S.size||1,W=innerWidth,H=innerHeight;let x,y;if(W>=H*1.1){x=W-(48+190*bs);y=H-100}else{x=W-(30+60*bs);y=H-(40+180*bs)}if(S.left)x=W-x;return[x,y]};
  const idleAim=()=>{const[x,y]=aimHome();ajoy.style.left=x+'px';ajoy.style.top=y+'px';ajoy.className='idle';akn.style.transform=''};
  const idleJoy=()=>{const S=sets();joy.style.left=(S.left?innerWidth-110:110)+'px';joy.style.top=(innerHeight-100)+'px';joy.className='idle';kn.style.transform='';idleAim()};
  z.addEventListener('touchstart',e=>{e.preventDefault();au();for(const t of e.changedTouches){if(leftSide(t.clientX)&&jid===null){jid=t.identifier;jx=t.clientX;jy=t.clientY;joy.style.left=jx+'px';joy.style.top=jy+'px';joy.className='on';kn.style.transform=''}
@@ -1962,10 +1964,7 @@ const TOUCH=(()=>{const lk=$('alock'),z=$('tzone'),joy=$('joy'),kn=$('knob'),ajo
   else if(t.identifier===aid)aimMove(t)}},{passive:false});
  const zend=e=>{for(const t of e.changedTouches){if(t.identifier===jid){jid=null;sx0=sy0=0;touch.mx=touch.my=0;K.shift=0;idleJoy()}if(t.identifier===aid){if(!aDrag&&!aHold&&performance.now()-aT<=TAP.ms){tapQ=performance.now();akn.style.transform='';akn.classList.remove('tap');void akn.offsetWidth;akn.classList.add('tap');ajoy.className='on';taps++;aid=null;aHold=false;asx=asy=0;setTimeout(()=>{if(aid===null)idleAim()},300);continue}aid=null;aHold=false;asx=asy=0;idleAim()}}};
  z.addEventListener('touchend',zend);z.addEventListener('touchcancel',zend);
- // FIRE: hold to fire; dragging the thumb on it also turns the view
- bF.addEventListener('touchstart',e=>{e.preventDefault();au();const t=e.changedTouches[0];if(fid===null){fid=t.identifier;fx0=t.clientX;held=true;bF.classList.add('down')}},{passive:false});
- bF.addEventListener('touchmove',e=>{e.preventDefault();for(const t of e.changedTouches)if(t.identifier===fid){look(t.clientX-fx0);fx0=t.clientX}},{passive:false});
- const fend=e=>{for(const t of e.changedTouches)if(t.identifier===fid){fid=null;held=false;bF.classList.remove('down')}};bF.addEventListener('touchend',fend);bF.addEventListener('touchcancel',fend);
+ // v0.7.8: no FIRE button on touch — the AIM stick's centre is the trigger (tap = 1 shot, hold = keep firing)
  // USE: only shown (pulsing) when something usable is in reach
  bU.addEventListener('touchstart',e=>{e.preventDefault();au();bU.classList.add('down');if(state=='play')use()},{passive:false});bU.addEventListener('touchend',e=>{e.preventDefault();bU.classList.remove('down')},{passive:false});
  const small=(id,f)=>$(id).addEventListener('touchstart',e=>{e.preventDefault();au();f()},{passive:false});
@@ -2029,7 +2028,7 @@ const TOUCH=(()=>{const lk=$('alock'),z=$('tzone'),joy=$('joy'),kn=$('knob'),ajo
   const u=Math.min(1,(ax-ONE.dead)/(1-ONE.dead)),c=.22*u+.78*u*u*u,slow=tg&&Math.abs(tg.da)<tg.rad*2.2?.5:1,rate=Math.sign(sx0)*c*ONE.rate*(+S.turn||1)*slow;
   P.a+=rate*dt;touch.mx=Math.sign(sx0)*u*ONE.strafe;return rate}
  // v0.7.4 AIM stick: X = turn rate (deadzone, gentle-to-fast curve, x TURN SPEED), eased while an enemy is on the crosshair.
- // No pitch in this engine, so Y is ignored. Firing: auto-fire on target (⚙ AUTO-FIRE, on by default) + FIRE button any time.
+ // No pitch in this engine, so Y is ignored. Firing: auto-fire on target (⚙ AUTO-FIRE, on by default) + tap/hold the AIM stick centre.
  const AIM={dead:.08,rate:3.6};
  // v0.7.6 AIM stick = trigger too. TAP: down+up within 220ms and the thumb moved < 12% of the stick radius -> one shot (queued up
  // to 250ms if the gun is still cooling down, so fire rate is kept). HOLD: still (< 12%) for > 220ms -> keeps firing while held,
@@ -2042,16 +2041,21 @@ const TOUCH=(()=>{const lk=$('alock'),z=$('tzone'),joy=$('joy'),kn=$('knob'),ajo
   const steering=aid!==null||jid!==null||fid!==null;
   if(tg&&S.assist&&steering&&Math.abs(tg.da)>tg.rad*.2){const away=v=>Math.abs(v)>AA.override&&Math.sign(v)==-Math.sign(tg.da);
    if(!((aid!==null&&away(asx))||(jid!==null&&S.stick!='twin'&&away(sx0))))P.a+=tg.da*Math.min(1,dt*(Math.abs(tg.da)<tg.cone+tg.rad?AA.pull:AA.pullOut))}
-  autoOn=!!(S.auto&&shouldFire(tg,w));bF.classList.toggle('auto',autoOn&&!held);
+  autoOn=!!(S.auto&&shouldFire(tg,w));ajoy.classList.toggle('auto',autoOn&&aid===null);
   const now=performance.now();if(aid!==null&&!aDrag&&!aHold&&now-aT>TAP.hold)aHold=true;
   if(tapQ){if(now-tapQ>TAP.queue)tapQ=0;else if(P.cd<=0&&P.freedT<=0){tapQ=0;tapShots++;fire()}}
   ajoy.classList.toggle('firing',aid!==null&&aHold);touch.fire=held||autoOn||(aid!==null&&aHold);
   lk.className=tg&&(S.assist||S.auto)?(autoOn?'on fire':'on'):'';
   autoOpen(dt);
   const u=canUse();if(u!==useOn){useOn=u;bU.classList.toggle('show',u)}
-  if(wShown!==P.w){wShown=P.w;$('wpi').textContent=P.owned.indexOf(P.w)+1;$('wps').textContent=WEAPONS[P.w].n.split(' ').slice(-1)[0]}}
+  if(wShown!==P.w){wShown=P.w;$('wpi').textContent=P.owned.indexOf(P.w)+1;$('wps').textContent=WEAPONS[P.w].n.split(' ').slice(-1)[0];wIcon(P.w)}
+  const am=w.amm?String(P[w.amm]):'∞';if(am!==wAmmo){wAmmo=am;$('wpa').textContent=am}}
+ // v0.7.8 SWAP WEAPON button: current weapon's pickup sprite + ammo
+ let wAmmo=null;function wIcon(i){const T=SPR['w_'+WEAPONS[i].id],c=$('wpc');if(!T||!c)return;const t=mk(64,64),tg=t.getContext('2d'),d=tg.createImageData(64,64);d.data.set(new Uint8ClampedArray(T.buffer,T.byteOffset,64*64*4));tg.putImageData(d,0,0);
+  let x0=64,y0=64,x1=-1,y1=-1;for(let y=0;y<64;y++)for(let x=0;x<64;x++)if(T[y*64+x]){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+  const g=c.getContext('2d');g.imageSmoothingEnabled=false;g.clearRect(0,0,64,64);if(x1<0)return;const w=x1-x0+1,h=y1-y0+1,k=Math.min(60/w,60/h);g.drawImage(t,x0,y0,w,h,32-w*k/2,32-h*k/2,w*k,h*k)} // cropped to the sprite so it reads at 30px
  function buzz(ms){if(!isTouch||MUTE||!sets().haptic||!navigator.vibrate)return;const now=performance.now();if(now<buzzT)return;buzzT=now+(ms>20?120:70);try{navigator.vibrate(ms)}catch(e){}}
- function reset(){sx0=sy0=0;jid=lid=fid=wid=aid=null;aDrag=aHold=false;tapQ=0;asx=asy=0;held=false;touch.mx=touch.my=0;touch.fire=false;K.shift=0;bF.classList.remove('down','auto');lk.className='';lockE=null;push={c:-1,t:0,said:-1};wh.className='';wMode=0;idleJoy()}
+ function reset(){sx0=sy0=0;jid=lid=fid=wid=aid=null;aDrag=aHold=false;tapQ=0;asx=asy=0;held=false;touch.mx=touch.my=0;touch.fire=false;K.shift=0;lk.className='';lockE=null;push={c:-1,t:0,said:-1};wh.className='';wMode=0;idleJoy()}
  idleJoy();addEventListener('resize',idleJoy);
  return{tick,buzz,reset,canUse,target,ONE,AIM,TAP,get taps(){return taps},get tapShots(){return tapShots},get aimFiring(){return aid!==null&&aHold},get aimDrag(){return aDrag},AA,AO,wRange,get swaps(){return swaps},get push(){return push},get lock(){return lockE},get aim(){return{x:asx,y:asy,on:aid!==null}},home:()=>aimHome(),get stick(){return{x:sx0,y:sy0,on:jid!==null,mx:touch.mx,my:touch.my}},get auto(){return autoOn},get held(){return held}}})();
 // haptics: being hit, and a tiny tick when your shots land
@@ -2081,14 +2085,14 @@ function drawSettings(){const S=sets(),on=v=>v?'ON':'OFF',rows=[];
 // touch start: fullscreen + landscape lock (where the browser allows it), first-time controls tutorial, rotate hint in portrait
 let tutOn=false;
 {const _s=start;start=function(mode){if(isTouch&&sets().fs){try{const d=document.documentElement,rq=d.requestFullscreen||d.webkitRequestFullscreen;if(rq&&!document.fullscreenElement){const p=rq.call(d);p&&p.then&&p.then(()=>{try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{})}catch(e){}},()=>{})}}catch(e){}}
- _s(mode);TOUCH.reset();if(isTouch&&!load('skullz_tut5',0)){tutText();tutOn=true;state='tut';$('ttut').className='on'}rotHint()}}
+ _s(mode);TOUCH.reset();if(isTouch&&!load('skullz_tut6',0)){tutText();tutOn=true;state='tut';$('ttut').className='on'}rotHint()}}
 function tutText(){const one=sets().stick!='twin',q=s=>$('ttut').querySelector(s);if(!q('.tl'))return;
- q('.tl').innerHTML=one?'LEFT STICK<br>UP / DOWN = WALK<br>LEFT / RIGHT = TURN':'LEFT STICK<br>= MOVE';
- q('.tr').innerHTML='RIGHT STICK = AIM<br>TAP AIM STICK TO SHOOT<br>(HOLD = KEEP SHOOTING)<br><br>'+(sets().auto?'IT SHOOTS FOR YOU<br>(AIM NEAR AN ENEMY)':'AUTO-FIRE IS OFF (⚙)');
- q('.tf').innerHTML='WALK INTO DOORS<br>+ HOLLOW WALLS TO OPEN<br><br>(FIRE · USE · WEAPON<br>ARE OPTIONAL)';
+ q('.tl').innerHTML=one?'LEFT STICK = MOVE<br>UP / DOWN = WALK<br>LEFT / RIGHT = TURN':'LEFT STICK = MOVE';
+ q('.tr').innerHTML='RIGHT STICK = AIM —<br>TAP OR HOLD CENTER<br>TO FIRE<br>'+(sets().auto?'(AUTO-FIRES NEAR ENEMIES)':'(AUTO-FIRE IS OFF ⚙)');
+ q('.tf').innerHTML='SWAP WEAPON<br>BUTTON SWITCHES GUNS<br>(HOLD IT = WHEEL)<br><br>WALK INTO DOORS<br>TO OPEN';
  q('.tm').innerHTML='MAP · PAUSE ▲'}
-$('ttut').addEventListener('touchstart',e=>{e.preventDefault();if(!tutOn)return;tutOn=false;save('skullz_tut5',1);$('ttut').className='';state='play';TOUCH.reset()},{passive:false});
-$('ttut').addEventListener('click',()=>{if(!tutOn)return;tutOn=false;save('skullz_tut5',1);$('ttut').className='';state='play'});
+$('ttut').addEventListener('touchstart',e=>{e.preventDefault();if(!tutOn)return;tutOn=false;save('skullz_tut6',1);$('ttut').className='';state='play';TOUCH.reset()},{passive:false});
+$('ttut').addEventListener('click',()=>{if(!tutOn)return;tutOn=false;save('skullz_tut6',1);$('ttut').className='';state='play'});
 let rotDone=false;function rotHint(){const el=$('rot');const show=isTouch&&!rotDone&&(state=='play'||state=='tut')&&innerHeight>innerWidth;el.className=show?'on':'';if(show)setTimeout(()=>{el.className='';rotDone=true},5000)}
 $('rot').addEventListener('touchstart',e=>{e.preventDefault();rotDone=true;$('rot').className=''},{passive:false});
 // leaving the page/app mid-run on a phone pauses the game
