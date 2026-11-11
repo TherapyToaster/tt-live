@@ -1,0 +1,4 @@
+/* TT caution welcome v1: welcome line + signature in the scrolling bar */
+.sqs-announcement-bar-text-inner p{animation:ttcb-marquee 36s linear infinite,ttcb-flash 2.6s ease-in-out infinite}
+.sqs-announcement-bar-text-inner p strong{order:-1;position:relative;display:block;flex:none;white-space:nowrap;pointer-events:none;font-weight:700;font-size:clamp(20px,3.2vw,36px)!important;letter-spacing:.06em;text-transform:none;color:#FFD400!important;text-shadow:0 0 10px rgba(255,212,0,.7);padding-right:clamp(18px,2.4vw,36px)}
+/* /TT caution welcome v1 */
