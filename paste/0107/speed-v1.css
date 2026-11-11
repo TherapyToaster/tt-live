@@ -1,0 +1,3 @@
+/* TT caution speed v1: scrolling bar a touch faster */
+.sqs-announcement-bar-text-inner p{animation:ttcb-marquee 31s linear infinite,ttcb-flash 2.6s ease-in-out infinite}
+/* /TT caution speed v1 */
