@@ -1,0 +1,157 @@
+<!-- TT Toasted Art HOME TEASER v2 PRIME: "★ PRIME PIECE" hero + #ITIA tag + sepia section fill (all styles scoped to this
+     block / its section via :has(#tt-art); no Custom CSS, no Code Injection). Keeps wrapper id "tt-art" + the count text
+     pattern for the daily auto-update. The img src placeholder = Squarespace CDN URL of prime-1600.jpg. Links to /toasted-art. -->
+<style>
+section.page-section:has(#tt-art) .section-background,section.page-section:has(#tt-art) .section-border{background:
+ repeating-linear-gradient(0deg,rgba(0,0,0,.22) 0 1px,transparent 1px 3px),
+ radial-gradient(ellipse 60% 55% at 28% 42%,rgba(147,82,58,.5),transparent 70%),
+ radial-gradient(ellipse 50% 60% at 85% 70%,rgba(126,61,47,.45),transparent 70%),
+ linear-gradient(180deg,#412319 0%,#4e291d 45%,#2d1b17 100%)!important}
+section.page-section:has(#tt-art){border-top:2px solid #FFD400;box-shadow:inset 0 3px 0 rgba(0,229,255,.45),inset 0 5px 0 rgba(176,0,0,.55)}
+section.page-section:has(#tt-art)>.content-wrapper{padding-top:56px!important;padding-bottom:56px!important}
+#tt-art.ttt{--y:#FFD400;--g1:#f3d77c;--g2:#997954;--sep:#0f090a;width:100%;max-width:1200px;margin:0 auto;padding:26px 22px 26px;box-sizing:border-box;text-align:center;color:#eee2c8;
+ background:repeating-linear-gradient(0deg,rgba(255,255,255,.028) 0 1px,transparent 1px 3px),radial-gradient(ellipse at 18% 0%,rgba(255,212,0,.14),transparent 60%),rgba(15,9,10,.74);
+ border:1px solid rgba(255,212,0,.45);border-radius:16px;box-shadow:-2px 0 0 rgba(0,229,255,.35),2px 0 0 rgba(176,0,0,.45),0 18px 50px rgba(0,0,0,.45)}
+#tt-art.ttt *{box-sizing:border-box}
+#tt-art .ttp{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:34px;align-items:center;margin:0 0 26px;text-align:left}
+#tt-art .ttp-fig{position:relative;display:block;margin:0;padding:12px;border-radius:6px;text-decoration:none!important;
+ background:linear-gradient(135deg,var(--g1),var(--g2) 22%,#e8c45a 45%,#6b4a1f 62%,var(--g1) 80%,var(--g2));
+ box-shadow:-4px 0 0 rgba(0,229,255,.55),4px 0 0 rgba(176,0,0,.7),0 0 0 1px #3a2412,0 20px 44px rgba(0,0,0,.6);transition:box-shadow .3s,transform .3s}
+#tt-art .ttp-fig::before{content:"";position:absolute;inset:5px;border:1px solid rgba(60,36,14,.65);border-radius:3px;pointer-events:none}
+#tt-art .ttp-img{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:cover;border:2px solid #2d1b17;background:#2d1b17}
+#tt-art .ttp-badge{position:absolute;top:-14px;left:22px;z-index:2;padding:6px 14px;border-radius:4px;background:var(--y);color:#0f090a;font-weight:900;font-size:13px;letter-spacing:.14em;
+ box-shadow:-2px 0 0 rgba(0,229,255,.85),2px 0 0 rgba(176,0,0,.9),0 4px 12px rgba(0,0,0,.5)}
+#tt-art .ttp-fig:hover,#tt-art .ttp-fig:focus-visible{outline:none;transform:translateY(-3px);box-shadow:-6px 0 0 rgba(0,229,255,.7),6px 0 0 rgba(176,0,0,.85),0 0 0 2px var(--y),0 26px 54px rgba(0,0,0,.65)}
+#tt-art .ttp-k{margin:0 0 6px;font-size:12px;font-weight:800;letter-spacing:.3em;color:var(--g1);opacity:.9}
+#tt-art .ttt-h{margin:0 0 14px;font-family:inherit;font-weight:900;font-size:clamp(30px,4.6vw,54px);line-height:1;letter-spacing:.04em;color:var(--y);text-shadow:-2px 0 rgba(0,229,255,.8),2px 0 rgba(176,0,0,.85)}
+#tt-art .ttp-tag{display:inline-flex;align-items:center;gap:12px;margin:0 0 16px;padding:8px 16px 8px 12px;border:2px solid var(--y);border-radius:8px;background:rgba(0,0,0,.45);text-decoration:none!important;
+ box-shadow:-3px 0 0 rgba(0,229,255,.6),3px 0 0 rgba(176,0,0,.75)}
+#tt-art .ttp-tag b{font-size:clamp(28px,3.4vw,40px);font-weight:900;line-height:1;letter-spacing:.03em;color:var(--y);text-shadow:-2px 0 rgba(0,229,255,.75),2px 0 rgba(176,0,0,.85)}
+#tt-art .ttp-tag span{display:block;font-size:12px;font-weight:800;letter-spacing:.22em;line-height:1.35;text-transform:uppercase;color:#f1e6cc}
+#tt-art .ttp-d{margin:0 0 14px;font-size:15px;line-height:1.55;color:#e6d9bd}
+#tt-art .ttt-s{margin:0 0 18px;font-size:14px;opacity:.85}
+#tt-art .ttt-row{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin:0 0 22px}
+#tt-art .ttt-th{display:block;border:2px solid rgba(208,195,126,.6);border-radius:10px;overflow:hidden;background:#0f090a;transition:transform .18s,border-color .18s,box-shadow .18s}
+#tt-art .ttt-th img{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:cover;transition:filter .18s}
+#tt-art .ttt-th:hover,#tt-art .ttt-th:focus-visible{transform:translateY(-2px);border-color:var(--y);box-shadow:-3px 0 0 rgba(0,229,255,.7),3px 0 0 rgba(176,0,0,.8);outline:none}
+#tt-art .ttt-th:hover img,#tt-art .ttt-th:focus-visible img{filter:drop-shadow(-3px 0 rgba(0,229,255,.75)) drop-shadow(3px 0 rgba(176,0,0,.85)) saturate(1.25)}
+#tt-art .ttt-btn{display:inline-block;padding:14px 30px;border:2px solid var(--y);border-radius:999px;background:var(--y);color:#0f090a!important;text-decoration:none!important;font-weight:900;font-size:18px;box-shadow:-3px 0 0 rgba(0,229,255,.7),3px 0 0 rgba(176,0,0,.8);transition:background .15s,color .15s}
+#tt-art .ttt-btn:hover,#tt-art .ttt-btn:focus-visible{background:#0f090a;color:var(--y)!important;outline:none}
+@keyframes ttpGlow{0%,100%{box-shadow:-2px 0 0 rgba(0,229,255,.85),2px 0 0 rgba(176,0,0,.9),0 4px 12px rgba(0,0,0,.5)}50%{box-shadow:-2px 0 0 rgba(0,229,255,.85),2px 0 0 rgba(176,0,0,.9),0 0 22px rgba(255,212,0,.75)}}
+@keyframes ttpScan{from{background-position:0 0}to{background-position:0 120px}}
+#tt-art .ttp-badge{animation:ttpGlow 6s ease-in-out infinite}
+#tt-art .ttp-fig::after{content:"";position:absolute;inset:12px;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.14) 0 1px,transparent 1px 4px);mix-blend-mode:multiply;animation:ttpScan 14s linear infinite}
+@media (prefers-reduced-motion:reduce){#tt-art .ttp-badge,#tt-art .ttp-fig::after{animation:none}#tt-art .ttp-fig,#tt-art .ttt-th{transition:none}#tt-art .ttp-fig:hover,#tt-art .ttp-fig:focus-visible{transform:none}}
+@media (max-width:860px){#tt-art .ttp{grid-template-columns:minmax(0,1fr);gap:26px;text-align:center}#tt-art .ttp-fig{max-width:560px;width:100%;margin:0 auto}}
+@media (max-width:600px){section.page-section:has(#tt-art)>.content-wrapper{padding-top:36px!important;padding-bottom:36px!important}
+ #tt-art.ttt{padding:24px 12px 18px}#tt-art .ttp-fig{padding:8px}#tt-art .ttp-fig::after{inset:8px}#tt-art .ttp-badge{font-size:12px;left:14px;padding:5px 11px}
+ #tt-art .ttp-d{font-size:14px}#tt-art .ttt-row{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}#tt-art .ttt-btn{font-size:16px;padding:12px 20px}}
+</style>
+<div id="tt-art" class="ttt">
+<div class="ttp">
+<a class="ttp-fig" href="/toasted-art" aria-label="Prime piece: Mr. Toasty toasted art. Enter the Toasted Art gallery"><span class="ttp-badge">★ PRIME PIECE</span><img class="ttp-img" src="https://www.therapytoaster.com/s/prime-1600.jpg" alt="Mr. Toasty in a gold frame over a sepia glitched photo with red and cyan glitch lines, SYS_ERR text and gold drips" width="1600" height="1600" loading="lazy" decoding="async"></a>
+<div class="ttp-txt">
+<p class="ttp-k">MR. TOASTY // TOASTED ART</p>
+<h2 class="ttt-h">PRIME PIECE</h2>
+<a class="ttp-tag" href="/toasted-art" aria-label="#ITIA: I Think It's Art"><b>#ITIA</b><span>I Think<br>It's Art</span></a>
+<p class="ttp-d">Mr. Toasty, framed in gold and dripping over a corrupted sepia memory. SYS_ERR included.</p>
+<p class="ttt-s">281 toasted pieces by Mr. Toasty</p>
+</div>
+</div>
+<div class="ttt-row">
+<a class="ttt-th" href="/toasted-art"><img src="https://images.squarespace-cdn.com/content/v1/6a9884b7f61a583fee1371eb/e7f69e01-74ae-4b19-b3cc-b73d42661ec0/01_HUynLO3XkAADU_O.jpg?format=300w" alt="Good Evening xTwitter" width="1536" height="2048" loading="lazy" decoding="async"></a>
+<a class="ttt-th" href="/toasted-art"><img src="https://images.squarespace-cdn.com/content/v1/6a9884b7f61a583fee1371eb/d99adc66-532a-4e94-9056-95107fd265a2/02_HUu8ZnlWcAAMwKv.jpg?format=300w" alt="Game Night (MP5 Enjoyers)" width="1536" height="2048" loading="lazy" decoding="async"></a>
+<a class="ttt-th" href="/toasted-art"><img src="https://images.squarespace-cdn.com/content/v1/6a9884b7f61a583fee1371eb/6f6e6b57-82ae-456c-881b-2608b09c18b6/03_HUuze2CWoAAGlx4.jpg?format=300w" alt="Circa 2009: Pre-Deployment" width="1008" height="1065" loading="lazy" decoding="async"></a>
+<a class="ttt-th" href="/toasted-art"><img src="https://images.squarespace-cdn.com/content/v1/6a9884b7f61a583fee1371eb/49a9a64d-43d3-471c-bedf-b8eb1bbd785b/04_HUuWGx2XMAA68zt.jpg?format=300w" alt="I Learn the Hard Way" width="896" height="1195" loading="lazy" decoding="async"></a>
+<a class="ttt-th" href="/toasted-art"><img src="https://images.squarespace-cdn.com/content/v1/6a9884b7f61a583fee1371eb/c5de0b69-b548-4016-a25e-9b7742ea5705/05_HUt8Jf6XAAAbwfZ.jpg?format=300w" alt="Goodnight Twitter" width="896" height="1195" loading="lazy" decoding="async"></a>
+<a class="ttt-th" href="/toasted-art"><img src="https://images.squarespace-cdn.com/content/v1/6a9884b7f61a583fee1371eb/cd3b6475-19c2-405d-b608-ef242190b058/06_HUsr6EnWwAATl3h.jpg?format=300w" alt="Golden Glitch Flag (Vertical)" width="572" height="1024" loading="lazy" decoding="async"></a>
+</div>
+<a class="ttt-btn" href="/toasted-art">Enter the Toasted Art gallery →</a>
+</div>
+<!-- TT TOASTER RADIO MINI PLAYER v1 (HOME only; appended to the Glitch Art teaser block, generated by music-page/build.py).
+     position:fixed bottom-left, moved to <body> on load so no block wrapper/transform can affect it. Keeps clear of the
+     bottom-right #ttcl Chipotle widget (lifts above it if they would overlap). No autoplay; plays public Suno mp4 audio. -->
+<style>
+#ttmp{--y:#FFD400;--c:#00e5ff;--r:#ff3030;position:fixed;left:16px;bottom:16px;z-index:9989;width:300px;max-width:calc(100vw - 24px);margin:0;font-family:inherit;color:#dee3de;text-align:left;line-height:1.25;transition:bottom .25s ease}
+#ttmp *{box-sizing:border-box}
+#ttmp .mp-card{position:relative;display:grid;grid-template-columns:48px minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:9px 9px 12px;background:rgba(5,7,13,.95);border:2px solid var(--y);border-radius:14px;box-shadow:-3px 0 0 rgba(0,229,255,.7),3px 0 0 rgba(176,0,0,.8),0 8px 26px rgba(0,0,0,.5);overflow:hidden}
+#ttmp .mp-card::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0 1px,transparent 1px 3px)}
+#ttmp .mp-th{display:block;width:48px;height:48px;border-radius:8px;object-fit:cover;border:1px solid rgba(255,212,0,.55);background:#111}
+#ttmp .mp-tx{min-width:0}
+#ttmp .mp-k{display:block;margin:0 0 1px;font-size:10px;font-weight:800;letter-spacing:.14em;color:var(--c)}
+#ttmp .mp-t{display:block;font-size:14px;font-weight:800;color:var(--y);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:-1px 0 rgba(0,229,255,.6),1px 0 rgba(176,0,0,.7)}
+#ttmp .mp-l{display:inline-block;margin-top:2px;font-size:12px;font-weight:700;color:#dee3de!important;text-decoration:none!important;opacity:.85}
+#ttmp .mp-l:hover,#ttmp .mp-l:focus-visible{color:var(--y)!important;opacity:1}
+#ttmp .mp-pp{display:grid;place-items:center;width:42px;height:42px;margin:0;padding:0;border:2px solid var(--y);border-radius:50%;background:var(--y);color:#05070d!important;cursor:pointer;text-decoration:none!important;box-shadow:-2px 0 0 var(--c),2px 0 0 var(--r);transition:background .15s,color .15s}
+#ttmp .mp-pp:hover,#ttmp .mp-pp:focus-visible{background:#000;color:var(--y)!important;outline:none}
+#ttmp .mp-pp svg{width:18px;height:18px;fill:currentColor}
+#ttmp .i-pa,#ttmp.on .i-pl{display:none}
+#ttmp.on .i-pa{display:block}
+#ttmp .mp-sl{display:none;font-size:16px;font-weight:900}
+#ttmp.err .mp-play{display:none}
+#ttmp.err .mp-sl{display:grid}
+#ttmp .mp-x{align-self:start;width:24px;height:24px;margin:0;padding:0;border:1px solid rgba(255,212,0,.45);border-radius:6px;background:transparent;color:var(--y);font:700 16px/1 inherit;cursor:pointer}
+#ttmp .mp-x:hover,#ttmp .mp-x:focus-visible{background:var(--y);color:#05070d;outline:none}
+#ttmp .mp-bar{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.12)}
+#ttmp .mp-bar i{display:block;width:0;height:100%;background:var(--y);box-shadow:0 0 6px rgba(255,212,0,.6)}
+#ttmp .mp-mini{display:none;position:relative;width:52px;height:52px;margin:0;padding:0;border:2px solid var(--y);border-radius:50%;background:#000;cursor:pointer;box-shadow:-3px 0 0 rgba(0,229,255,.7),3px 0 0 rgba(176,0,0,.8),0 6px 18px rgba(0,0,0,.5)}
+#ttmp .mp-mini img{display:block;width:100%;height:100%;border-radius:50%;object-fit:cover}
+#ttmp .mp-mini b{position:absolute;right:-4px;bottom:-4px;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--y);color:#05070d;font-size:12px;line-height:1;border:2px solid #000}
+#ttmp.min{width:auto}
+#ttmp.min .mp-card{display:none}
+#ttmp.min .mp-mini{display:block}
+@media (max-width:600px){#ttmp{left:12px;bottom:12px;width:250px}
+ #ttmp .mp-card{grid-template-columns:40px minmax(0,1fr) auto auto;gap:8px;padding:6px 6px 9px;border-radius:12px}
+ #ttmp .mp-th{width:40px;height:40px}#ttmp .mp-pp{width:36px;height:36px}#ttmp .mp-pp svg{width:16px;height:16px}
+ #ttmp .mp-k{display:none}#ttmp .mp-t{font-size:13px}#ttmp .mp-l{font-size:11px;margin-top:1px}#ttmp .mp-x{width:22px;height:22px;font-size:14px}
+ #ttmp .mp-mini{width:46px;height:46px}}
+@media (prefers-reduced-motion:reduce){#ttmp,#ttmp *{transition:none!important}}
+</style>
+<div id="ttmp" data-nosnippet>
+<div class="mp-card" role="region" aria-label="Toaster Radio mini player">
+<img class="mp-th" src="https://cdn2.suno.ai/4e7f4242-6e8c-4733-b034-33017205d356.jpeg" alt="" width="48" height="48" loading="lazy" decoding="async">
+<div class="mp-tx"><span class="mp-k">★ MAIN TRACK</span><span class="mp-t" title="Four Handles, One Toaster">Four Handles, One Toaster</span><a class="mp-l" href="/music">Toaster Radio →</a></div>
+<button type="button" class="mp-pp mp-play" aria-label="Play Four Handles, One Toaster"><svg class="i-pl" viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></svg><svg class="i-pa" viewBox="0 0 24 24"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg></button>
+<a class="mp-pp mp-sl" href="https://suno.com/song/9ce7aece-669c-4791-bdd2-ff7ccf2d44a3" target="_blank" rel="noopener" aria-label="Listen on Suno (opens new tab)" title="Listen on Suno">↗</a>
+<button type="button" class="mp-x" aria-label="Minimize player" title="Minimize">–</button>
+<div class="mp-bar" aria-hidden="true"><i></i></div>
+</div>
+<button type="button" class="mp-mini" aria-label="Show Toaster Radio player"><img src="https://cdn2.suno.ai/4e7f4242-6e8c-4733-b034-33017205d356.jpeg" alt="" width="52" height="52" loading="lazy" decoding="async"><b aria-hidden="true">♪</b></button>
+<audio class="mp-au" preload="none" src="https://cdn1.suno.ai/9ce7aece-669c-4791-bdd2-ff7ccf2d44a3.mp4"></audio>
+</div>
+<script>
+(function(){
+var P=document.getElementById('ttmp');if(!P||P.dataset.ok)return;P.dataset.ok='1';
+var old=document.querySelectorAll('body > #ttmp');for(var k=0;k<old.length;k++)if(old[k]!==P)old[k].remove();
+if(P.parentNode!==document.body)document.body.appendChild(P);
+var A=P.querySelector('.mp-au'),pp=P.querySelector('.mp-play'),bar=P.querySelector('.mp-bar i'),KEY='ttmp-min',BASE=window.innerWidth<=600?12:16;
+function ls(v){try{if(v===undefined)return localStorage.getItem(KEY);v?localStorage.setItem(KEY,'1'):localStorage.removeItem(KEY)}catch(e){}}
+function setMin(m){P.classList.toggle('min',m);ls(m?1:0);place();(m?P.querySelector('.mp-mini'):P.querySelector('.mp-x')).focus({preventScroll:true})}
+if(ls()==='1')P.classList.add('min');
+P.querySelector('.mp-x').addEventListener('click',function(){setMin(true)});
+P.querySelector('.mp-mini').addEventListener('click',function(){setMin(false)});
+pp.addEventListener('click',function(){if(A.paused){var p=A.play();if(p&&p.catch)p.catch(function(e){if(e&&e.name==='NotSupportedError')fail()})}else A.pause()});
+A.addEventListener('play',function(){P.classList.add('on');pp.setAttribute('aria-label','Pause')});
+A.addEventListener('pause',function(){P.classList.remove('on');pp.setAttribute('aria-label','Play')});
+A.addEventListener('ended',function(){bar.style.width='0'});
+A.addEventListener('timeupdate',function(){if(A.duration)bar.style.width=(A.currentTime/A.duration*100).toFixed(2)+'%'});
+function fail(){P.classList.add('err');P.classList.remove('on')}
+A.addEventListener('error',fail);
+if('mediaSession' in navigator&&window.MediaMetadata){A.addEventListener('play',function(){try{navigator.mediaSession.metadata=new MediaMetadata({title:P.querySelector('.mp-t').textContent,artist:'TherapyToaster',album:'Toaster Radio',artwork:[{src:P.querySelector('.mp-th').src,type:'image/jpeg'}]})}catch(e){}},{once:true})}
+/* stay clear of the bottom-right Chipotle widget (#ttcl): lift above it if the two would overlap */
+function place(){
+ BASE=window.innerWidth<=600?12:16;var c=document.getElementById('ttcl'),b=BASE;
+ if(c){var w=c.querySelector(':scope > .ttcl-wrap')||c,r=w.getBoundingClientRect();
+  if(r.width>0&&r.height>0&&getComputedStyle(c).display!=='none'){
+   var me=P.getBoundingClientRect(),L=BASE,R=L+me.width,H=me.height,ih=window.innerHeight;
+   if(r.left<R+6&&r.right>L-6&&r.bottom>ih-BASE-H-6)b=Math.max(BASE,Math.round(ih-r.top+10));
+  }}
+ P.style.bottom=b+'px';
+}
+place();window.addEventListener('resize',place);
+var c0=null;function watch(){var c=document.getElementById('ttcl');if(c&&c!==c0){c0=c;
+ try{new MutationObserver(place).observe(c,{attributes:true,subtree:true,childList:true})}catch(e){}
+ try{new ResizeObserver(place).observe(c.querySelector(':scope > .ttcl-wrap')||c)}catch(e){}}place()}
+watch();setTimeout(watch,1500);setTimeout(watch,4000);setInterval(place,2000);
+})();
+</script>
