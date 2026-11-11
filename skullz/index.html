@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.12.0"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.13.0"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <link rel="icon" href="data:,"><title>MR. TOASTY'S NO SIGNAL SKULLZ — Therapy Toaster</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Anton&family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
@@ -157,7 +157,7 @@ body.lefty #bParry{right:auto;left:calc(var(--sl) + 14px)}
 <div class="ov" id="title" style="display:flex">
 <h1 class="tth"><canvas id="tlogo" width="240" height="160" role="img" aria-label="Mr. Toasty's No Signal Skullz"></canvas><span class="sr">MR. TOASTY'S NO SIGNAL SKULLZ</span><small>A 404 DUNGEON CRAWLER · STARRING MR. TOASTY</small></h1>
 <p id="greet"></p><div id="tcap" aria-live="off"></div><canvas id="tsil" width="160" height="34" aria-hidden="true"></canvas><div class="drip"></div><p id="quip"></p>
-<div class="modes"><button class="btn" data-start="standard">START RUN<small>15 FLOORS · BEAT THE GLITCH</small></button><button class="btn" id="bdaily" data-start="daily">DAILY</button><button class="btn" id="bendless" data-start="endless">ENDLESS</button><button class="btn" id="berrands" data-start="errands">MONDAY ERRANDS<small>SUBURB · 4 SILLY STOPS</small></button><button class="btn" id="bsalvage" data-start="salvage">SALVAGE SHIFT<small>DEPOT · MEET QUOTA</small></button></div>
+<div class="modes"><button class="btn" data-start="standard">START RUN<small>15 FLOORS · BEAT THE GLITCH</small></button><button class="btn" id="bdaily" data-start="daily">DAILY</button><button class="btn" id="bendless" data-start="endless">ENDLESS</button><button class="btn" id="berrands" data-start="errands">MONDAY ERRANDS<small>SUBURB · 4 SILLY STOPS</small></button><button class="btn" id="bsalvage" data-start="salvage">SALVAGE SHIFT<small>DEPOT · MEET QUOTA</small></button><button class="btn" id="btoaster" data-start="toaster">CYBERTOASTER<small>SUBURB · SHORT COMMUTE</small></button></div>
 <p id="load">LOADING SIGNAL…</p>
 <div class="lo"><button id="lset">⚙ SETTINGS</button><button id="lgal">🖼 GALLERY</button><button id="lsnd">🔊 SOUND: ON</button><button id="lw"></button><button id="lp"></button><button id="lsh"></button><button id="lsg"></button></div>
 <p id="tcrew"></p><p id="tstats"></p>
@@ -6285,6 +6285,507 @@ if(typeof TT==='object'){
   TT.gunVer=GUN_VER;TT.GUN=GUN3;TT.wepSmall=wepSmall;TT.wepMul=wepMul;TT.wepClose=1.15;
   TT.bakeGunView=bakeGunView;TT.installViewmodels=installViewmodels;
 }
+})();
+
+// v0.13.0 — CYBERTOASTER: parody toast-wedge truck (original art, not a
+// real brand). Short driveable ram section on the Monday Errands suburb
+// streets, a self-driving boss that charges like Fat Coty's wheelchair,
+// drop-off at start and pickup at the exit as cutscenes, and a
+// cosmetic-only holder paint behind a simple placeholder flag (no wallet).
+(function(){
+const VER='0.13.0';
+const MAP=[
+"############################",
+"#@.........................#",
+"#.....##.....##............#",
+"#..........................#",
+"#..........................#",
+"#.....##.....##............#",
+"#..........................#",
+"#.........................X#",
+"#..........................#",
+"#............##########....#",
+"#............#        #....#",
+"#............#        #....#",
+"#............#        #....#",
+"#............##########....#",
+"#..........................#",
+"#.....##.....##............#",
+"#..........................#",
+"############################"
+];
+const BARKS=['TOAST IS READY','SELF-DRIVING? SELF-BROILING','SLOT 3 IS JAMMED','BUTTER THE WHEELS','NO SIGNAL, STILL ROLLING','850 DEGREES OF COMMUTE'];
+
+let driving=false, truckHits=0, ramCount=0, bossDown=false, exitOpen=false, exitAt=-1;
+let cut=null, rogue=null, parked=null, skin=0;
+
+function isToaster(){return !!(run&&(run.mode==='toaster'||run.special==='toaster'))}
+function holderUnlocked(){
+  try{if(localStorage.getItem('skullz_holder')==='1')return true}catch(e){}
+  try{const m=typeof meta==='function'?meta():null;if(m&&m.holderFlag)return true}catch(e){}
+  return false;
+}
+function holderOn(){return holderUnlocked()&&!!(typeof sets==='function'&&sets().holderPaint)}
+function setHolderFlag(on){
+  try{localStorage.setItem('skullz_holder',on?'1':'0')}catch(e){}
+  try{const m=meta();m.holderFlag=on?1:0;saveMeta(m)}catch(e){}
+  skin=holderOn()?1:0;bakeAll();
+  return holderUnlocked();
+}
+
+// ----- original CyberToaster art: stainless wedge, toast slots in the bed,
+// glitch windshield that cracks. Not a copy of any real truck. -----
+function paintBody(g,holder){
+  const body=holder?'#e3b303':'#9aa3a8', lite=holder?'#ffe27a':'#c8d0d4', dark=holder?'#8a6a18':'#5c6468', trim=holder?'#00f0ff':'#ecfdff';
+  // wedge cabin + bed (angular, but a toaster first)
+  g.fillStyle=dark;g.beginPath();g.moveTo(4,46);g.lineTo(26,18);g.lineTo(62,28);g.lineTo(62,50);g.lineTo(4,50);g.closePath();g.fill();
+  g.fillStyle=body;g.beginPath();g.moveTo(6,46);g.lineTo(26,20);g.lineTo(60,29);g.lineTo(60,48);g.lineTo(6,48);g.closePath();g.fill();
+  g.fillStyle=lite;g.beginPath();g.moveTo(6,46);g.lineTo(26,20);g.lineTo(30,22);g.lineTo(10,46);g.closePath();g.fill();
+  // toast slots in the bed
+  for(let i=0;i<4;i++){
+    const x=34+i*6;
+    g.fillStyle='#1a1814';g.fillRect(x,24,4,14);
+    g.fillStyle='#5a3820';g.fillRect(x+1,25,2,4);
+    g.fillStyle='#e8c040';g.fillRect(x+1,26,2,2); // bread peeking
+  }
+  // windshield
+  g.fillStyle='#7ec8ff';g.globalAlpha=.85;g.beginPath();g.moveTo(16,28);g.lineTo(28,20);g.lineTo(38,22);g.lineTo(28,32);g.closePath();g.fill();g.globalAlpha=1;
+  g.fillStyle=trim;g.globalAlpha=.35;g.fillRect(18,24,8,3);g.globalAlpha=1;
+  // toaster-slot grille on the nose
+  g.fillStyle=dark;g.fillRect(6,36,10,8);
+  for(let i=0;i<3;i++){g.fillStyle='#1a1814';g.fillRect(7,37+i*2,8,1)}
+  // wheels
+  g.fillStyle='#111';g.beginPath();g.arc(16,50,7,0,7);g.arc(50,50,7,0,7);g.fill();
+  g.fillStyle=trim;g.beginPath();g.arc(16,50,3,0,7);g.arc(50,50,3,0,7);g.fill();
+  // badge
+  g.fillStyle=holder?'#0a1430':'#0a1430';g.fillRect(40,40,18,7);
+  g.fillStyle=holder?'#00f0ff':'#FFD400';g.font='bold 5px monospace';g.fillText('TOAST',42,46);
+  return {body,lite,dark,trim};
+}
+function crackGlass(g,n){
+  g.strokeStyle='#ecfdff';g.globalAlpha=.9;g.lineWidth=1;
+  const segs=[[20,24,30,30],[22,26,18,32],[26,22,34,28],[24,28,28,34],[19,27,27,22]];
+  for(let i=0;i<Math.min(n,segs.length);i++){const s=segs[i];g.beginPath();g.moveTo(s[0],s[1]);g.lineTo(s[2],s[3]);g.stroke()}
+  g.globalAlpha=1;
+  if(n>=3){g.fillStyle='#00f0ff';g.globalAlpha=.35;g.fillRect(20,24,10,6);g.globalAlpha=1}
+}
+function bakeWorld(crack,holder){
+  return toTex(draw(g=>{
+    paintBody(g,holder);
+    if(crack)crackGlass(g,crack);
+    // toast popping if holder
+    if(holder){g.fillStyle='#e8c040';g.fillRect(35,18,3,6);g.fillRect(47,16,3,8)}
+  }));
+}
+function bakeAll(){
+  SPR.cybertoaster=bakeWorld(0,false);
+  SPR.cybertoasterH=bakeWorld(0,true);
+  SPR.cybertoasterC=bakeWorld(3,false);
+  SPR.cybertoasterHC=bakeWorld(3,true);
+  SPR.cone=toTex(draw(g=>{
+    g.fillStyle='#ff6a00';g.beginPath();g.moveTo(32,8);g.lineTo(52,54);g.lineTo(12,54);g.closePath();g.fill();
+    g.fillStyle='#fff';g.fillRect(18,30,28,6);g.fillStyle='#111';g.fillRect(24,52,16,6);
+  }));
+}
+bakeAll();
+function truckSpr(cracked){
+  const h=holderOn();
+  if(cracked)return h?SPR.cybertoasterHC:SPR.cybertoasterC;
+  return h?SPR.cybertoasterH:SPR.cybertoaster;
+}
+
+// first-person hood / cracked windshield (driving only)
+function drawHood(){
+  const h=holderOn(), body=h?'#e3b303':'#9aa3a8', lite=h?'#ffe27a':'#d8dee0', dark=h?'#8a6a18':'#5c6468', trim=h?'#00f0ff':'#00f0ff';
+  const cracks=Math.min(5,truckHits);
+  ctx.save();
+  // windshield band
+  const wy=H*.22, wh=H*.36;
+  const grd=ctx.createLinearGradient(0,wy,0,wy+wh);
+  grd.addColorStop(0,'rgba(80,180,220,.22)');grd.addColorStop(1,'rgba(10,16,24,.08)');
+  ctx.fillStyle=grd;ctx.fillRect(W*.16,wy,W*.68,wh);
+  ctx.strokeStyle=trim;ctx.globalAlpha=.45;ctx.strokeRect(W*.16,wy,W*.68,wh);ctx.globalAlpha=1;
+  // cracks
+  ctx.strokeStyle='#ecfdff';ctx.lineWidth=1;
+  const cx=W/2,cy=wy+wh*.45;
+  for(let i=0;i<cracks;i++){
+    const a=-1.1+i*.55,l=wh*(.25+i*.08);
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(a)*l,cy+Math.sin(a)*l);ctx.stroke();
+  }
+  if(cracks>=3){ctx.fillStyle='#00f0ff';ctx.globalAlpha=.2;ctx.fillRect(cx-18,cy-8,36,16);ctx.globalAlpha=1}
+  // hood wedge
+  ctx.fillStyle=dark;ctx.beginPath();ctx.moveTo(0,H);ctx.lineTo(W*.22,H*.62);ctx.lineTo(W*.78,H*.62);ctx.lineTo(W,H);ctx.closePath();ctx.fill();
+  ctx.fillStyle=body;ctx.beginPath();ctx.moveTo(4,H);ctx.lineTo(W*.24,H*.64);ctx.lineTo(W*.76,H*.64);ctx.lineTo(W-4,H);ctx.closePath();ctx.fill();
+  ctx.fillStyle=lite;ctx.globalAlpha=.35;ctx.beginPath();ctx.moveTo(W*.3,H*.66);ctx.lineTo(W*.5,H*.64);ctx.lineTo(W*.7,H*.66);ctx.lineTo(W*.5,H*.86);ctx.closePath();ctx.fill();ctx.globalAlpha=1;
+  // toast slots on the hood/cowl (toaster identity)
+  for(let i=0;i<3;i++){
+    const x=W*.42+i*(W*.06), y=H*.70, tw=W*.04, th=H*.08;
+    ctx.fillStyle='#1a1814';ctx.fillRect(x,y,tw,th);
+    ctx.fillStyle='#e8c040';ctx.fillRect(x+1,y+1,tw-2,3);
+  }
+  // wheel + Toasty gloves
+  const wx=W*.5, wy2=H*.90;
+  ctx.fillStyle=dark;ctx.beginPath();ctx.arc(wx,wy2,H*.12,0,7);ctx.fill();
+  ctx.strokeStyle=trim;ctx.lineWidth=2;ctx.beginPath();ctx.arc(wx,wy2,H*.08,0,7);ctx.stroke();
+  ctx.fillStyle='#e8dcc8';ctx.fillRect(wx-H*.10,wy2-4,8,10);ctx.fillRect(wx+H*.06,wy2-4,8,10);
+  ctx.fillStyle='#0a1430';ctx.fillRect(wx-H*.10,wy2+6,8,4);ctx.fillRect(wx+H*.06,wy2+6,8,4);
+  ctx.fillStyle='#e3b303';ctx.fillRect(wx-H*.10+1,wy2-2,6,2);ctx.fillRect(wx+H*.06+1,wy2-2,6,2);
+  ctx.fillStyle='#FFD400';ctx.font=Math.max(6,Math.round(6*H/200))+'px monospace';ctx.textAlign='center';
+  ctx.fillText(h?'HOLDER PAINT':'CYBERTOASTER',W/2,H*.60);
+  ctx.textAlign='left';
+  ctx.restore();
+}
+
+function resetWorld(){
+  ents=[];pickups=[];projs=[];parts=[];pops=[];fx=[];hazards=[];props=[];pprojs=[];lights=[];
+  secretSet=new Set();hintSaid=new Set();boss=null;secretAt=-1;cursedAt=-1;insiderAt=-1;
+}
+
+function buildToasterFloor(){
+  bakeAll();
+  resetWorld();
+  driving=false;truckHits=0;ramCount=0;bossDown=false;exitOpen=false;cut=null;rogue=null;parked=null;skin=holderOn()?1:0;
+  theme={id:'office',n:'GLITCHED SUBURB',sky:[18,10,28],gnd:[24,32,10],line:[219,170,35],walls:['of_brick','th_wood','of_panel','caution','fa_brick'],weights:{skull:2,toaster:1},props:{crt:1},flick:0,amb:'hum',motes:'#FFD400'};
+  const h=MAP.length,w=MAP[0].length,g=new Uint8Array(w*h);
+  let start=0,ex=-1;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+    const c=MAP[y][x],i=y*w+x;
+    if(c==='#')g[i]=1;
+    else{g[i]=0;if(c==='@')start=i;else if(c==='X')ex=i}
+  }
+  MW=w;MH=h;MHP=h;map=new Int8Array(w*h);seen=new Uint8Array(w*h);
+  buildBg(theme);
+  try{
+    setupLook(run.floor||1,null,null,w);
+    CUR.L={sub:'STAINLESS COMMUTE',floor:'asphalt',ceil:null,mode:2,sky:'sunset',tint:[1.08,.98,.9]};
+    CUR.mode=2;CUR.floor=lutFor('f','asphalt');CUR.ceil=null;CUR.sky=buildSky('sunset');CUR.stats={};
+    applyTint(CUR.L.tint);
+  }catch(err){}
+  const house=TILE.of_brick||TILE.th_wood||1, hedge=TILE.th_wood||house;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+    const i=y*w+x;if(!g[i]){map[i]=0;continue}
+    if(x>=13&&x<=23&&y>=9&&y<=13)map[i]=TILE.of_panel||house;
+    else map[i]=mixWall(x,y)||hedge;
+  }
+  exitAt=ex;map[ex]=8;exitOpen=false;
+  P.x=start%w+.5;P.y=((start/w)|0)+.5;P.a=0;P.cd=0;P.flash=0;P.freedT=0;P.hurtT=0;P.calm=0;
+  P._walkSpd=P.spd||1;
+  // ram-able cones along the main streets
+  const cones=[[6.5,4.5],[11.5,4.5],[16.5,3.5],[20.5,4.5],[8.5,7.5],[14.5,7.5],[19.5,8.5],[7.5,14.5],[15.5,15.5],[21.5,14.5]];
+  for(const[x,y] of cones){if(!solid(x,y))addProp('crate',x,y,{r:.28,spr:'cone',s:.42,hp:8,ram:1,D:{spr:'cone',s:.42,hp:8}})}
+  // a couple street roamers (no civilians)
+  for(const[x,y,t] of [[10.5,6.5,'toaster'],[18.5,6.5,'skull'],[12.5,15.5,'skull']]){
+    if(!solid(x,y)){const e=spawnEnemy(t,x,y,{awake:false});e.D=Object.assign({},e.D,{bark:BARKS})}
+  }
+  // parked CyberToaster at spawn for the drop-off (visual)
+  parked={x:P.x-1.6,y:P.y,a:0,spr:'cybertoaster',s:1.05};
+  stats={kills:0,total:ents.filter(e=>e.hp>0).length,secret:0,glitch:.3,rooms:['suburb'],secretsTotal:0};
+  FL={fog:0,baseFog:0,dmgTaken:1};
+  document.body.classList.add('toaster');
+  startCut('drop');
+}
+
+// ----- cutscenes -----
+function clearRideProp(){
+  if(parked&&parked.prop){parked.prop.gone=1;parked.prop.dead=1;parked.prop.x=999}
+  props=props.filter(q=>!q._toastRide);
+}
+function parkProp(x,y){
+  clearRideProp();
+  const p=addProp('crate',x,y,{_toastRide:1,r:.02,hp:9999,ram:0,D:{spr:holderOn()?'cybertoasterH':'cybertoaster',s:1.2}});
+  return p;
+}
+function startCut(kind){
+  cut={kind,t:0,dur:kind==='drop'?3.4:3.2};
+  if(kind==='drop'){
+    // truck rolls in from down the street, in front of the player (spawn faces east)
+    P.a=0;
+    parked={x:P.x+7.4,y:P.y,go:P.x+2.2};
+    parked.prop=parkProp(parked.x,parked.y);
+    msg('CYBERTOASTER DROP-OFF — HOP IN, SHORT COMMUTE');
+  }
+  if(kind==='pick'){
+    driving=false;if(P._walkSpd)P.spd=P._walkSpd;
+    // stand in the street west of the exit, look down the block as the ride pulls up
+    const ex=exitAt,ey=((ex/MW)|0)+.5,exx=ex%MW+.5;
+    P.x=Math.max(8.5,exx-5.5);P.y=ey;P.a=Math.PI;
+    if(solid(P.x,P.y)){P.x=Math.max(6.5,exx-7);P.y=ey}
+    parked={x:P.x-6.2,y:P.y,go:P.x-1.8};
+    parked.prop=parkProp(parked.x,parked.y);
+    msg('PICKUP — YOUR RIDE IS HERE');
+  }
+}
+function skipCut(){if(cut)endCut()}
+function endCut(){
+  const kind=cut&&cut.kind;cut=null;
+  if(kind==='drop'){
+    driving=true;P.spd=(P._walkSpd||1)*2.15;truckHits=0;
+    clearRideProp();
+    parked=null;
+    msg('CYBERTOASTER — RAM THE CONES, WATCH THE WINDSHIELD');
+  }
+  if(kind==='pick'){clearRideProp();parked=null;showToasterWin()}
+}
+
+function showToasterWin(){
+  run.won=true;state='victory';SFX.win&&SFX.win();
+  document.body.classList.remove('toaster');
+  const r=(typeof recordRun==='function')?recordRun():{sc:0};
+  const box=$('victory'),h=box&&box.querySelector('h1');
+  if(h){h.setAttribute('data-old',h.innerHTML);h.innerHTML='COMMUTE<br>COMPLETE<small>THE TOAST IS STILL WARM</small>'}
+  if($('vs'))$('vs').innerHTML='THE SELF-DRIVING WEDGE IS TOAST. NO REAL BRANDS WERE HARMED.<br>'+(typeof summary==='function'?summary(r):'');
+  if($('vcont'))$('vcont').style.display='none';
+  show('victory');
+}
+
+function spawnRogue(){
+  if(rogue&&rogue.hp>0)return rogue;
+  let x=20.5,y=6.5;
+  if(solid(x,y)){x=P.x+4;y=P.y;if(solid(x,y)){x=18.5;y=4.5}}
+  if(typeof AI==='object'&&!AI.none)AI.none=function(){};
+  const e=spawnEnemy('toaster',x,y,{awake:true});
+  e.t='rogueToaster';e.n='CYBERTOASTER';e.hp=e.max=220;e.r=.58;e.s=1.2;
+  e.spd=1.3;e.dmg=16;e.spr='cybertoaster';e.windup=0;e.charge=null;e.stun=0;e.cd=0.4;
+  e.D=Object.assign({},e.D,{n:'CYBERTOASTER',spr:'cybertoaster',s:1.2,ai:'none',range:0,bark:['SELF-DRIVING ENGAGED','OUT OF MY LANE','TOAST IS READY']});
+  rogue=e;stats.total++;
+  msg('ROGUE CYBERTOASTER — SELF-DRIVING, CHARGING');
+  pop(e.x,e.y,'SELF-DRIVING','#00f0ff');
+  return e;
+}
+
+function rogueSpr(){
+  const low=rogue&&rogue.hp<rogue.max*.45;
+  rogue.spr=(holderOn()?(low?'cybertoasterHC':'cybertoasterH'):(low?'cybertoasterC':'cybertoaster'));
+  if(rogue.D)rogue.D.spr=rogue.spr;
+}
+
+function updateRogue(e,dt){
+  if(e.hp<=0){if(!bossDown){bossDown=true;exitOpen=true;if(exitAt>=0){map[exitAt]=9;if(seen)seen[exitAt]=1}msg('THE WEDGE IS TOAST — HEAD TO THE EXIT');SFX.win&&SFX.win()}return}
+  rogueSpr();
+  const dx=P.x-e.x,dy=P.y-e.y,d=Math.hypot(dx,dy)||1;
+  if(e.stun>0){e.stun-=dt;e.vx=e.vy=0;return}
+  if(e.windup>0){
+    e.windup-=dt;
+    if(e.windup>e.windT*.55)e.ramA=Math.atan2(dy,dx);
+    const k=1-e.windup/e.windT,blink=((e.windup*12)|0)%2;
+    for(let i=1;i<=9;i++){
+      const x=e.x+Math.cos(e.ramA)*i*.8,y=e.y+Math.sin(e.ramA)*i*.8;
+      if(solid(x,y))break;
+      if(i<=2+k*8)fx.push({x,y,s:.18+(blink?.06:0),z:0,T:SPR.warn||SPR.cybertoaster,glow:1});
+    }
+    if(e.windup<=0){e.charge={vx:Math.cos(e.ramA)*8.6,vy:Math.sin(e.ramA)*8.6,t:1.05,age:0,hit:0};SFX.rage&&SFX.rage();if(typeof shake==='function')shake(1.2)}
+    return;
+  }
+  if(e.charge){
+    const x0=e.x,y0=e.y,nx=e.x+e.charge.vx*dt,ny=e.y+e.charge.vy*dt;
+    const blocked=solid(nx,ny)||solid(nx+.4,ny)||solid(nx-.4,ny)||solid(nx,ny+.4)||solid(nx,ny-.4);
+    e.charge.age+=dt;
+    if(!blocked){e.x=nx;e.y=ny}
+    if(!e.charge.hit&&Math.hypot(P.x-e.x,P.y-e.y)<1.15){e.charge.hit=1;if(typeof hurt==='function')hurt(e.dmg||16,'melee');pop(P.x,P.y,'RAMMED','#f8387f');if(driving)truckHits++;if(typeof shake==='function')shake(1.4)}
+    const mv=Math.hypot(e.x-x0,e.y-y0),want=Math.hypot(e.charge.vx,e.charge.vy)*dt;
+    if(blocked||(e.charge.age>.1&&mv<want*.3)){e.charge=null;e.stun=1.4;pop(e.x,e.y,'CRASH! STUNNED','#00f0ff');msg('CRASH! THE WINDSHIELD GLITCHES');if(typeof shake==='function')shake(1.6);SFX.boom&&SFX.boom();return}
+    if(e.charge.age>1.05)e.charge=null;
+    return;
+  }
+  e.cd=(e.cd||0)-dt;
+  // close slowly, then ram
+  const want=2.6;
+  if(d>want){const sp=1.15*dt,nx=e.x+(dx/d)*sp,ny=e.y+(dy/d)*sp;if(!solid(nx,ny)){e.x=nx;e.y=ny}}
+  if(e.cd<=0&&d<9){e.windup=e.windT=.8;e.ramA=Math.atan2(dy,dx);e.cd=4.4;pop(e.x,e.y,BARKS[(Math.random()*BARKS.length)|0],'#00f0ff')}
+}
+
+function tryRam(dt){
+  if(!driving)return;
+  const rolling=!!(P.moving||(typeof K!=='undefined'&&(K.w||K.arrowup))||(typeof touch!=='undefined'&&touch.my>0.25));
+  if(!rolling)return;
+  const c=Math.cos(P.a),s=Math.sin(P.a);
+  for(const e of ents){
+    if(e.hp<=0)continue;
+    const dx=e.x-P.x,dy=e.y-P.y,fwd=dx*c+dy*s,side=Math.abs(-dx*s+dy*c);
+    if(fwd>0&&fwd<1.2&&side<.75){
+      if((e._ramLock||0)>0){e._ramLock-=dt;continue}
+      e._ramLock=0.28;
+      if(typeof damage==='function')damage(e,26);
+      else e.hp-=26;
+      if(typeof knockback==='function')knockback(e,2.4);
+      else{e.x+=c*.4;e.y+=s*.4}
+      pop(e.x,e.y,e.hp<=0?'TOASTED!':'RAM','#e3b303');
+      if(e===rogue)truckHits=Math.min(5,truckHits+1);
+    }
+  }
+  for(const p of props){
+    if(!(p.ram||p.spr==='cone')||p.hp<=0||p.dead)continue;
+    const dx=p.x-P.x,dy=p.y-P.y,fwd=dx*c+dy*s,side=Math.abs(-dx*s+dy*c);
+    if(fwd>0&&fwd<1.1&&side<.7){
+      const px=p.x,py=p.y;
+      p.hp=0;p.dead=1;p.x=999;
+      ramCount++;pop(px,py,'CONE DOWN','#ff6a00');
+    }
+  }
+  if(!rogue&&ramCount>=4)spawnRogue();
+}
+
+// ----- hooks -----
+const _bf013=buildFloor;
+buildFloor=function(){
+  if(isToaster()){buildToasterFloor();return}
+  _bf013();
+};
+
+const _use013=use;
+use=function(){
+  if(isToaster()){
+    if(cut){skipCut();return}
+    if(bossDown&&exitOpen){
+      const ex=exitAt,x=ex%MW+.5,y=((ex/MW)|0)+.5;
+      if(Math.hypot(P.x-x,P.y-y)<1.8){startCut('pick');return}
+    }
+  }
+  _use013();
+};
+
+const _nf013=nextFloor;
+nextFloor=function(){
+  if(isToaster()){
+    if(bossDown&&exitOpen)startCut('pick');
+    else msg(bossDown?'GET TO THE EXIT FOR PICKUP':'THE ROGUE WEDGE IS STILL ROLLING');
+    return;
+  }
+  _nf013();
+};
+
+const _upd013=update;
+update=function(dt){
+  if(isToaster()&&cut){
+    const x=P.x,y=P.y,a=P.a;
+    _upd013(dt);
+    P.x=x;P.y=y;P.a=a;P.kick=0;P.shake=0;
+    cut.t+=dt;
+    if(parked&&parked.go!=null){
+      const dir=Math.sign(parked.go-parked.x)||1;
+      parked.x+=dir*dt*2.8;
+      if((dir>0&&parked.x>=parked.go)||(dir<0&&parked.x<=parked.go))parked.x=parked.go;
+      if(parked.prop){parked.prop.x=parked.x;parked.prop.y=parked.y}
+    }
+    if(cut.t>=cut.dur)endCut();
+    return;
+  }
+  if(isToaster()&&driving&&P._walkSpd)P.spd=P._walkSpd*2.15;
+  _upd013(dt);
+  if(!isToaster()||state!=='play')return;
+  if(driving)tryRam(dt);
+  if(rogue&&rogue.hp>0)updateRogue(rogue,dt);
+  else if(rogue&&rogue.hp<=0&&!bossDown)updateRogue(rogue,dt);
+  // auto-start pickup if they walk into the open exit
+  if(bossDown&&exitOpen&&!cut){
+    const ex=exitAt,x=ex%MW+.5,y=((ex/MW)|0)+.5;
+    if(Math.hypot(P.x-x,P.y-y)<.7)startCut('pick');
+  }
+};
+
+const _ren013=render;
+render=function(t,rdt){
+  _ren013(t,rdt);
+  if(!isToaster()||(state!=='play'&&!(cut&&state==='play'))){
+    // still draw cut if play
+  }
+  if(!isToaster()||state!=='play')return;
+  // HUD
+  ctx.fillStyle='rgba(0,0,0,.72)';ctx.fillRect(4,8,188,48);
+  ctx.strokeStyle='#e3b303';ctx.strokeRect(4,8,188,48);
+  ctx.fillStyle='#e3b303';ctx.font='bold 7px monospace';ctx.fillText('CYBERTOASTER',8,18);
+  ctx.font='6px monospace';ctx.fillStyle='#fff';
+  ctx.fillText(driving?'DRIVING · RAM CONES':'ON FOOT',8,28);
+  ctx.fillText('CONES '+ramCount+'  ·  GLASS '+(5-Math.min(5,truckHits))+'/5',8,37);
+  ctx.fillText(rogue?(rogue.hp>0?'ROGUE WEDGE IS ROLLING':'WEDGE IS TOAST'):'RAM 4 CONES TO DRAW IT OUT',8,46);
+  // cutscene bars + title
+  if(cut){
+    ctx.fillStyle='#000';ctx.fillRect(0,0,W,22);ctx.fillRect(0,H-22,W,22);
+    ctx.fillStyle='#00f0ff';ctx.font='bold 8px monospace';ctx.textAlign='center';
+    ctx.fillText(cut.kind==='drop'?'DROP-OFF':'PICKUP',W/2,14);
+    ctx.fillStyle='#FFD400';ctx.font='7px monospace';
+    ctx.fillText(cut.kind==='drop'?'CYBERTOASTER — SEE YOU AT THE EXIT':'NICE COMMUTE — THE TOAST IS STILL WARM',W/2,H-8);
+    ctx.fillStyle='#fff';ctx.font='6px monospace';ctx.fillText('CLICK / TAP / E TO SKIP',W/2,H-16);
+    ctx.textAlign='left';
+  }
+};
+
+function worldCanvas(spr){
+  if(!spr)return null;
+  if(!worldCanvas.cache)worldCanvas.cache=new Map();
+  if(worldCanvas.cache.has(spr))return worldCanvas.cache.get(spr);
+  const ts=spr.ts||64,c=document.createElement('canvas');c.width=ts;c.height=ts;
+  const g=c.getContext('2d'),d=g.createImageData(ts,ts);
+  try{d.data.set(new Uint8ClampedArray(spr.buffer,spr.byteOffset,ts*ts*4));g.putImageData(d,0,0)}catch(e){return null}
+  worldCanvas.cache.set(spr,c);return c;
+}
+
+const _dw013=drawWeapon;
+drawWeapon=function(rdt){
+  if(isToaster()&&driving&&!cut){drawHood();return}
+  return _dw013(rdt);
+};
+
+const _fm013=floorMsg;
+floorMsg=function(){
+  if(isToaster()){msg('CYBERTOASTER // GLITCHED SUBURB // SHORT COMMUTE');return}
+  _fm013();
+};
+
+const _show013=typeof show==='function'?show:null;
+if(_show013){
+  show=function(id){
+    if(id==='title'||id==='pause'||!id){
+      const h=$('victory')&&$('victory').querySelector('h1');
+      if(h&&h.getAttribute('data-old')){h.innerHTML=h.getAttribute('data-old');h.removeAttribute('data-old')}
+      if(id==='title')document.body.classList.remove('toaster');
+    }
+    _show013(id);
+    document.body.classList.toggle('toaster',isToaster()&&state==='play');
+  };
+}
+
+const _ds013=drawSettings;
+drawSettings=function(){
+  _ds013();
+  const el=$('setrows');if(!el||!holderUnlocked())return;
+  if(el.querySelector('[data-k=holderPaint]'))return;
+  const on=!!(sets()&&sets().holderPaint);
+  const row=document.createElement('div');row.className='row';
+  row.innerHTML=`<span>HOLDER PAINT</span><span><button data-k="holderPaint">${on?'ON':'OFF'}</button></span>`;
+  el.appendChild(row);
+  row.querySelector('button').onclick=()=>{saveSet({holderPaint:sets().holderPaint?0:1});skin=holderOn()?1:0;bakeAll();drawSettings()};
+};
+
+// skip cutscenes
+addEventListener('keydown',e=>{if(!isToaster()||!cut)return;const k=e.key;if(k==='e'||k==='E'||k===' '||k==='Enter'||k==='Escape')skipCut()});
+addEventListener('mousedown',()=>{if(isToaster()&&cut&&state==='play')skipCut()});
+
+function info(){
+  return {on:isToaster(),driving,truckHits,ramCount,bossDown,exitOpen,exitAt,cut:cut&&cut.kind,mw:MW,mh:MH,
+    holder:holderUnlocked(),paint:holderOn(),rogue:rogue&&{x:rogue.x,y:rogue.y,hp:rogue.hp,max:rogue.max,windup:rogue.windup||0,charge:!!rogue.charge,stun:rogue.stun||0,spr:rogue.spr},
+    spawn:{x:P&&P.x,y:P&&P.y},theme:theme&&theme.n};
+}
+
+TT.toasterVer=VER;
+TT.startToaster=function(){if(typeof start==='function')start('toaster')};
+TT.toaster=info;
+TT.setHolderFlag=setHolderFlag;
+TT.holderUnlocked=holderUnlocked;
+TT.skipToasterCut=skipCut;
+TT.spawnRogue=spawnRogue;
+TT.updateToasterRogue=updateRogue;
+TT.endToasterCut=endCut;
+TT.setToaster=function(o){
+  if(!o)return info();
+  if(o.truckHits!=null)truckHits=+o.truckHits;
+  if(o.ramCount!=null)ramCount=+o.ramCount;
+  if(o.driving===true){driving=true;cut=null;parked=null;P.spd=(P._walkSpd||1)*2.15}
+  if(o.driving===false){driving=false;if(P._walkSpd)P.spd=P._walkSpd}
+  if(o.bossDown){bossDown=true;exitOpen=true;if(exitAt>=0){map[exitAt]=TILE.exit||9;if(seen)seen[exitAt]=1}}
+  return info();
+};
+
 })();
 </script>
 </body></html>
