@@ -1,0 +1,5 @@
+/* TT OOK follow bunny v1: bunny photo instead of Ashley's old Twitter picture */
+#tt-ook .ook-btn img{display:none!important}
+#tt-ook .ook-btn:before{content:"";display:block;flex:none;width:52px;height:52px;border-radius:2px;border:2px solid #000;background-color:#fff;background-image:url(https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@c336791/assets/ashley-pets/bunny-b.webp);background-position:center 32%;background-size:cover;background-repeat:no-repeat}
+@media (max-width:640px){#tt-ook .ook-btn:before{width:42px;height:42px}}
+/* /TT OOK follow bunny v1 */
