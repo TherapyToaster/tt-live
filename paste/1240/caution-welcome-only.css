@@ -1,0 +1,4 @@
+/* TT CAUTION BAR v6: show only the "Welcome to this" announcement text (Trust/Be Nice swaps removed) */
+.sqs-announcement-bar-text-inner p{display:inline-block!important;font-size:clamp(20px,3.2vw,36px)!important;letter-spacing:.12em!important;color:#FFD400!important;text-shadow:0 0 10px rgba(255,212,0,.7)!important}
+.sqs-announcement-bar-text-inner p *{color:#FFD400!important;font-size:inherit!important}
+.sqs-announcement-bar-text-inner p::before,.sqs-announcement-bar-text-inner p::after{content:none!important;animation:none!important;display:none!important}
