@@ -1,0 +1,45 @@
+/* TT home mobile fix v1
+   Home lifts the Daily Glitch (#tt-notice.ttdg-moved) to the top of #page,
+   under the absolute header. The view counter normally adds a header-height
+   margin-top, but when that counter has not loaded (API error, blocked, or
+   slow), the Glitch title sits behind the header on phones. This adds the
+   same clearance. If the counter is present, the extra margin is removed.
+   Desktop is left unchanged. */
+@media screen and (max-width: 799px) {
+  body.homepage #tt-notice.ttdg-moved {
+    margin-top: 336px;
+  }
+  body.homepage #tt-vc.tt-vc-on ~ #tt-notice.ttdg-moved {
+    margin-top: 0;
+  }
+  /* Room to scroll past the fixed radio and Chipotle docks */
+  body.homepage #page {
+    padding-bottom: 96px;
+  }
+}
+@media screen and (max-width: 640px) {
+  body.homepage #tt-notice.ttdg-moved {
+    margin-top: 310px;
+  }
+}
+@media screen and (max-width: 559px) {
+  body.homepage #tt-notice.ttdg-moved {
+    margin-top: 250px;
+  }
+}
+@media screen and (max-width: 430px) {
+  body.homepage #tt-notice.ttdg-moved {
+    margin-top: 230px;
+  }
+}
+@media screen and (max-width: 389px) {
+  body.homepage #tt-notice.ttdg-moved {
+    margin-top: 200px;
+  }
+}
+@media screen and (max-width: 349px) {
+  body.homepage #tt-notice.ttdg-moved {
+    margin-top: 180px;
+  }
+}
+/* /TT home mobile fix v1 */
