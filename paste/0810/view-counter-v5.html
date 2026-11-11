@@ -61,8 +61,20 @@
 @keyframes tt-vc-sl-b{0%,100%{transform:translate(0,0)}25%{transform:translate(7px,0)}50%{transform:translate(-9px,0)}75%{transform:translate(3px,-1px)}}
 @keyframes tt-vc-sl-c{0%,100%{transform:translate(0,0)}25%{transform:translate(-6px,0)}50%{transform:translate(8px,1px)}75%{transform:translate(-5px,0)}}
 #tt-vc.tt-vc-glitch .tt-vc-sk-j{animation:tt-vc-jerk .24s steps(2,end) 1}
-#tt-vc.tt-vc-glitch .tt-vc-sk-j::before,
-#tt-vc.tt-vc-glitch .tt-vc-sk-j::after{animation-duration:.35s}
+#tt-vc.tt-vc-glitch .tt-vc-sk-j::before{animation:tt-vc-rgb-burst-r .28s steps(2,end) 2}
+#tt-vc.tt-vc-glitch .tt-vc-sk-j::after{animation:tt-vc-rgb-burst-c .28s steps(2,end) 2}
+@keyframes tt-vc-rgb-burst-r{
+  0%,100%{opacity:.25;transform:translate(-3px,0)}
+  25%{opacity:.95;transform:translate(-7px,1px)}
+  50%{opacity:.8;transform:translate(5px,-1px)}
+  75%{opacity:.9;transform:translate(-6px,0)}
+}
+@keyframes tt-vc-rgb-burst-c{
+  0%,100%{opacity:.25;transform:translate(3px,0)}
+  25%{opacity:.95;transform:translate(7px,-1px)}
+  50%{opacity:.8;transform:translate(-5px,1px)}
+  75%{opacity:.9;transform:translate(6px,0)}
+}
 @keyframes tt-vc-jerk{
   0%{transform:translate(0,0) skewX(0)}
   20%{transform:translate(-6px,1px) skewX(-9deg)}
