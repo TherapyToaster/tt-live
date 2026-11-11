@@ -1,0 +1,88 @@
+<style>
+#ttshop-x{width:100vw;max-width:none;position:relative;left:50%;margin-left:-50vw;box-sizing:border-box;overflow-x:hidden;background:#000;z-index:2}
+#ttshop{max-width:1200px;margin:0 auto;box-sizing:border-box;padding:48px 20px;background:#000;color:#fff;font-family:'Courier New',monospace;text-align:center;border:3px solid #FFD400}
+#ttshop *{box-sizing:border-box}
+#ttshop h1{font-size:clamp(30px,6vw,64px);margin:0 0 10px;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:#FFD400;text-shadow:3px 0 #ff2a2a,-3px 0 #00e5ff;line-height:1.1}
+#ttshop .sub{margin:0 auto 8px;max-width:640px;font-size:16px;line-height:1.5}
+#ttshop .sub b{color:#FFD400}
+#ttshop h2{margin:44px 0 18px;font-size:clamp(20px,3.5vw,32px);text-transform:uppercase;color:#FFD400;border-bottom:3px solid #FFD400;padding-bottom:8px;text-shadow:2px 0 #ff2a2a,-2px 0 #00e5ff}
+#ttshop .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,340px));gap:22px;justify-content:center;text-align:left}
+#ttshop .card{background:#111;border:2px solid #FFD400;display:flex;flex-direction:column;transition:box-shadow .2s,border-color .2s}
+#ttshop .card:hover{border-color:#00e5ff;box-shadow:5px 5px 0 #ff2a2a}
+#ttshop .card img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;background:#222}
+#ttshop .body{padding:16px;display:flex;flex-direction:column;gap:10px;flex:1}
+#ttshop .t{font-size:20px;font-weight:900;color:#FFD400;margin:0;text-transform:uppercase}
+#ttshop .p{font-size:22px;font-weight:900;color:#fff}
+#ttshop .sz{display:flex;flex-wrap:wrap;gap:6px}
+#ttshop .sz span{border:1px solid #00e5ff;color:#00e5ff;font-size:12px;padding:3px 7px}
+#ttshop .btn{margin-top:auto;display:block;text-align:center;background:#FFD400;color:#000!important;font-weight:900;padding:14px 20px;text-decoration:none!important;text-transform:uppercase;letter-spacing:1px;border:2px solid #FFD400;box-shadow:4px 4px 0 #ff2a2a,-4px -4px 0 #00e5ff;transition:background .2s,color .2s}
+#ttshop .btn:hover{background:#000;color:#FFD400!important}
+#ttshop .soon{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+#ttshop .tile{aspect-ratio:1/1;border:2px dashed #FFD400;background:repeating-linear-gradient(45deg,#0a0a0a 0 12px,#141414 12px 24px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:14px}
+#ttshop .tile .sk{font-size:54px;line-height:1;text-shadow:3px 0 #ff2a2a,-3px 0 #00e5ff}
+#ttshop .tile .lb{color:#FFD400;font-weight:900;text-transform:uppercase;letter-spacing:2px}
+#ttshop .tile .q{color:#aaa;font-size:13px}
+#ttshop .note{color:#aaa;font-size:13px;margin-top:22px;line-height:1.5}
+#ttshop .note a{color:#00e5ff}
+@media(max-width:480px){#ttshop{padding:32px 12px}#ttshop .grid{grid-template-columns:1fr}#ttshop .soon{grid-template-columns:1fr 1fr;gap:10px}#ttshop .tile .sk{font-size:38px}}
+#ttshop .promo{position:relative;max-width:880px;margin:30px auto 6px;border:3px solid #FFD400;border-radius:18px;overflow:hidden;background:#000;box-shadow:6px 6px 0 #ff2a2a,-6px -6px 0 #00e5ff}
+#ttshop .promo video{display:block;width:100%;aspect-ratio:16/9;height:auto;background:#000;object-fit:cover}
+#ttshop .snd{position:absolute;top:12px;right:12px;z-index:3;background:#FFD400;color:#000;border:2px solid #000;border-radius:999px;font:900 13px 'Courier New',monospace;text-transform:uppercase;letter-spacing:1px;padding:8px 14px;cursor:pointer;box-shadow:3px 3px 0 #ff2a2a,-3px -3px 0 #00e5ff;transition:background .2s,color .2s}
+#ttshop .snd:hover,#ttshop .snd:focus-visible{background:#000;color:#FFD400;border-color:#FFD400;outline:none}
+@media(max-width:480px){#ttshop .promo{border-radius:12px;margin-top:22px;box-shadow:4px 4px 0 #ff2a2a,-4px -4px 0 #00e5ff}#ttshop .snd{top:8px;right:8px;padding:6px 10px;font-size:11px}}
+#ttshop a.collab{display:block;max-width:1040px;margin:0 auto 8px;border:3px solid #FFD400;border-radius:18px;overflow:hidden;background:#000;text-decoration:none!important;color:#fff;box-shadow:6px 6px 0 #ff2a2a,-6px -6px 0 #00e5ff;transition:box-shadow .2s,border-color .2s,transform .2s}
+#ttshop a.collab:hover,#ttshop a.collab:focus-visible{border-color:#00e5ff;box-shadow:0 0 0 3px #FFD400,8px 8px 0 #ff2a2a,-8px -8px 0 #00e5ff,0 0 32px rgba(255,212,0,.65);outline:none;transform:translateY(-2px)}
+#ttshop a.collab img{display:block;width:100%;height:auto;aspect-ratio:1600/700;object-fit:cover;background:#111}
+#ttshop a.collab .bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px 16px;background:#000;border-top:3px solid #FFD400;text-align:left}
+#ttshop a.collab .meta{color:#FFD400;font-weight:900;letter-spacing:1px;text-transform:uppercase;font-size:clamp(13px,2.2vw,18px)}
+#ttshop a.collab .btn{margin:0;flex:0 0 auto}
+@media(max-width:480px){#ttshop a.collab{border-radius:12px;box-shadow:4px 4px 0 #ff2a2a,-4px -4px 0 #00e5ff}#ttshop a.collab .bar{padding:12px;justify-content:center;text-align:center}#ttshop a.collab .btn{width:100%}}
+</style>
+<div id="ttshop-x"><div id="ttshop">
+<h1>Mr. Toasty's Store</h1>
+<p class="sub"><b>Real-life merch</b> from the Therapy Toaster universe. Dress like <a href="https://x.com/TherapyToaster" target="_blank" rel="noopener" style="color:#FFD400;text-decoration:none">〽️®️ Ƭᴏᴀ𝙎ᴛʏ</a> 🎭</p>
+<div class="promo"><video id="ttshop-vid" src="https://therapytoaster.github.io/tt-live/promo/shop-promo.mp4?v=2" poster="https://therapytoaster.github.io/tt-live/promo/shop-promo.jpg?v=2" controls playsinline muted autoplay loop preload="metadata"></video><button type="button" class="snd" id="ttshop-snd" aria-pressed="false">&#128263; Sound Off</button></div>
+<h2>Collections</h2>
+<a class="collab" href="/nfts-to-tees-collab"><img src="https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@bc46c15ab5e183847b212b8f2e48df7bd09a1502/assets/collab/shop-tile.jpg" alt="Mr. Toasty's NFTs to TEEs Collab — 20 NFT tees, $34.99" width="1600" height="700" loading="lazy"><span class="bar"><span class="meta">20 NFT tees · $34.99</span><span class="btn">Shop the Collab &rarr;</span></span></a>
+<h2>Shop Now</h2>
+<div class="grid" id="ttshop-grid"></div>
+<h2>Skullz &mdash; Coming Soon</h2>
+<p class="sub">Mr. Toasty's Skullz are being cooked up. New drops are on the way &mdash; check back soon.</p>
+<div class="soon">
+<div class="tile"><div class="sk">&#9760;</div><div class="lb">Skull #01</div><div class="q">Coming soon</div></div>
+<div class="tile"><div class="sk">&#9760;</div><div class="lb">Skull #02</div><div class="q">Coming soon</div></div>
+<div class="tile"><div class="sk">&#9760;</div><div class="lb">Skull #03</div><div class="q">Coming soon</div></div>
+<div class="tile"><div class="sk">?</div><div class="lb">Mystery Drop</div><div class="q">Stay tuned</div></div>
+</div>
+<p class="note">Checkout is handled securely by Shopify. Printed &amp; shipped on demand.</p>
+</div></div>
+<script>
+/* === PRODUCTS: add new items here === */
+var TTSHOP_PRODUCTS=[
+ {title:"Mr. Toasty's Graphic Tee",price:"$17.76 USD",sizes:["XS","S","M","L","XL","2XL","3XL","4XL","5XL"],
+  url:"https://therapytoaster.myshopify.com/products/unisex-t-shirt",
+  img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/unisex-staple-t-shirt-black-heather-front-and-back-6adadbe7d1015_800x800.jpg?v=1792728061"},
+ {title:"Toasty's Skullz Trucker Cap",price:"$18.15 USD",sizes:["One Size"],
+  url:"https://therapytoaster.myshopify.com/products/trucker-cap",
+  img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/5-panel-trucker-cap-black-white-front-6adc21332124a_800x800.jpg?v=1792811330"},
+ {title:"Please Be Nice Tee - Black",price:"$17.76 USD",sizes:["S","M","L","XL","2XL"],
+  url:"https://therapytoaster.myshopify.com/products/please-be-nice-tee-black",
+  img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/please-be-nice-tee-mockup_800x800.png?v=1793004173"},
+ {title:"Skull & Butter Tee",price:"$17.76 USD",sizes:["S","M","L","XL","2XL"],
+  url:"https://therapytoaster.myshopify.com/products/skull-butter-tee",
+  img:"https://therapytoaster.github.io/tt-live/shop/skull-butter-tee.png?v=1"},
+ {title:"Let It. Tee - Black",price:"$17.76 USD",sizes:["S","M","L","XL","2XL"],
+  url:"https://therapytoaster.myshopify.com/products/let-it-tee-black",
+  img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/let-it-tee-mockup_800x800.png?v=1793419628"}
+];
+(function(){var g=document.getElementById('ttshop-grid');if(!g)return;
+function e(s){return String(s).replace(/[&<>"']/g,function(c){return'&#'+c.charCodeAt(0)+';'});}
+g.innerHTML=TTSHOP_PRODUCTS.map(function(p){return '<div class="card"><img src="'+e(p.img)+'" alt="'+e(p.title)+'" loading="lazy"><div class="body"><p class="t">'+e(p.title)+'</p><div class="p">'+e(p.price)+'</div><div class="sz">'+(p.sizes||[]).map(function(s){return '<span>'+e(s)+'</span>'}).join('')+'</div><a class="btn" href="'+e(p.url)+'" target="_blank" rel="noopener">Buy on Shopify &rarr;</a></div></div>';}).join('');})();
+(function(){var o=document.getElementById('ttshop-x');if(!o)return;
+var a=o.parentNode;while(a&&a!==document.body){var c=getComputedStyle(a);if(c.overflow!=='visible'||c.overflowX!=='visible'||c.overflowY!=='visible')a.style.overflow='visible';if(a.tagName==='SECTION')break;a=a.parentNode;}
+function fit(){o.style.left='0';o.style.marginLeft='0';o.style.width='auto';var w=document.documentElement.clientWidth,l=o.getBoundingClientRect().left;o.style.width=w+'px';o.style.marginLeft=(-l)+'px';}
+fit();addEventListener('resize',fit);addEventListener('load',fit);setTimeout(fit,600);setTimeout(fit,2000);})();
+(function(){var v=document.getElementById('ttshop-vid'),b=document.getElementById('ttshop-snd');if(!v||!b)return;
+function u(){b.innerHTML=v.muted?'&#128263; Sound Off':'&#128266; Sound On';b.setAttribute('aria-pressed',v.muted?'false':'true');}
+b.addEventListener('click',function(){v.muted=!v.muted;if(!v.muted){v.volume=1;var p=v.play();if(p&&p.catch)p.catch(function(){});}u();});v.addEventListener('volumechange',u);u();})();
+</script>
