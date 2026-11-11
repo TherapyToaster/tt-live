@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.11.2"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.12.0"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <link rel="icon" href="data:,"><title>MR. TOASTY'S NO SIGNAL SKULLZ — Therapy Toaster</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Anton&family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
@@ -124,6 +124,11 @@ body.lefty #bWpn{right:auto;left:calc(var(--sl) + 14px)}
 body.lefty #bUse{right:auto;left:calc(var(--sl) + 22px + 88px*var(--bs,1))}
 #bParry{right:calc(var(--sr) + 14px);bottom:calc(var(--sb) + 14px + 72px*var(--bs,1));width:calc(52px*var(--bs,1));height:calc(34px*var(--bs,1));border-radius:10px;font-size:calc(8px*var(--bs,1));padding:0;top:auto}
 
+#bLight,#bRadio{display:none;z-index:6;letter-spacing:.04em;border-radius:10px;padding:0;width:44px;height:44px;font-size:8px;bottom:auto;left:auto}
+body.touch.playing.salvage #bLight,body.touch.playing.salvage #bRadio{display:flex}
+#bLight{right:calc(var(--sr) + 114px);top:calc(var(--st) + 8px)}
+#bRadio{right:calc(var(--sr) + 166px);top:calc(var(--st) + 8px)}
+
 body.lefty #bParry{right:auto;left:calc(var(--sl) + 14px)}
 
 /* AIM stick knob = FIRE: crosshair + FIRE label in the middle */
@@ -142,7 +147,7 @@ body.lefty #bParry{right:auto;left:calc(var(--sl) + 14px)}
 <div id="msg"></div><div id="secban" aria-live="polite"></div><div id="egg" role="dialog" aria-label="Easter egg video"></div>
 <div id="hud"><canvas id="face" width="64" height="64"></canvas><div><b id="xname">MR. TOASTY</b><span id="hp">100</span></div><div><b>AMMO</b><span id="am">0</span></div><div><b>ARMOR</b><span id="ap">0</span></div><div class="hx"><b>WEAPON</b><span id="wn"></span></div><div><b>SKULLZ</b><span id="bn">0</span></div><div class="hx"><b>FLOOR</b><span id="fl">1</span></div><div><b>KILLS</b><span id="kl"></span></div></div>
 <div id="tc" aria-hidden="true"><div id="tzone"></div><div id="joy"><div id="knob"></div></div><div id="ajoy"><div id="aknob"></div></div><div id="alock"></div>
-<div class="tb" id="bUse">USE</div><div class="tb" id="bParry">PARRY</div><div class="tb" id="bWpn"><span class="wr"><canvas id="wpc" width="64" height="64"></canvas><b id="wpa">80</b></span><small id="wpl">SWAP WEAPON</small><i id="wpi">1</i><em id="wps"></em></div>
+<div class="tb" id="bUse">USE</div><div class="tb" id="bParry">PARRY</div><div class="tb" id="bLight">LIGHT</div><div class="tb" id="bRadio">RADIO</div><div class="tb" id="bWpn"><span class="wr"><canvas id="wpc" width="64" height="64"></canvas><b id="wpa">80</b></span><small id="wpl">SWAP WEAPON</small><i id="wpi">1</i><em id="wps"></em></div>
 <div class="tb sm" id="bMap">MAP</div><div class="tb sm" id="bPause">II</div><div id="wheel"></div></div>
 <div id="ttut"><div class="tl">LEFT THUMB<br>MOVE<br><br>(STICK APPEARS<br>WHERE YOU TOUCH)</div><div class="tr">RIGHT THUMB<br>DRAG ANYWHERE<br>TO LOOK</div><div class="tf">SWAP WEAPON<br>BUTTON SWITCHES GUNS</div><div class="tm">MAP · PAUSE ▲</div><p>TAP TO PLAY</p></div>
 <div id="rot">↻ ROTATE FOR THE BEST VIEW <span id="rotx">✕</span></div>
@@ -152,7 +157,7 @@ body.lefty #bParry{right:auto;left:calc(var(--sl) + 14px)}
 <div class="ov" id="title" style="display:flex">
 <h1 class="tth"><canvas id="tlogo" width="240" height="160" role="img" aria-label="Mr. Toasty's No Signal Skullz"></canvas><span class="sr">MR. TOASTY'S NO SIGNAL SKULLZ</span><small>A 404 DUNGEON CRAWLER · STARRING MR. TOASTY</small></h1>
 <p id="greet"></p><div id="tcap" aria-live="off"></div><canvas id="tsil" width="160" height="34" aria-hidden="true"></canvas><div class="drip"></div><p id="quip"></p>
-<div class="modes"><button class="btn" data-start="standard">START RUN<small>15 FLOORS · BEAT THE GLITCH</small></button><button class="btn" id="bdaily" data-start="daily">DAILY</button><button class="btn" id="bendless" data-start="endless">ENDLESS</button><button class="btn" id="berrands" data-start="errands">MONDAY ERRANDS<small>SUBURB · 4 SILLY STOPS</small></button></div>
+<div class="modes"><button class="btn" data-start="standard">START RUN<small>15 FLOORS · BEAT THE GLITCH</small></button><button class="btn" id="bdaily" data-start="daily">DAILY</button><button class="btn" id="bendless" data-start="endless">ENDLESS</button><button class="btn" id="berrands" data-start="errands">MONDAY ERRANDS<small>SUBURB · 4 SILLY STOPS</small></button><button class="btn" id="bsalvage" data-start="salvage">SALVAGE SHIFT<small>DEPOT · MEET QUOTA</small></button></div>
 <p id="load">LOADING SIGNAL…</p>
 <div class="lo"><button id="lset">⚙ SETTINGS</button><button id="lgal">🖼 GALLERY</button><button id="lsnd">🔊 SOUND: ON</button><button id="lw"></button><button id="lp"></button><button id="lsh"></button><button id="lsg"></button></div>
 <p id="tcrew"></p><p id="tstats"></p>
@@ -5332,6 +5337,485 @@ TT.finishJob=finishJob;
 TT.buildErrandsFloor=buildErrandsFloor;
 TT.chickenI=()=>chickenI;
 TT.hoseI=()=>hoseI;
+})();
+
+// v0.12.0 — SALVAGE SHIFT: single-player timed scrap run in a dark
+// glitched facility. Original Lethal Company–inspired loop (not a copy):
+// collect valued scrap, haul it to the drop-off, meet the quota. Flashlight
+// for dark wings, static-filled radio, two stalkers (one freezes when looked
+// at, one hunts by sound). No co-op. Identifiers avoid _fire/_kill/_dw/_upd.
+(function(){
+const SHIFT_T=180, QUOTA=50, CARRY_MAX=3, BAT_MAX=100;
+const DEPOT=["################################","#@......#..............s.......#","#.......#......................#","#.......###.##########.........#","#...s.......#        #...s.....#","#...........#        #.........#","#...........####.#####..####...#","#................s.............#","#......#####..........#........#","#..s...#   #...s......#...e....#","#......# s #..........#........#","#......#   #.....######........#","####...##.##.....#    #...s....#","#................#    #........#","#...s....h.......###.##........#","#..............................#","#..............###..###........#","#..............#      #...s....#","#..............#  D   X#.......#","################################"];
+const SCRAPS=[
+  {id:'rustcan',n:'RUSTY CAN',val:8,w:1,col:'#8a6a32'},
+  {id:'vhsbrick',n:'VHS BRICK',val:12,w:1,col:'#3a1020'},
+  {id:'coil',n:'COPPER COIL',val:16,w:1,col:'#c8862a'},
+  {id:'btoaster',n:'BURNT TOASTER',val:20,w:2,col:'#55505a'},
+  {id:'gbox',n:'GLITCH CUBE',val:25,w:2,col:'#00f0ff'},
+  {id:'gcrumb',n:'GOLDEN CRUMB',val:30,w:1,col:'#FFD400'}
+];
+const BARKS12=['STATIC—','...HELLO?','WHO\'S THERE','QUIET','DON\'T BLINK','I HEAR YOU','SHIFT\'S ON'];
+let carry=[], deposited=0, left=SHIFT_T, lampOn=true, battery=BAT_MAX, drop=null;
+let noiseLv=0, noiseX=0, noiseY=0, radioT=0, radioLine='— STATIC —', flashL=null, fillL=null, ended=false;
+
+function isSalvage(){return !!(run&&(run.mode==='salvage'||run.special==='salvage'))}
+function remainingQuota(){return Math.max(0,QUOTA-deposited)}
+function quotaMet(){return deposited>=QUOTA}
+function carriedVal(){return carry.reduce((a,s)=>a+s.val,0)}
+function carriedW(){return carry.reduce((a,s)=>a+(s.w||1),0)}
+
+function emitSound(vol,x,y){
+  if(vol>=noiseLv){noiseLv=vol;noiseX=x;noiseY=y}
+}
+
+function lookingAt(e){
+  const dx=e.x-P.x,dy=e.y-P.y,d=Math.hypot(dx,dy)||.01;
+  let da=Math.atan2(dy,dx)-P.a;da=Math.atan2(Math.sin(da),Math.cos(da));
+  return Math.abs(da)<0.62&&d<16&&los(P.x,P.y,e.x,e.y);
+}
+
+function stepToward(e,tx,ty,v,dt){
+  const sx=e.x|0,sy=e.y|0,gx=tx|0,gy=ty|0;
+  if(sx===gx&&sy===gy){
+    const d=Math.hypot(tx-e.x,ty-e.y)||.01;
+    tryMove(e,e.x+(tx-e.x)/d*v*dt,e.y+(ty-e.y)/d*v*dt,e.r||.3);
+    return;
+  }
+  const N=[1,-1,MW,-MW],seenA=new Int16Array(MW*MH);seenA.fill(-1);
+  const q=[sy*MW+sx];seenA[q[0]]=0;let qh=0,found=-1;
+  while(qh<q.length&&qh<400){
+    const i=q[qh++],d=seenA[i];
+    for(const o of N){
+      const j=i+o;if(j<0||j>=MW*MH||seenA[j]>=0)continue;
+      if(o===1&&(i%MW)===MW-1)continue;if(o===-1&&(i%MW)===0)continue;
+      if(j===gy*MW+gx){seenA[j]=d+1;found=j;qh=1e9;break}
+      if(map[j])continue;
+      seenA[j]=d+1;q.push(j);
+    }
+  }
+  if(found<0){
+    const d=Math.hypot(tx-e.x,ty-e.y)||.01;
+    tryMove(e,e.x+(tx-e.x)/d*v*dt,e.y+(ty-e.y)/d*v*dt,e.r||.3);
+    return;
+  }
+  // walk back one step
+  let i=found, prev=i;
+  while(seenA[i]>1){
+    prev=i;
+    for(const o of N){
+      const j=i+o;if(j<0||j>=MW*MH)continue;
+      if(o===1&&(i%MW)===MW-1)continue;if(o===-1&&(i%MW)===0)continue;
+      if(seenA[j]===seenA[i]-1){i=j;break}
+    }
+    if(i===prev)break;
+  }
+  const nx=(i===found?found:prev)%MW+.5, ny=((i===found?found:prev)/MW|0)+.5;
+  const d=Math.hypot(nx-e.x,ny-e.y)||.01;
+  tryMove(e,e.x+(nx-e.x)/d*v*dt,e.y+(ny-e.y)/d*v*dt,e.r||.3);
+}
+
+function bakeStalkers(){
+  SPR.watcher=toTex(draw(g=>{
+    g.fillStyle='#1a1a22';g.fillRect(18,6,28,52);
+    g.fillStyle='#2a3040';g.fillRect(20,8,24,36);
+    g.fillStyle='#c8d0d8';g.beginPath();g.arc(32,26,10,0,7);g.fill();
+    g.fillStyle='#111';g.fillRect(26,24,4,4);g.fillRect(34,24,4,4);
+    g.fillStyle='#8a9098';g.fillRect(26,32,12,2);
+    g.fillStyle='#00f0ff';g.globalAlpha=.5;g.fillRect(20,14,24,2);g.fillRect(20,40,24,2);g.globalAlpha=1;
+    g.fillStyle='#3a3a48';g.fillRect(22,46,20,10);
+  }));
+  SPR.listener=toTex(draw(g=>{
+    g.fillStyle='#2a2018';g.beginPath();g.arc(32,34,18,0,7);g.fill();
+    g.fillStyle='#cbbcd9';g.beginPath();g.arc(32,28,12,0,7);g.fill();
+    g.fillStyle='#111';g.fillRect(26,26,5,5);g.fillRect(35,26,5,5);
+    g.fillStyle='#8a5a20';g.beginPath();g.ellipse(14,24,8,12,0,0,7);g.fill();
+    g.beginPath();g.ellipse(50,24,8,12,0,0,7);g.fill();
+    g.fillStyle='#00f0ff';g.globalAlpha=.6;for(let i=0;i<6;i++)g.fillRect(8+i*8,8+(i%2)*3,6,2);g.globalAlpha=1;
+    g.fillStyle='#111';g.fillRect(28,36,8,3);
+  }));
+  for(const S of SCRAPS){
+    const col=S.col;
+    SPR['scrap_'+S.id]=toTex(draw(g=>{
+      g.fillStyle='#1a1008';g.fillRect(14,22,36,28);
+      g.fillStyle=col;g.fillRect(16,24,32,24);
+      g.fillStyle='#111';g.font='bold 8px monospace';g.fillText(S.n.split(' ')[0].slice(0,6),16,40);
+      g.fillStyle='#FFD400';g.fillRect(16,24,32,4);
+    }));
+    PICKUPS['scrap_'+S.id]={s:.42,float:1,quiet:1,a:()=>false};
+  }
+  SPR.droppad=toTex(draw(g=>{
+    g.fillStyle='#1a1a18';g.fillRect(8,8,48,48);
+    g.strokeStyle='#FFD400';g.lineWidth=3;g.strokeRect(12,12,40,40);
+    g.fillStyle='#00f0ff';g.font='bold 9px monospace';g.fillText('DROP',18,30);
+    g.fillStyle='#FFD400';g.fillText('CHUTE',16,44);
+  }));
+  ENEMIES.watcher={n:'STILL-FRAME',spr:'watcher',ai:'watcher',hp:9999,spd:3.4,dmg:22,r:.36,s:.95,bob:0,bones:0,score:0,gib:['#c8d0d8','#00f0ff','#fff'],bark:['DON\'T BLINK','STILL...','FROZEN FRAME']};
+  ENEMIES.listener={n:'STATIC HOUND',spr:'listener',ai:'listener',hp:180,spd:2.8,dmg:16,r:.38,s:.8,bob:.1,bones:0,score:20,gib:['#2a2018','#00f0ff','#cbbcd9'],bark:['I HEAR YOU','STATIC—','FOOTSTEPS']};
+  AI.watcher=function(e,dt,d,dx,dy,sees,dm){
+    e.frozen=lookingAt(e);
+    if(e.frozen){e.awake=true;e.cd=.2;return}
+    e.awake=true;
+    stepToward(e,P.x,P.y,e.spd,dt);
+    if(d<.7&&e.cd<=0){hurt(e.D.dmg*(dm||1),'melee');e.cd=.9;pop(e.x,e.y,'GOTCHA','#c8d0d8')}
+  };
+  AI.listener=function(e,dt,d,dx,dy,sees,dm){
+    const heard=noiseLv>0.18&&Math.hypot((e.hxS||e.x)-e.x,(e.hyS||e.y)-e.y)<(5+noiseLv*14);
+    // last sound is stored on the enemy when we tick salvage; fallback to global
+    const tx=e.sx!=null?e.sx:noiseX, ty=e.sy!=null?e.sy:noiseY;
+    const hearNow=noiseLv>0.18&&Math.hypot(e.x-noiseX,e.y-noiseY)<(5+noiseLv*14);
+    if(hearNow){e.sx=noiseX;e.sy=noiseY;e.hunt=2.4;e.awake=true}
+    e.hunt=(e.hunt||0)-dt;
+    if(e.hunt>0&&e.sx!=null){
+      stepToward(e,e.sx,e.sy,e.spd*(noiseLv>0.7?1.15:.85),dt);
+    }else{
+      // idle sniff
+      const ix=e.hx+Math.cos(e.ph*.11)*.35,iy=e.hy+Math.sin(e.ph*.09)*.35;
+      tryMove(e,e.x+(ix-e.x)*dt*.6,e.y+(iy-e.y)*dt*.6,.3);
+    }
+    if(d<.7&&e.cd<=0&&(e.hunt>0||hearNow)){hurt(e.D.dmg*(dm||1),'melee');e.cd=.85;pop(e.x,e.y,'SNARL','#c8862a')}
+  };
+}
+
+function resetWorld(){
+  ents=[];pickups=[];projs=[];parts=[];pops=[];fx=[];hazards=[];props=[];pprojs=[];lights=[];
+  secretSet=new Set();hintSaid=new Set();boss=null;secretAt=-1;cursedAt=-1;insiderAt=-1;exitOpen=false;
+}
+
+function buildSalvageFloor(){
+  bakeStalkers();
+  resetWorld();
+  carry=[];deposited=0;left=SHIFT_T;lampOn=true;battery=BAT_MAX;ended=false;
+  noiseLv=0;radioT=0;radioLine='RADIO: SHIFT IS LIVE';
+  theme={id:'office',n:'GLITCHED DEPOT',sky:[6,6,10],gnd:[10,10,12],line:[40,80,90],walls:['fa_metal','of_panel','caution','fa_brick','of_brick'],weights:{},props:{},flick:.4,amb:'hum',motes:'#00f0ff'};
+  const h=DEPOT.length,w=DEPOT[0].length,g=new Uint8Array(w*h);
+  let start=0,ex=-1,marks={};
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+    const c=DEPOT[y][x],i=y*w+x;
+    if(c==='#')g[i]=1;
+    else{
+      g[i]=0;
+      if(c==='@')start=i;
+      else if(c==='X'){ex=i;g[i]=1}
+      else if(c!=='.'&&c!==' ')(marks[c]=marks[c]||[]).push(i);
+    }
+  }
+  MW=w;MH=h;MHP=h;map=new Int8Array(w*h);seen=new Uint8Array(w*h);
+  buildBg(theme);
+  try{
+    setupLook(run.floor||1,null,null,w);
+    CUR.L={sub:'SALVAGE SHIFT',floor:'grate',ceil:'pipes',mode:0,sky:null,tint:[.85,.9,1.05]};
+    CUR.mode=0;CUR.floor=lutFor('f','grate');CUR.ceil=lutFor('c','pipes');CUR.sky=null;CUR.stats={};
+    applyTint(CUR.L.tint);
+  }catch(err){}
+  const metal=TILE.fa_metal||TILE.of_panel||1, panel=TILE.of_panel||TILE.caution||7;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+    const i=y*w+x;if(!g[i]&&DEPOT[y][x]!=='X'){map[i]=0;continue}
+    if(x>=15&&y>=16)map[i]=panel;
+    else map[i]=mixWall(x,y)||metal;
+  }
+  exitAt=ex;map[ex]=8;exitOpen=false;
+  P.x=start%w+.5;P.y=((start/w)|0)+.5;P.a=0;P.cd=0;P.flash=0;P.freedT=0;P.hurtT=0;P.calm=0;
+  // drop-off
+  const di=(marks['D']||[])[0];
+  drop=di!=null?{x:di%w+.5,y:((di/w)|0)+.5,i:di}:{x:18.5,y:18.5,i:-1};
+  addProp('bonepile',drop.x,drop.y,{salvage:'drop',r:.2,spr:'droppad',s:.7});
+  for(const q of props)if(q.salvage==='drop'){q.D={spr:'droppad',s:.7};q.s=.7}
+  // scrap
+  const kinds=SCRAPS.slice();
+  (marks['s']||[]).forEach((i,n)=>{
+    const S=kinds[n%kinds.length];
+    pickups.push({t:'scrap_'+S.id,x:i%w+.5,y:((i/w)|0)+.5,scrap:S});
+  });
+  // stalkers — not elites
+  if(marks['e'])for(const i of marks['e']){
+    const e=spawnEnemy('watcher',i%w+.5,((i/w)|0)+.5,{awake:false,elite:false});
+    e.stalker='watcher';e.hp=9999;e.max=9999;e.tex=SPR.watcher?undefined:e.tex;
+  }
+  if(marks['h'])for(const i of marks['h']){
+    const e=spawnEnemy('listener',i%w+.5,((i/w)|0)+.5,{awake:false,elite:false});
+    e.stalker='listener';e.elite=null;
+  }
+  // dim emergency lights near spawn + bay; mid facility stays dark
+  const lites=[[2.5,2.5],[6.5,2.5],[drop.x,drop.y],[18.5,15.5]];
+  for(const[x,y] of lites){
+    if(!solid(x,y))lights.push({x,y,r:180,g:40,b:30,R:3.2,I:80,ph:Math.random()*6,emerg:1});
+  }
+  flashL={x:P.x,y:P.y,r:255,g:230,b:170,R:6.8,I:230,ph:0,flash:1};
+  fillL={x:P.x,y:P.y,r:200,g:200,b:180,R:1.6,I:70,ph:0,fill:1};
+  lights.push(flashL,fillL);
+  FL={fog:4.2,baseFog:4.2,dmgTaken:1};
+  stats={kills:0,total:ents.filter(e=>e.hp>0).length,secret:0,glitch:.4,rooms:['depot'],secretsTotal:0};
+  run.salvage={quota:QUOTA,time:SHIFT_T};
+  document.body.classList.add('salvage');
+  msg('SALVAGE SHIFT — QUOTA '+QUOTA+'  ·  HAUL SCRAP TO THE DROP CHUTE');
+}
+
+function toggleLamp(){
+  if(!isSalvage()||state!=='play')return;
+  if(!lampOn&&battery<=0){msg('FLASHLIGHT DEAD — WAIT, OR RECHARGE AT THE BAY');SFX.empty&&SFX.empty();return}
+  lampOn=!lampOn;msg(lampOn?'FLASHLIGHT ON':'FLASHLIGHT OFF');SFX.pick&&SFX.pick();
+}
+
+function pingRadio(){
+  if(!isSalvage()||state!=='play')return;
+  emitSound(.75,P.x,P.y);
+  radioLine='QUOTA '+(quotaMet()?'MET':' '+deposited+'/'+QUOTA)+'  ·  '+fmtTime(left);
+  msg('RADIO: '+radioLine);
+  SFX.zap&&SFX.zap();noise(.12,.08,1800);
+  radioT=.8;
+}
+
+function fmtTime(t){t=Math.max(0,t|0);return ((t/60)|0)+':'+(t%60<10?'0':'')+(t%60)}
+
+function tryPickScrap(){
+  let best=null,bd=1.15;
+  for(const p of pickups){
+    if(!p.scrap||p.dead)continue;
+    const d=Math.hypot(p.x-P.x,p.y-P.y);if(d<bd){bd=d;best=p}
+  }
+  if(!best)return false;
+  if(carry.length>=CARRY_MAX){msg('HANDS FULL — DROP AT THE CHUTE FIRST');return true}
+  carry.push(best.scrap);
+  best.dead=1;pickups=pickups.filter(q=>q!==best);
+  msg('PICKED UP '+best.scrap.n+'  +'+best.scrap.val+'  (CARRY '+carriedVal()+')');
+  SFX.pick&&SFX.pick();pop(P.x,P.y,best.scrap.n,'#FFD400');
+  emitSound(.35,P.x,P.y);
+  return true;
+}
+
+function tryDeposit(){
+  if(!drop||Math.hypot(P.x-drop.x,P.y-drop.y)>1.25)return false;
+  if(!carry.length){msg('NOTHING TO DROP');return true}
+  const add=carriedVal();deposited+=add;carry=[];
+  msg('DEPOSITED +'+add+'  ·  QUOTA '+deposited+'/'+QUOTA);
+  SFX.buy&&SFX.buy();flash('#FFD400',.12);pop(drop.x,drop.y,'+'+add,'#FFD400');
+  battery=Math.min(BAT_MAX,battery+25);
+  if(quotaMet()&&!exitOpen){
+    exitOpen=true;map[exitAt]=9;if(seen)seen[exitAt]=1;
+    msg('QUOTA MET — THE BAY DOOR IS OPEN');
+    SFX.win&&SFX.win();flash('#00f0ff',.2);
+  }
+  return true;
+}
+
+function endShift(ok,line){
+  if(ended)return;ended=true;
+  run.won=!!ok;
+  if(ok){
+    state='victory';SFX.win&&SFX.win();
+    const r=(typeof recordRun==='function')?recordRun():{sc:deposited};
+    const box=$('victory'),h=box&&box.querySelector('h1');
+    if(h){h.setAttribute('data-old',h.innerHTML);h.innerHTML='QUOTA<br>MET<small>SHIFT COMPLETE · THE BAY IS LIT</small>'}
+    if($('vs'))$('vs').innerHTML=(line||'YOU HAULED '+deposited+' IN SALVAGE. NO CO-OP. JUST YOU AND THE STATIC.')+'<br>'+(typeof summary==='function'?summary(r):'');
+    if($('vcont'))$('vcont').style.display='none';
+    show('victory');
+  }else{
+    state='dead';SFX.curse&&SFX.curse();
+    const box=$('dead'),h=box&&box.querySelector('h1');
+    if(h){h.setAttribute('data-old',h.innerHTML);h.innerHTML='SHIFT<br>OVER<small>QUOTA MISSED</small>'}
+    if($('dline')){ $('dline').setAttribute('data-old',$('dline').textContent);$('dline').textContent=line||'THE CLOCK HIT ZERO. THE CHUTE IS STILL HUNGRY.';}
+    if($('ds'))$('ds').textContent='DEPOSITED '+deposited+' / '+QUOTA+'  ·  CARRIED '+carriedVal();
+    show('dead');
+  }
+  document.body.classList.remove('salvage');
+}
+
+function restoreOverlays(){
+  const hv=$('victory')&&$('victory').querySelector('h1');
+  if(hv&&hv.getAttribute('data-old')){hv.innerHTML=hv.getAttribute('data-old');hv.removeAttribute('data-old')}
+  const hd=$('dead')&&$('dead').querySelector('h1');
+  if(hd&&hd.getAttribute('data-old')){hd.innerHTML=hd.getAttribute('data-old');hd.removeAttribute('data-old')}
+  if($('dline')&&$('dline').getAttribute('data-old')){$('dline').textContent=$('dline').getAttribute('data-old');$('dline').removeAttribute('data-old')}
+}
+
+// ----- hooks -----
+bakeStalkers();
+
+const _bf012=buildFloor;
+buildFloor=function(){
+  if(isSalvage()){buildSalvageFloor();return}
+  document.body.classList.remove('salvage');
+  _bf012();
+};
+
+const _use012=use;
+use=function(){
+  if(isSalvage()){
+    if(tryDeposit())return;
+    if(tryPickScrap())return;
+    const r=ray(P.x,P.y,Math.cos(P.a),Math.sin(P.a));
+    if(r.i===exitAt){if(exitOpen)nextFloor();else msg(quotaMet()?'THE DOOR IS OPEN — GET CLOSER':'QUOTA NOT MET — DROP SCRAP AT THE CHUTE');return}
+  }
+  _use012();
+};
+
+const _nf012=nextFloor;
+nextFloor=function(){
+  if(isSalvage()){
+    if(quotaMet()&&exitOpen)endShift(true,'QUOTA '+deposited+' / '+QUOTA+'  ·  TIME LEFT '+fmtTime(left));
+    else msg('QUOTA NOT MET — HAUL MORE SCRAP TO THE DROP CHUTE');
+    return;
+  }
+  _nf012();
+};
+
+const _fire012=fire;
+fire=function(){
+  const r=_fire012.apply(this,arguments);
+  if(isSalvage()&&state==='play')emitSound(1.15,P.x,P.y);
+  return r;
+};
+
+const _dmg012=damage;
+damage=function(e,amt,o){
+  if(e&&e.t==='watcher'){pop(e.x,e.y,"DON'T BLINK",'#c8d0d8');return}
+  return _dmg012(e,amt,o);
+};
+
+const _upd012=update;
+update=function(dt){
+  if(isSalvage()&&state==='play'&&!ended){
+    // movement noise before the shared update (fire also emits)
+    const sprint=!!(typeof K!=='undefined'&&K.shift);
+    if(P.moving)emitSound(sprint?.8:.32,P.x,P.y);
+    if(carry.length&&P.spd){/* applied below via slow */}
+  }
+  _upd012(dt);
+  if(!isSalvage()||state!=='play'||ended)return;
+  // carry encumbrance
+  if(carriedW()>=3)P.slowT=Math.max(P.slowT||0,0.05);
+  // timer
+  left-=dt;
+  if(left<=0){
+    left=0;
+    if(quotaMet()){if(!exitOpen){exitOpen=true;map[exitAt]=9;if(seen)seen[exitAt]=1}msg('SHIFT OVER — GET TO THE BAY!')}
+    else{endShift(false,'THE CLOCK HIT ZERO. QUOTA WAS '+deposited+' / '+QUOTA+'.');return}
+  }
+  // battery / flashlight
+  const atBay=drop&&Math.hypot(P.x-drop.x,P.y-drop.y)<1.6;
+  if(atBay)battery=Math.min(BAT_MAX,battery+22*dt);
+  else if(lampOn){battery=Math.max(0,battery-(8*dt));if(battery<=0){lampOn=false;msg('FLASHLIGHT DIED');SFX.empty&&SFX.empty()}}
+  else battery=Math.min(BAT_MAX,battery+6*dt);
+  if(flashL){
+    flashL.x=P.x+Math.cos(P.a)*.55;flashL.y=P.y+Math.sin(P.a)*.55;
+    const on=lampOn&&battery>0;
+    flashL.I=on?230:0;flashL.R=on?6.8:.2;
+  }
+  if(fillL){fillL.x=P.x;fillL.y=P.y;fillL.I=lampOn&&battery>0?80:36}
+  // radio crackle
+  radioT-=dt;
+  if(radioT<=0){
+    radioT=3.5+Math.random()*4;
+    if(Math.random()<.6){noise(.08,.04,2200);radioLine=['— ksssh —','BAY TO CREW: MIND THE STATIC','QUOTA '+deposited+'/'+QUOTA,'...ANYBODY?','SHIFT CLOCK '+fmtTime(left)][(Math.random()*5)|0]}
+  }
+  // decay sound
+  noiseLv=Math.max(0,noiseLv-dt*1.15);
+};
+
+const _ren012=render;
+render=function(t,rdt){
+  _ren012(t,rdt);
+  if(!isSalvage()||state!=='play')return;
+  // drop-off sign
+  if(drop){
+    const dX=Math.cos(P.a),dY=Math.sin(P.a),pX=-dY*PL,pY=dX*PL,inv=1/(pX*dY-dX*pY);
+    const[tx,ty]=proj3(drop.x,drop.y,dX,dY,pX,pY,inv);
+    if(ty>.4){
+      const sx=(W/2)*(1+tx/ty),sy=H/2-(.7)/ty*(H/2);
+      if(sx>0&&sx<W&&sy>0){
+        ctx.globalAlpha=.9;ctx.fillStyle='#000';ctx.fillRect(sx-32,sy-8,64,10);
+        ctx.fillStyle='#FFD400';ctx.font='7px monospace';ctx.textAlign='center';
+        ctx.fillText('SALVAGE BAY',sx,sy);ctx.textAlign='left';ctx.globalAlpha=1;
+      }
+    }
+  }
+  // HUD: quota / timer / carry / lamp / radio
+  const ox=4,oy=(FL&&FL.curse?22:8),bw=156,bh=52;
+  ctx.fillStyle='rgba(0,0,0,.78)';ctx.fillRect(ox,oy,bw,bh);
+  ctx.strokeStyle=quotaMet()?'#00f0ff':'#FFD400';ctx.lineWidth=1;ctx.strokeRect(ox,oy,bw,bh);
+  ctx.font='bold 7px monospace';ctx.fillStyle='#FFD400';
+  ctx.fillText('SALVAGE SHIFT  '+fmtTime(left),ox+4,oy+9);
+  ctx.font='6px monospace';ctx.fillStyle=quotaMet()?'#00f0ff':'#fff';
+  ctx.fillText('QUOTA  '+deposited+' / '+QUOTA+(quotaMet()?'  MET':''),ox+4,oy+19);
+  const bag=carry.length?carry.map(s=>s.n.split(' ')[0]).join(', '):'— EMPTY —';
+  ctx.fillStyle='#e3b303';ctx.fillText('CARRY '+carriedVal()+'  '+bag,ox+4,oy+28);
+  const on=lampOn&&battery>0;
+  ctx.fillStyle=on?'#fff7d0':'#888';
+  ctx.fillText((on?'LIGHT ON ':'LIGHT OFF')+'  BAT '+(battery|0)+'%',ox+4,oy+37);
+  ctx.fillStyle='#8ad0d8';
+  const staticBits=(Math.sin((t||0)*.02)>.4?'ksshh ':'')+radioLine;
+  ctx.fillText(('RADIO: '+staticBits).slice(0,28),ox+4,oy+46);
+  // radio static bars
+  if(radioT>2.8||(t|0)%7===0){
+    ctx.globalAlpha=.25;ctx.fillStyle='#c8d0d8';
+    for(let i=0;i<6;i++)ctx.fillRect(ox+bw-8,oy+6+i*7,3,2+(Math.random()*4));
+    ctx.globalAlpha=1;
+  }
+};
+
+const _show012=typeof show==='function'?show:null;
+if(_show012){
+  show=function(id){
+    if(id==='title'||id==='pause'||!id){
+      restoreOverlays();
+      if(id==='title')document.body.classList.remove('salvage');
+    }
+    _show012(id);
+    document.body.classList.toggle('salvage',isSalvage()&&state==='play');
+  };
+}
+
+const _fm012=floorMsg;
+floorMsg=function(){
+  if(isSalvage()){msg('SALVAGE SHIFT // GLITCHED DEPOT // QUOTA '+QUOTA+'  ·  '+fmtTime(left));return}
+  _fm012();
+};
+
+addEventListener('keydown',e=>{
+  if(state!=='play'||!isSalvage())return;
+  const k=e.key.toLowerCase();
+  if(k==='l'){e.preventDefault();toggleLamp()}
+  if(k==='r'){e.preventDefault();pingRadio()}
+});
+(function bindTouchSalvage(){
+  const bind=(id,fn)=>{
+    const b=$(id);if(!b)return;
+    const down=ev=>{ev.preventDefault();ev.stopPropagation();fn();b.classList.add('down')};
+    const up=()=>b.classList.remove('down');
+    b.addEventListener('pointerdown',down);b.addEventListener('pointerup',up);
+    b.addEventListener('pointercancel',up);b.addEventListener('pointerleave',up);
+  };
+  bind('bLight',toggleLamp);bind('bRadio',pingRadio);
+})();
+
+function salvageInfo(){
+  return {
+    on:isSalvage(),quota:QUOTA,deposited,left,carry:carry.map(s=>({id:s.id,n:s.n,val:s.val})),
+    lampOn,battery,exitOpen,drop,mw:MW,mh:MH,noise:noiseLv,
+    watchers:ents.filter(e=>e.t==='watcher'&&e.hp>0).map(e=>({x:e.x,y:e.y,frozen:!!e.frozen,awake:!!e.awake})),
+    listeners:ents.filter(e=>e.t==='listener'&&e.hp>0).map(e=>({x:e.x,y:e.y,hunt:e.hunt||0,sx:e.sx,sy:e.sy})),
+    scraps:pickups.filter(p=>p.scrap).map(p=>({t:p.t,x:p.x,y:p.y,val:p.scrap.val,id:p.scrap.id})),
+    radio:radioLine,ended,quotaMet:quotaMet(),carriedVal:carriedVal()
+  };
+}
+
+TT.salvageVer='0.12.0';
+TT.salvage=salvageInfo;
+TT.startSalvage=function(){if(typeof start==='function')start('salvage')};
+TT.toggleLamp=toggleLamp;
+TT.pingRadio=pingRadio;
+TT.emitSound=emitSound;
+TT.depositAll=tryDeposit;
+TT.pickScrap=tryPickScrap;
+TT.setSalvage=function(o){
+  if(o.left!=null)left=o.left;
+  if(o.deposited!=null)deposited=o.deposited;
+  if(o.battery!=null)battery=o.battery;
+  if(o.lampOn!=null)lampOn=!!o.lampOn;
+  if(o.carry)carry=o.carry.slice();
+  if(o.open&&quotaMet()){exitOpen=true;map[exitAt]=9}
+};
 })();
 
 // v0.11.1 — first-person viewmodels (foreshortened, from behind/slightly
