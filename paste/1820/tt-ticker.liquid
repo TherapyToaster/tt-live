@@ -1,0 +1,279 @@
+{% comment %}
+  TT ticker — seamless CSS marquee for the Horizon header group.
+  Install as sections/tt-ticker.liquid, then merge paste/1820/header-group.json
+  so the ticker sits above the header and header_announcements_9jGBFp is
+  left in place with "disabled": true.
+  Do not install on the live theme until Coty approves.
+  Official store name stays "Mr. Toasty's Shop" (checkout, Apple Pay, emails).
+  This bar is the visible logo ticker only.
+{% endcomment %}
+
+{%- liquid
+  assign tt_phrase = section.settings.text | strip
+  if tt_phrase == blank
+    assign tt_phrase = "〽️®️Ƭᴏᴀ𝙎ᴛʏ🎭 Shop"
+  endif
+  assign tt_sep = section.settings.separator | strip
+  if tt_sep == blank
+    assign tt_sep = "☠"
+  endif
+  assign tt_speed = section.settings.speed | default: 20
+-%}
+
+{% style %}
+  #shopify-section-{{ section.id }} {
+    --tt-ticker-speed: {{ tt_speed }}s;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+{% endstyle %}
+
+<aside
+  class="tt-ticker"
+  aria-label="{{ tt_phrase | escape }}"
+>
+  <div class="tt-ticker__tape">
+    <div class="tt-ticker__inner">
+      <p class="tt-ticker__static">{{ tt_phrase | escape }}</p>
+      <div class="tt-ticker__viewport">
+        <div class="tt-ticker__track">
+          {% for tt_copy in (1..2) %}
+            <div
+              class="tt-ticker__group"
+              {% if tt_copy == 2 %}aria-hidden="true"{% endif %}
+            >
+              {% for i in (1..8) %}
+                <span class="tt-ticker__item">{{ tt_phrase | escape }}</span>
+                <span class="tt-ticker__sep" aria-hidden="true">{{ tt_sep | escape }}</span>
+              {% endfor %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+{% stylesheet %}
+  .tt-ticker {
+    --tt-ticker-yellow: #FFD400;
+    --tt-ticker-black: #000000;
+    --tt-ticker-gap: clamp(1.1rem, 2.4vw, 1.85rem);
+    --tt-ticker-speed: 20s;
+    --tt-ticker-stripe: 62.23px;
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background: var(--tt-ticker-black);
+    color: var(--tt-ticker-yellow);
+    overflow: hidden;
+  }
+
+  .tt-ticker__tape {
+    background: repeating-linear-gradient(
+      -45deg,
+      #FFD400 0 22px,
+      #000 22px 44px
+    );
+    background-size: var(--tt-ticker-stripe) var(--tt-ticker-stripe);
+    animation: tt-ticker-stripes 1.2s linear infinite;
+    padding: 8px 0;
+  }
+
+  .tt-ticker__inner {
+    background: var(--tt-ticker-black);
+    border-top: 3px solid var(--tt-ticker-yellow);
+    border-bottom: 3px solid var(--tt-ticker-yellow);
+    overflow: hidden;
+  }
+
+  .tt-ticker__viewport {
+    overflow: hidden;
+    width: 100%;
+  }
+
+  .tt-ticker__track {
+    display: flex;
+    width: max-content;
+    will-change: transform;
+    animation: tt-ticker-scroll var(--tt-ticker-speed) linear infinite;
+  }
+
+  .tt-ticker__group {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: var(--tt-ticker-gap);
+    padding-inline-end: var(--tt-ticker-gap);
+  }
+
+  .tt-ticker__item,
+  .tt-ticker__sep,
+  .tt-ticker__static {
+    font-family:
+      "Space Mono",
+      "Noto Sans Math",
+      "STIX Two Math",
+      "Cambria Math",
+      "Noto Sans",
+      "DejaVu Sans",
+      ui-sans-serif,
+      sans-serif,
+      "Apple Color Emoji",
+      "Segoe UI Emoji",
+      "Noto Color Emoji";
+    font-weight: 700;
+    font-size: clamp(0.95rem, 2.7vw, 1.35rem);
+    line-height: 1.25;
+    letter-spacing: 0.04em;
+    color: var(--tt-ticker-yellow);
+    text-shadow: 0 0 10px rgba(255, 212, 0, 0.7);
+    white-space: nowrap;
+    text-transform: none;
+  }
+
+  .tt-ticker__item {
+    animation: tt-ticker-glitch 7.5s steps(1, end) infinite;
+  }
+
+  .tt-ticker__sep {
+    font-size: clamp(0.8rem, 2.2vw, 1.1rem);
+    opacity: 0.92;
+    text-shadow: 0 0 8px rgba(255, 212, 0, 0.55);
+  }
+
+  .tt-ticker__static {
+    display: none;
+    margin: 0;
+    padding: 0.45rem 1rem;
+    text-align: center;
+  }
+
+  @keyframes tt-ticker-stripes {
+    from { background-position: 0 0; }
+    to { background-position: var(--tt-ticker-stripe) 0; }
+  }
+
+  @keyframes tt-ticker-scroll {
+    from { transform: translate3d(0, 0, 0); }
+    to { transform: translate3d(-50%, 0, 0); }
+  }
+
+  /* Subtle RGB-slice flicker, sparse so the logo stays readable. */
+  @keyframes tt-ticker-glitch {
+    0%,
+    86%,
+    100% {
+      text-shadow: 0 0 10px rgba(255, 212, 0, 0.7);
+      transform: none;
+      clip-path: none;
+      opacity: 1;
+    }
+    87% {
+      text-shadow: -3px 0 #00edff, 3px 0 #ff37cf, 0 0 10px #FFD400;
+      transform: translateX(2px) skewX(-6deg);
+      clip-path: inset(0 0 48% 0);
+    }
+    88.5% {
+      text-shadow: 4px 0 #00edff, -4px 0 #ff37cf;
+      transform: translateX(-3px) skewX(5deg);
+      clip-path: inset(42% 0 0 0);
+    }
+    90% {
+      text-shadow: -5px 0 #00edff, 5px 0 #ff37cf, 0 0 12px #FFD400;
+      transform: translateX(1px) scaleY(1.08);
+      clip-path: inset(18% 0 22% 0);
+      opacity: 0.92;
+    }
+    91.5% {
+      text-shadow: 0 0 10px rgba(255, 212, 0, 0.7);
+      transform: none;
+      clip-path: none;
+      opacity: 1;
+    }
+  }
+
+  @media (max-width: 749px) {
+    .tt-ticker__tape {
+      padding: 6px 0;
+    }
+
+    .tt-ticker__item,
+    .tt-ticker__static {
+      font-size: clamp(0.85rem, 4.2vw, 1.1rem);
+    }
+
+    .tt-ticker__inner {
+      border-top-width: 2px;
+      border-bottom-width: 2px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tt-ticker__tape,
+    .tt-ticker__track,
+    .tt-ticker__item {
+      animation: none !important;
+    }
+
+    .tt-ticker__item,
+    .tt-ticker__sep,
+    .tt-ticker__static {
+      text-shadow: none;
+      transform: none;
+      clip-path: none;
+    }
+
+    .tt-ticker__viewport {
+      display: none;
+    }
+
+    .tt-ticker__static {
+      display: block;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Toasty ticker",
+  "tag": "section",
+  "class": "tt-ticker-section",
+  "enabled_on": {
+    "groups": ["header"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "text",
+      "label": "Ticker text",
+      "default": "〽️®️Ƭᴏᴀ𝙎ᴛʏ🎭 Shop",
+      "info": "Visible logo text. Official store name stays Mr. Toasty's Shop."
+    },
+    {
+      "type": "text",
+      "id": "separator",
+      "label": "Separator",
+      "default": "☠",
+      "info": "Repeated between each copy of the ticker text. A skull or bullet works well."
+    },
+    {
+      "type": "range",
+      "id": "speed",
+      "label": "Scroll duration",
+      "min": 8,
+      "max": 40,
+      "step": 1,
+      "unit": "s",
+      "default": 20,
+      "info": "Seconds for one full loop. Higher is slower."
+    }
+  ],
+  "presets": [
+    {
+      "name": "Toasty ticker"
+    }
+  ]
+}
+{% endschema %}
