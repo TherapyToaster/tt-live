@@ -1,0 +1,4 @@
+<!-- TT header tap-to-play OFF v1: non-home pages keep a plain header title (no tap to play clip). Home keeps its header video. -->
+<style id="tt-hca-off">body:not(.homepage) .tt-hca-hint{display:none!important}body:not(.homepage) .header-title-text,body:not(.homepage) .header-title-logo,body:not(.homepage) .header-title-text a,body:not(.homepage) .header-title-logo a{cursor:pointer!important}</style>
+<script>(function(){window.addEventListener('click',function(e){var b=document.body;if(!b||b.classList.contains('homepage'))return;var t=e.target&&e.target.closest&&e.target.closest('.header-title-text,.header-title-logo');if(t&&t.closest('header'))e.stopPropagation();},true);})();</script>
+<!-- /TT header tap-to-play OFF v1 -->
