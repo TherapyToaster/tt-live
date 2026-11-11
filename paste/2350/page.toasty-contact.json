@@ -1,0 +1,11 @@
+{
+  "sections": {
+    "toasty_contact": {
+      "type": "toasty-contact-hero",
+      "settings": {}
+    }
+  },
+  "order": [
+    "toasty_contact"
+  ]
+}
