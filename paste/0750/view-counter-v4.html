@@ -1,0 +1,195 @@
+<!-- ===== Therapy Toaster view counter v4 (sitewide footer injection; HOME UI = site visits + skull; always show with last-known fallback) ===== -->
+<!-- Backend: Abacus (abacus.jasoncameron.dev) - free, no account, CORS *. Flaky Fly.io cold starts: retry + localStorage. -->
+<style>
+#tt-vc{display:none;box-sizing:border-box;width:100%;padding:18px 12px 22px;background:#05070d;text-align:center;
+  font-family:"Courier New",Courier,monospace;color:#FFD400;line-height:1;position:relative;z-index:1;clear:both}
+#tt-vc.tt-vc-on{display:block}
+#tt-vc *{box-sizing:border-box}
+#tt-vc .tt-vc-in{display:inline-flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px 16px;
+  padding:10px 16px;border:1px solid rgba(255,212,0,.45);background:linear-gradient(#0a0e1a,#05070d);
+  box-shadow:0 0 0 1px #000,0 0 14px rgba(255,212,0,.12),inset 0 0 12px rgba(0,0,0,.8);max-width:100%}
+#tt-vc .tt-vc-grp{display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+#tt-vc .tt-vc-lbl{font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+  text-shadow:-1px 0 rgba(255,40,60,.85),1px 0 rgba(0,220,255,.7)}
+#tt-vc .tt-vc-odo{display:inline-flex;gap:2px;padding:2px;background:#000;border:1px solid #2a2410}
+#tt-vc .tt-vc-d{position:relative;display:inline-block;width:17px;height:24px;overflow:hidden;
+  background:linear-gradient(#000 0%,#15130a 48%,#000 50%,#15130a 52%,#000 100%);
+  border:1px solid #3a3215;border-radius:2px}
+#tt-vc .tt-vc-d::after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(0,0,0,.85)}
+#tt-vc .tt-vc-strip{display:block;transform:translateY(0);transition:transform 1.1s cubic-bezier(.2,.8,.2,1)}
+#tt-vc .tt-vc-strip span{display:block;height:22px;line-height:22px;font-size:17px;font-weight:700;text-align:center;
+  color:#FFD400;text-shadow:-1px 0 rgba(255,40,60,.75),1px 0 rgba(0,220,255,.6),0 0 6px rgba(255,212,0,.45)}
+#tt-vc.tt-vc-glitch .tt-vc-in{animation:tt-vc-gl .28s steps(2,end) 1}
+@keyframes tt-vc-gl{0%{transform:translate(0)}25%{transform:translate(-2px,0) skewX(-4deg)}
+  50%{transform:translate(2px,-1px)}75%{transform:translate(-1px,1px) skewX(3deg)}100%{transform:translate(0)}}
+#tt-vc .tt-vc-sk{position:relative;display:inline-block;width:52px;height:68px;flex:0 0 auto;
+  animation:tt-vc-bob 2.8s ease-in-out infinite}
+#tt-vc .tt-vc-sk img{display:block;width:100%;height:100%;object-fit:contain;position:relative;z-index:1;pointer-events:none}
+@keyframes tt-vc-bob{
+  0%,100%{transform:translateY(0) scaleY(1)}
+  50%{transform:translateY(3px) scaleY(1.045)}
+}
+@keyframes tt-vc-jitter{
+  0%,100%{transform:translate(0,0) scaleY(1)}
+  20%{transform:translate(-2px,1px) skewX(-3deg) scaleY(1.02)}
+  45%{transform:translate(2px,-1px) skewX(2deg)}
+  70%{transform:translate(-1px,1px) scaleY(1.04)}
+}
+#tt-vc.tt-vc-glitch .tt-vc-sk{animation:tt-vc-bob 2.8s ease-in-out infinite, tt-vc-jitter .28s steps(2,end) 1}
+#tt-vc.tt-vc-glitch .tt-vc-sk img{filter:drop-shadow(-2px 0 #e00018) drop-shadow(2px 0 #00e5ff)}
+@media (max-width:480px){#tt-vc{padding:16px 8px 20px}#tt-vc .tt-vc-in{gap:8px;padding:8px 10px}
+  #tt-vc .tt-vc-d{width:15px;height:22px}#tt-vc .tt-vc-strip span{height:20px;line-height:20px;font-size:15px}
+  #tt-vc .tt-vc-lbl{font-size:10px;letter-spacing:.12em}
+  #tt-vc .tt-vc-sk{width:44px;height:58px}}
+@media (prefers-reduced-motion:reduce){
+  #tt-vc .tt-vc-strip{transition:none}
+  #tt-vc.tt-vc-glitch .tt-vc-in{animation:none}
+  #tt-vc .tt-vc-sk,#tt-vc.tt-vc-glitch .tt-vc-sk{animation:none}
+  #tt-vc.tt-vc-glitch .tt-vc-sk img{filter:none}
+}
+</style>
+<script>
+(function(){
+  if (window.__ttViewCounter) return; window.__ttViewCounter = 1;
+  var SK1 = "https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@0b5d02b79e673fe85af9601059ee6894c151b548/paste/0750/tt-vc-skull.png";
+  var SK2 = "https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@0b5d02b79e673fe85af9601059ee6894c151b548/paste/0750/tt-vc-skull-2x.png";
+  var CFG = {
+    base: "https://abacus.jasoncameron.dev",
+    ns: "therapytoaster",
+    prefix: "",          /* "" = production keys, "test-" = test keys */
+    siteKey: "site-total",
+    minDigits: 6,
+    timeoutMs: 8000,
+    skipAutomation: true, /* don't count headless browsers / bots that self-identify */
+    countOtherPages: true, /* off-home: still count the site total silently (no UI) */
+    fallback: 1877,        /* last confirmed live Abacus value on 2026-11-11 */
+    storeKey: "ttvc:last-site-total"
+  };
+
+  var p = (location.pathname || "/").split("?")[0].split("#")[0].toLowerCase();
+  try { p = decodeURIComponent(p); } catch(e) {}
+  p = p.replace(/\/+/g, "/").replace(/\/$/, "");
+  if (p === "" || p === "/home" || p === "/index" || p === "/index.html") p = "/";
+  var isHome = p === "/" || !!(document.body && document.body.classList.contains("homepage"));
+  var siteKey = (CFG.prefix + CFG.siteKey).slice(0, 64);
+
+  var inEditor = false;
+  try { inEditor = window.self !== window.top; } catch(e) { inEditor = true; }
+  var isBot = CFG.skipAutomation && (navigator.webdriver || /bot|crawl|spider|slurp|preview|lighthouse/i.test(navigator.userAgent || ""));
+  var seenKey = "ttvc:seen-site", seen = false;
+  try { seen = !!sessionStorage.getItem(seenKey); } catch(e) {}
+  var doHit = !inEditor && !isBot && !seen;
+  if (!isHome && !(CFG.countOtherPages && doHit)) return;
+
+  function readCache(){
+    try {
+      var n = parseInt(localStorage.getItem(CFG.storeKey), 10);
+      if (isFinite(n) && n >= 0) return Math.floor(n);
+    } catch(e) {}
+    return CFG.fallback;
+  }
+  function writeCache(n){
+    try { localStorage.setItem(CFG.storeKey, String(n)); } catch(e) {}
+  }
+
+  function req(op, key){
+    var url = CFG.base + "/" + op + "/" + CFG.ns + "/" + key;
+    var ctl = window.AbortController ? new AbortController() : null;
+    var t = setTimeout(function(){ if (ctl) ctl.abort(); }, CFG.timeoutMs);
+    return fetch(url, { mode: "cors", cache: "no-store", credentials: "omit", signal: ctl ? ctl.signal : undefined })
+      .then(function(r){
+        clearTimeout(t);
+        if (op === "get" && r.status === 404) return { value: 0 };
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      })
+      .then(function(j){
+        var v = j && typeof j.value === "number" ? j.value : NaN;
+        if (!isFinite(v) || v < 0) throw new Error("bad value");
+        return Math.floor(v);
+      });
+  }
+  function delay(ms){ return new Promise(function(res){ setTimeout(res, ms); }); }
+  function loadCount(){
+    var op = doHit ? "hit" : "get";
+    return req(op, siteKey).catch(function(){
+      return delay(600).then(function(){ return req("get", siteKey); });
+    });
+  }
+
+  function digits(n){
+    var s = String(n); while (s.length < CFG.minDigits) s = "0" + s; return s;
+  }
+  function odo(n){
+    var s = digits(n), h = '<span class="tt-vc-odo" aria-hidden="true">';
+    for (var i = 0; i < s.length; i++) {
+      h += '<span class="tt-vc-d"><span class="tt-vc-strip" data-d="' + s.charAt(i) + '">';
+      for (var k = 0; k <= 9; k++) h += "<span>" + k + "</span>";
+      h += "</span></span>";
+    }
+    return h + "</span>";
+  }
+  function roll(box){
+    var strips = box.querySelectorAll(".tt-vc-strip");
+    var cell = strips[0] && strips[0].firstChild ? strips[0].firstChild.offsetHeight : 22;
+    for (var i = 0; i < strips.length; i++)
+      strips[i].style.transform = "translateY(-" + (parseInt(strips[i].getAttribute("data-d"), 10) * cell) + "px)";
+  }
+  function paint(box, n){
+    box.setAttribute("aria-label", "Site visits: " + n);
+    var s = digits(n);
+    var strips = box.querySelectorAll(".tt-vc-strip");
+    if (strips.length !== s.length) {
+      var odoEl = box.querySelector(".tt-vc-odo");
+      if (odoEl) odoEl.outerHTML = odo(n);
+    } else {
+      for (var i = 0; i < strips.length; i++) strips[i].setAttribute("data-d", s.charAt(i));
+    }
+    roll(box);
+  }
+
+  function render(n){
+    var box = document.getElementById("tt-vc");
+    if (box) { paint(box, n); return box; }
+    box = document.createElement("div");
+    box.id = "tt-vc";
+    box.setAttribute("role", "status");
+    box.setAttribute("aria-label", "Site visits: " + n);
+    box.innerHTML = '<div class="tt-vc-in">' +
+      '<span class="tt-vc-sk" aria-hidden="true"><img alt="" width="97" height="128" src="' + SK1 + '" srcset="' + SK1 + ' 97w, ' + SK2 + ' 193w" sizes="52px"></span>' +
+      '<span class="tt-vc-grp"><span class="tt-vc-lbl">Site visits</span>' + odo(n) + '</span></div>';
+    var main = document.getElementById("page") || document.querySelector("main");
+    if (main) {
+      main.insertBefore(box, main.firstChild);
+      var fit = function(){ var hd=document.getElementById("header"); if(!hd) return; box.style.marginTop="0px";
+        var hb=hd.getBoundingClientRect().bottom, bt=box.getBoundingClientRect().top; var m=Math.max(0,Math.round(hb-bt)); box.style.marginTop=m+"px"; };
+      fit(); setTimeout(fit,400); setTimeout(fit,1500); window.addEventListener("resize",fit);
+    }
+    else { var hdr = document.getElementById("header"); if (hdr && hdr.parentNode) hdr.parentNode.insertBefore(box, hdr.nextSibling); else document.body.insertBefore(box, document.body.firstChild); }
+    box.className = "tt-vc-on";
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) { roll(box); return box; }
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){ roll(box); }); });
+    var glitch = function(){
+      if (document.hidden) return;
+      box.className = "tt-vc-on"; void box.offsetWidth; box.className = "tt-vc-on tt-vc-glitch";
+    };
+    setTimeout(glitch, 1300);
+    setInterval(function(){ if (Math.random() < 0.35) glitch(); }, 4000);
+    window.addEventListener("resize", function(){ roll(box); });
+    return box;
+  }
+
+  function start(){
+    if (isHome) render(readCache());
+    if (!window.fetch || !window.Promise) return;
+    loadCount().then(function(v){
+      if (doHit) { try { sessionStorage.setItem(seenKey, "1"); } catch(e) {} }
+      writeCache(v);
+      if (isHome) render(v);
+    })["catch"](function(){ if (isHome) render(readCache()); });
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
+})();
+</script>
+<!-- ===== /Therapy Toaster view counter ===== -->
