@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="crypt-version" content="0.2.0">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="crypt-version" content="0.2.1">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#000000"><meta name="description" content="Mr. Toasty's Crypt: a glitched-out room-by-room roguelike from Therapy Toaster. Free to play in your browser.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23000'/%3E%3Cpath d='M3 3h10v7H3z' fill='%23f4f1e8'/%3E%3Cpath d='M3 6h10v2H3z' fill='%23ffd400'/%3E%3Cpath d='M5 6h2v2H5zM9 6h2v2H9z' fill='%23000'/%3E%3Cpath d='M5 10h6v3H5z' fill='%23f4f1e8'/%3E%3C/svg%3E">
@@ -62,12 +62,12 @@ p{font-size:clamp(7px,1.15vw,11px);line-height:2;color:#ddd;max-width:760px;marg
 <canvas id="c"></canvas><div id="vig"></div><div id="hurt"></div><div id="scan"></div>
 <div id="rot">ROTATE FOR THE BEST VIEW ↻</div>
 <div id="title" class="ov show">
- 
+ <img id="logo" alt="Mr. Toasty&#39;s Crypt" src="assets/logo.webp?v=0.2.1" onload="document.body.classList.add('haslogo')" onerror="this.remove()">
  <h1 class="glitch">MR. TOASTY'S<br>CRYPT<small>A NO SIGNAL SKULLZ ROGUELIKE</small></h1><div class="sub">A NO SIGNAL SKULLZ ROGUELIKE</div>
  <div class="quip" id="quip"></div>
  <div><button class="btn" id="bDescend">DESCEND</button><button class="btn alt" id="bHub">THE CRYPT (TOWN)</button><button class="btn alt" id="bSetT">⚙</button></div>
  <p id="tHint"></p>
- <p style="color:#666">v0.2.0 · FREE TO PLAY · THERAPYTOASTER.COM</p>
+ <p style="color:#666">v0.2.1 · FREE TO PLAY · THERAPYTOASTER.COM</p>
 </div>
 <div id="select" class="ov"><h2>PICK YOUR SKULL</h2><div id="cards"></div><div><button class="btn" id="bGo">DESCEND ▼</button><button class="btn alt" id="bBackSel">BACK</button></div></div>
 <div id="panel" class="ov"><h2 id="pTitle"></h2><p id="pSay"></p><div style="font-size:10px">GOLD: <span id="gold">0</span></div><div class="list" id="pList"></div><button class="btn" id="bClose">CLOSE</button></div>
@@ -85,7 +85,7 @@ p{font-size:clamp(7px,1.15vw,11px);line-height:2;color:#ddd;max-width:760px;marg
 // Game logic runs in a small logical space (LW x 180); v0.2 renders it into an HD (2x) pixel buffer so sprites/tiles get
 // twice the detail, then scales that up nearest-neighbour onto the screen canvas. Holder cosmetics / wallet code: none (see design doc, "Later").
 // =====================================================================================================
-const VERSION='0.2.0';
+const VERSION='0.2.1';
 const LH=180,TILE=16,RW=15,RH=9,RPW=RW*TILE,RPH=RH*TILE; // room = 15x9 tiles incl. walls (13x7 floor)
 let LW=320,ROOMX=40,ROOMY=32;
 const cv=document.getElementById('c'),cx=cv.getContext('2d');
