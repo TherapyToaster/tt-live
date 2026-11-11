@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="crypt-version" content="0.4.0">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="crypt-version" content="0.4.1">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#000000"><meta name="description" content="Mr. Toasty's Crypt: a glitched-out room-by-room roguelike from Therapy Toaster. Free to play in your browser.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23000'/%3E%3Cpath d='M3 3h10v7H3z' fill='%23f4f1e8'/%3E%3Cpath d='M3 6h10v2H3z' fill='%23ffd400'/%3E%3Cpath d='M5 6h2v2H5zM9 6h2v2H9z' fill='%23000'/%3E%3Cpath d='M5 10h6v3H5z' fill='%23f4f1e8'/%3E%3C/svg%3E">
@@ -73,12 +73,12 @@ body.inhub .tb.act{display:none}
 <canvas id="c"></canvas><div id="vig"></div><div id="hurt"></div><div id="scan"></div>
 <div id="rot">ROTATE FOR THE BEST VIEW ↻</div>
 <div id="title" class="ov show">
- <img id="logo" alt="Mr. Toasty&#39;s Crypt" src="assets/logo.webp?v=0.4.0" onload="document.body.classList.add('haslogo')" onerror="this.remove()">
+ <img id="logo" alt="Mr. Toasty&#39;s Crypt" src="assets/logo.webp?v=0.4.1" onload="document.body.classList.add('haslogo')" onerror="this.remove()">
  <h1 class="glitch">MR. TOASTY'S<br>CRYPT<small>A NO SIGNAL SKULLZ ROGUELIKE</small></h1><div class="sub">A NO SIGNAL SKULLZ ROGUELIKE</div>
  <div class="quip" id="quip"></div>
  <div><button class="btn" id="bDescend">DESCEND</button><button class="btn alt" id="bHub">THE CRYPT (TOWN)</button><button class="btn alt" id="bSetT">⚙</button></div>
  <p id="tHint"></p>
- <p style="color:#666">v0.4.0 · FREE TO PLAY · THERAPYTOASTER.COM</p>
+ <p style="color:#666">v0.4.1 · FREE TO PLAY · THERAPYTOASTER.COM</p>
 </div>
 <div id="select" class="ov"><h2>PICK YOUR SKULL</h2><div id="cards"></div><div><button class="btn" id="bGo">DESCEND ▼</button><button class="btn alt" id="bBackSel">BACK</button></div></div>
 <div id="panel" class="ov"><h2 id="pTitle"></h2><p id="pSay"></p><div style="font-size:10px">GOLD: <span id="gold">0</span></div><div class="list" id="pList"></div><button class="btn" id="bClose">CLOSE</button></div>
@@ -97,7 +97,7 @@ body.inhub .tb.act{display:none}
 // Game logic runs in a small logical space (LW x 180); v0.2 renders it into an HD (2x) pixel buffer so sprites/tiles get
 // twice the detail, then scales that up nearest-neighbour onto the screen canvas. Holder cosmetics / wallet code: none (see design doc, "Later").
 // =====================================================================================================
-const VERSION='0.4.0';
+const VERSION='0.4.1';
 const LH=180,TILE=16,RW=15,RH=9,RPW=RW*TILE,RPH=RH*TILE; // room = 15x9 tiles incl. walls (13x7 floor)
 let LW=320,ROOMX=40,ROOMY=32;
 const cv=document.getElementById('c'),cx=cv.getContext('2d');
@@ -513,7 +513,9 @@ function bakeRoom(room,theme){const T=THEMES[theme],W=RPW*HD,H=RPH*HD,P=new PB(W
   P.rect(x-1,27,18,2,mix(T.brickHi,'#000',.1));pbSkull(P,x+3,15,T.skull);room.candles.push({x:lx+3,y:7,big:0});room.lights.push({x:lx+3,y:10,r:30,col:T.candle})}
  for(const lx of[56,184])if(Math.abs(lx*HD-doorX)>44)pbSkull(P,lx*HD-5,11,mix(T.skull,'#000',.25));
  for(const ly of[36,108]){for(const sx of[1,RW-1]){const x=sx==1?N-12:W-N+4;P.box(x,ly*HD-4,8,10,'#5c6570',1);room.candles.push({x:(x+4)/HD,y:ly-4,big:1});room.lights.push({x:(x+4)/HD,y:ly-2,r:34,col:T.candle})}}
- // ---- obstacles
+ // ---- obstacles (snapshot the bare floor under each decor tile so a shatter can restore a walkable floor)
+ room.floors=new Array(91);
+ if(room.grid&&theme!='hub'){const tmp=P.canvas();for(let y=0;y<7;y++)for(let x=0;x<13;x++){const v=room.grid[y*13+x];if(v==1||v==2){const c=document.createElement('canvas');c.width=TILE*HD;c.height=TILE*HD;const cg=c.getContext('2d');cg.imageSmoothingEnabled=false;cg.drawImage(tmp,(x+1)*TILE*HD,(y+1)*TILE*HD,TILE*HD,TILE*HD,0,0,TILE*HD,TILE*HD);room.floors[y*13+x]=c}}}
  if(room.grid)for(let y=0;y<7;y++)for(let x=0;x<13;x++){const v=room.grid[y*13+x];if(v)drawPropHD(P,room,v,(x+1)*TILE,(y+1)*TILE,theme,R)}
  const c=P.canvas(),g=c.getContext('2d');g.imageSmoothingEnabled=false;g.scale(HD,HD);
  if(room.kind=='start'&&theme!='hub'){const hint=IS_TOUCH?['LEFT STICK MOVE','RIGHT STICK AIM + FIRE']:['WASD MOVE','ARROWS / MOUSE SHOOT'];g.globalAlpha=.55;
@@ -1065,6 +1067,94 @@ function terrSpr(theme,k,stage){const name='t_'+theme+'_'+k+'_'+stage;if(SPR[nam
  P.outline(INK);P.reg(name);return name}
 {const _ef=enemyFrame;enemyFrame=function(e){const t=GS.t+((e.x*7+e.y*3)|0);if(e.t=='bomber')return 'e_bomber_'+(e.fuse>0?((t>>2)%2?2:(t>>3)%2):((t>>3)%2));
  if(e.t=='heavy')return 'e_heavy_'+(e.fireN>0&&GS.t%4<2?2:(e.spin>0?0:(t>>4)%2));return _ef(e)}}
+
+// ---- v0.4.1 data: breakable obstacle HP (2-3 normal shots for every hero), furniture kinds, held-gun catalogue ----
+// Hero shot damage: toasty 3.5, butter 5, glitch 2.4, pyrite 3. HP 7 => 2, 2, 3, 3 shots respectively.
+const FURN_HP=7;
+const OBSTACLE_KS=new Set(['crate','vend','screen','table','tomb','tv','urn','skulls','pillow','toaster']);
+function isObstacle(p){return p&&(p.furn||OBSTACLE_KS.has(p.k))}
+function furnKind(R,x,y,v,theme){const h=hash(R.seed+':'+((x+1)*TILE)+','+((y+1)*TILE))%100;
+ if(v==1&&theme==3&&h<70)return'pillow';if(v==2&&theme==4&&h<60)return'toaster';
+ if(v==1&&h<62)return'skulls';if(v==1)return'urn';if(v==2&&h<(theme==2?40:66))return'tomb';return'tv'}
+Object.assign(PROPS,{crate:{hp:7,name:'CRATE'},vend:{hp:7,name:'VENDING MACHINE'},screen:{hp:7,name:'MONITOR'},table:{hp:7,name:'TABLE'}});
+// held guns: sprite points right; gx,gy = grip in logical px from sprite top-left; mx,my = muzzle tip
+const GUNS={
+ toasty:{spr:'g_toasty',gx:2,gy:4.5,mx:11.5,my:3.5,name:'TOASTER BLASTER'},
+ butter:{spr:'g_butter',gx:2,gy:5,mx:12,my:3.5,name:'BUTTER CANNON'},
+ glitch:{spr:'g_glitch',gx:1.5,gy:3.5,mx:11,my:3,name:'GLITCH PISTOL'},
+ pyrite:{spr:'g_pyrite',gx:2,gy:4,mx:11.5,my:3,name:'GOLD REVOLVER'},
+ toastgun:{spr:'g_toastgun',gx:2.5,gy:5,mx:13,my:4,name:'TOAST CANNON'},
+ beam:{spr:'g_beam',gx:2,gy:3.5,mx:13.5,my:3,name:'GLITCH RAY'},
+ crumbler:{spr:'g_crumbler',gx:2.5,gy:5,mx:12.5,my:4,name:'CRUMB LAUNCHER'},
+ bagel:{spr:'g_bagel',gx:2,gy:4.5,mx:11.5,my:4,name:'BAGEL BOOMERANG'}
+};
+function gunId(P){return P&&P.wpn&&GUNS[P.wpn]?P.wpn:(P&&P.hero&&GUNS[P.hero]?P.hero:'toasty')}
+function gunOf(P){return GUNS[gunId(P)]}
+
+// ---- v0.4.1 art: held guns (point right, grip on the left) + crack overlays for damaged props ----
+// Painted at native px (HD=2); icon() outlines and registers at logical size = native/2.
+const GI=(k,w,h,fn)=>icon('g_'+k,w,h,fn);
+// MR. TOASTY — toaster blaster: silver toaster body, gold toast in the slot, barrel up front, navy grip
+GI('toasty',24,12,P=>{
+ P.box(1,6,5,6,'#1e2a55',1);P.rect(2,7,3,1,'#3a4f9a'); // grip
+ P.box(5,2,13,9,'#c9ccd6',2);P.rect(6,3,11,1,'#f4f1e8');P.rect(6,9,11,1,'#7a8088');
+ P.rect(8,1,8,3,'#e0a050');P.rect(9,1,6,2,'#ffd400');P.rect(10,1,2,1,'#fff2a8'); // toast popping out
+ P.box(17,3,6,7,'#5c6570',1);P.rect(18,5,5,3,'#1a1a22');P.rect(20,6,3,1,'#ffb040'); // muzzle slot
+ P.rect(7,5,2,2,'#ffd400'); // Toasty badge
+});
+// BUTTERED SKULL — chunky butter cannon: fat teal body, a stick of butter as the barrel
+GI('butter',26,14,P=>{
+ P.box(1,7,6,7,'#086f72',1);P.rect(2,8,4,2,'#0b9191');
+ P.box(6,2,13,11,'#0b9191',3);P.rect(8,3,9,2,'#14b0b0');
+ P.box(16,4,9,7,'#f6d36b',2);P.rect(17,5,7,1,'#fff6d8');P.rect(17,8,7,1,'#c8862a'); // butter stick barrel
+ P.rect(23,6,3,3,'#fffbe8');P.set(24,7,'#ffd400');
+ for(const x of[8,11,14])P.rect(x,7,1,3,'#f6d36b'); // drips
+});
+// GLITCH SKULL — slim RGB pistol, magenta/cyan split, glitchy pixels
+GI('glitch',24,10,P=>{
+ P.box(0,4,5,6,'#3b1a70',1);P.rect(1,5,3,1,'#7a2cff');
+ P.box(4,2,12,7,'#7a2cff',2);P.rect(5,3,10,1,'#ff2bd6');P.rect(5,6,10,1,'#00f0ff');
+ P.rect(15,3,8,5,'#1a1030');P.rect(16,4,7,3,'#00f0ff');P.set(22,5,'#ffffff');
+ P.rect(8,1,3,1,'#ff2bd6');P.rect(18,2,2,1,'#00f0ff');P.set(20,8,'#ff2bd6');
+});
+// PYRITE — gold revolver with a green-gem cylinder and a curved grip
+GI('pyrite',24,12,P=>{
+ P.box(1,6,6,6,'#8a5a12',2);P.rect(2,7,4,2,'#c8862a');
+ P.box(6,3,8,7,'#e0a82e',2);P.ell(10,6,3.4,3.4,'#c8862a'); // cylinder
+ for(const a of[0,1,2,3,4]){const t=a*1.256;P.set(10+Math.cos(t)*2,6+Math.sin(t)*2,'#48e070')}
+ P.box(13,4,10,5,'#e0a82e',1);P.rect(21,5,3,3,'#fff2a8');P.rect(14,2,3,3,'#c8862a'); // barrel + hammer
+ P.set(22,6,'#48e070');
+});
+// TOAST CANNON pickup: longer grey cannon with a row of toast slices
+GI('toastgun',28,14,P=>{
+ P.box(1,7,6,7,'#6b4a20',1);
+ P.box(6,4,16,8,'#5c6570',2);P.rect(7,5,14,2,'#9aa4b0');
+ for(const x of[8,13,18])P.box(x,1,4,5,'#e0a050',1);
+ P.box(21,5,6,6,'#3a3e4a',1);P.rect(23,7,4,2,'#ffb040');
+});
+// GLITCH RAY: long thin violet barrel, cyan emitter
+GI('beam',28,10,P=>{
+ P.box(1,4,5,6,'#3b1a70',1);
+ P.box(5,3,14,5,'#7a2cff',2);P.rect(6,4,12,1,'#ff2bd6');
+ P.rect(18,3,9,5,'#00f0ff');P.rect(24,4,4,3,'#ffffff');P.set(27,5,'#ff2bd6');
+});
+// CRUMB LAUNCHER: stubby orange grenade launcher
+GI('crumbler',26,14,P=>{
+ P.box(1,7,6,7,'#6b4a20',1);
+ P.box(6,3,13,10,'#c8502a',3);P.ell(12,8,3,3,'#ffd400');
+ P.box(17,5,8,6,'#5c6570',1);P.rect(22,7,3,2,'#ff8a00');
+});
+// BAGEL BOOMERANG: a bagel disc on a short gold launcher
+GI('bagel',24,14,P=>{
+ P.box(1,6,6,7,'#8a5a2b',1);
+ P.box(6,5,8,6,'#c8862a',2);
+ P.ell(17,7,6.5,6,'#d8a050');P.ell(17,7,2.4,2.2,'#000000',{flat:1});
+ for(const[x,y]of[[14,4],[19,4],[21,8],[14,10]])P.set(x,y,'#f4f1e8');
+});
+// crack overlays (logical 16x16, painted native 32x32) — stage 1 hairline, stage 2 deep shatter
+icon('crack1',32,32,P=>{P.line(8,4,14,16,'#0b0a0f');P.line(14,16,10,26,'#0b0a0f');P.line(14,16,22,20,'#0b0a0f');P.line(6,12,8,14,'#0b0a0f')});
+icon('crack2',32,32,P=>{P.line(4,6,16,14,'#0b0a0f',2);P.line(16,14,12,28,'#0b0a0f',2);P.line(16,14,26,10,'#0b0a0f');P.line(16,14,28,22,'#0b0a0f');
+ P.line(8,20,16,14,'#0b0a0f');P.rect(14,12,3,3,'#1a1420');P.line(20,6,22,12,'#0b0a0f')});
 
 // ---- floor generation (Isaac-style grid) + room layouts ----
 const GW=9,GH=8,DIRS={n:[0,-1],s:[0,1],w:[-1,0],e:[1,0]},OPP={n:'s',s:'n',w:'e',e:'w'};
@@ -1975,6 +2065,39 @@ function ensureSkin(id,skin){if(!skin||skin=='classic'||SPR['h_'+id+'~'+skin+'_d
  try{for(const dir of['d','u','s'])for(const p of HERO_POSES){const o=heroFrame(id,dir,p);SPR['h_'+id+'~'+skin+'_'+dir+'_'+p]=o}}finally{HERO_LOOK[id]=base;for(const dir of['d','u','s'])for(const p of HERO_POSES)heroFrame(id,dir,p)}}
 {const _hp=heroPose;heroPose=function(P){const h=_hp(P);const sk=P.skin||(P.hero&&SAVE.skins[P.hero]);if(sk&&sk!='classic'&&SKINS[sk]&&!SKINS[sk].placeholder){ensureSkin(P.hero,sk);h.name=h.name.replace('h_'+P.hero+'_','h_'+P.hero+'~'+sk+'_')}return h}}
 
+// ---- v0.4.1 systems: in-room obstacle props (TVs, tables, tombstones, crates, vending, monitors, similar decor)
+// break in 2-3 normal shots, instantly from heavy/explosive hits; enemy shots only chip. Hub decor is untouched.
+Object.assign(DEBRIS,{tomb:['#6a7078','#5a5a7a','#9aa4b0'],tv:['#5a4630','#9be7ff','#3a3e4a','#c9ccd6'],urn:['#8a5a2b','#c8862a','#5a3a18'],
+ skulls:['#ddd4bc','#c9b8ff','#efe6cc'],pillow:['#f8387f','#00a8c0','#ffd400'],toaster:['#9aa4b0','#e0a050','#ff6a00']});
+liveProps=function(){const R=GS.run&&GS.run.room;if(!R)return[];const a=R.pl?R.pl.filter(p=>!p.dead):[],b=R.furn?R.furn.filter(p=>!p.dead):[];return a.concat(b)};
+buildDyn=function(R){R.sgrid=new Uint8Array(R.grid);R.pmap=new Array(91).fill(null);
+ for(const p of(R.pl||[]).concat(R.furn||[]))if(!p.dead){R.sgrid[p.y*13+p.x]=1;R.pmap[p.y*13+p.x]=p}
+ if(R.th)for(let i=0;i<91;i++)if(R.th[i]>0)R.sgrid[i]=1};
+{const _irp=initRoomProps;initRoomProps=function(R){
+ if(R&&R.kind!='hub'&&!R._furnInit&&R.grid){R._furnInit=1;R.furn=R.furn||[];
+  const theme=R.theme||(GS.run&&GS.run.floor)||1;
+  for(let y=0;y<7;y++)for(let x=0;x<13;x++){const i=y*13+x,v=R.grid[i];if(v==1||v==2){const k=furnKind(R,x,y,v,theme);
+   R.furn.push({k,x,y,furn:1,hp:FURN_HP,maxhp:FURN_HP,px:(x+1)*TILE+8,py:(y+1)*TILE+8,flash:0,flip:false,floor:R.floors&&R.floors[i],gv:v});R.grid[i]=0}}}
+ _irp(R);for(const p of(R.pl||[]))if(isObstacle(p)&&p.maxhp==null)p.maxhp=p.hp;buildDyn(R)}}
+{const _ft=flipTable;flipTable=function(p){const hp=p.hp,mx=p.maxhp;_ft(p);p.hp=hp;if(mx!=null)p.maxhp=mx}}
+// player normal shot: raw dmg (2-3 hits at HP 7). Heavy/explosive (bombs, gold, toast cannon, bagel, boom): insta-break.
+// Enemy bullets (no src, modest dmg) only chip, so cover stays meaningful.
+function obstDmg(p,dmg,src){if(!isObstacle(p))return dmg;
+ if(src=='boom'||src=='slide'||(src&&typeof src=='object'&&(src.bomb||src.golden||src.toast||src.bagel||src.r>=6)))return 99;
+ if(!src&&dmg<=4)return.7;return dmg}
+{const _hp=hitProp;hitProp=function(p,dmg,src){if(p.dead)return;if(isObstacle(p))dmg=obstDmg(p,dmg,src);_hp(p,dmg,src)}}
+function restoreFloor(p){const R=GS.run&&GS.run.room;if(!R||!R.bg||!p.floor)return;const g=R.bg.getContext('2d');g.save();g.setTransform(1,0,0,1,0,0);g.imageSmoothingEnabled=false;
+ g.drawImage(p.floor,(p.x+1)*TILE*HD,(p.y+1)*TILE*HD);g.restore();
+ if(R.tvs)R.tvs=R.tvs.filter(t=>{const tx=Math.floor(t.x/TILE)-1,ty=Math.floor(t.y/TILE)-1;return!(tx==p.x&&ty==p.y)});
+ if(R.lights)R.lights=R.lights.filter(L=>{const tx=Math.floor((L.x||0)/TILE)-1,ty=Math.floor((L.y||0)/TILE)-1;return!(L.tv&&tx==p.x&&ty==p.y)});
+ if(R.candles)R.candles=R.candles.filter(c=>{const tx=Math.floor(c.x/TILE)-1,ty=Math.floor(c.y/TILE)-1;return!(tx==p.x&&ty==p.y)})}
+{const _bp=breakProp;breakProp=function(p){if(p.dead)return;if(p.furn)restoreFloor(p);_bp(p);
+ if(p.furn&&FX()<.28){if(FX()<.3)GS.run.picks.push({t:'heart',v:1,x:p.px,y:p.py+4});else dropCoin(p.px,p.py,1)}}}
+// unflipped tables are waist-high (shots pass over, v3 cover rule) but still take a chip so you can shoot them apart
+{const _us=updateShots;updateShots=function(){const run=GS.run,prev=run.shots.filter(s=>!s.dead).map(s=>({s,x:s.x,y:s.y}));_us();
+ for(const o of prev){const s=o.s;if(s.dead||!s.hit)continue;const pr=propAtPx(s.x,s.y)||propAtPx(o.x,o.y)||propAtPx((s.x+o.x)/2,(s.y+o.y)/2);
+  if(pr&&pr.k=='table'&&!pr.flip&&isObstacle(pr)&&!s.hit.has(pr)){hitProp(pr,s.dmg,s);s.hit.add(pr)}}}}
+
 // ---- v0.2 juice layer (cosmetic only: uses the FX rng, never touches gameplay state) ----
 // muzzle flashes, projectile trails, hit sparks, squash on knockback, death pops, coin sparkles, damage numbers,
 // door slam / rise animation, room-clear flash, glitch room transitions, hurt vignette.
@@ -2003,6 +2126,17 @@ function fxStep(){if(GS.clearFlash>0)GS.clearFlash--;if(GS.hurtFlash>0)GS.hurtFl
  GS.fx=GS.fx.filter(f=>f.life>0);
  const run=GS.run;if(run&&GS.mode=='play'){for(const s of run.shots){(s.tr||(s.tr=[])).push(s.x,s.y);if(s.tr.length>8)s.tr.splice(0,2)}for(const e of run.ents)if(e.sq>0)e.sq--}
  if(GS.hub&&GS.mode=='hub')hubAmbient()}
+
+// ---- v0.4.1 guns: visible held firearm per hero / weapon, aim-rotated, muzzle-spawned shots, recoil + flash ----
+function gunAngle(P){const ax=P.aim?P.aim[0]:(P.face||1),ay=P.aim?P.aim[1]:0;const m=Math.hypot(ax,ay);return Math.atan2(ay,m<.05?(P.face||1):ax)}
+function gunHand(P){const a=gunAngle(P);return[P.x+Math.cos(a)*3.4,P.y-1.6+Math.sin(a)*2.2]}
+function muzzleOf(P){const G=gunOf(P),a=gunAngle(P),kick=P.gunKick||0,[hx,hy]=gunHand(P),flip=Math.cos(a)<0;
+ let lx=G.mx-G.gx-kick,ly=G.my-G.gy;if(flip)ly=-ly;return[hx+Math.cos(a)*lx-Math.sin(a)*ly,hy+Math.sin(a)*lx+Math.cos(a)*ly]}
+{const _mk=mkShot;mkShot=function(a,mul,golden,col){const s=_mk(a,mul,golden,col),P=GS.run&&GS.run.P;if(P&&!(P.roll&&!P.roll.slide)){const[mx,my]=muzzleOf(P);s.x=mx+Math.cos(a)*1.2;s.y=my+Math.sin(a)*1.2}return s}}
+{const _fire=fire;fire=function(dx,dy){const P=GS.run&&GS.run.P;if(P){P.aim=[dx,dy];P.gunKick=3.4}_fire(dx,dy);
+ if(P){const[mx,my]=muzzleOf(P);for(let i=GS.fx.length-1;i>=0;i--){const f=GS.fx[i];if(f.k=='muzzle'&&f.life>=3){f.x=mx;f.y=my;break}}}}}
+{const _ra=readAim;readAim=function(){const a=_ra();if(a&&GS.run&&GS.run.P&&Math.abs(a.x)+Math.abs(a.y)>.05){const m=Math.hypot(a.x,a.y)||1;GS.run.P.aim=[a.x/m,a.y/m]}return a}}
+{const _up=updatePlayer;updatePlayer=function(){const P=GS.run&&GS.run.P;if(P&&P.gunKick>0){P.gunKick*=.62;if(P.gunKick<.12)P.gunKick=0}_up()}}
 
 // ---- rendering: world (HD), soft lighting, juice, HUD, minimap, map, banners, hub, title, glitch post-fx ----
 const hd=v=>Math.round(v*HD)/HD; // snap to the native pixel grid
@@ -2309,6 +2443,46 @@ function drawHeroIntro(){const I=GS.heroIntro;if(!I)return;const T=I.t,H=HEROES[
 {const _dbi=drawBossIntro;drawBossIntro=function(){_dbi();drawFlagCel();drawHeroIntro()}}
 {const _db=drawBanner;drawBanner=function(){if(GS.heroIntro&&GS.run&&(GS.mode=='play'||GS.mode=='pause'))return;_db()}}
 
+// ---- v0.4.1 render: held guns (behind body when aiming up, flipped when aiming left), muzzle flash at the tip,
+// crack/flash stages on obstacle props and baked furniture, gun on the hero intro card ----
+function drawGunSpr(id,hx,hy,ang,sc,kick,flash){const G=GUNS[id];if(!G)return;const s=SPR[G.spr];if(!s)return;
+ const flip=Math.cos(ang)<0;bx.save();bx.translate(hd(hx),hd(hy));bx.rotate(ang);if(flip)bx.scale(1,-1);
+ const ox=(-G.gx-(kick||0))*sc,oy=-G.gy*sc;bx.drawImage(s.c,ox,oy,s.w*sc,s.h*sc);
+ if(flash){const fx=(G.mx-G.gx-(kick||0))*sc,fy=(G.my-G.gy)*sc;bx.globalCompositeOperation='lighter';bx.globalAlpha=.95;
+  bx.fillStyle='#fff7c0';bx.fillRect(fx-1,fy-1.5,4*sc*.35,3*sc*.35);bx.fillStyle='#ffb040';bx.fillRect(fx+1*sc*.3,fy-1,3*sc*.35,2*sc*.35);
+  bx.globalAlpha=.55;bx.drawImage(glow('#ffd400'),fx-6,fy-6,12,12);bx.globalAlpha=1;bx.globalCompositeOperation='source-over'}
+ bx.restore()}
+function drawGun(P){if(!P||P.roll&&!P.roll.slide)return;const[hx,hy]=gunHand(P),a=gunAngle(P),kick=P.gunKick||0;
+ const flash=P.fireT!=null&&GS.t-P.fireT<5;drawGunSpr(gunId(P),hx,hy,a,1,kick,flash)}
+{const _dpl=drawPlayer;drawPlayer=function(P){const run=GS.run,hide=P.inv>0&&!P.roll&&(GS.t>>2)%2&&!(run&&run.over);
+  if(hide||(run&&run.over))return _dpl(P);
+  const up=P.aim&&P.aim[1]<-.28;if(up)drawGun(P);_dpl(P);if(!up)drawGun(P)}}
+function crackStage(p){if(!p||p.dead||p.maxhp==null)return-1;const f=p.hp/p.maxhp;return f>.67?-1:f>.34?0:1}
+function drawCracks(p){const st=crackStage(p);if(st<0&&!(p.flash>0))return;const x=p.px,y=p.py;
+ if(st>=0){const s=SPR[st==0?'crack1':'crack2'];if(s){bx.globalAlpha=st==0?.75:.95;bx.drawImage(s.c,hd(x-8),hd(y-8),16,16);bx.globalAlpha=1}}
+ if(p.flash>0){bx.globalAlpha=.35+p.flash*.08;bx.fillStyle='#ffffff';bx.fillRect(hd(x-7),hd(y-8),14,15);bx.globalAlpha=1}}
+{const _dp=drawProp;drawProp=function(p,lights){_dp(p,lights);if(isObstacle(p))drawCracks(p)}}
+{const _top=drawV4Top;drawV4Top=function(run){const R=run&&run.room;if(R&&R.furn)for(const p of R.furn){if(p.dead)continue;drawCracks(p);if(p.flash>0)p.flash--;if(p.jit>0)p.jit--}_top(run)}}
+// full intro rewrite: leave a gun gutter so the held firearm never covers name, title, one-liner or special
+drawHeroIntro=function(){const I=GS.heroIntro;if(!I)return;const T=I.t,H=HEROES[I.hero],X=HERO_INTRO[I.hero]||{title:H.tag,line:''};const k=Math.min(1,(T+1)/6,(I.dur-T)/10);if(k<=0)return;
+ bx.globalAlpha=.8*k;bx.fillStyle='#000';bx.fillRect(0,0,LW,LH);bx.globalAlpha=k;const sl=Math.min(1,T/8),c=H.col;
+ bx.fillStyle=mix(c,'#000000',.55);bx.beginPath();bx.moveTo(0,LH*.26);bx.lineTo(LW*sl,LH*.26-LW*sl*.12);bx.lineTo(LW*sl,LH*.7-LW*sl*.12);bx.lineTo(0,LH*.7);bx.fill();
+ bx.fillStyle=c;bx.beginPath();bx.moveTo(0,LH*.3);bx.lineTo(LW*sl,LH*.3-LW*sl*.12);bx.lineTo(LW*sl,LH*.66-LW*sl*.12);bx.lineTo(0,LH*.66);bx.fill();
+ bx.globalAlpha=.35*k;bx.fillStyle='#ffffff';for(let i=0;i<14;i++){const yy=(i*37%100)/100*LH*.36+LH*.3-((i*53)%40),xx=((i*71+T*9)%(LW+80))-40;bx.fillRect(LW-xx,yy,18+(i*13)%30,.5)}bx.globalAlpha=k;
+ const s=SPR['h_'+I.hero+'_d_a']||SPR['h_'+I.hero+'_d_i0'];const sc=4,sw=s.w*sc,sh=s.h*sc,sx=LW*.06+(1-Math.min(1,T/10))*-80,sy=LH*.5-sh/2-4;
+ bx.globalAlpha=.65*k;bx.drawImage(s.red,sx-3,sy,sw,sh);bx.drawImage(s.cyn,sx+3,sy,sw,sh);bx.globalAlpha=k;bx.drawImage(s.c,sx,sy,sw,sh);
+ // gun in the right hand, pointing right, fully to the left of the text column
+ const G=GUNS[I.hero],gsc=3.2,hx=sx+sw*.70,hy=sy+sh*.64,ang=.06;
+ const muzzleR=hx+Math.cos(ang)*((G.mx-G.gx)*gsc)+8;
+ drawGunSpr(I.hero,hx,hy,ang,gsc,0,T%18<5);
+ const x0=Math.max(sx+sw+8,muzzleR+6),nm=H.name,room=LW-x0-6;
+ const ns=text5w(nm,2.5)<=room?2.5:text5w(nm,2)<=room?2:1.5,j=T<12||T%41<3?(FX()-.5)*5:0,y0=LH*.5-30+(1-Math.min(1,T/12))*30;
+ text5s(bx,I.swap?'BRO SWAP!':'SKULL DEPLOYED!',x0,y0-12,'#ffffff');text5(bx,nm,x0+j+1.5,y0,'#ff2bd6',ns);text5(bx,nm,x0+j-1.5,y0,'#00f0ff',ns);text5(bx,nm,x0+j,y0,'#ffffff',ns);
+ const ts=text5w(X.title,1.5)<=room?1.5:1;text5(bx,X.title,x0+.5,y0+ns*7+5.5,'#000',ts);text5(bx,X.title,x0,y0+ns*7+5,'#ffffff',ts);text5s(bx,'"'+X.line+'"',x0,y0+ns*7+7+ts*7,'#000000');
+ const S=SPECIALS[I.hero];if(S)text5s(bx,'SPECIAL: '+S.name,x0,y0+ns*7+18+ts*7,'#ffffff',.5);
+ if(T<4){bx.globalAlpha=(4-T)/4*.8;bx.fillStyle='#ffffff';bx.fillRect(0,0,LW,LH)}bx.globalAlpha=k;if(T>30&&T%30<18){const m=IS_TOUCH?'TAP TO GO':'PRESS ANY KEY';text5s(bx,m,LW-text5w(m,.5)-6,LH-10,'#ffd400',.5)}
+ bx.fillStyle='#000';bx.fillRect(0,0,LW,14*k);bx.fillRect(0,LH-14*k,LW,14*k);bx.globalAlpha=1;if(T<14||T%41<4)GS.ca=Math.max(GS.ca,6)}
+
 // ---- touch: floating twin sticks (left MOVE, right AIM + FIRE; tap or hold the right stick to shoot) ----
 const TOUCH={l:{on:false,id:null,ox:0,oy:0,vx:0,vy:0,mag:0},r:{on:false,id:null,ox:0,oy:0,vx:0,vy:0,mag:0,t0:0,moved:0,hold:false},tapFire:0,roll:0,blank:0,
  reset(){for(const s of[this.l,this.r]){s.on=false;s.id=null;s.vx=s.vy=s.mag=0;s.hold=false}this.tapFire=0;this.roll=this.blank=0;layoutSticks()}};
@@ -2383,5 +2557,10 @@ window.CR={VERSION,GS,SPR,get SAVE(){return SAVE},genFloor,validateFloor,itemPoo
 Object.assign(window.CR,{heroIntro:(h,o)=>heroIntro(h,o),useSpecial,raiseFlag,rescueCage,broRespawn,hitTerr,terrAtPx,breakTerr,bomberBoom,SPECIALS,KEGS,TERRAIN,HERO_INTRO,V4:()=>V4(),
  setTerrain(cells){const R=GS.run.room;R.terrain=cells.map(([x,y,k])=>({x,y,k:k||'brick'}));R.th=null;initRoomProps(R);GS.run.flowT=0},
  addProps(list){const R=GS.run.room;const old=(R.pl||[]).filter(p=>!p.dead);R.props=list.map(([k,x,y])=>({k,x,y}));R.pl=null;R.th=R.th;initRoomProps(R);return R.pl}});
+
+// ---- v0.4.1 test hooks ----
+{const _ra=readAim;readAim=function(){const a=_ra();if(a&&GS.run&&GS.run.P&&Math.abs(a.x)+Math.abs(a.y)>.05){const m=Math.hypot(a.x,a.y)||1;GS.run.P.aim=[a.x/m,a.y/m]}return a}}
+Object.assign(window.CR,{VERSION,FURN_HP,GUNS,OBSTACLE_KS,isObstacle,furnKind,obstDmg,gunId,gunOf,gunAngle,gunHand,muzzleOf,drawGun,liveProps,buildDyn,hitProp,breakProp,initRoomProps,flipTable,restoreFloor,fire,mkShot,
+ gunInfo(){const P=GS.run&&GS.run.P;if(!P)return null;const[mx,my]=muzzleOf(P),[hx,hy]=gunHand(P);return{id:gunId(P),spr:gunOf(P).spr,ang:gunAngle(P),aim:(P.aim||[]).slice(),muzzle:[+mx.toFixed(2),+my.toFixed(2)],hand:[+hx.toFixed(2),+hy.toFixed(2)],kick:P.gunKick||0,wpn:P.wpn}}});
 
 </script></body></html>
