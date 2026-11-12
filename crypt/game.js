@@ -5,7 +5,7 @@
 // Game logic runs in a small logical space (LW x 180); v0.2 renders it into an HD (2x) pixel buffer so sprites/tiles get
 // twice the detail, then scales that up nearest-neighbour onto the screen canvas. Holder cosmetics / wallet code: none (see design doc, "Later").
 // =====================================================================================================
-const VERSION='0.5.0';
+const VERSION='0.6.0';
 const LH=180,TILE=16,RW=15,RH=9,RPW=RW*TILE,RPH=RH*TILE; // room = 15x9 tiles incl. walls (13x7 floor)
 let LW=320,ROOMX=40,ROOMY=32;
 const cv=document.getElementById('c'),cx=cv.getContext('2d');
@@ -34,7 +34,7 @@ const SAVE_KEY='crypt_save_v1';
 const SAVE_DEF=()=>({v:1,gold:0,up:{hp:0,dmg:0,purse:0,luck:0},relics:[],heroes:['toasty','butter','glitch'],seen:{},
  stats:{runs:0,deaths:0,clears:0,best:0,kills:0,boss:0,mini:0,goldEarned:0,rolls:0,perks:0},last:'toasty',
  bestiary:{},bossKills:{},miniKills:{},skins:{},skinOwn:['classic'],chal:[],chalWins:{},unlocked:[],
- set:{music:60,sfx:80,fx:1,scan:1,crt:0,lefty:0,autofire:IS_TOUCH?1:0,assist:IS_TOUCH?1:0,shake:1,light:1,nums:1,broswap:1}});
+ set:{music:60,sfx:80,fx:1,scan:1,crt:0,lefty:0,autofire:IS_TOUCH?1:0,assist:IS_TOUCH?1:0,shake:1,light:1,nums:1,broswap:1,fxq:1}});
 let SAVE=SAVE_DEF();
 function loadSave(){try{const s=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(s&&s.v===1){const d=SAVE_DEF();
  SAVE=Object.assign(d,s);SAVE.up=Object.assign(d.up,s.up||{});SAVE.stats=Object.assign(d.stats,s.stats||{});SAVE.set=Object.assign(d.set,s.set||{});
@@ -1514,6 +1514,80 @@ function v5Decorate(F,floor){const FR=RNG(hash(F.seed+':v5:'+floor));
   for(const t of r.traps||[]){if(t.x<0||t.y<0||t.x>12||t.y>6)errs.push('trap oob '+r.id);if(r.pits&&r.pits[t.y*13+t.x]&&t.k!='turret')errs.push('trap in pit '+r.id)}}
  return errs}}
 
+const NFT_CELL=48;
+const NFT_ATLAS={w:384,h:288,cols:8,rows:6,n:47};
+const NFT_PIECES=[{id:'overload',i:0,x:0,y:0,g:'overload',k:'base',anim:0},{id:'overload-tl',i:1,x:48,y:0,g:'overload',k:'crop',anim:0},{id:'overload-crown',i:2,x:96,y:0,g:'overload',k:'crop',anim:0},{id:'overload-br',i:3,x:144,y:0,g:'overload',k:'crop',anim:0},{id:'overload-mid',i:4,x:192,y:0,g:'overload',k:'crop',anim:0},{id:'portrait',i:5,x:240,y:0,g:'portrait',k:'base',anim:1},{id:'neon',i:6,x:288,y:0,g:'neon',k:'base',anim:1},{id:'neon-zoom',i:7,x:336,y:0,g:'neon',k:'crop',anim:0},{id:'pop',i:8,x:0,y:48,g:'pop',k:'base',anim:0},{id:'pop-tl',i:9,x:48,y:48,g:'pop',k:'crop',anim:0},{id:'pop-tr',i:10,x:96,y:48,g:'pop',k:'crop',anim:0},{id:'pop-bl',i:11,x:144,y:48,g:'pop',k:'crop',anim:0},{id:'pop-br',i:12,x:192,y:48,g:'pop',k:'crop',anim:0},{id:'red',i:13,x:240,y:48,g:'red',k:'base',anim:0},{id:'red-zoom',i:14,x:288,y:48,g:'red',k:'crop',anim:0},{id:'thermal',i:15,x:336,y:48,g:'thermal',k:'base',anim:0},{id:'vcr',i:16,x:0,y:96,g:'vcr',k:'base',anim:1},{id:'wall-red',i:17,x:48,y:96,g:'wallred',k:'base',anim:0},{id:'toasty75',i:18,x:96,y:96,g:'toasty',k:'base',anim:0},{id:'overload-dither',i:19,x:144,y:96,g:'overload',k:'dither',anim:0},{id:'portrait-dither',i:20,x:192,y:96,g:'portrait',k:'dither',anim:0},{id:'neon-dither',i:21,x:240,y:96,g:'neon',k:'dither',anim:0},{id:'red-dither',i:22,x:288,y:96,g:'red',k:'dither',anim:0},{id:'pop-pix',i:23,x:336,y:96,g:'pop',k:'pixel',anim:0},{id:'thermal-pix',i:24,x:0,y:144,g:'thermal',k:'pixel',anim:0},{id:'portrait-glitch',i:25,x:48,y:144,g:'portrait',k:'glitch',anim:1},{id:'neon-glitch',i:26,x:96,y:144,g:'neon',k:'glitch',anim:1},{id:'vcr-glitch',i:27,x:144,y:144,g:'vcr',k:'glitch',anim:1},{id:'overload-glitch',i:28,x:192,y:144,g:'overload',k:'glitch',anim:1},{id:'red-glitch',i:29,x:240,y:144,g:'red',k:'glitch',anim:1},{id:'overload-thermo',i:30,x:288,y:144,g:'overload',k:'thermal',anim:0},{id:'portrait-thermo',i:31,x:336,y:144,g:'portrait',k:'thermal',anim:0},{id:'toasty75-thermo',i:32,x:0,y:192,g:'toasty',k:'thermal',anim:0},{id:'portrait-cyan',i:33,x:48,y:192,g:'portrait',k:'palette',anim:0},{id:'red-blood',i:34,x:96,y:192,g:'red',k:'palette',anim:0},{id:'toasty75-toast',i:35,x:144,y:192,g:'toasty',k:'palette',anim:0},{id:'neon-zoom-pyrite',i:36,x:192,y:192,g:'neon',k:'palette',anim:0},{id:'portrait-neg',i:37,x:240,y:192,g:'portrait',k:'invert',anim:0},{id:'red-hue',i:38,x:288,y:192,g:'red',k:'hue',anim:0},{id:'pop-grid2',i:39,x:336,y:192,g:'pop',k:'grid',anim:0},{id:'pop-grid3',i:40,x:0,y:240,g:'pop',k:'grid',anim:0},{id:'portrait-burnt',i:41,x:48,y:240,g:'portrait',k:'burnt',anim:0},{id:'vcr-burnt',i:42,x:96,y:240,g:'vcr',k:'burnt',anim:0},{id:'red-torn',i:43,x:144,y:240,g:'red',k:'torn',anim:0},{id:'thermal-mirror',i:44,x:192,y:240,g:'thermal',k:'mirror',anim:0},{id:'wall-red2',i:45,x:240,y:240,g:'wallred',k:'crop',anim:0},{id:'vcr-zoom',i:46,x:288,y:240,g:'vcr',k:'crop',anim:1}];
+// ---- v0.6 data: skull NFT wall atlas, effects quality, smoke caps ----
+const NFT_TINT={toast:'#e08a20',butter:'#f6d36b',glitch:'#00f0ff',pyrite:'#d8c050',void:'#7a2cff',blood:'#ff2045'};
+const NFT_THEME_TINT={1:'toast',2:'glitch',3:'butter',4:'toast',5:'pyrite',hub:null};
+const NFT_IMG=new Image();let NFT_READY=0,NFT_ERR=0;
+NFT_IMG.onload=()=>{NFT_READY=1};NFT_IMG.onerror=()=>{NFT_ERR=1};
+try{NFT_IMG.src='assets/nft-atlas.webp?v='+VERSION}catch(e){NFT_ERR=1}
+function nftPiece(id){if(id==null)return null;if(typeof id==='number')return NFT_PIECES[id]||null;return NFT_PIECES.find(p=>p.id==id)||null}
+function fxHi(){return SAVE.set.fxq!==0&&SAVE.set.fxq!=='lo'}
+function v6Cap(k){
+  const hi=fxHi();
+  if(k=='smoke')return hi?80:14;
+  if(k=='fog')return hi?28:6;
+  if(k=='ember')return hi?36:8;
+  if(k=='mote')return hi?24:4;
+  if(k=='casing')return hi?36:8;
+  if(k=='debris')return hi?28:6;
+  if(k=='fx')return hi?220:90;
+  return hi?80:16}
+function v6Count(ks){let n=0;for(const f of GS.fx)if(ks.indexOf(f.k)>=0)n++;return n}
+function v6Can(k){if(k=='smoke'||k=='fog'||k=='ember'||k=='mote')return v6Count(['smoke','fog','ember','mote'])<v6Cap(k=='fog'?'fog':k=='mote'?'mote':k=='ember'?'ember':'smoke');
+ if(k=='casing')return v6Count(['casing'])<v6Cap('casing');return GS.fx.length<v6Cap('fx')}
+function doorRect(d){const horiz=d=='n'||d=='s';return horiz?{x:RPW/2-16,y:d=='n'?0:RPH-18,w:32,h:18}:{x:d=='w'?0:RPW-16,y:RPH/2-16,w:16,h:32}}
+function rectsHit(a,b,pad=2){return a.x<b.x+b.w+pad&&a.x+a.w>b.x-pad&&a.y<b.y+b.h+pad&&a.y+a.h>b.y-pad}
+function artHitsDoor(a,doors){for(const d of Object.keys(doors||{}))if(rectsHit(a,doorRect(d),2))return d;return null}
+function artHitsList(a,list,pad=3){for(const o of list||[])if(rectsHit(a,o,pad))return o;return null}
+const FOG_COL={1:'#6a5a40',2:'#4a2a6a',3:'#8a7a50',4:'#6a3a20',5:'#1a4a30',hub:'#1a3a38'};
+
+// ---- v0.6 generation: seeded NFT wall art + steam vents, never covering doors ----
+function v6Avoid(room){const o={};for(const d in (room.doors||{}))o[d]=room.doors[d];for(const d in (room.secretDoors||{}))o[d]=room.secretDoors[d];return o}
+function v6PlaceArt(room,hub){
+  if(!room||!NFT_PIECES||!NFT_PIECES.length)return room&&(room.art=room.art||[]),room&&room.art;
+  const R=RNG(hash((room.seed||1)+':v6art'));
+  const avoid=v6Avoid(room),art=[],used=[];
+  const tryPut=(a)=>{if(a.x<1||a.y<0||a.x+a.w>RPW-1||a.y+a.h>RPH-2)return 0;if(artHitsDoor(a,avoid))return 0;if(artHitsList(a,used,4))return 0;art.push(a);used.push(a);return 1};
+  const pick=()=>NFT_PIECES[R.int(NFT_PIECES.length)];
+  const style=pc=>{const torn=R.chance(.16),tilt=R.chance(.22)?(R()-.5)*.2:0,flip=R.chance(.12);
+    const frame=torn?R.pick(['torn','tape']):R.pick(['wood','gold','chrome','tape','iron']);
+    const tint=R.chance(.3)?R.pick(['toast','butter','glitch','pyrite']):null;
+    return {id:pc.id,torn,tilt,flip,frame,tint,anim:pc.anim||0}};
+  if(hub||room.kind=='hub'){
+    const slots=[[8,48,13,20,'w'],[219,48,13,20,'e'],[26,20,16,14,'n'],[188,20,16,14,'n']];
+    const seen=new Set();
+    for(const[x,y,w,h,wall] of slots){let pc=pick(),g=0;while(seen.has(pc.id)&&g++<40)pc=pick();seen.add(pc.id);const s=style(pc);tryPut({...s,x,y,w,h,wall,gallery:1})}
+    room.art=art;return art}
+  const n=room.kind=='shop'||room.kind=='treasure'?2:room.kind=='secret'?2:2+R.int(3);
+  const bands=[[20,36],[50,78],[162,190],[208,226]];
+  if(!room.doors||room.doors.n==null)bands.splice(2,0,[100,140]);
+  // shuffle bands
+  for(let i=bands.length-1;i>0;i--){const j=R.int(i+1),[a,b]=[bands[i],bands[j]];bands[i]=b;bands[j]=a}
+  let placed=0;
+  for(const[lo,hi] of bands){if(placed>=n)break;const pc=pick(),s=style(pc),w=16+R.int(10),h=14+R.int(6),x=lo+R.int(Math.max(1,hi-lo-w)),y=2+R.int(3);
+    if(tryPut({...s,x,y,w,h,wall:'n'}))placed++}
+  if(R.chance(.55)&&room.kind!='start'){
+    const wall=R.chance(.5)?'w':'e',w=10+R.int(4),h=16+R.int(8),x=wall=='w'?2:RPW-2-w,y=R.chance(.5)?22+R.int(18):92+R.int(12),pc=pick(),s=style(pc);
+    tryPut({...s,x,y,w,h,wall})}
+  room.art=art;return art}
+function v6PlaceVents(room){
+  if(!room||room.kind=='hub')return room&&(room.vents=room.vents||[]),room&&room.vents;
+  const R=RNG(hash((room.seed||1)+':vent')),n=R.chance(.55)?1+R.int(2):0,vents=[],g=room.grid,pits=room.pits;
+  const doorCells=new Set();for(const d in (room.doors||{})){const t=typeof DOOR_TILE!=='undefined'?DOOR_TILE[d]:null;if(t)doorCells.add(t[1]*13+t[0])}
+  let guard=40;
+  while(vents.length<n&&guard--){const tx=1+R.int(11),ty=1+R.int(5),i=ty*13+tx;if(g&&g[i])continue;if(pits&&pits[i])continue;if(doorCells.has(i))continue;
+    const x=(tx+1)*TILE+8,y=(ty+1)*TILE+10;if(vents.some(v=>Math.hypot(v.x-x,v.y-y)<24))continue;
+    vents.push({x,y,k:R.chance(.4)?'chimney':'steam'})}
+  room.vents=vents;return vents}
+function v6Decorate(F){if(!F||!F.rooms)return F;for(const r of F.rooms){if(r.hidden)continue;v6PlaceArt(r,0);v6PlaceVents(r)}return F}
+function v6DecorateHub(room){v6PlaceArt(room,1);room.vents=room.vents||[{x:56,y:18,k:'chimney'},{x:70,y:18,k:'steam'}];return room}
+{const _gf=genFloor;genFloor=function(seed,floor,pool,used){const F=_gf(seed,floor,pool,used);v6Decorate(F);return F}}
+function setArt(list){const R=GS.run&&GS.run.room;if(!R)return;R.art=(list||[]).map(a=>{if(Array.isArray(a)){const pc=NFT_PIECES[a[0]]||NFT_PIECES[0];return {id:typeof a[0]==='string'?a[0]:pc.id,x:a[1],y:a[2],w:a[3]||18,h:a[4]||16,wall:a[5]||'n',frame:a[6]||'wood',tilt:0,torn:0,flip:0,tint:null,anim:pc&&pc.anim||0}}return {...a}})}
+function setVents(list){const R=GS.run&&GS.run.room;if(!R)return;R.vents=(list||[]).map(v=>Array.isArray(v)?{x:v[0],y:v[1],k:v[2]||'steam'}:{...v})}
+
 // ---- run state, player, combat, rooms ----
 function newPlayer(heroId){const H=HEROES[heroId],U=SAVE.up;const P={hero:heroId,x:RPW/2,y:RPH/2+20,vx:0,vy:0,r:5,face:1,aim:[0,1],
  maxhp:H.hp+U.hp*2,hp:0,dmg:H.dmg+U.dmg*.5,rate:H.rate,spd:H.spd,shotSpd:H.shotSpd,range:H.range,size:H.size,pierce:0,bounce:0,homing:0,poison:0,shots:1,
@@ -2256,7 +2330,7 @@ function hubAmbient(){const H=GS.hub;if(!H.amb){H.amb=[];for(let i=0;i<22;i++)H.
  if(GS.t%12==0)H.parts.push({x:55+(FX()-.5)*2,y:1,vx:.06+FX()*.1,vy:-.12,life:60,col:'#6a6a7a',s:2,smoke:1});
  if(GS.t%30==0)H.parts.push({x:200+(FX()-.5)*14,y:22,vx:0,vy:-.2,life:30,col:FX()<.5?'#00f0ff':'#ff2bd6',s:1});
  const N=H.nug;N.t++;N.x+=N.dir*.35;if(N.x>176||N.x<104)N.dir*=-1;if(GS.t%240==0&&FX()<.5)N.dir*=-1}
-function drawHub(){const H=GS.hub,P=H.P;const ox=ROOMX,oy=ROOMY;bx.drawImage(H.room.bg,ox,oy,RPW,RPH);bx.save();bx.translate(ox,oy);
+function drawHub(){const H=GS.hub,P=H.P;const ox=ROOMX,oy=ROOMY;bx.drawImage(H.room.bg,ox,oy,RPW,RPH);bx.save();bx.translate(ox,oy);if(typeof drawWallArt==='function')drawWallArt(H.room);
  const lights=[...roomLights(H.room)];
  for(const lx of[100,140]){lights.push({x:lx,y:9,r:40*flick(lx),a:.9,col:'#ffd400',ga:.22});spr('flame_'+((GS.t>>2)%3),lx,6)}
  lights.push({x:56,y:6,r:30*flick(3),a:.8,col:'#ff8a00',ga:.2},{x:40,y:RPH-12,r:26,a:.8,col:'#9fe8ff',ga:.15});
@@ -2571,6 +2645,78 @@ function muzzleOf(P){const G=gunOf(P),a=gunAngle(P),kick=P.gunKick||0,[hx,hy]=gu
  if(P){const[mx,my]=muzzleOf(P);for(let i=GS.fx.length-1;i>=0;i--){const f=GS.fx[i];if(f.k=='muzzle'&&f.life>=3){f.x=mx;f.y=my;break}}}}}
 {const _ra=readAim;readAim=function(){const a=_ra();if(a&&GS.run&&GS.run.P&&Math.abs(a.x)+Math.abs(a.y)>.05){const m=Math.hypot(a.x,a.y)||1;GS.run.P.aim=[a.x/m,a.y/m]}return a}}
 {const _up=updatePlayer;updatePlayer=function(){const P=GS.run&&GS.run.P;if(P&&P.gunKick>0){P.gunKick*=.62;if(P.gunKick<.12)P.gunKick=0}_up()}}
+
+// ---- v0.6 atmosphere + combat weight: smoke, hit-stop, casings, decals, lights, beefier SFX ----
+function v6Smoke(x,y,opt){opt=opt||{};if(!v6Can(opt.k||'smoke'))return;const k=opt.k||'smoke';
+ const n=opt.n==null?1:opt.n,life=opt.life||50+FX.int(30),col=opt.col||'#b9b2a2',sp=opt.sp||.35;
+ for(let i=0;i<n;i++){if(!v6Can(k))break;fxAdd({k,x:x+(FX()-.5)*(opt.spread||6),y:y+(FX()-.5)*(opt.spread||3),
+  vx:(opt.vx||0)+(FX()-.5)*sp,vy:(opt.vy==null?-.25:opt.vy)+(FX()-.5)*sp*.5,life:life+FX.int(16),col,s:(opt.s||2)+FX()*1.5,z:opt.z||0})}}
+function v6Ember(x,y,n=4){for(let i=0;i<n;i++){if(!v6Can('ember'))break;fxAdd({k:'ember',x:x+(FX()-.5)*8,y:y+(FX()-.5)*4,vx:(FX()-.5)*.6,vy:-.4-FX()*.8,life:28+FX.int(24),col:FX()<.5?'#ff8a00':'#ffd400',s:1+FX()})} }
+function v6FogTick(R){if(!R||!fxHi()&&v6Count(['fog'])>=v6Cap('fog'))return;const want=v6Cap('fog'),have=v6Count(['fog']);
+ if(have>=want)return;if(GS.t%3)return;const col=FOG_COL[R.theme|| (GS.run&&GS.run.floor)||'hub']||'#6a5a40';
+ v6Smoke(TILE+8+FX()*(RPW-32),RPH-18-FX()*8,{k:'fog',n:1,life:90+FX.int(50),col,sp:.15,vy:-.08,s:3+FX()*3,spread:20})}
+function v6VentTick(R){if(!R||!R.vents)return;for(const v of R.vents){if(GS.t% (fxHi()?4:10))continue;
+  v6Smoke(v.x,v.y,{k:'smoke',n:fxHi()?2:1,life:v.k=='chimney'?70:40,col:v.k=='chimney'?'#8a8494':'#c8c0b0',vy:v.k=='chimney'?-.45:-.3,s:v.k=='chimney'?2.4:1.6,sp:.2})}}
+function v6BurnTick(){const run=GS.run;if(!run)return;
+ for(const e of run.ents){if(e.dead)continue;if(e.burn&&fxHi()&&GS.t%5==0)v6Smoke(e.x,e.y-4,{n:1,life:30,col:'#8a8494',vy:-.35,s:1.8});
+  if((e.boss||e.mini)&&e.st=='intro'&&GS.t%4==0)v6Smoke(e.x,e.y+8,{n:fxHi()?3:1,life:50,col:'#5a5048',vy:-.2,spread:18,s:3})}
+ for(const p of liveProps()){if(p.dead)continue;if((p.k=='barrel'||p.k=='bkeg'||p.k=='batt')&&p.fuse&&GS.t%4==0){v6Smoke(p.px,p.py-4,{n:1,life:28,col:'#6a6058',vy:-.4});if(fxHi())v6Ember(p.px,p.py-2,1)}}}
+function v6ShotTrails(){const run=GS.run;if(!run||!fxHi())return;
+ for(const s of run.shots){if(!(s.bomb||s.toast||s.bagel||s.rocket||s.special))continue;if(GS.t%2)continue;v6Smoke(s.x,s.y,{n:1,life:18,col:'#9a9488',vy:-.05,sp:.15,s:1.4,spread:2})}}
+function v6Motes(R){if(!R||!fxHi()||GS.t%6)return;const lights=R.lights||[];if(!lights.length)return;
+ const L=lights[GS.t%lights.length];v6Smoke(L.x+(FX()-.5)*10,L.y+6+FX()*16,{k:'mote',n:1,life:70,col:'#e8dcc0',vy:-.12,sp:.08,s:.8,spread:4})}
+function v6BossSmoke(x,y){v6Smoke(x,y+10,{n:fxHi()?18:6,life:70,col:'#6a6460',vy:-.3,spread:22,s:3.5,sp:.5});v6Ember(x,y,fxHi()?10:3)}
+function v6CullCasings(){const cap=v6Cap('casing'),cs=[];for(const f of GS.fx)if(f.k=='casing')cs.push(f);
+ if(cs.length<=cap)return;cs.sort((a,b)=>a.life-b.life);for(let i=0;i<cs.length-cap;i++){const f=cs[i];if(GS.run&&GS.mode=='play')stampDecal('casing',f.x,f.y,f.col);f.life=0}}
+function v6WatchFps(){if(CR&&CR._noAutoFx)return;if(!SAVE.set||SAVE.set.fxq===0)return;if(GS.mode!='play'&&GS.mode!='hub')return;
+ if(PERF.n<240)return;const n=Math.min(PERF.n,240);let s=0,c=0;for(let i=0;i<n;i++){const iv=PERF.iv[(PERF.i-1-i+600)%600];if(iv>0){s+=iv;c++}}
+ const fps=1000/(s/Math.max(1,c));if(fps<36){GS.v6slow=(GS.v6slow||0)+1}else GS.v6slow=0;
+ if(GS.v6slow>300&&SAVE.set.fxq){SAVE.set.fxq=0;save();GS.v6autoLow=1;if(typeof banner==='function')banner('EFFECTS: LOW','AUTO — PERFORMANCE', '#ff8a00',90)}}
+function v6ForceLow(){SAVE.set.fxq=0;GS.v6autoLow=1}
+function v6ForceHigh(){SAVE.set.fxq=1;GS.v6autoLow=0;GS.v6slow=0}
+
+// wrap fire / weapons: muzzle smoke, shake per weapon, longer casings
+const V6_SHAKE={toastgun:4.2,beam:1.4,crumbler:3.6,bagel:2.6};
+{const _fire=fire;fire=function(dx,dy){_fire(dx,dy);if(!GS.run)return;const P=GS.run.P;const w=P.wpn,n=fxHi()?(w?4:3):1;
+ v6Smoke(P.x+dx*7,P.y-2+dy*7,{n,life:w?26:22,col:'#c8c0b4',vy:-.18,sp:.28,s:w?1.8:1.6,spread:w?4:3});shake(V6_SHAKE[w]||1.6)}}
+{const _cas=casing;casing=function(P,dx,dy,n=1){_cas(P,dx,dy,n);for(const f of GS.fx)if(f.k=='casing'&&f.life0<80){f.life=140+FX.int(80);f.life0=f.life}v6CullCasings()}}
+
+// explode: lingering smoke, embers, bigger debris, scorch
+{const _ex=explode;explode=function(x,y,r,dmg,src){_ex(x,y,r,dmg,src);v6Smoke(x,y,{n:fxHi()?14:4,life:80,col:'#7a746c',vy:-.25,spread:r*.5||12,s:3,sp:.45});v6Ember(x,y,fxHi()?12:3);
+  stampDecal('scorch',x+(FX()-.5)*6,y+(FX()-.5)*4,'#000');if(fxHi())stampDecal('scorch',x+3,y+2,'#000');
+  const bits=fxHi()?10:3;for(let i=0;i<bits;i++){if(GS.fx.length>=v6Cap('fx'))break;fxAdd({k:'debris',x:x+(FX()-.5)*8,y:y+(FX()-.5)*4,vx:(FX()-.5)*2.4,vy:-1-FX()*1.6,vz:-1.2-FX(),z:-1,life:50+FX.int(30),col:FX()<.5?'#5c6570':'#3a2a14',s:1.5+FX()*2})}
+  shake(src=='barrel'?11:7);hitstop(src=='barrel'?5:4)}}
+
+// heavier hits + kill juice
+{const _de=damageEnemy;damageEnemy=function(e,dm,s){_de(e,dm,s);if(!e)return;e.flash=Math.max(e.flash||0,8);e.sq=Math.max(e.sq||0,9);
+  if(s&&!e.boss){const m=Math.hypot(s.vx||0,s.vy||0)||1;e.vx=(e.vx||0)+s.vx/m*0.45;e.vy=(e.vy||0)+s.vy/m*0.45;e._kb=1}
+  if(dm>=5|| (s&&(s.bomb||s.toast))){hitstop(Math.max(GS.hitstop||0,4));shake(3)} }}
+{const _ke=killEnemy;killEnemy=function(e){const was=e&&e.dead;_ke(e);if(!e||was||!e.dead)return;
+  hitstop(e.boss?8:e.mini?6:4);shake(e.boss?10:e.mini?6:2.5);
+  const col=e.mini?'#e8dcc0':(e.champ?'#ffd400':'#ddd4bc');
+  burst(e.x,e.y,col,e.boss?28:14,e.boss?3:2);
+  burst(e.x,e.y,'#e0a050',e.boss?16:8,1.8);
+  if(fxHi()){v6Smoke(e.x,e.y,{n:6,life:40,col:'#8a8494',vy:-.2,s:2});for(let i=0;i<6;i++)fxAdd({k:'debris',x:e.x,y:e.y,vx:(FX()-.5)*2,vy:-.8-FX(),vz:-1,z:-1,life:40,col:'#ddd4bc',s:1.2,bone:1})}}}
+{const _pd=playerDie;playerDie=function(){_pd();const P=GS.run&&GS.run.P;if(!P)return;burst(P.x,P.y,'#e8dcc0',18,2.2);burst(P.x,P.y,'#e0a050',12,1.8);v6Smoke(P.x,P.y,{n:8,life:50,col:'#8a8494'})}}
+
+// intro smoke for minis / bosses
+{if(typeof spawnMini==='function'){const _sm=spawnMini;spawnMini=function(){const e=_sm.apply(this,arguments);if(e)v6BossSmoke(e.x,e.y);return e}}}
+{if(typeof makeBoss==='function'){const _mb=makeBoss;makeBoss=function(){const e=_mb.apply(this,arguments);if(e){e._v6smoke=1;v6BossSmoke(e.x,e.y)}return e}}}
+
+// step hook: fog, vents, trails, motes, burns, fps (fps watched from frame)
+{const _fx=fxStep;fxStep=function(){_fx();const R=(GS.run&&GS.run.room)||(GS.hub&&GS.hub.room);if(!R)return;if(GS.mode=='play'||GS.mode=='hub'){v6FogTick(R);v6VentTick(R);v6Motes(R)}if(GS.mode=='play'){v6BurnTick();v6ShotTrails();v6CullCasings()}
+ // debris gravity (reuse casing physics already in fxStep for vz)
+}}
+
+// beefier low-end on shots + explosions (synth)
+{const _sh=SFX.shoot;SFX.shoot=function(p=1){_sh(p);const t=now();if(!t)return;osc('sine',62*p,t,.16,.07,AU.sfx,28*p);osc('triangle',90*p,t,.1,.03,AU.sfx,40*p)}}
+{const _bm=SFX.boom;SFX.boom=function(v=1){_bm(v);const t=now();if(!t)return;osc('sine',42,t,.7,.26*v,AU.sfx,16);osc('sine',64,t,.4,.12*v,AU.sfx,20);nz(t,.35,.12*v,AU.sfx,'lowpass',280)}}
+
+// settings: EFFECTS HIGH/LOW
+{const _bs=buildSettings;buildSettings=function(box){_bs(box);const S=SAVE.set;if(S.fxq==null)S.fxq=1;
+  const d=document.createElement('div');d.className='set';d.innerHTML='<span>EFFECTS</span>';
+  const b=document.createElement('button');const upd=()=>b.textContent=S.fxq?'HIGH':'LOW';upd();
+  b.onclick=()=>{S.fxq=S.fxq?0:1;upd();save()};d.appendChild(b);box.appendChild(d)}}
 
 // ---- rendering: world (HD), soft lighting, juice, HUD, minimap, map, banners, hub, title, glitch post-fx ----
 const hd=v=>Math.round(v*HD)/HD; // snap to the native pixel grid
@@ -3025,6 +3171,63 @@ function drawMiniSheet(){bx.fillStyle='#0a0614';bx.fillRect(0,0,LW,LH);
 {const _ren=render;render=function(){if(GS.v5sheet){bx.setTransform(HD,0,0,HD,0,0);bx.imageSmoothingEnabled=false;bx.fillStyle='#000';bx.fillRect(0,0,LW,LH);drawMiniSheet();
   const BW=buf.width,BH=buf.height;cx.imageSmoothingEnabled=false;cx.fillStyle='#000';cx.fillRect(0,0,cv.width,cv.height);const W=LW*SC,H=LH*SC;cx.drawImage(buf,0,0,BW,BH,OX,OY,W,H);return}_ren()}}
 
+// ---- v0.6 render: framed NFT wall art, smoke/fog, darker vignette, muzzle lights, dust motes ----
+function drawFrame(a){const w=a.w,h=a.h,x=-w/2,y=-h/2,f=a.frame||'wood';
+ if(f=='torn'){bx.fillStyle='#1a1010';bx.fillRect(x-1,y-1,w+2,h+2);return}
+ if(f=='tape'){bx.fillStyle='#0a0808';bx.fillRect(x-1,y-1,w+2,h+2);bx.fillStyle='#c8b890';
+  bx.fillRect(x-2,y-1,6,3);bx.fillRect(x+w-4,y-1,6,3);bx.fillRect(x-2,y+h-2,6,3);bx.fillRect(x+w-4,y+h-2,6,3);return}
+ const col=f=='gold'?'#d8b030':f=='chrome'?'#a9b3bd':f=='iron'?'#4a4e56':'#6a4a28';
+ const hi=f=='gold'?'#ffe07a':f=='chrome'?'#e8eef4':f=='iron'?'#8a90a0':'#a07a48';
+ const lo=f=='gold'?'#6a4a08':f=='chrome'?'#3a4048':f=='iron'?'#1a1c20':'#3a2410';
+ bx.fillStyle=lo;bx.fillRect(x-2,y-2,w+4,h+4);
+ bx.fillStyle=col;bx.fillRect(x-1,y-1,w+2,h+2);
+ bx.fillStyle=hi;bx.fillRect(x-1,y-1,w+2,1);bx.fillRect(x-1,y-1,1,h+2);
+ bx.fillStyle=lo;bx.fillRect(x-1,y+h,w+2,1);bx.fillRect(x+w,y-1,1,h+2);
+ if(f=='gold'){bx.fillStyle='#fff2a8';bx.fillRect(x+1,y+1,1,1);bx.fillRect(x+w-2,y+1,1,1)}}
+function drawTornOverlay(a){const w=a.w,h=a.h,x=-w/2,y=-h/2;bx.fillStyle='#0a0808';
+ const s=hash((a.id||'')+a.x+','+a.y);for(let i=0;i<5;i++){const t=(s+i*17)&15;bx.fillRect(x+t*(w/6),y-1,2+t%2,1);bx.fillRect(x+w-1,y+t,1,2)}}
+function drawWallArt(R){if(!R||!R.art||!R.art.length)return;
+ const theme=R.theme||(GS.run&&GS.run.floor)||'hub';
+ for(const a of R.art){const pc=nftPiece(a.id);if(!pc)continue;
+  const fl=((GS.t*3+((a.x*7)|0)+((a.y*5)|0))%82)<2;
+  bx.save();bx.translate(a.x+a.w/2,a.y+a.h/2);if(a.tilt)bx.rotate(a.tilt);if(a.flip)bx.scale(-1,1);
+  drawFrame(a);const pad=a.frame=='torn'||a.frame=='tape'?1:2,ix=-a.w/2+pad,iy=-a.h/2+pad,iw=a.w-pad*2,ih=a.h-pad*2;
+  bx.save();bx.beginPath();bx.rect(ix,iy,iw,ih);bx.clip();
+  if(fl)bx.globalAlpha=.28;
+  if(NFT_READY){bx.imageSmoothingEnabled=false;bx.drawImage(NFT_IMG,pc.x,pc.y,NFT_CELL,NFT_CELL,ix,iy,iw,ih)}
+  else{bx.fillStyle='#1a1014';bx.fillRect(ix,iy,iw,ih);bx.fillStyle='#d8c690';bx.fillRect(ix+iw*.25,iy+ih*.2,iw*.5,ih*.55)}
+  const tint=a.tint||(a.gallery?null:NFT_THEME_TINT[theme]);
+  if(tint&&NFT_TINT[tint]){bx.globalCompositeOperation='overlay';bx.globalAlpha=fl?.12:.32;bx.fillStyle=NFT_TINT[tint];bx.fillRect(ix,iy,iw,ih);bx.globalCompositeOperation='source-over';bx.globalAlpha=fl?.28:1}
+  if((a.anim||SAVE.set.crt)&&!fl){const ox=Math.sin((GS.t+a.x)*.2)*.7;bx.globalCompositeOperation='lighter';
+   bx.globalAlpha=.22;bx.fillStyle='rgba(255,43,214,.8)';bx.fillRect(ix+ox,iy+((GS.t+((a.y)|0))%3),iw,.6);
+   bx.fillStyle='rgba(0,240,255,.7)';bx.fillRect(ix-ox,iy+1+((GS.t)|0)%4,iw,.6);
+   if(a.anim){const cols=['#ff2bd6','#00f0ff','#ffd400'];bx.globalAlpha=.1+.08*Math.sin(GS.t*.14+a.x*.1);bx.fillStyle=cols[(GS.t>>4)%3];bx.fillRect(ix,iy,iw,ih)}
+   bx.globalCompositeOperation='source-over';bx.globalAlpha=1}
+  bx.restore();if(a.torn||a.frame=='torn')drawTornOverlay(a);bx.restore()}
+ bx.globalAlpha=1;bx.globalCompositeOperation='source-over'}
+function drawV6Smoke(){for(const f of GS.fx){if(f.d>0)continue;if(f.k=='smoke'||f.k=='fog'){const k=f.life/(f.life0||50),r=Math.max(.6,(f.s||2)*(.7+ (1-k)*.8));
+  bx.globalAlpha=Math.min(.45,k*.5)*(f.k=='fog'?.45:.55);bx.fillStyle=f.col||'#b9b2a2';bx.beginPath();bx.ellipse(f.x,f.y+(f.z||0),r,r*.7,0,0,TAU);bx.fill();bx.globalAlpha=1}
+  else if(f.k=='ember'){bx.globalAlpha=Math.min(1,f.life/10);bx.fillStyle=f.col;bx.fillRect(hd(f.x),hd(f.y+(f.z||0)),1,1);bx.globalAlpha=1}
+  else if(f.k=='mote'){bx.globalAlpha=.35*Math.min(1,f.life/20);bx.fillStyle=f.col||'#e8dcc0';bx.fillRect(hd(f.x),hd(f.y),.5,.5);bx.globalAlpha=1}
+  else if(f.k=='debris'){const z=f.z||0;bx.fillStyle=f.col||'#5c6570';bx.globalAlpha=Math.min(1,f.life/8);bx.fillRect(hd(f.x),hd(f.y+z),Math.max(1,f.s||1),Math.max(.5,(f.s||1)*.6));bx.globalAlpha=1}}}
+function drawVents(R){if(!R||!R.vents)return;for(const v of R.vents){bx.fillStyle='#1a1814';bx.fillRect(hd(v.x-3),hd(v.y-1),6,3);
+  bx.fillStyle='#3a3e4a';bx.fillRect(hd(v.x-2),hd(v.y-1),4,1);if(v.k=='chimney'){bx.fillStyle='#4a3a2a';bx.fillRect(hd(v.x-2),hd(v.y-5),4,5);bx.fillStyle='#2a2018';bx.fillRect(hd(v.x-3),hd(v.y-6),6,1)}}}
+
+{const _drl=drawRoomLayer;drawRoomLayer=function(R,theme,ox,oy,live){_drl(R,theme,ox,oy,live);bx.save();bx.translate(ox,oy);drawWallArt(R);drawVents(R);bx.restore()}}
+{const _dfx=drawFX;drawFX=function(){_dfx();drawV6Smoke()}}
+
+// stronger muzzle / explosion lights + torch punch
+{const _ll=lightLayer;lightLayer=function(dark,lights){if(fxHi()){for(const f of GS.fx){if(f.k=='muzzle')lights.push({x:f.x,y:f.y,r:48,a:1,col:f.col,ga:.28});
+   else if(f.k=='boom'&&!(f.d>0))lights.push({x:f.x,y:f.y,r:70,a:1,col:'#ff8a00',ga:.48});
+   else if(f.k=='ember'&&f.life>10)lights.push({x:f.x,y:f.y,r:10,a:.5,col:'#ff8a00',ga:.08})}
+  for(const L of lights){if(L.col&&!L.tv&&L.r>20){L.r=(L.r||30)*1.12;L.ga=Math.min(.4,(L.ga||.2)*1.15)}}}
+  _ll(dark,lights)}}
+
+// darker vignette
+{const _vg=vignette;vignette=function(){if(!VIG||VIG.width!=LW||!VIG._v6){VIG=mkc(LW,LH);const g=VIG.getContext('2d'),gr=g.createRadialGradient(LW/2,LH/2+8,LH*.32,LW/2,LH/2+8,LW*.66);
+  gr.addColorStop(0,'rgba(0,0,0,0)');gr.addColorStop(.65,'rgba(0,0,0,.15)');gr.addColorStop(1,'rgba(0,0,0,.84)');g.fillStyle=gr;g.fillRect(0,0,LW,LH);VIG._v6=1}
+  bx.imageSmoothingEnabled=true;bx.drawImage(VIG,0,0,LW,LH);bx.imageSmoothingEnabled=false}}
+
 // ---- touch: floating twin sticks (left MOVE, right AIM + FIRE; tap or hold the right stick to shoot) ----
 const TOUCH={l:{on:false,id:null,ox:0,oy:0,vx:0,vy:0,mag:0},r:{on:false,id:null,ox:0,oy:0,vx:0,vy:0,mag:0,t0:0,moved:0,hold:false},tapFire:0,roll:0,blank:0,
  reset(){for(const s of[this.l,this.r]){s.on=false;s.id=null;s.vx=s.vy=s.mag=0;s.hold=false}this.tapFire=0;this.roll=this.blank=0;layoutSticks()}};
@@ -3124,3 +3327,20 @@ Object.assign(window.CR,{
  showMiniSheet(){GS.v5sheet=1},hideMiniSheet(){GS.v5sheet=0},
  ITEMS,SKINS
 });
+
+// ---- v0.6 test hooks, hub decorate, fps auto-low ----
+{const _mh=makeHubRoom;makeHubRoom=function(){const r=_mh();v6DecorateHub(r);return r}}
+{const _frame=frame;frame=function(t){_frame(t);v6WatchFps()}}
+
+Object.assign(window.CR,{
+ NFT_PIECES,NFT_ATLAS,NFT_CELL,NFT_TINT,NFT_THEME_TINT,
+ nftReady:()=>NFT_READY,nftErr:()=>NFT_ERR,nftImg:()=>NFT_IMG,
+ nftPiece,fxHi,v6Cap,v6Count,v6Can,doorRect,rectsHit,artHitsDoor,
+ v6PlaceArt,v6PlaceVents,v6Decorate,v6DecorateHub,setArt,setVents,
+ v6Smoke,v6Ember,v6BossSmoke,v6ForceLow,v6ForceHigh,v6WatchFps,v6CullCasings,
+ drawWallArt,drawV6Smoke,
+ fxq:()=>SAVE.set.fxq,setFxq:v=>{SAVE.set.fxq=v?1:0}
+});
+Object.defineProperty(window.CR,'NFT_READY',{get(){return NFT_READY}});
+Object.defineProperty(window.CR,'NFT_ERR',{get(){return NFT_ERR}});
+Object.defineProperty(window.CR,'NFT_IMG',{get(){return NFT_IMG}});
