@@ -1,0 +1,65 @@
+/* TT DAILY GLITCH DROP v1 START */
+/* TherapyToaster Home — move Mr. Toasty's Daily Glitch down so the
+   Mr. Toasty graffiti top-wall mural behind it is fully visible.
+
+   PASTE into Squarespace Custom CSS (append at the end of the sheet).
+   Sitewide CSS, scoped to Home (body.homepage + html.tt-topwall).
+   Do NOT paste this into the Home code block. Hourly routine rebuilds
+   of that block will not wipe this, and no routine scripts need updating.
+
+   What's covering what:
+   #tt-topwall is an absolute backdrop (Coty's "MR. TOASTY" graffiti)
+   from the page top to the bottom of #tt-notice. The Daily Glitch card
+   sits immediately under the site-visits bar (#tt-vc) and covers the
+   lower half of the mural lettering. The recent desktop spacing tighten
+   (TT HOME TIGHT v1) did not move #tt-notice, but it removed the large
+   empty band under the card, so the covered mural is more obvious.
+
+   The top-wall script in the Home block sizes #tt-topwall to
+   #tt-notice.getBoundingClientRect().bottom. Pushing the card down
+   with margin-top would otherwise grow and recrop the mural. This
+   locks the wall height with !important (wins over the script's
+   inline height) and then adds margin-top on #tt-notice.ttdg-moved.
+   #tt-vc is left where it is.
+*/
+
+@media screen and (min-width: 768px) {
+  html.tt-topwall body.homepage #tt-topwall {
+    /* 3200x1500 art = 46.875vw when width-limited; 850px floor keeps
+       the current tall cover crop at 768–1600. */
+    height: max(46.875vw, 850px) !important;
+  }
+  html.tt-topwall body.homepage #tt-notice.ttdg-moved {
+    /* Place the card at the foot of the locked wall, 16px into the
+       wall's bottom fade. 530px is header+#tt-vc at 1920; the 342px
+       floor covers 768–1600 where the wall uses the 850px floor. */
+    margin-top: calc(max(342px, calc(46.875vw - 530px)) - 16px) !important;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  html.tt-topwall body.homepage #tt-topwall {
+    height: 820px !important;
+  }
+  html.tt-topwall body.homepage #tt-notice.ttdg-moved {
+    /* 40vw + 160px approximates header+#tt-vc on phones; 16px fade overlap. */
+    margin-top: calc(820px - 40vw - 160px - 16px) !important;
+  }
+}
+@media screen and (max-width: 340px) {
+  html.tt-topwall body.homepage #tt-topwall {
+    height: 808px !important;
+  }
+  html.tt-topwall body.homepage #tt-notice.ttdg-moved {
+    margin-top: 512px !important;
+  }
+}
+@media screen and (min-width: 520px) and (max-width: 767px) {
+  html.tt-topwall body.homepage #tt-topwall {
+    height: 880px !important;
+  }
+  html.tt-topwall body.homepage #tt-notice.ttdg-moved {
+    margin-top: calc(880px - 42vw - 170px - 16px) !important;
+  }
+}
+/* TT DAILY GLITCH DROP v1 END */
