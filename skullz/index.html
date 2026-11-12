@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.20.1"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.20.2"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <link rel="icon" href="data:,"><title>MR. TOASTY'S NO SIGNAL SKULLZ — Therapy Toaster</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Anton&family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
@@ -1626,8 +1626,8 @@ function render(t,rdt){
  for(const p of projs)sp.push({x:p.x,y:p.y,s:p.s||.25,z:.3,T:p.T,glow:1});
  for(const q of fx)sp.push(Object.assign({},q));
  const inv=1/(pX*dY-dX*pY);for(const s of sp){[s.tx,s.ty]=proj3(s.x,s.y,dX,dY,pX,pY,inv)}sp.sort((a,b)=>b.ty-a.ty);
- for(const s of sp){if(s.ty<.15)continue;const scx=(W/2)*(1+s.tx/s.ty),lh=H/s.ty,sh=lh*s.s,bot=H/2+lh/2-s.z*lh,top=bot-sh,x0=scx-sh/2;const f=s.glow?256:fog(s.ty),tts=s.T.ts||0;if(f<=0)continue;const sl=!s.glow&&AL.length&&lightAt(s.x,s.y),slr=LT[0],slg=LT[1],slb=LT[2];
-  for(let x=Math.max(0,x0|0);x<Math.min(W,(x0+sh)|0);x++){if(s.ty>=zbuf[x])continue;let tx=s.T.ts?Math.min(s.T.ts-1,((x-x0)*s.T.ts/sh)|0):(((x-x0)*TS/sh)|0)&63;if(s.flip)tx=(s.T.ts||TS)-1-tx;const yb=s.ty>ZN[x]?Math.min(bot,ZNY[x]):bot;for(let y=Math.max(0,top|0);y<Math.min(H,yb|0);y++){const c=tts?s.T[Math.min(tts-1,((y-top)*tts/sh)|0)*tts+tx]:s.T[(((y-top)*TS/sh)|0&63)*TS+tx];if(c){const ff=s.glow?256:fogDither(f,x,y);buf[y*W+x]=s.hit?0xffffffff:sl?lit(c,ff,slr,slg,slb):shade(c,ff)}}}}
+ for(const s of sp){if(s.ty<.15)continue;const scx=(W/2)*(1+s.tx/s.ty),lh=H/s.ty,sh=lh*s.s,sw=lh*(s.sw||s.s),bot=H/2+lh/2-s.z*lh,top=bot-sh,x0=scx-sw/2;const f=s.glow?256:fog(s.ty),tw=s.T.tw||s.T.ts||0,th=s.T.th||s.T.ts||tw;if(f<=0)continue;const sl=!s.glow&&AL.length&&lightAt(s.x,s.y),slr=LT[0],slg=LT[1],slb=LT[2];
+  for(let x=Math.max(0,x0|0);x<Math.min(W,(x0+sw)|0);x++){if(s.ty>=zbuf[x])continue;let tx=tw?Math.min(tw-1,((x-x0)*tw/sw)|0):(((x-x0)*TS/sw)|0)&63;if(s.flip)tx=(tw||TS)-1-tx;const yb=s.ty>ZN[x]?Math.min(bot,ZNY[x]):bot;for(let y=Math.max(0,top|0);y<Math.min(H,yb|0);y++){const c=tw?s.T[Math.min(th-1,((y-top)*th/sh)|0)*tw+tx]:s.T[(((y-top)*TS/sh)|0&63)*TS+tx];if(c){const ff=s.glow?256:fogDither(f,x,y);buf[y*W+x]=s.hit?0xffffffff:sl?lit(c,ff,slr,slg,slb):shade(c,ff)}}}}
  // particles (gibs, bone shards, sparks) — z-buffered pixel squares
  for(const q of parts){const[tx,ty]=proj3(q.x,q.y,dX,dY,pX,pY,inv);if(ty<.2)continue;const sx=((W/2)*(1+tx/ty))|0;if(sx<0||sx>=W||ty>=zbuf[sx])continue;const lh=H/ty,sy=(H/2+lh/2-q.z*lh)|0,sz=Math.max(1,Math.min(4,(q.sz*2.2/ty)|0)),c=q.dim?shade(q.c,Math.min(150,q.l*90)|0):q.l<.25?shade(q.c,180):q.c;
   for(let y=sy;y<sy+sz;y++)if(y>=0&&y<H)for(let x=sx;x<sx+sz&&x<W;x++)if(ty<zbuf[x]&&!(ty>ZN[x]&&y>=ZNY[x]))buf[y*W+x]=c}
@@ -13159,11 +13159,11 @@ if(typeof TT==='object'){
 }
 })();
 
-// v0.20.1 — no center reticle; walkable NO SIGNAL broadcast room behind the exit.
+// v0.20.2 — wide EXIT sign, tight doorway glow, giant CHANGE CHANNEL CRT.
 // Aim / hit logic is unchanged: shots still go to screen center.
 // Gun art, CLOSE, and the rest of the v0.20.0 viewmodels are untouched.
 (function(){
-  const VER='0.20.1';
+  const VER='0.20.2';
   const CLOSE=1.15;
   const YEL='#FFD400';
   if(typeof drawSkullXH==='function') drawSkullXH=function(){};
@@ -13192,13 +13192,19 @@ if(typeof TT==='object'){
     const t=Math.max(0,((typeof run==='object'&&run&&run.time)||0)-FS.time0);
     const acc=FS.shots>0?Math.round(100*Math.min(1,FS.hits/FS.shots)):0;
     let pts=0;
-    if(total>0)pts+=(kills/total)*40;else pts+=20;
-    pts+=Math.min(25,acc/100*25);
-    if(secT>0)pts+=(found/secT)*15;else pts+=8;
-    pts+=Math.min(12,FS.dealt/(FS.taken+80)*8);
-    if(t>0&&t<75)pts+=8;else if(t<120)pts+=4;
+    // Full clear is a solid B-range base; S is a clean, accurate, complete floor.
+    if(total>0){
+      const ratio=kills/total;
+      pts+=ratio*55;
+      if(ratio>=1)pts+=5;
+    }else pts+=28;
+    pts+=acc>=80?15:acc>=60?10:acc>=40?6:acc>=20?3:0;
+    if(secT>0)pts+=(found/secT)*15;
+    if(kills>0&&FS.taken<=0)pts+=8;
+    else pts+=Math.min(8,FS.dealt/(FS.taken+50)*5);
+    if(t>0&&t<90)pts+=10;else if(t<150)pts+=5;
     pts=Math.max(0,Math.min(100,Math.round(pts)));
-    const grade=pts>=90?'S':pts>=75?'A':pts>=60?'B':pts>=45?'C':pts>=30?'D':'F';
+    const grade=pts>=90?'S':pts>=75?'A':pts>=60?'B':pts>=45?'C':pts>=28?'D':'F';
     const floorN=(typeof run==='object'&&run)?run.floor:1;
     return{
       floor:floorN,time:t,kills,total,bones,dealt:FS.dealt|0,taken:FS.taken|0,
@@ -13337,33 +13343,56 @@ if(typeof TT==='object'){
     }
     if(frame===2||frame===5){g.fillStyle='#00f0ff99';g.fillRect(14,20+frame,28,1);g.fillStyle='#ff00c888';g.fillRect(18,24+frame,22,1)}
   }
-  function paintSign(g,frame,bright){
-    g.clearRect(0,0,64,64);
-    const on=bright&&frame!==3;
-    g.fillStyle='#0a0800';g.fillRect(0,0,64,64);
-    g.fillStyle=on?YEL:'#5a4800';
-    g.fillRect(0,0,64,3);g.fillRect(0,61,64,3);g.fillRect(0,0,3,64);g.fillRect(61,0,3,64);
-    if(on){g.fillStyle='rgba(255,212,0,.45)';g.fillRect(3,3,58,58)}
-    const col=on?(frame%2?'#FFE66A':YEL):'#3a3000';
-    const glow=on?'#7a5a00':'#1a1400';
-    const s=2,lw=5*s+2,total=4*lw-2,bx=32-total/2,by=18;
+  const SIGN_W=128,SIGN_H=48;
+  function toTexR(c,w,h){
+    const d=c.getContext('2d').getImageData(0,0,w,h);
+    const u=new Uint32Array(d.data.buffer.slice(0));
+    for(let i=0;i<u.length;i++){
+      const a=u[i]>>>24;
+      u[i]=a<8?0:(u[i]|0xff000000)>>>0;
+    }
+    u.ts=w;u.tw=w;u.th=h;return u;
+  }
+  // Horizontal lit EXIT plate: chunky 5x5 glyphs, glowing #FFD400 border.
+  // bright is 0..1; a gentle flicker never turns the sign fully off.
+  function paintSign(g,w,h,bright){
+    g.clearRect(0,0,w,h);
+    const on=Math.max(0.55,Math.min(1,bright));
+    g.fillStyle='#070500';g.fillRect(0,0,w,h);
+    // outer glow
+    const gb=(255*on)|0,gg=(212*on)|0;
+    g.fillStyle='rgb('+gb+','+gg+',0)';
+    g.fillRect(0,0,w,3);g.fillRect(0,h-3,w,3);g.fillRect(0,0,3,h);g.fillRect(w-3,0,3,h);
+    g.fillStyle='rgb('+((gb*0.55)|0)+','+((gg*0.55)|0)+',0)';
+    g.fillRect(3,3,w-6,2);g.fillRect(3,h-5,w-6,2);g.fillRect(3,3,2,h-6);g.fillRect(w-5,3,2,h-6);
+    g.fillStyle='#120c00';g.fillRect(5,5,w-10,h-10);
+    if(on>0.6){
+      g.fillStyle='rgba(255,212,0,'+(0.10+on*0.16).toFixed(3)+')';
+      g.fillRect(5,5,w-10,h-10);
+    }
+    const col=on>0.8?(on>0.95?'#FFE66A':YEL):('rgb('+((255*on)|0)+','+((200*on)|0)+',0)');
+    const glow='#5a4200';
+    const s=5,gap=4,lw=5*s+gap,total=4*lw-gap,bx=((w-total)/2)|0,by=((h-5*s)/2)|0;
     const word='EXIT';
-    for(let i=0;i<4;i++){blitLetter(g,word[i],bx+i*lw+1,by+1,s,glow);blitLetter(g,word[i],bx+i*lw,by,s,col)}
+    for(let i=0;i<4;i++){
+      blitLetter(g,word[i],bx+i*lw+1,by+1,s,glow);
+      blitLetter(g,word[i],bx+i*lw,by,s,col);
+    }
   }
   let SIGNTEX=[],DOOROPEN=[],DOORSHUT=null;
   function bakeDoorAndSign(){
-    if(typeof toTex!=='function'||typeof draw!=='function')return;
-    DOOROPEN=[];SIGNTEX=[];
-    for(let i=0;i<6;i++){
-      DOOROPEN.push(toTex(draw(g=>paintDoor(g,i,true))));
-      const c=mk(TS,TS),g=c.getContext('2d',{willReadFrequently:true});
-      g.imageSmoothingEnabled=false;g.clearRect(0,0,TS,TS);paintSign(g,i,true);
-      SIGNTEX.push(toTex(c));
+    if(typeof mk!=='function')return;
+    SIGNTEX=[];
+    // 6 gentle brightness frames — no hard off-frame
+    const br=[1,0.94,0.88,0.96,0.8,0.92];
+    for(let i=0;i<br.length;i++){
+      const c=mk(SIGN_W,SIGN_H),g=c.getContext('2d',{willReadFrequently:true});
+      g.imageSmoothingEnabled=false;paintSign(g,SIGN_W,SIGN_H,br[i]);
+      SIGNTEX.push(toTexR(c,SIGN_W,SIGN_H));
     }
-    DOORSHUT=toTex(draw(g=>paintDoor(g,0,false)));
-    const dim=mk(TS,TS),dg=dim.getContext('2d',{willReadFrequently:true});
-    dg.imageSmoothingEnabled=false;paintSign(dg,0,false);
-    SIGNTEX.dim=toTex(dim);
+    const dim=mk(SIGN_W,SIGN_H),dg=dim.getContext('2d',{willReadFrequently:true});
+    dg.imageSmoothingEnabled=false;paintSign(dg,SIGN_W,SIGN_H,0.55);
+    SIGNTEX.dim=toTexR(dim,SIGN_W,SIGN_H);
   }
   function installExitAnim(){
     bakeDoorAndSign();
@@ -13445,6 +13474,7 @@ if(typeof TT==='object'){
   }
   function applyDoorAnim(){
     if(typeof ANIMS==='undefined')return;
+    if(!SIGNTEX.length)bakeDoorAndSign();
     const {open,shut}=bakeDoor128();
     DOOROPEN=open;DOORSHUT=shut;
     let a=ANIMS.find(x=>x.k==='exit');
@@ -13490,11 +13520,13 @@ if(typeof TT==='object'){
     const f=exitFront();
     const open=(typeof exitOpen==='undefined')||!!exitOpen;
     if(f){
-      lights.push({x:f.fx-(f.dx)*0.15,y:f.fy-(f.dy)*0.15,r:255,g:212,b:0,R:open?7.2:3.6,I:open?260:90,ph:0,exitGlow:1});
-      lights.push({x:f.x+(f.dx)*0.1,y:f.y+(f.dy)*0.1,r:255,g:230,b:80,R:open?4.5:2.2,I:open?180:70,ph:1.2,exitSign:1});
+      // tiny pool on the floor just under the doorway — does not wash the hall
+      lights.push({x:f.x+f.dx*.70,y:f.y+f.dy*.70,r:255,g:200,b:30,R:open?1.15:0.7,I:open?95:30,ph:0,exitGlow:1});
+      // soft halo on the lintel / sign wall only
+      lights.push({x:f.x+f.dx*.48,y:f.y+f.dy*.48,r:255,g:220,b:40,R:open?0.85:0.55,I:open?80:28,ph:1.2,exitSign:1});
     }else{
       const x=exitAt%MW+.5,y=((exitAt/MW)|0)+.5;
-      lights.push({x,y,r:255,g:212,b:0,R:5.5,I:open?200:80,ph:0,exitGlow:1});
+      lights.push({x,y,r:255,g:212,b:0,R:1.1,I:open?80:28,ph:0,exitGlow:1});
     }
   }
   function flickerExitLights(){
@@ -13503,19 +13535,22 @@ if(typeof TT==='object'){
     const open=(typeof exitOpen==='undefined')||!!exitOpen;
     for(const L of lights){
       if(!L.exitGlow&&!L.exitSign)continue;
-      const fl=0.74+Math.sin(t/110)*.14+(((t/80)|0)%5===0?0.18:0)+Math.sin(t/31)*.05;
-      const base=L.exitSign?(open?180:70):(open?260:90);
+      const fl=0.90+Math.sin(t/260)*.07+Math.sin(t/73)*.04+((((t/220)|0)%9===0)?-0.08:0);
+      const base=L.exitSign?(open?80:28):(open?95:30);
       L.I=base*fl;
     }
   }
   function pushExitSign(){
-    if(BR.on||typeof exitAt!=='number'||exitAt<0||!SIGNTEX.length||typeof fx==='undefined')return;
+    if(BR.on||typeof exitAt!=='number'||exitAt<0||typeof fx==='undefined')return;
+    if(!SIGNTEX.length)bakeDoorAndSign();
+    if(!SIGNTEX.length)return;
     const f=exitFront();if(!f)return;
     const open=(typeof exitOpen==='undefined')||!!exitOpen;
-    const fr=((performance.now()/90)|0)%6;
+    const fr=((performance.now()/140)|0)%SIGNTEX.length;
     const T=open?SIGNTEX[fr]:SIGNTEX.dim;
-    // sit slightly in front of the wall, high on the face (above the opening)
-    fx.push({x:f.x+f.dx*.54,y:f.y+f.dy*.54,s:.25,z:.73,T,glow:open?1:0,exitSign:1});
+    // Wide plate on the lintel, slightly over the opening, in front of the wall face.
+    // sw is world width (doorway-ish); s is height. Must stay just under the ceiling.
+    fx.push({x:f.x+f.dx*.54,y:f.y+f.dy*.54,s:.40,sw:.96,z:.62,T,glow:open?1:0,exitSign:1});
   }
 
   // ---------- NO SIGNAL broadcast room ----------
@@ -13573,13 +13608,22 @@ if(typeof TT==='object'){
       const s=4,tw=textWidth(opt.grade,s,2);blitText(g,opt.grade,32-tw/2,22,s,YEL,2);
     }else if(opt.portal){
       // static already if snow; label over
-    }else if(opt.value!=null){
+    }else if(opt.value!=null||opt.lines){
       g.fillStyle='#081018';g.fillRect(8,8,48,36);
       const lab=opt.label||'';
       blitText(g,lab,10,11,1,'#00f0ff',1);
-      const val=String(opt.value),s=val.length>8?1:val.length>5?1:2;
-      const tw=textWidth(val,s,s);const vx=Math.max(10,32-tw/2);
-      blitText(g,val,vx,22,s,YEL,s);
+      const lines=opt.lines||wrapLabel(String(opt.value),8);
+      const long=lines.length>1||lines[0].length>5;
+      const s=long?1:2;
+      if(lines.length>1){
+        lines.slice(0,2).forEach((ln,i)=>{
+          const tw=textWidth(ln,s,s),vx=Math.max(8,32-tw/2);
+          blitText(g,ln,vx,20+i*8,s,YEL,s);
+        });
+      }else{
+        const val=lines[0],tw=textWidth(val,s,s),vx=Math.max(8,32-tw/2);
+        blitText(g,val,vx,22,s,YEL,s);
+      }
     }else{
       g.fillStyle='#080808';g.fillRect(8,8,48,36);
     }
@@ -13594,6 +13638,63 @@ if(typeof TT==='object'){
       blitText(g,b,10,28,1,col,1);
     }
     if(opt.flash){g.fillStyle='#fff';g.globalAlpha=.65;g.fillRect(8,8,48,portal?40:36);g.globalAlpha=1}
+  }
+  function wrapLabel(s,max){
+    s=String(s||'');max=max||8;
+    if(s.length<=max)return[s];
+    const cut=s.lastIndexOf(' ',max);
+    if(cut>0)return[s.slice(0,cut),s.slice(cut+1)];
+    return[s.slice(0,max),s.slice(max)];
+  }
+  function paintGiantCRT(g,W,H,opt){
+    const pulse=!!opt.pulse,alt=!!opt.alt;
+    g.fillStyle='#050508';g.fillRect(0,0,W,H);
+    // chunky single bezel across all tiles
+    g.fillStyle='#3a3a44';g.fillRect(4,3,W-8,H-6);
+    g.fillStyle='#5a5a66';g.fillRect(4,3,W-8,5);
+    g.fillStyle='#1c1c24';g.fillRect(12,10,W-24,H-28);
+    g.fillStyle='#0a0a10';g.fillRect(18,16,W-36,H-44);
+    // screen
+    g.fillStyle='#12121a';g.fillRect(22,20,W-44,H-52);
+    if(opt.snow){
+      for(let i=0;i<900;i++){
+        const x=22+(Math.random()*(W-44))|0,y=20+(Math.random()*(H-52))|0;
+        const v=(Math.random()*220)|0;
+        g.fillStyle='rgb('+v+','+v+','+(v*0.95|0)+')';
+        g.fillRect(x,y,1+((Math.random()*2)|0),1);
+      }
+      for(let k=0;k<5;k++){
+        g.fillStyle=k&1?'#00f0ff55':'#ff00c855';
+        g.fillRect(22,24+((Math.random()*(H-60))|0),W-44,2);
+      }
+    }
+    // bottom chassis + knobs + speaker slots
+    g.fillStyle='#2a2a32';g.fillRect(12,H-16,W-24,13);
+    g.fillStyle='#111';g.fillRect(20,H-13,W-40,7);
+    g.fillStyle='#666';g.fillRect(28,H-12,8,6);g.fillRect(W-36,H-12,8,6);
+    g.fillStyle='#888';for(let x=50;x<W-50;x+=6)g.fillRect(x,H-11,3,4);
+    // pulsing label, two chunky lines centered on the whole set
+    const col=pulse?YEL:'#8a7000';
+    const a=alt?'CHANGE':'NEXT',b=alt?'CHANNEL':'FLOOR';
+    const s=4,gap=3;
+    const aw=textWidth(a,s,gap),bw=textWidth(b,s,gap);
+    blitText(g,a,((W-aw)/2)|0,36,s,col,gap);
+    blitText(g,b,((W-bw)/2)|0,36+5*s+4,s,col,gap);
+    // faint glass shine
+    g.fillStyle='rgba(255,255,255,.06)';g.fillRect(26,22,W-52,8);
+  }
+  function giantCrtSlices(opt){
+    const W=384,H=128;
+    const c=mk(W,H),g=c.getContext('2d',{willReadFrequently:true});
+    g.imageSmoothingEnabled=false;paintGiantCRT(g,W,H,opt||{});
+    const slices=[];
+    for(let i=0;i<3;i++){
+      const sc=mk(128,128),sg=sc.getContext('2d',{willReadFrequently:true});
+      sg.imageSmoothingEnabled=false;
+      sg.drawImage(c,i*128,0,128,128,0,0,128,128);
+      slices.push(toTexN(sc,128));
+    }
+    return slices;
   }
   function crtTex(opt){
     const c64=mk(64,64),g64=c64.getContext('2d',{willReadFrequently:true});
@@ -13693,29 +13794,31 @@ if(typeof TT==='object'){
       addWall(sl.cell,sl.face,[off],1e9);
       return{...sl,on:false,flash:0,count:0,shown:0,i,off};
     });
-    // biggest TV: grade, mid-back wall left of the portal
-    const gradeCell=0*w+2,gradeFace=1*w+2;
+    // biggest TV: grade, on the far wall left of the giant CRT so it stamps in-frame
+    const gradeCell=0*w+1,gradeFace=1*w+1;
     const gradeOff=crtTex({big:1,grade:''});
     addWall(gradeCell,gradeFace,[gradeOff],1e9);
-    BR.grade={cell:gradeCell,face:gradeFace,on:false,flash:0,at:3.2};
-    // far giant CRT portal: center 3 wall cells on the north edge
-    const pFrames=()=>{
-      const fr=[];
-      for(let i=0;i<4;i++)fr.push(crtTex({portal:1,snow:1,pulse:i&1,alt:i>=2,flash:0}));
-      return fr;
+    BR.grade={cell:gradeCell,face:gradeFace,on:false,flash:0,at:2.6};
+    // ONE giant CRT set spanning the center of the far (north) wall
+    const pSlices=()=>{
+      const bank=[[],[],[]];
+      for(let i=0;i<4;i++){
+        const sl=giantCrtSlices({snow:1,pulse:i&1,alt:i>=2});
+        sl.forEach((T,k)=>bank[k].push(T));
+      }
+      return bank;
     };
-    BR.portalFrames=pFrames();
-    for(const x of[3,4]){
-      addWall(x,x+w,BR.portalFrames,80);
-    }
-    BR.portal=1*w+3; // walk-into trigger in front of the center CRT
-    BR.portalXs=[3,4];
+    BR.portalBank=pSlices();
+    BR.portalXs=[2,3,4];
+    BR.portalXs.forEach((x,i)=>addWall(x,x+w,BR.portalBank[i],80));
+    BR.portal=1*w+3; // walk-into trigger in front of the center panel
+    BR.portalCells=[1*w+2,1*w+3,1*w+4];
     exitAt=BR.portal;exitOpen=true;
     // lights: neon, doorway leftover, portal, ON AIR
     lights.push({x:dx+.5,y:h-2.2,r:255,g:40,b:40,R:3.2,I:140,ph:0,onair:1});
     lights.push({x:2.2,y:4,r:255,g:212,b:0,R:4.2,I:120,ph:1,studio:1});
     lights.push({x:w-2.2,y:4,r:0,g:240,b:255,R:4.2,I:110,ph:2,studio:1});
-    lights.push({x:dx+.5,y:1.3,r:255,g:212,b:0,R:5.5,I:200,ph:0,portal:1});
+    lights.push({x:dx+.5,y:1.25,r:255,g:230,b:80,R:2.4,I:130,ph:0,portal:1});
     lights.push({x:dx+.5,y:4.2,r:255,g:80,b:200,R:4.0,I:80,ph:3,studio:1});
     P.x=dx+.5;P.y=h-1.6;P.a=-Math.PI/2;P.cd=0;P.flash=0;P.kick=0;P.hurtT=0;P.freedT=0;
     if(typeof props!=='undefined'){
@@ -13773,17 +13876,19 @@ if(typeof TT==='object'){
       if(L.portal)L.I=180+Math.sin(t/140)*60+((((t/90)|0)%4===0)?50:0);
       if(L.onair)L.I=((((t/400)|0)%2)?160:40);
     }
-    if(BR.portalFrames&&typeof WSPEC!=='undefined'&&((t/80)|0)!==(BR._pf||0)){
+    if(BR.portalBank&&typeof WSPEC!=='undefined'&&((t/80)|0)!==(BR._pf||0)){
       BR._pf=(t/80)|0;
       const pulse=((t/400)|0)%2,alt=((t/700)|0)%2;
-      // keep WSPEC anim; also refresh so the label pulses
-      const fr=[];
-      for(let i=0;i<4;i++)fr.push(crtTex({portal:1,snow:1,pulse:pulse^(i&1),alt:!!alt,flash:0}));
-      BR.portalFrames=fr;
-      for(const x of(BR.portalXs||[3,4])){
-        const c=x,S=WSPEC.get(c);
-        if(S){S.Ts=fr;S.ms=80}
+      const bank=[[],[],[]];
+      for(let i=0;i<4;i++){
+        const sl=giantCrtSlices({snow:1,pulse:pulse^(i&1),alt:!!alt});
+        sl.forEach((T,k)=>bank[k].push(T));
       }
+      BR.portalBank=bank;
+      (BR.portalXs||[2,3,4]).forEach((x,i)=>{
+        const S=WSPEC.get(x);
+        if(S){S.Ts=bank[i];S.ms=80}
+      });
     }
   }
   function pushStudioSprites(t){
@@ -13847,8 +13952,11 @@ if(typeof TT==='object'){
         return;
       }
       _upd.apply(this,arguments);
-      if(BR.on)tickTVs(dt);
-      else flickerExitLights();
+      if(BR.on){
+        tickTVs(dt);
+        // giant CRT spans three tiles; walking into any front cell flips the channel
+        if(!BR.flip&&state==='play'&&P&&P.y<1.9&&P.x>1.7&&P.x<5.3)nextFloor();
+      }else flickerExitLights();
     };
   }
 
@@ -13888,7 +13996,7 @@ if(typeof TT==='object'){
       const c=q[k],cd=d[c],cx=c%w+.5,cy=((c/w)|0)+.5;
       const distE=Math.hypot(cx-f.x,cy-f.y);
       const ang=Math.cos(Math.atan2(f.y-cy,f.x-cx)-Math.atan2(f.dy,f.dx));
-      if(distE>=2.4&&distE<=8&&ang>0.35&&typeof los==='function'&&los(cx,cy,f.fx,f.fy)){
+      if(distE>=2.4&&distE<=11&&ang>0.35&&typeof los==='function'&&los(cx,cy,f.fx,f.fy)){
         const sc=distE*3+ang*4-(Math.abs(distE-dist)*0.8);
         if(sc>bs){bs=sc;best=c}
       }
@@ -13914,6 +14022,24 @@ if(typeof TT==='object'){
     TT.exitVer=VER;
     TT.resetFloorStats=resetFloorStats;
     TT.placeExitGlow=placeExitGlow;
+    TT.seedFloorStats=function(o){
+      o=o||{};
+      if(typeof stats==='object'&&stats){
+        if(o.kills!=null)stats.kills=o.kills|0;
+        if(o.total!=null)stats.total=o.total|0;
+        if(o.found!=null)stats.found=o.found|0;
+        if(o.secT!=null)stats.secretsTotal=o.secT|0;
+      }
+      if(o.shots!=null)FS.shots=o.shots|0;
+      if(o.hits!=null)FS.hits=o.hits|0;
+      if(o.dealt!=null)FS.dealt=o.dealt|0;
+      if(o.taken!=null)FS.taken=+o.taken||0;
+      if(o.bones!=null&&typeof run==='object'&&run)FS.bones0=((run.bonesTotal||0)-o.bones);
+      if(o.time!=null&&typeof run==='object'&&run)FS.time0=(run.time||0)-o.time;
+      if(o.wep!=null&&typeof P==='object'&&P){FS.wep=Object.create(null);FS.wep[P.w]=o.dealt||100}
+      return gatherFloorStats();
+    };
+    TT.gradeOf=function(S){return (S||gatherFloorStats()).grade};
   }
 })();
 </script>
