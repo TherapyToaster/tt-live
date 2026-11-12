@@ -1,0 +1,10 @@
+/* TT VC MOBILE CENTER v1 */
+@media screen and (max-width:767px) {
+  body.homepage #tt-vc,
+  body.homepage #tt-vc.tt-vc-on {
+    left: 0 !important;
+    right: 0 !important;
+    max-width: none !important;
+    text-align: center !important;
+  }
+}
