@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="crypt-version" content="0.4.1">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="crypt-version" content="0.5.0">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#000000"><meta name="description" content="Mr. Toasty's Crypt: a glitched-out room-by-room roguelike from Therapy Toaster. Free to play in your browser.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23000'/%3E%3Cpath d='M3 3h10v7H3z' fill='%23f4f1e8'/%3E%3Cpath d='M3 6h10v2H3z' fill='%23ffd400'/%3E%3Cpath d='M5 6h2v2H5zM9 6h2v2H9z' fill='%23000'/%3E%3Cpath d='M5 10h6v3H5z' fill='%23f4f1e8'/%3E%3C/svg%3E">
@@ -73,12 +73,12 @@ body.inhub .tb.act{display:none}
 <canvas id="c"></canvas><div id="vig"></div><div id="hurt"></div><div id="scan"></div>
 <div id="rot">ROTATE FOR THE BEST VIEW ↻</div>
 <div id="title" class="ov show">
- <img id="logo" alt="Mr. Toasty&#39;s Crypt" src="assets/logo.webp?v=0.4.1" onload="document.body.classList.add('haslogo')" onerror="this.remove()">
+ <img id="logo" alt="Mr. Toasty&#39;s Crypt" src="assets/logo.webp?v=0.5.0" onload="document.body.classList.add('haslogo')" onerror="this.remove()">
  <h1 class="glitch">MR. TOASTY'S<br>CRYPT<small>A NO SIGNAL SKULLZ ROGUELIKE</small></h1><div class="sub">A NO SIGNAL SKULLZ ROGUELIKE</div>
  <div class="quip" id="quip"></div>
  <div><button class="btn" id="bDescend">DESCEND</button><button class="btn alt" id="bHub">THE CRYPT (TOWN)</button><button class="btn alt" id="bSetT">⚙</button></div>
  <p id="tHint"></p>
- <p style="color:#666">v0.4.1 · FREE TO PLAY · THERAPYTOASTER.COM</p>
+ <p style="color:#666">v0.5.0 · FREE TO PLAY · THERAPYTOASTER.COM</p>
 </div>
 <div id="select" class="ov"><h2>PICK YOUR SKULL</h2><div id="cards"></div><div><button class="btn" id="bGo">DESCEND ▼</button><button class="btn alt" id="bBackSel">BACK</button></div></div>
 <div id="panel" class="ov"><h2 id="pTitle"></h2><p id="pSay"></p><div style="font-size:10px">GOLD: <span id="gold">0</span></div><div class="list" id="pList"></div><button class="btn" id="bClose">CLOSE</button></div>
@@ -97,7 +97,7 @@ body.inhub .tb.act{display:none}
 // Game logic runs in a small logical space (LW x 180); v0.2 renders it into an HD (2x) pixel buffer so sprites/tiles get
 // twice the detail, then scales that up nearest-neighbour onto the screen canvas. Holder cosmetics / wallet code: none (see design doc, "Later").
 // =====================================================================================================
-const VERSION='0.4.1';
+const VERSION='0.5.0';
 const LH=180,TILE=16,RW=15,RH=9,RPW=RW*TILE,RPH=RH*TILE; // room = 15x9 tiles incl. walls (13x7 floor)
 let LW=320,ROOMX=40,ROOMY=32;
 const cv=document.getElementById('c'),cx=cv.getContext('2d');
@@ -124,14 +124,14 @@ function angDiff(a,b){let d=b-a;while(d>Math.PI)d-=TAU;while(d<-Math.PI)d+=TAU;r
 // ---- save (meta progress, settings) ----
 const SAVE_KEY='crypt_save_v1';
 const SAVE_DEF=()=>({v:1,gold:0,up:{hp:0,dmg:0,purse:0,luck:0},relics:[],heroes:['toasty','butter','glitch'],seen:{},
- stats:{runs:0,deaths:0,clears:0,best:0,kills:0,boss:0,goldEarned:0,rolls:0,perks:0},last:'toasty',
- bestiary:{},bossKills:{},skins:{},skinOwn:['classic'],chal:[],chalWins:{},unlocked:[],
+ stats:{runs:0,deaths:0,clears:0,best:0,kills:0,boss:0,mini:0,goldEarned:0,rolls:0,perks:0},last:'toasty',
+ bestiary:{},bossKills:{},miniKills:{},skins:{},skinOwn:['classic'],chal:[],chalWins:{},unlocked:[],
  set:{music:60,sfx:80,fx:1,scan:1,crt:0,lefty:0,autofire:IS_TOUCH?1:0,assist:IS_TOUCH?1:0,shake:1,light:1,nums:1,broswap:1}});
 let SAVE=SAVE_DEF();
 function loadSave(){try{const s=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(s&&s.v===1){const d=SAVE_DEF();
  SAVE=Object.assign(d,s);SAVE.up=Object.assign(d.up,s.up||{});SAVE.stats=Object.assign(d.stats,s.stats||{});SAVE.set=Object.assign(d.set,s.set||{});
  if(!Array.isArray(SAVE.relics))SAVE.relics=[];if(!Array.isArray(SAVE.heroes))SAVE.heroes=d.heroes;for(const h of d.heroes)if(!SAVE.heroes.includes(h))SAVE.heroes.push(h);
- for(const k of['bestiary','bossKills','skins','chalWins'])if(!SAVE[k]||typeof SAVE[k]!='object'||Array.isArray(SAVE[k]))SAVE[k]={};for(const k of['skinOwn','chal','unlocked'])if(!Array.isArray(SAVE[k]))SAVE[k]=d[k].slice();if(!SAVE.skinOwn.includes('classic'))SAVE.skinOwn.unshift('classic');
+ for(const k of['bestiary','bossKills','miniKills','skins','chalWins'])if(!SAVE[k]||typeof SAVE[k]!='object'||Array.isArray(SAVE[k]))SAVE[k]={};for(const k of['skinOwn','chal','unlocked'])if(!Array.isArray(SAVE[k]))SAVE[k]=d[k].slice();if(!SAVE.skinOwn.includes('classic'))SAVE.skinOwn.unshift('classic');
  SAVE.gold=Math.max(0,SAVE.gold|0)}else SAVE=SAVE_DEF()}catch(e){SAVE=SAVE_DEF()}}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(SAVE))}catch(e){}}
 loadSave();
@@ -1156,6 +1156,247 @@ icon('crack1',32,32,P=>{P.line(8,4,14,16,'#0b0a0f');P.line(14,16,10,26,'#0b0a0f'
 icon('crack2',32,32,P=>{P.line(4,6,16,14,'#0b0a0f',2);P.line(16,14,12,28,'#0b0a0f',2);P.line(16,14,26,10,'#0b0a0f');P.line(16,14,28,22,'#0b0a0f');
  P.line(8,20,16,14,'#0b0a0f');P.rect(14,12,3,3,'#1a1420');P.line(20,6,22,12,'#0b0a0f')});
 
+// ---- v0.5 data: pits, traps, Coty's skull-collection mini-bosses, Hover Crumbs, Void Crumb skin ----
+const PIT=3; // reserved (pits live in r.pits, not r.grid, so they stay walkable-into)
+const TRAP_KS=['spike','turret','slick','zap','plate','wheel'];
+Object.assign(ITEMS,{
+ hover:{name:'HOVER CRUMBS',d:'Walk on pits and ignore traps',fx:P=>P.hover=(P.hover||0)+1,relic:40}
+});
+// Mini-bosses are Coty's real skull collection (parody names, no outside-IP references).
+// One is picked per floor from that floor's pool. THE CHROME SCREAMER is guaranteed once per run on floor 3 or 4.
+const MINIS={
+ cyborg:{name:'RED-EYE CHROME',sub:'HALF AND HALF',hp:100,col:'#ff4a1a',intro:'LOOK INTO THE LIGHT.',die:'SIGNAL LOST.',r:14,pats:['laser','swap']},
+ stogie:{name:'RED STOGIE',sub:'LIGHTS UP',hp:108,col:'#ff2045',intro:'GOT A LIGHT?',die:'PUT OUT.',r:14,pats:['rings','stomp']},
+ hive:{name:'HEXCOMB',sub:'BUSY BODY',hp:96,col:'#c080c0',intro:'BUZZ OFF.',die:'HIVE COLLAPSED.',r:14,pats:['bees','grid']},
+ facet:{name:'BLACK CUT',sub:'SHARP EDGES',hp:114,col:'#7a2cff',intro:'MIND THE FACETS.',die:'CRACKED.',r:13,pats:['burst','volley']},
+ pyrite:{name:'PYRITE KING',sub:'ALL THAT GLITTERS',hp:140,col:'#ffd400',intro:'FOOLS RUSH IN.',die:'TARNISHED.',r:16,pats:['coins','spikes'],armor:1},
+ flame:{name:'SILVER BLAZE',sub:'HEADS ON FIRE',hp:120,col:'#ff8a00',intro:'STAY CRISPY.',die:'BURNT OUT.',r:14,pats:['trail','wave']},
+ poly:{name:'THE LOW-POLY FIVE',sub:'FIVE SIDES, ONE FIGHT',hp:64,col:'#9be7ff',intro:'PICK A FACE.',die:'MESH DELETED.',r:11,pats:['orbit','prism'],group:1},
+ winged:{name:'GILDED WINGS',sub:'NEVER GROUNDED',hp:132,col:'#ffd400',intro:"DON'T LOOK UP.",die:'CLIPPED.',r:15,pats:['feathers','dive'],fly:1},
+ totem:{name:'NO-EVIL TOTEM',sub:'SEE, HEAR, SPEAK',hp:54,col:'#e0b0e0',intro:'WE SAW NOTHING.',die:'WISE ENOUGH.',r:16,pats:['curse','shots'],heads:3},
+ mirror:{name:'BLACK MIRROR',sub:"DON'T LOOK DIRECTLY",hp:128,col:'#c080ff',intro:'SHINE ON.',die:'DULLED.',r:14,pats:['reflect','volley'],shiny:1},
+ scream:{name:'THE CHROME SCREAMER',sub:'OPEN WIDE',hp:156,col:'#ff2bd6',intro:'AHHHHHHHHHH.',die:'VOICE CRACKED.',r:16,pats:['scream','spit','chomp'],star:1},
+ quartz:{name:'THE QUARTZ KING',sub:'CROWN OF POINTS',hp:134,col:'#ffb0e0',intro:'ALL HAIL THE POINTS.',die:'CROWNLESS.',r:15,pats:['shards','pillars']}
+};
+const MINI_IDS=Object.keys(MINIS);
+// 2-3 per floor. 'scream' is forced onto floor 3 or 4 once per run (see pickMiniRoom).
+const MINI_POOL={1:['cyborg','stogie','hive'],2:['facet','pyrite','quartz'],3:['totem','poly','quartz'],4:['winged','mirror','flame']};
+
+// Hand-made pit layouts (13x7). 'o' = pit, '.' = floor. Door lanes stay clear (applyLayout enforces it).
+const PIT_LAYOUTS={
+ 1:[
+  ['.............','..oo.....oo..','..oo.....oo..','.............','..oo.....oo..','..oo.....oo..','.............'],
+  ['.............','.............','...oo...oo...','.............','...oo...oo...','.............','.............'],
+  ['.............','oo.........oo','oo.........oo','.............','oo.........oo','oo.........oo','.............']
+ ],
+ 2:[
+  ['.............','oooo.....oooo','.............','..oo.....oo..','.............','oooo.....oooo','.............'],
+  ['.............','..oooooooo...','.............','.............','.............','...oooooooo..','.............'],
+  ['.............','oo.........oo','.oo.......oo.','.............','..oo.....oo..','...oo...oo...','.............']
+ ],
+ 3:[
+  ['.............','oooo.....oooo','.o.........o.','.............','o...........o','oooo.....oooo','.............'],
+  ['.............','ooo.......ooo','o...........o','.............','o...........o','ooo.......ooo','.............'],
+  ['.............','..oooo.oooo..','.............','.....o.o.....','.............','..oooo.oooo..','.............']
+ ],
+ 4:[
+  ['.............','ooooooooooooo','.o.........o.','.............','o...........o','ooooooooooooo','.............'],
+  ['.............','ooo.......ooo','ooo.......ooo','.............','ooo.......ooo','ooo.......ooo','.............'],
+  ['.............','oooo.o.o.oooo','.............','...o.....o...','.............','oooo.o.o.oooo','.............']
+ ]
+};
+const POLY_ROLES=['lead','black','peach','silver','dark'];
+const POLY_HP={lead:70,black:28,peach:28,silver:28,dark:28};
+const POLY_COL={lead:'#c0f0ff',black:'#3a2a58',peach:'#e0b090',silver:'#c0c8d8',dark:'#2a2040'};
+Object.assign(ENEMIES,{
+ bee:{name:'HEX BEE',hp:6,spd:1.15,r:4,spr:'bee',ai:'chase',fly:1,w:0,fl:[]},
+ shardling:{name:'SHARD CUB',hp:8,spd:.75,r:4,spr:'shardling',ai:'chase',w:0,fl:[]},
+ mini:{name:'MINI-BOSS',hp:1,spd:0,r:12,spr:'mini',ai:'chase',w:0,fl:[]}
+});
+SKINS.void={name:'VOID CRUMB',cost:0,d:'UNLOCKED BY DEFEATING EVERY MINI-BOSS. COSMETIC ONLY.',unlock:'minis'};
+QUIPS.push('WATCH YOUR STEP.','IF IT GLOWS, DO NOT STAND ON IT.','ROLL THE GAPS. TRUST THE CRUMBS.','IF YOU HEAR THE SCREAM, YOU ARE ALREADY LATE.');
+
+// ---- v0.5 art: Hover Crumbs, traps, and Coty's skull-collection mini-bosses (chrome / crystal / neon magenta) ----
+II('hover',P=>{P.ell(12,16,9,4.5,'#3a2410',{flat:1,tone:1});for(const[x,y,r,c]of[[7,14,3,'#d88a2a'],[12,15,3.2,'#e0a050'],[17,14,2.8,'#f6d36b'],[10,11,2,'#c8862a']])P.ell(x,y,r,r*.8,c);
+ P.ell(12,8,6,3,'#00f0ff',{flat:1,tone:2});P.rect(8,8,8,1,'#9be7ff');P.set(16,7,'#ffffff')});
+function v5TrapArt(){
+ icon('tr_spike_0',32,20,P=>{P.box(1,10,30,9,'#5c6570',2);P.rect(2,11,28,2,'#8a9098');for(const x of[5,11,17,23])P.box(x,12,4,5,'#3a3e4a',1)});
+ icon('tr_spike_1',32,20,P=>{P.box(1,10,30,9,'#6a5040',2);P.rect(2,11,28,2,'#ff8a00');for(const x of[5,11,17,23]){P.box(x,6,4,11,'#c9ccd6',1);P.rect(x+1,6,2,2,'#ffd400')}});
+ icon('tr_spike_2',32,24,P=>{P.box(1,14,30,9,'#5c6570',2);for(const x of[5,11,17,23]){P.tri(x,14,x+4,14,x+2,1,'#e8ecf0');P.rect(x+1,1,2,14,'#c9ccd6');P.set(x+2,1,'#ffd400')}});
+ icon('tr_turret',28,24,P=>{P.box(0,4,10,16,'#6a7078',2);P.box(8,8,16,10,'#9aa4b0',3);P.rect(22,10,6,6,'#3a3e4a');P.ell(14,12,3,3,'#e0a050');P.rect(2,6,6,2,'#ff8a00')});
+ icon('tr_slick',32,16,P=>{P.ell(16,9,14,6,'#f6d36b');P.ell(16,8,10,4,'#fff2a8',{flat:1,tone:3});P.rect(8,7,6,1,'#ffffff')});
+ icon('tr_zap_0',32,32,P=>{P.box(2,2,28,28,'#1a1230',2);for(let i=4;i<28;i+=4)P.rect(i,4,2,24,'#2a1a48');P.rect(6,6,20,2,'#5a1f8a')});
+ icon('tr_zap_1',32,32,P=>{P.box(2,2,28,28,'#00f0ff',2);P.rect(6,6,20,20,'#7a2cff');for(let i=0;i<8;i++)P.set(6+((i*7)%20),8+((i*5)%16),i%2?'#ffffff':'#ff2bd6');P.rect(14,4,4,24,'#9be7ff')});
+ icon('tr_plate_0',32,16,P=>{P.box(2,3,28,11,'#4a4458',2);P.box(6,5,20,7,'#8a8494',2);P.rect(8,6,16,2,'#c9ccd6')});
+ icon('tr_plate_1',32,16,P=>{P.box(2,3,28,11,'#3a2430',2);P.box(6,7,20,5,'#6a4050',1);P.rect(8,8,16,1,'#ff2045')});
+ for(let f=0;f<3;f++){const P=new PB(36,36);P.ell(18,18,16,16,'#e0a050');P.ell(18,18,12,12,'#f6d36b');
+  const off=f*TAU/3;for(let i=0;i<6;i++){const a=off+i*TAU/6;P.rect(18+Math.cos(a)*8-1,18+Math.sin(a)*8-1,3,3,'#c8862a')}
+  P.ell(18,18,4,4,'#8a5a2b');P.outline(INK);P.reg('tr_wheel_'+f)}
+ icon('tr_crush_0',48,28,P=>{P.box(2,2,44,10,'#9aa4b0',3);P.rect(4,4,40,2,'#c9ccd6');for(let x=8;x<40;x+=8)P.rect(x,10,4,4,'#5c6570')});
+ icon('tr_crush_1',48,28,P=>{P.box(2,8,44,10,'#c8502a',3);P.rect(4,10,40,2,'#ff8a00');for(let x=8;x<40;x+=8)P.rect(x,16,4,4,'#ffd400')});
+ icon('tr_crush_2',48,28,P=>{P.box(2,16,44,10,'#9aa4b0',3);P.rect(2,14,44,3,'#ff8a00');P.rect(4,18,40,2,'#c9ccd6')});
+ icon('e_bee_0',24,24,P=>{P.ell(12,13,8,6,'#ffd400');P.rect(8,10,8,6,'#0b0a0f');P.ell(12,13,7,5,'#ffd400');P.rect(10,9,2,8,INK);P.rect(14,9,2,8,INK);P.ell(8,8,5,3,'#e8ffff');P.ell(16,8,5,3,'#e8ffff');P.rect(6,12,2,2,INK);P.rect(16,12,2,2,INK)});
+ icon('e_bee_1',24,24,P=>{P.ell(12,13,8,6,'#ffd400');P.rect(8,10,8,6,INK);P.ell(12,13,7,5,'#f6d36b');P.rect(10,9,2,8,INK);P.ell(7,7,6,2,'#e8ffff');P.ell(17,7,6,2,'#e8ffff')});
+ icon('e_shardling_0',22,22,P=>{P.tri(11,2,20,18,2,18,'#4a2060');P.tri(11,4,16,16,6,16,'#7a2cff');P.set(9,10,'#e0b0ff')});
+ icon('e_shardling_1',22,22,P=>{P.tri(11,3,19,17,3,17,'#5a1f8a');P.tri(11,5,15,15,7,15,'#c080ff')});
+}
+v5TrapArt();
+// ---- mini-boss painter: canvas -> alpha threshold -> autoShade -> ink. Magenta/cyan rim light is painted in. ----
+function miniHD(name,paint,o,W,H,post){W=W||96;H=H||96;const c=mkc(W,H),g=c.getContext('2d');paint(g,o||{});
+ const id=g.getImageData(0,0,W,H),u=new Uint32Array(id.data.buffer),P=new PB(W,H);
+ for(let i=0;i<u.length;i++)P.d[i]=(u[i]>>>24)<110?0:(u[i]|0xff000000)>>>0;autoShade(P);if(post)post(P,o||{});P.outline(INK);return P.reg(name)}
+function v5Rim(g,x,y,rx,ry){_E(g,x-3,y,rx+3,ry+2,'#ff2bd6');_E(g,x+3,y,rx+3,ry+2,'#7a9aff')}
+function v5Teeth(g,x,y,n,w,h,gap,col){for(let i=0;i<n;i++){_RR(g,x+i*(w+gap),y,w,h,1,col||'#e8e0f0');g.fillStyle='#ffffff';g.fillRect(x+i*(w+gap)+1,y+1,Math.max(1,w-2),2)}}
+function v5Sockets(g,x,y,s,glow){_E(g,x-s*10,y,s*7,s*8,'#0a0810');_E(g,x+s*10,y,s*7,s*8,'#0a0810');if(glow){_E(g,x-s*10,y,s*3.5,s*4,glow);_E(g,x-s*11,y-s*2,s*1.4,s*1.2,'#ffffff')}
+ else{_E(g,x-s*11,y-s*3,s*1.6,s*1.2,'#c080c0');_E(g,x+s*8,y-s*3,s*1.6,s*1.2,'#80a0e0')}}
+function v5Nose(g,x,y,s){_E(g,x,y,s*4,s*5,'#0a0810')}
+// -- RED-EYE CHROME: split gold-chrome / black, one burning orange eye --
+function paintCyborg(g,o){const f=o.f||0,atk=o.m=='a',swap=o.m=='x',cx=48,cy=50;
+ v5Rim(g,cx,cy,30,32);_E(g,cx,cy,28,30,'#1a1018');
+ g.save();g.beginPath();g.rect(0,0,cx+1,96);g.clip();_E(g,cx,cy,28,30,swap?'#1a1018':'#c0a878');_E(g,cx-8,cy-10,12,10,swap?'#2a2030':'#f0e0b8');g.restore();
+ g.save();g.beginPath();g.rect(cx,0,48,96);g.clip();_E(g,cx,cy,28,30,swap?'#c0a878':'#141018');_E(g,cx+10,cy-8,8,8,swap?'#f0e0b8':'#2a2038');g.restore();
+ g.fillStyle='#ff2bd6';g.fillRect(cx-1,cy-22,2,48);
+ v5Sockets(g,cx,cy-4,1,null);_E(g,cx-10,cy-4,8,9,'#0a0810');_E(g,cx-10,cy-4,5,6,atk?'#ffd400':'#ff4a1a');_E(g,cx-11,cy-6,2,2,'#ffffff');
+ v5Nose(g,cx,cy+10,1);v5Teeth(g,cx-16,cy+20,7,3.5,6,1,swap?'#c0a878':'#d8d0c0');
+ _E(g,cx,cy+32,16,8,swap?'#c0a878':'#2a2030')}
+// -- RED STOGIE: glossy red skull, forehead bolts, cigar --
+function paintStogie(g,o){const f=o.f||0,atk=o.m=='a',cx=48,cy=50;
+ v5Rim(g,cx,cy,30,32);_E(g,cx,cy,28,30,'#9a1020');_E(g,cx-6,cy-8,16,12,'#d83040');_E(g,cx+10,cy,8,8,'#ff6a70');
+ v5Sockets(g,cx,cy-2,1.05);_E(g,cx-10,cy-10,8,3,'#4a0810');_E(g,cx+10,cy-10,8,3,'#4a0810'); // brow
+ v5Nose(g,cx,cy+12,1);v5Teeth(g,cx-15,cy+22,6,4,6,1,'#f4e8c8');
+ for(const s of[-1,1]){_E(g,cx+s*12,cy-28,6,6,'#3a2040');_E(g,cx+s*12,cy-28,3.5,3.5,'#c9ccd6');_E(g,cx+s*12,cy-29,1.5,1.5,'#ffffff')} // bolts
+ const cig=atk?4:0;_RR(g,cx+10,cy+18+f,16,4,2,'#c8862a');_RR(g,cx+24,cy+18+f,5,4,1,atk?'#ff8a00':'#5a3a18');
+ if(atk||f){for(let i=0;i<3;i++)_E(g,cx+28+i*5,cy+12-i*6-f*2,4+i,4+i,'#c0c0c8')}
+ _E(g,cx,cy+34,16,8,'#7a1020')}
+// -- HEXCOMB: honeycomb-dimpled skull, pink-purple chrome --
+function paintHive(g,o){const atk=o.m=='a',cx=48,cy=50;
+ v5Rim(g,cx,cy,30,32);_E(g,cx,cy,28,30,'#6a4068');_E(g,cx-6,cy-8,14,12,'#c090b8');
+ v5Sockets(g,cx,cy-2,1);v5Nose(g,cx,cy+12,1);v5Teeth(g,cx-15,cy+22,7,3.5,6,1,'#e8d0e0');_E(g,cx,cy+34,16,8,'#5a3058');
+ // dimples
+ g.save();g.globalCompositeOperation='multiply';g.fillStyle='#3a1838';
+ for(let y=cy-22;y<cy+28;y+=6)for(let x=cx-22+((y/6)&1)*3;x<cx+22;x+=6){const dx=x-cx,dy=y-cy;if(dx*dx/700+dy*dy/900<1)_E(g,x,y,2,1.6,'#3a1838')}
+ g.restore();if(atk){_E(g,cx+26,cy-8,7,5,'#ffd400');_E(g,cx+26,cy-8,4,3,'#0b0a0f')}}
+// -- BLACK CUT: faceted black crystal --
+function paintFacet(g,o){const atk=o.m=='a',cx=48,cy=52;
+ _E(g,cx-2,cy,30,32,'#ff2bd6');_E(g,cx+3,cy,28,30,'#4a2080');
+ const C=atk?'#c080ff':'#2a1040',H='#e0c0ff';
+ _P(g,[cx,cy-34, cx+22,cy-16, cx+16,cy+8, cx,cy-8],C);_P(g,[cx,cy-34, cx-22,cy-16, cx-16,cy+8, cx,cy-8],'#1a0828');
+ _P(g,[cx,cy-8, cx+16,cy+8, cx+20,cy+28, cx,cy+36],'#3a1860');_P(g,[cx,cy-8, cx-16,cy+8, cx-20,cy+28, cx,cy+36],'#140820');
+ _P(g,[cx-16,cy+8,cx+16,cy+8,cx+8,cy+22,cx-8,cy+22],'#241040');
+ _E(g,cx-10,cy-4,6,8,'#000');_E(g,cx+10,cy-4,6,8,'#000');_E(g,cx,cy+10,4,5,'#000');
+ _P(g,[cx-8,cy-20,cx-2,cy-28,cx+4,cy-18],H);if(atk)for(const[x,y]of[[cx-24,cy],[cx+26,cy-8],[cx,cy+40]]){g.fillStyle='#c080ff';g.beginPath();g.moveTo(x,y-6);g.lineTo(x+4,y);g.lineTo(x,y+6);g.lineTo(x-4,y);g.fill()}}
+// -- PYRITE KING: lumpy gold-crystal encrusted skull, dripping "gold" teeth --
+function paintPyrite(g,o){const atk=o.m=='a',cx=48,cy=52,cr=o.crystals!=null?o.crystals:4;
+ v5Rim(g,cx,cy,32,34);_E(g,cx,cy,28,30,'#6a5020');_E(g,cx-4,cy-6,16,12,'#c0a040');
+ v5Sockets(g,cx,cy-2,1.05,'#1a3050');v5Nose(g,cx,cy+12,1.1);
+ for(let i=0;i<6;i++){_RR(g,cx-16+i*5.5,cy+20,4,8+((i+ (atk?1:0))%3)*3,1,'#ffd400');g.fillStyle='#fff6d8';g.fillRect(cx-15+i*5.5,cy+21,2,2)}
+ // cubic crystals on the crown
+ const cubes=[[cx-18,cy-24,10,'#c0a030'],[cx-4,cy-32,14,'#ffd400'],[cx+12,cy-26,11,'#e0b040'],[cx+20,cy-12,9,'#a08020'],[cx-24,cy-8,8,'#d8a830'],[cx+8,cy-8,8,'#fff2a8']];
+ for(let i=0;i<cubes.length;i++){if(i>=cr+2)continue;const[x,y,s,c]=cubes[i];_RR(g,x,y,s,s,1,c);g.fillStyle='#fff6d8';g.fillRect(x+1,y+1,s/3,s/3)}
+ _E(g,cx,cy+36,16,8,'#8a6a20')}
+// -- SILVER BLAZE: smooth silver skull, chrome flame hair --
+function paintFlame(g,o){const f=o.f||0,atk=o.m=='a',cx=48,cy=54;
+ v5Rim(g,cx,cy,28,30);_E(g,cx,cy,26,28,'#8a90a0');_E(g,cx-8,cy-8,14,12,'#e8eef8');_E(g,cx+10,cy,8,8,'#c0d0e8');
+ v5Sockets(g,cx,cy-4,1);v5Nose(g,cx,cy+10,1);v5Teeth(g,cx-14,cy+20,7,3.4,6,1,'#f4f1e8');_E(g,cx,cy+32,15,7,'#6a7078');
+ const rise=atk?8:f*3;for(const[dx,h,c]of[[-16,36,'#c0c8d8'],[-6,48,'#e8eef8'],[6,44,'#ff8ac0'],[16,32,'#c080e0'],[0,54,'#ffffff']]){
+  g.fillStyle=c;g.beginPath();g.moveTo(cx+dx-7,cy-20);g.quadraticCurveTo(cx+dx,cy-20-h-rise,cx+dx+7,cy-20);g.quadraticCurveTo(cx+dx,cy-16,cx+dx-7,cy-20);g.fill()}
+ if(atk){g.fillStyle='#ff8a00';for(let i=0;i<5;i++)_E(g,cx-20+i*10,cy+40,4,6,'#ff8a00')}}
+// -- LOW-POLY skull (used for all five; color via o.col) --
+function paintPoly(g,o){const col=o.col||'#c0f0ff',cx=48,cy=50,lead=o.role=='lead',atk=o.m=='a';
+ const dark=mix(col,'#000000',.55),hi=mix(col,'#ffffff',.45),mid=mix(col,'#1a0b2e',.2);
+ if(lead){_E(g,cx,cy,30,32,'#ffffff');_E(g,cx,cy,26,28,col)}
+ else{_E(g,cx-2,cy,28,30,dark)}
+ _P(g,[cx,cy-32,cx+20,cy-14,cx+8,cy-4],hi);_P(g,[cx,cy-32,cx-20,cy-14,cx-8,cy-4],mid);
+ _P(g,[cx-20,cy-14,cx-24,cy+8,cx-8,cy+6],dark);_P(g,[cx+20,cy-14,cx+24,cy+8,cx+8,cy+6],hi);
+ _P(g,[cx-8,cy-4,cx+8,cy-4,cx+8,cy+8,cx-8,cy+8],mid);
+ _P(g,[cx-8,cy+8,cx+8,cy+8,cx,cy+18],dark);
+ _P(g,[cx-24,cy+8,cx-8,cy+18,cx-16,cy+32],mid);_P(g,[cx+24,cy+8,cx+8,cy+18,cx+16,cy+32],hi);
+ _P(g,[cx-8,cy+18,cx+8,cy+18,cx+12,cy+34,cx-12,cy+34],col);
+ _E(g,cx-10,cy,6,7,'#0b0a0f');_E(g,cx+10,cy,6,7,'#0b0a0f');_E(g,cx,cy+10,3.5,4,'#0b0a0f');
+ if(lead){_E(g,cx,cy,8,8,'#ffffffaa');if(atk)_E(g,cx,cy,20,20,'#9be7ff')}}
+// -- GILDED WINGS: glossy black skull, big gold/magenta metallic wings --
+function paintWinged(g,o){const f=o.f||0,atk=o.m=='a',cx=56,cy=58,flap=atk?10:f*6;
+ // wings first (behind)
+ for(const s of[-1,1]){const x0=cx+s*14,y0=cy-8;
+  g.fillStyle=s<0?'#ff8ac0':'#ffd400';g.beginPath();g.moveTo(x0,y0);
+  g.lineTo(x0+s*(36+flap),y0-28-flap);g.lineTo(x0+s*(28+flap),y0-4);g.lineTo(x0+s*(40+flap),y0+8);g.lineTo(x0+s*16,y0+16);g.closePath();g.fill();
+  g.strokeStyle='#fff6d8';g.lineWidth=1;for(let i=0;i<4;i++){g.beginPath();g.moveTo(x0,y0+2+i*4);g.lineTo(x0+s*(24+flap-i*2),y0-16+i*8-flap*.4);g.stroke()}}
+ v5Rim(g,cx,cy,24,26);_E(g,cx,cy,22,24,'#141018');_E(g,cx-6,cy-6,10,8,'#4a3060');_E(g,cx+6,cy-2,7,6,'#2a1848');
+ v5Sockets(g,cx,cy-2,.9);v5Nose(g,cx,cy+8,.9);v5Teeth(g,cx-12,cy+16,6,3.2,5,1,'#c0b8c8');_E(g,cx,cy+26,12,6,'#0a0810')}
+// -- NO-EVIL TOTEM: 3 stacked lavender skulls (top speak, mid see, bottom hear). o.head = 0..2 current. --
+function paintTotemHead(g,cx,cy,s,kind,lit){
+ v5Rim(g,cx,cy,s*22,s*22);_E(g,cx,cy,s*20,s*20,'#b090b8');_E(g,cx-s*6,cy-s*6,s*10,s*8,'#e8d0e8');
+ if(kind!='see'){v5Sockets(g,cx,cy-s*2,s*.85);_E(g,cx-s*10,cy-s*8,s*6,s*2,'#6a4070')} // brows
+ else{_RR(g,cx-s*18,cy-s*6,s*36,s*10,s*3,'#c0a0c8');_RR(g,cx-s*16,cy-s*4,s*32,s*6,s*2,'#8a6088')} // hands over eyes
+ v5Nose(g,cx,cy+s*6,s*.85);
+ if(kind=='speak'){_RR(g,cx-s*14,cy+s*8,s*28,s*12,s*4,'#c0a0c8');g.fillStyle='#8a6088';for(let i=0;i<4;i++)g.fillRect(cx-s*10+i*s*6,cy+s*10,s*2,s*8)}
+ else{v5Teeth(g,cx-s*12,cy+s*10,6,s*3,s*4,s,.8,'#f4e8f8')}
+ if(kind=='hear'){for(const s2 of[-1,1]){_E(g,cx+s2*s*20,cy,s*6,s*8,'#c0a0c8');_E(g,cx+s2*s*20,cy,s*3,s*4,'#8a6088')}}
+ if(lit){_E(g,cx,cy,s*8,s*8,'#ff2bd6')}}
+function paintTotem(g,o){const alive=o.heads!=null?o.heads:3,cur=o.head||0,atk=o.m=='a';
+ // draw bottom to top so overlap is right; missing heads are gone
+ const kinds=['speak','see','hear']; // index 0 = top
+ const slots=[{k:'hear',y:100},{k:'see',y:64},{k:'speak',y:28}];
+ const show=slots.slice(3-alive);
+ show.forEach((sl,i)=>{const kind=sl.k;const idx=kinds.indexOf(kind);const lit=atk&&(3-alive+i===cur||i===show.length-1);paintTotemHead(g,48,sl.y,1,kind,lit)})}
+// -- BLACK MIRROR: glossy black chrome, magenta rim, closed grin, huge specular --
+function paintMirror(g,o){const dull=o.m=='d'||o.dull,atk=o.m=='a',cx=48,cy=50;
+ if(!dull){v5Rim(g,cx,cy,30,32)}else{_E(g,cx,cy,30,32,'#3a3a48')}
+ _E(g,cx,cy,28,30,'#141018');_E(g,cx-8,cy-10,14,11,dull?'#3a3a50':'#5a4078');
+ if(!dull){_E(g,cx-10,cy-14,8,6,'#e8d0ff');_E(g,cx-12,cy-16,3,2,'#ffffff');_E(g,cx+12,cy-4,6,8,'#4060a0')}
+ v5Sockets(g,cx,cy-2,1);v5Nose(g,cx,cy+12,1);
+ g.fillStyle='#c0b8c8';for(let i=0;i<8;i++)g.fillRect(cx-16+i*4,cy+22,3,5); // closed teeth
+ _E(g,cx,cy+32,16,8,'#0a0810');if(atk&&!dull){_E(g,cx,cy,20,22,'#c080ff')}}
+// -- THE CHROME SCREAMER: polished silver, huge open jaw, magenta/cyan rim, rows of teeth --
+function paintScream(g,o){const f=o.f||0,m=o.m||'i',cx=48,cy=40;
+ const jaw=m=='a'||m=='scream'?22:m=='x'||m=='chomp'?5:m=='s'?12:14+f*2;const glow=m=='a'||m=='g'||m=='scream';
+ v5Rim(g,cx,cy,30,30);_E(g,cx,cy,27,28,'#6a5a78');_E(g,cx-8,cy-8,16,12,'#e8e0f0');_E(g,cx-12,cy-12,6,5,'#ffffff');_E(g,cx+12,cy-2,8,8,'#a0c0e8');
+ v5Sockets(g,cx,cy-2,1.1);v5Nose(g,cx,cy+14,1.15);
+ v5Teeth(g,cx-18,cy+22,8,3.6,8,1.1,'#e8e0f0'); // upper
+ const mid=cy+28+jaw/2;_E(g,cx,mid,20,jaw/2+6,glow?'#4a1030':'#12080e');
+ if(glow){_E(g,cx,mid,12,jaw/2,'#ff2bd6');_E(g,cx,mid,5,3,'#ffb0ff')}
+ const jy=cy+28+jaw;_E(g,cx-20,jy-2,8,12,'#6a5a78');_E(g,cx+20,jy-2,8,12,'#6a5a78');
+ _E(g,cx,jy+10,22,12,'#6a5a78');_E(g,cx-4,jy+12,12,7,'#c8c0d8');_E(g,cx-8,jy+14,6,4,'#ffffff');
+ v5Teeth(g,cx-16,jy-4,7,3.6,7,1.2,'#e8e0f0');
+ if(m=='g'){/* tears applied in post */}}
+
+// -- THE QUARTZ KING: weathered stone skull, crown of pink/clear quartz points --
+function paintQuartz(g,o){const f=o.f||0,atk=o.m=='a',sh=o.m=='x'||o.m=='shatter',cx=48,cy=62,n=o.crown!=null?o.crown:6;
+ // stone skull
+ v5Rim(g,cx,cy,28,28);_E(g,cx,cy,26,26,'#7a746c');_E(g,cx-6,cy-6,14,11,'#b0a89c');_E(g,cx+10,cy,7,7,'#9a9288');
+ v5Sockets(g,cx,cy-4,1);_E(g,cx-10,cy-4,6,7,'#2a2018');_E(g,cx+10,cy-4,6,7,'#2a2018');v5Nose(g,cx,cy+8,1);
+ v5Teeth(g,cx-14,cy+18,7,3.4,6,1,'#d8d0c4');_E(g,cx,cy+28,14,7,'#5a544c');
+ // grimy streaks
+ g.fillStyle='#3a3028';g.fillRect(cx-2,cy+8,2,10);g.fillRect(cx+8,cy+14,2,8);
+ if(sh){ // crown exploding: loose shards
+  for(const[x,y,w,h,c]of[[cx-28,cy-40,6,16,'#ffb0e0'],[cx-10,cy-50,7,18,'#f4e8ff'],[cx+8,cy-52,6,16,'#ff8ac0'],[cx+24,cy-42,7,18,'#e8d0f0'],[cx,cy-58,5,14,'#ffffff'],[cx-20,cy-28,5,12,'#ffb0e0'],[cx+18,cy-26,5,12,'#c080c0']]){_P(g,[x,y,x+w/2,y-h,x+w,y],c)}
+  return}
+ // crown of points (fewer as they launch)
+ const pts=[[cx-20,cy-26,7,22,'#ffb0e0'],[cx-11,cy-30,8,28,'#f4e8ff'],[cx-2,cy-34,8,32,'#ffffff'],[cx+8,cy-30,8,28,'#ff8ac0'],[cx+18,cy-24,7,22,'#e8d0f0'],[cx+4,cy-22,6,16,'#ffd0f0'],[cx-14,cy-20,6,14,'#c090c8']];
+ const show=pts.slice(0,Math.max(0,n));
+ for(const[x,y,w,h,c]of show){_P(g,[x,y,x+w/2,y-h-(atk?4:f*2),x+w,y],c);g.fillStyle='#ffffffaa';g.beginPath();g.moveTo(x+w*.3,y-2);g.lineTo(x+w/2,y-h*.7);g.lineTo(x+w*.5,y-2);g.fill()}
+}
+function screamPost(P,o){if(o.m=='g'||o.m=='scream'&&o.f){P.tear(28,3,o.f?4:-4);P.tear(70,2,o.f?-3:3)}}
+function v5MiniArt(){
+ const frames=(id,paint,W,H,post)=>{miniHD('mb_'+id+'_0',paint,{m:'i',f:0},W,H,post);miniHD('mb_'+id+'_1',paint,{m:'i',f:1},W,H,post);miniHD('mb_'+id+'_a',paint,{m:'a',f:0},W,H,post)};
+ frames('cyborg',paintCyborg);miniHD('mb_cyborg_x',paintCyborg,{m:'x'},96,96);
+ frames('stogie',paintStogie);
+ frames('hive',paintHive);
+ frames('facet',paintFacet);
+ frames('pyrite',paintPyrite);miniHD('mb_pyrite_b',paintPyrite,{m:'i',crystals:0},96,96); // bare, crystals shot off
+ frames('flame',paintFlame);
+ for(const role of POLY_ROLES){const col=POLY_COL[role];miniHD('mb_poly_'+role+'_0',paintPoly,{role,col,m:'i'},80,80);miniHD('mb_poly_'+role+'_1',paintPoly,{role,col,m:'i',f:1},80,80);miniHD('mb_poly_'+role+'_a',paintPoly,{role,col,m:'a'},80,80)}
+ miniHD('mb_winged_0',paintWinged,{m:'i',f:0},112,96);miniHD('mb_winged_1',paintWinged,{m:'i',f:1},112,96);miniHD('mb_winged_a',paintWinged,{m:'a'},112,96);
+ miniHD('mb_totem_0',paintTotem,{heads:3,head:0},96,128);miniHD('mb_totem_1',paintTotem,{heads:3,head:0,m:'a'},96,128);
+ miniHD('mb_totem_2',paintTotem,{heads:2,head:1},96,128);miniHD('mb_totem_3',paintTotem,{heads:1,head:2},96,128);
+ frames('mirror',paintMirror);miniHD('mb_mirror_d',paintMirror,{m:'d'},96,96);
+ miniHD('mb_scream_0',paintScream,{m:'i',f:0},96,120,screamPost);miniHD('mb_scream_1',paintScream,{m:'i',f:1},96,120,screamPost);
+ miniHD('mb_scream_a',paintScream,{m:'scream',f:0},96,120,screamPost);miniHD('mb_scream_x',paintScream,{m:'chomp'},96,120,screamPost);
+ miniHD('mb_scream_g',paintScream,{m:'g',f:1},96,120,screamPost);
+ frames('quartz',paintQuartz,96,112);miniHD('mb_quartz_x',paintQuartz,{m:'x'},96,112);miniHD('mb_quartz_b',paintQuartz,{m:'i',crown:0},96,112);
+}
+v5MiniArt();
+
 // ---- floor generation (Isaac-style grid) + room layouts ----
 const GW=9,GH=8,DIRS={n:[0,-1],s:[0,1],w:[-1,0],e:[1,0]},OPP={n:'s',s:'n',w:'e',e:'w'};
 const DOOR_TILE={n:[6,0],s:[6,6],w:[0,3],e:[12,3]}; // interior (13x7) tile right inside each door
@@ -1275,6 +1516,95 @@ function v4Decorate(F,floor){const FR=RNG(hash(F.seed+':v4:'+floor));
   if(r.kind=='start'){const cand=[[1,1],[11,1],[1,5],[11,5],[2,1],[10,1]];r.flag=null;for(const[x,y]of cand){if(!r.grid[y*13+x]&&!(r.props||[]).some(p=>p.x==x&&p.y==y)){r.flag={x,y};break}}if(!r.flag)r.flag={x:1,y:1}}}
  const cand=FR.shuffle(F.rooms.filter(r=>r.kind=='normal'&&r.dist>=1));let want=floor>=3?2:1;for(const r of cand){if(!want)break;if(addCage(r,RNG((r.seed^0x51ed)>>>0)))want--}}
 {const _gf=genFloor;genFloor=function(seed,floor,pool,used){const F=_gf(seed,floor,pool,used);v4Decorate(F,floor);return F}}
+
+// ---- v0.5 generation: hand-made pit layouts, floor-scaled traps, one marked mini-boss room per floor.
+// Pits are blocked tiles for pathfinding. Doors, spawns, pickups and cages must stay reachable (or pits get filled).
+function pitGrid(r){const g=propGrid(r);if(r.pits)for(let i=0;i<91;i++)if(r.pits[i])g[i]=1;return g}
+function v5Ok(r){const g=pitGrid(r);if(g[r.center[1]*13+r.center[0]])return false;const seen=reachable(g,r.center);
+ for(const d of Object.keys(r.doors||{}).concat(Object.keys(r.secretDoors||{}))){const[a,b]=DOOR_TILE[d];if(!seen[b*13+a])return false}
+ if(!(r.spawns||[]).every(s=>s.t=='boss'||s.t=='mini'||seen[s.y*13+s.x]))return false;
+ if(!(r.pickups||[]).every(p=>seen[p.y*13+p.x]))return false;
+ for(const p of r.props||[])if(p.k=='cage'){let touch=false;for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const nx=p.x+dx,ny=p.y+dy;if(nx>=0&&ny>=0&&nx<=12&&ny<=6&&seen[ny*13+nx])touch=true}if(!touch)return false}
+ let free=0;for(let i=0;i<91;i++)if(!g[i]&&seen[i])free++;return free>=32}
+function doorLane(x,y){for(const d in DOOR_TILE){const[dx,dy]=DOOR_TILE[d];if(Math.abs(dx-x)+Math.abs(dy-y)<2)return true}return false}
+function hasCage(r,x,y){return (r.props||[]).some(p=>p.k=='cage'&&p.x==x&&p.y==y)}
+function applyLayout(r,rows){const add=new Uint8Array(91);for(let y=0;y<7;y++)for(let x=0;x<13;x++)if(rows[y][x]=='o'&&!doorLane(x,y)&&!r.grid[y*13+x]&&!hasCage(r,x,y))add[y*13+x]=1;return add}
+function addPits(r,RR,floor){r.pits=r.pits||new Uint8Array(91);if(r.kind!='normal'&&r.kind!='miniboss')return;
+ if(r.kind=='normal'&&RR()<(floor==1?.4:.26))return;
+ const pack=PIT_LAYOUTS[Math.min(floor,4)]||PIT_LAYOUTS[1];
+ for(let t=0;t<pack.length+2;t++){const rows=t<pack.length?pack[t]:null;let add;
+  if(rows)add=applyLayout(r,rows);
+  else{add=new Uint8Array(91);const n=3+RR.int(3+floor);for(let k=0;k<n;k++){const x=1+RR.int(11),y=1+RR.int(5);if(!doorLane(x,y)&&!r.grid[y*13+x]&&!hasCage(r,x,y))add[y*13+x]=1}}
+  const prev=r.pits;r.pits=add;if(v5Ok(r))return;r.pits=prev}
+ r.pits=new Uint8Array(91)}
+function v5FreeTrap(r,x,y){if(x<0||y<0||x>12||y>6)return false;const i=y*13+x;if(r.grid[i]||(r.pits&&r.pits[i]))return false;
+ if((r.props||[]).some(p=>p.x==x&&p.y==y)||(r.terrain||[]).some(t=>t.x==x&&t.y==y))return false;
+ if((r.spawns||[]).some(s=>s.x==x&&s.y==y)||(r.pickups||[]).some(p=>p.x==x&&p.y==y))return false;
+ if((r.traps||[]).some(t=>t.x==x&&t.y==y))return false;if(r.center[0]==x&&r.center[1]==y)return false;if(doorLane(x,y))return false;return true}
+function wheelRuns(r){const out=[];
+ for(let y=1;y<=5;y++){let run=0,s=1;for(let x=1;x<=11;x++){const ok=v5FreeTrap(r,x,y);if(ok){if(!run)s=x;run++}else{if(run>=4)out.push({x:s,y,len:run,axis:'h'});run=0}}if(run>=4)out.push({x:s,y,len:run,axis:'h'})}
+ for(let x=1;x<=11;x++){let run=0,s=1;for(let y=1;y<=5;y++){const ok=v5FreeTrap(r,x,y);if(ok){if(!run)s=y;run++}else{if(run>=3)out.push({x,y:s,len:run,axis:'v'});run=0}}if(run>=3)out.push({x,y:s,len:run,axis:'v'})}
+ return out}
+function addTraps(r,RR,floor){r.traps=r.traps||[];if(r.kind=='boss'||r.kind=='secret'||r.kind=='shop'||r.kind=='treasure'||r.kind=='start')return;
+ const want=r.kind=='miniboss'?1+RR.int(2):(RR()<(floor>=3?.72:.52)?1+RR.int(1+(floor>2?2:1)):0);if(!want)return;
+ const pool=['spike','spike','slick'];if(floor>=2)pool.push('zap','turret','plate');if(floor>=3)pool.push('zap','turret');if(floor>=4)pool.push('wheel','wheel');
+ const cand=[];for(let y=0;y<7;y++)for(let x=0;x<13;x++)if(v5FreeTrap(r,x,y))cand.push([x,y]);RR.shuffle(cand);
+ let n=want;
+ for(const[x,y]of cand){if(n<=0)break;let k=RR.pick(pool);
+  if(k=='turret'){const opts=[];if(v5FreeTrap(r,0,y))opts.push({x:0,y,dir:'e'});if(v5FreeTrap(r,12,y))opts.push({x:12,y,dir:'w'});if(v5FreeTrap(r,x,0))opts.push({x:x,y:0,dir:'s'});if(v5FreeTrap(r,x,6))opts.push({x:x,y:6,dir:'n'});
+   if(!opts.length){k='spike'}else{const t=RR.pick(opts);r.traps.push({k:'turret',x:t.x,y:t.y,dir:t.dir});n--;continue}}
+  if(k=='wheel'){const runs=wheelRuns(r);if(!runs.length){k=RR.pick(['spike','zap'])}else{const C=RR.pick(runs);r.traps.push({k:'wheel',x:C.x,y:C.y,len:C.len,axis:C.axis,crush:floor>=4&&RR()<.4});n--;continue}}
+  if(!v5FreeTrap(r,x,y))continue;
+  if(k=='plate'){r.traps.push({k:'plate',x,y});const near=[[x+2,y],[x-2,y],[x,y+1],[x,y-1],[x+1,y+1],[x-1,y-1]];let linked=false;
+   for(const[nx,ny]of RR.shuffle(near))if(v5FreeTrap(r,nx,ny)){r.traps.push({k:'spike',x:nx,y:ny,fromPlate:1});r.traps[r.traps.length-2].linkX=nx;r.traps[r.traps.length-2].linkY=ny;linked=true;break}
+   n--;continue}
+  r.traps.push({k,x,y});n--}}
+function doorsReachable(r){const g=propGrid(r),seen=reachable(g,r.center);for(const d of Object.keys(r.doors||{}).concat(Object.keys(r.secretDoors||{}))){const[x,y]=DOOR_TILE[d];if(!seen[y*13+x])return false}return !g[r.center[1]*13+r.center[0]]}
+function stripBadTraps(r){if(!r.traps)return;r.traps=r.traps.filter(t=>t.x>=0&&t.y>=0&&t.x<=12&&t.y<=6&&(t.k=='turret'||!r.pits||!r.pits[t.y*13+t.x]))}
+function clearCagePits(r){if(!r.pits)return;for(const p of r.props||[])if(p.k=='cage'){r.pits[p.y*13+p.x]=0;for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const nx=p.x+dx,ny=p.y+dy;if(nx>=0&&ny>=0&&nx<=12&&ny<=6&&doorLane(nx,ny)==false){/* keep at least one floor if all 4 were pits */}}}}
+function pickMiniRoom(F,floor,FR){const cand=FR.shuffle(F.rooms.filter(r=>r.kind=='normal'&&r.dist>=2&&!r.cage));
+ const fallback=F.rooms.filter(r=>r.kind=='normal'&&r.dist>=1&&!r.cage).concat(F.rooms.filter(r=>r.kind=='normal'));
+ const screamFl=3+(hash(F.seed+':screamer')&1);const pool=(MINI_POOL[Math.min(floor,4)]||MINI_IDS).filter(k=>k!='scream');
+ const id=(floor==screamFl)?'scream':FR.pick(pool);
+ for(const room of cand.concat(fallback)){if(!room||room.kind!='normal')continue;
+  const snap={kind:room.kind,mini:room.mini,spawns:room.spawns,arena:room.arena,center:room.center,pits:room.pits&&room.pits.slice(),traps:(room.traps||[]).slice(),terrain:(room.terrain||[]).slice(),grid:room.grid&&room.grid.slice()};
+  room.kind='miniboss';room.mini=id;room.spawns=[{t:'mini',x:6,y:3,boss:id}];room.arena=1;room.traps=[];
+  if(room.grid[3*13+6])room.grid[3*13+6]=0;
+  if(room.terrain)room.terrain=room.terrain.filter(t=>!(t.x==6&&t.y==3)&&Math.abs(t.x-6)+Math.abs(t.y-3)>0);
+  // keep a clear 3x3 around the arena spawn so the mini can stand
+  if(room.terrain)room.terrain=room.terrain.filter(t=>Math.max(Math.abs(t.x-6),Math.abs(t.y-3))>1);
+  room.center=centerTile(room.grid);
+  const RR=RNG((room.seed^0x5a17)>>>0);addPits(room,RR,floor);if(!v5Ok(room))room.pits=new Uint8Array(91);addTraps(room,RR,floor);
+  room.terrain=[];if(v5Ok(room)&&doorsReachable(room)){stripBadTraps(room);return}
+  room.kind=snap.kind;room.mini=snap.mini;room.spawns=snap.spawns;room.arena=snap.arena;room.center=snap.center;room.pits=snap.pits;room.traps=snap.traps;room.terrain=snap.terrain;if(snap.grid)room.grid.set(snap.grid)}
+ // last resort: first candidate, no pits
+ const room=cand[0]||fallback[0];if(!room)return;
+ room.kind='miniboss';room.mini=id;room.spawns=[{t:'mini',x:6,y:3,boss:id}];room.arena=1;room.traps=[];room.pits=new Uint8Array(91);room.terrain=[];addTraps(room,RNG((room.seed^0x5a17)>>>0),floor);stripBadTraps(room)}
+function v5FillPits(r){if(v5Ok(r))return;if(!r.pits)return;
+ const need=[];for(const d of Object.keys(r.doors||{}).concat(Object.keys(r.secretDoors||{}))){const[a,b]=DOOR_TILE[d];need.push([a,b])}
+ need.push(r.center);for(const s of r.spawns||[])if(s.t!='boss')need.push([s.x,s.y]);for(const p of r.pickups||[])need.push([p.x,p.y]);
+ // drop any pit sitting on a required tile, then carve a path from center by clearing pits
+ for(const[x,y]of need)if(r.pits[y*13+x])r.pits[y*13+x]=0;
+ if(v5Ok(r))return;
+ const base=propGrid(r),open=reachable(base,r.center);
+ for(const[tx,ty]of need){if(!open[ty*13+tx])continue;if(reachable(pitGrid(r),r.center)[ty*13+tx])continue;
+  // walk a BFS on the no-pit grid and clear pits along a path
+  const prev=new Int16Array(91).fill(-1),q=[r.center[1]*13+r.center[0]];prev[q[0]]=q[0];
+  while(q.length){const c=q.shift();if(c==ty*13+tx)break;const cx=c%13,cy=(c/13)|0;for(const[dx,dy]of[[0,-1],[0,1],[-1,0],[1,0]]){const nx=cx+dx,ny=cy+dy;if(nx<0||ny<0||nx>12||ny>6)continue;const i=ny*13+nx;if(prev[i]>=0||base[i])continue;prev[i]=c;q.push(i)}}
+  if(prev[ty*13+tx]>=0){let c=ty*13+tx;while(c!=prev[c]&&c>=0){r.pits[c]=0;c=prev[c]}}}
+ if(!v5Ok(r))r.pits=new Uint8Array(91)}
+function v5Decorate(F,floor){const FR=RNG(hash(F.seed+':v5:'+floor));
+ for(const r of F.rooms){r.pits=r.pits||new Uint8Array(91);r.traps=r.traps||[];
+  if(r.kind=='normal'){const RR=RNG((r.seed^0xc0ffee)>>>0);addPits(r,RR,floor);addTraps(r,RR,floor)}}
+ pickMiniRoom(F,floor,FR);for(const r of F.rooms){v5FillPits(r);clearCagePits(r);stripBadTraps(r)}}
+{const _gf=genFloor;genFloor=function(seed,floor,pool,used){const F=_gf(seed,floor,pool,used);v5Decorate(F,floor);return F}}
+{const _vf=validateFloor;validateFloor=function(F){const errs=_vf(F);
+ const minis=F.rooms.filter(r=>r.kind=='miniboss'&&!r.hidden);if(minis.length!=1)errs.push('mini count '+minis.length);
+ for(const r of F.rooms){if(r.hidden)continue;if(r.kind!='secret'&&!v5Ok(r))errs.push('pits block '+r.id);
+  if(r.pits){for(const d in r.doors){const[x,y]=DOOR_TILE[d];if(r.pits[y*13+x])errs.push('pit in door '+r.id+d)}
+   for(const p of r.props||[])if(p.k=='cage'&&r.pits[p.y*13+p.x])errs.push('cage in pit '+r.id)}
+  for(const t of r.traps||[]){if(t.x<0||t.y<0||t.x>12||t.y>6)errs.push('trap oob '+r.id);if(r.pits&&r.pits[t.y*13+t.x]&&t.k!='turret')errs.push('trap in pit '+r.id)}}
+ return errs}}
 
 // ---- run state, player, combat, rooms ----
 function newPlayer(heroId){const H=HEROES[heroId],U=SAVE.up;const P={hero:heroId,x:RPW/2,y:RPH/2+20,vx:0,vy:0,r:5,face:1,aim:[0,1],
@@ -2098,6 +2428,202 @@ function restoreFloor(p){const R=GS.run&&GS.run.room;if(!R||!R.bg||!p.floor)retu
  for(const o of prev){const s=o.s;if(s.dead||!s.hit)continue;const pr=propAtPx(s.x,s.y)||propAtPx(o.x,o.y)||propAtPx((s.x+o.x)/2,(s.y+o.y)/2);
   if(pr&&pr.k=='table'&&!pr.flip&&isObstacle(pr)&&!s.hit.has(pr)){hitProp(pr,s.dmg,s);s.hit.add(pr)}}}}
 
+if(!SFX.slam)SFX.slam=SFX.hit;if(!SFX.shatter)SFX.shatter=SFX.glitch;if(!SFX.dull)SFX.dull=SFX.glitch;if(!SFX.zap)SFX.zap=SFX.hit;if(!SFX.spike)SFX.spike=SFX.hit;if(!SFX.pit)SFX.pit=SFX.hurt;if(!SFX.warn)SFX.warn=SFX.hit;if(!SFX.scream)SFX.scream=SFX.glitch;
+// ---- v0.5 systems: pits (fall, 1-tile roll-jump, knock-in), traps (hurt everyone, blanks/specials disable), skull mini-bosses ----
+Object.assign(SFX,{
+ pit(){const t=now();if(!t)return;osc('sine',180,t,.25,.12,AU.sfx,70);nz(t,.2,.1,AU.sfx,'lowpass',600)},
+ spike(){const t=now();if(!t)return;osc('square',320,t,.12,.05,AU.sfx);nz(t,.1,.06,AU.sfx,'highpass',2000)},
+ zap(){const t=now();if(!t)return;osc('sawtooth',880,t,.16,.04,AU.sfx,220);nz(t,.12,.05,AU.sfx,'highpass',4000)},
+ scream(){const t=now();if(!t)return;osc('sawtooth',220,t,.5,.12,AU.sfx,140);osc('square',110,t,.45,.1,AU.sfx,80);nz(t,.35,.1,AU.sfx,'bandpass',800)},
+ dull(){const t=now();if(!t)return;osc('triangle',200,t,.3,.08,AU.sfx,80);nz(t,.2,.08,AU.sfx,'lowpass',900)}
+});
+{const _np=newPlayer;newPlayer=function(h){const P=_np(h);P.hover=P.hover||0;P.fallT=0;P.safeX=P.x;P.safeY=P.y;P.slideVx=0;P.slideVy=0;P.silenced=0;return P}}
+function V5(){const run=GS.run;return run.v5||(run.v5={trapOff:0,falls:0,trapHits:0,miniDown:0,coins:[],spikes:[]})}
+// ===== pits =====
+function pitCell(tx,ty){const R=GS.run&&GS.run.room;if(!R||!R.pits||tx<0||ty<0||tx>12||ty>6)return false;return !!R.pits[ty*13+tx]}
+function pitAt(x,y){return pitCell(Math.floor(x/TILE)-1,Math.floor(y/TILE)-1)}
+function nearestFloor(x,y){const tx=Math.floor(x/TILE),ty=Math.floor(y/TILE);let best=null,bd=1e9;
+ for(let r=1;r<=12;r++)for(let i=0;i<16;i++){const a=i*TAU/16,nx=Math.round(tx+Math.cos(a)*r),ny=Math.round(ty+Math.sin(a)*r);
+  if(nx<1||ny<1||nx>=RW-1||ny>=RH-1)continue;if(solidAt(nx,ny,true)||pitCell(nx-1,ny-1))continue;const d=Math.hypot(nx*TILE+8-x,ny*TILE+8-y);if(d<bd){bd=d;best=[nx*TILE+8,ny*TILE+8]}}
+ return best||[clamp(x,TILE+8,RPW-TILE-8),clamp(y,TILE+8,RPH-TILE-8)]}
+function isOneTileGap(x,y,dx,dy){const tx=Math.floor(x/TILE)-1,ty=Math.floor(y/TILE)-1;if(!pitCell(tx,ty))return false;
+ const ax=Math.abs(dx)>=Math.abs(dy)?Math.sign(dx)||0:0,ay=ax?0:Math.sign(dy)||0;if(!ax&&!ay)return false;
+ return !pitCell(tx-ax,ty-ay)&&!pitCell(tx+ax,ty+ay)}
+function fallPlayer(P,force){const run=GS.run;if(!run||!P||P.fallT>0)return false;if(!force&&(P.hover||P.god&&!force))return false;
+ P.roll=null;P.fallT=36;V5().falls++;const dest=(P.safeX!=null&&!pitAt(P.safeX,P.safeY))?[P.safeX,P.safeY]:nearestFloor(P.x,P.y);
+ P._fallFrom=[P.x,P.y];P._fallTo=dest;P.vx=P.vy=0;SFX.pit();shake(6);hitstop(3);
+ if(!P.god&&!P.hover){const _r=P.roll;P.inv=0; // fall even mid-roll (already cancelled)
+  if(P.shield>0){P.shield--;P.inv=50;floatText(P.x,P.y-10,'BLOCKED','#ffd400')}else{P.hp=Math.max(0,P.hp-1);P.inv=55;SFX.hurt();burst(P.x,P.y,'#ff2045',10);if(P.hp<=0){if(P.revive>0){P.revive--;P.hp=2;P.inv=120;banner('CHALLENGE COIN!','NEVER BET AGAISNT ME,','#ffd400')}else playerDie()}}}
+ else P.inv=Math.max(P.inv,20);
+ floatText(dest[0],dest[1]-14,'WHOOPS','#ff2bd6');return true}
+function pitKillEnemy(e){if(!e||e.dead||e.fly||e.mini&&MINIS[e.mini]&&MINIS[e.mini].fly)return;floatText(e.x,e.y-12,'YEET','#ff2bd6');burst(e.x,e.y,'#7a2cff',14,2);SFX.pit();killEnemy(e)}
+function v5BuildWalk(R){if(!R)return;const g=new Uint8Array(R.sgrid||R.grid||new Uint8Array(91));if(R.pits)for(let i=0;i<91;i++)if(R.pits[i])g[i]=1;R.wgrid=g}
+{const _bd=buildDyn;buildDyn=function(R){_bd(R);v5BuildWalk(R)}}
+{const _ff=flowField;flowField=function(){const run=GS.run,R=run&&run.room,old=R&&R.sgrid;if(R&&R.wgrid)R.sgrid=R.wgrid;_ff();if(R)R.sgrid=old}}
+{const _fd=flowDir;flowDir=function(e){const run=GS.run,R=run&&run.room,old=R&&R.sgrid;if(R&&R.wgrid)R.sgrid=R.wgrid;const v=_fd(e);if(R)R.sgrid=old;return v}}
+{const _ps=pathStepTo;pathStepTo=function(e,gx,gy){const run=GS.run,R=run&&run.room,old=R&&R.sgrid;if(R&&R.wgrid)R.sgrid=R.wgrid;const v=_ps(e,gx,gy);if(R)R.sgrid=old;return v}}
+{const _mb=moveBody;moveBody=function(o,dx,dy,forPlayer,fly){if(!fly&&!forPlayer&&o&&o.hp!=null&&!o.player){const kbx=o.vx||0,kby=o.vy||0;
+  if(pitAt(o.x+dx,o.y+dy)&&!pitAt(o.x,o.y)&&!pitAt(o.x+kbx,o.y+kby)){dx=kbx;dy=kby}}
+ return _mb(o,dx,dy,forPlayer,fly)}}
+{const _bl=blink;blink=function(e){const _at=solidAt;solidAt=function(tx,ty,fp){return _at(tx,ty,fp)||pitCell(tx-1,ty-1)};_bl(e);solidAt=_at}}
+{const _fp=freePx;freePx=function(x,y){const _at=solidAt;solidAt=function(tx,ty,fp){return _at(tx,ty,fp)||pitCell(tx-1,ty-1)};const v=_fp(x,y);solidAt=_at;return v}}
+// ===== traps =====
+function initTraps(R){if(!R||R.tl)return;R.tl=(R.traps||[]).map((t,i)=>{const o={...t,px:(t.x+1)*TILE+8,py:(t.y+1)*TILE+8,st:'idle',stt:20+(i*17)%80,on:0,cd:0,pos:0,dirV:1};
+  if(t.k=='wheel'){o.span=(t.len||4)*TILE;o.axis=t.axis||'h';o.crush=!!t.crush;o.pos=0}return o})}
+function trapsOff(){return (GS.run&&V5().trapOff>0)}
+function trapDisabled(P){return trapsOff()||(P&&P.hover)}
+function trapHurt(x,y,r,dmg,who){const run=GS.run;if(!run||trapsOff())return;const P=run.P;
+ if((!who||who=='p')&&!P.hover&&!P.god&&Math.hypot(P.x-x,P.y-y)<r+P.r){hurtPlayer(dmg,null);V5().trapHits++}
+ if(!who||who=='e')for(const e of run.ents){if(e.dead||(e.mini&&e.st=='intro'))continue;if(Math.hypot(e.x-x,e.y-y)<r+e.r){damageEnemy(e,e.mini||e.boss?dmg*.6:dmg,null);V5().trapHits++}}}
+function fireTurret(t){const dir=t.dir||'e',[dx,dy]=DIRS[dir]||[1,0],n=2+Math.min(2,(GS.run.floor||1)-1);
+ for(let i=0;i<n;i++){const sp=1.4+i*.05,b=ebullet(t.px+dx*8,t.py+dy*6,dx*sp+(dy? (i-n/2)*.15:0),dy*sp+(dx?(i-n/2)*.15:0),{col:'#e0a050',r:2.5,life:180});if(b)b.trap=1;b&&(b.tdmg=2)}SFX.shoot(.5)}
+{const _ueb=updateEbul;updateEbul=function(){_ueb();const run=GS.run;if(!run)return;
+ for(const b of run.ebul){if(b.home&&!b.dead&&b.delay<=0){const a=Math.atan2(b.vy,b.vx),t=Math.atan2(run.P.y-b.y,run.P.x-b.x),sp=Math.hypot(b.vx,b.vy);const na=a+clamp(angDiff(a,t),-b.home*.06,b.home*.06);b.vx=Math.cos(na)*sp;b.vy=Math.sin(na)*sp}
+  if(!b.trap||b.delay>0||b.dead)continue;for(const e of run.ents){if(e.dead||e.st=='intro')continue;if(Math.hypot(e.x-b.x,e.y-b.y)<e.r+b.r){damageEnemy(e,b.tdmg||2,null);b.dead=true;V5().trapHits++;break}}}
+ run.ebul=run.ebul.filter(b=>!b.dead)}}
+function triggerPlate(t){const run=GS.run;if(t.cd>0)return;t.cd=90;t.on=18;SFX.spike();
+ const lx=t.linkX,ly=t.linkY;if(lx!=null){const sp=(run.room.tl||[]).find(s=>s.k=='spike'&&s.x==lx&&s.y==ly);if(sp){sp.st='up';sp.stt=28;sp.on=1}}
+ else{for(let i=0;i<8;i++){const a=i*TAU/8;const b=ebullet(t.px,t.py,Math.cos(a)*1.6,Math.sin(a)*1.6,{col:'#e0a050',r:2.5});if(b)b.trap=1,b.tdmg=2}}}
+function trapTick(){const run=GS.run;if(!run||run.over||GS.slide)return;const R=run.room,P=run.P,V=V5();if(V.trapOff>0)V.trapOff--;
+ if(!R.tl)initTraps(R);if(!R.tl)return;const off=trapsOff()||(P&&P.hover);
+ for(const t of R.tl){t.stt--;if(t.cd>0)t.cd--;
+  if(t.k=='spike'){if(t.fromPlate&&t.st!='up'){t.on=0;continue}
+   if(t.st=='idle'&&t.stt<=0){t.st='tell';t.stt=28}else if(t.st=='tell'&&t.stt<=0){t.st='up';t.stt=22;t.on=1;if(!off)SFX.spike()}
+   else if(t.st=='up'&&t.stt<=0){t.st='idle';t.stt=70+((t.x*13+t.y*7)%40);t.on=0}
+   if(t.st=='up'&&!off)trapHurt(t.px,t.py,9,1)}
+  else if(t.k=='zap'){const per=90,onT=40,ph=(GS.t+t.x*11+t.y*19)%per;t.st=(!off&&ph<onT)?'on':(ph<onT+12||ph>per-14)?'tell':'off';t.on=t.st=='on';
+   if(t.on&&GS.t%20==0)SFX.zap();if(t.on&&!off)trapHurt(t.px,t.py,8,1)}
+  else if(t.k=='slick'){t.on=1;if(off)continue;if(Math.hypot(P.x-t.px,P.y-t.py)<12&&!P.roll){P.slideVx=lerp(P.slideVx||0, (P.vx||P.face)*2.4,.2);P.slideVy=lerp(P.slideVy||0,(P.vy||.4)*2.2,.2)}
+   for(const e of run.ents){if(e.dead||e.fly||e.boss)continue;if(Math.hypot(e.x-t.px,e.y-t.py)<12){e.vx+=Math.sign(e.vx||e.face)*0.15;e.vy+=Math.sign(e.vy||1)*0.08}}}
+  else if(t.k=='turret'){if(t.st=='idle'&&t.stt<=0){t.st='tell';t.stt=20}else if(t.st=='tell'&&t.stt<=0){t.st='idle';t.stt=70+(t.y*9)%40;if(!off)fireTurret(t)}}
+  else if(t.k=='plate'){const press=Math.hypot(P.x-t.px,P.y-t.py)<9||run.ents.some(e=>!e.dead&&Math.hypot(e.x-t.px,e.y-t.py)<9);
+   if(press&&t.st!='in'){t.st='in';if(!off)triggerPlate(t)}if(!press&&t.st=='in'&&t.cd<=40)t.st='idle';t.on=t.st=='in'}
+  else if(t.k=='wheel'){const spd=t.crush?1.15:.9;t.pos+=t.dirV*spd;if(t.pos<0||t.pos>t.span-8)t.dirV*=-1,t.pos=clamp(t.pos,0,t.span-8);
+   if(t.axis=='h'){t.wx=t.px+t.pos;t.wy=t.py}else{t.wx=t.px;t.wy=t.py+t.pos}
+   if(t.crush){t.ph=(t.ph||0)+1;if(t.ph%110==80)t.slam=24;if(t.slam>0){t.slam--;if(t.slam==12&&!off){trapHurt(t.wx||t.px,t.wy||t.py,16,2);SFX.slam();shake(4)}}}
+   else if(!off)trapHurt(t.wx||t.px,t.wy||t.py,10,1)}
+ }
+ for(const c of V.coins){c.t--;c.spin+=.2;if(c.t<=0){explode(c.x,c.y,18,8,'hot');c.dead=1}}V.coins=V.coins.filter(c=>!c.dead);
+ for(const s of V.spikes){s.t--;if(s.t==s.up){trapHurt(s.x,s.y,10,2,'e');if(!P.hover&&Math.hypot(P.x-s.x,P.y-s.y)<12)hurtPlayer(1,null);SFX.spike()}if(s.t<=0)s.dead=1}V.spikes=V.spikes.filter(s=>!s.dead)}
+{const _ub=useBlank;useBlank=function(){const n=GS.run&&GS.run.P&&GS.run.P.blanks;_ub();if(GS.run&&n>0&&GS.run.P.blanks<n){V5().trapOff=Math.max(V5().trapOff,180);for(const e of GS.run.ents)if(e.mini=='mirror')e.dullT=180,e.shiny=0;SFX.dull&&SFX.dull()}}}
+{const _us=useSpecial;useSpecial=function(){const ok=_us();if(ok&&GS.run){V5().trapOff=Math.max(V5().trapOff,90);for(const e of GS.run.ents)if(e.mini=='mirror')e.dullT=160,e.shiny=0}return ok}}
+// ===== player pit / slick / silence after-move =====
+function v5PlayerAfter(P){if(!P||!GS.run)return;
+ if(P.silenced>0)P.silenced--;if(P.fallT>0){P.fallT--;const k=1-P.fallT/36;if(P._fallTo){P.x=lerp(P._fallFrom[0],P._fallTo[0],Math.min(1,k*1.6));P.y=lerp(P._fallFrom[1],P._fallTo[1],Math.min(1,k*1.6))}P.vx=P.vy=0;if(P.fallT==0){P.x=P._fallTo[0];P.y=P._fallTo[1];P._fallTo=null}return}
+ if(!pitAt(P.x,P.y)&&!boxHit(P.x,P.y,P.r,true)){P.safeX=P.x;P.safeY=P.y}
+ if(pitAt(P.x,P.y)&&!P.hover){if(P.roll&&isOneTileGap(P.x,P.y,P.roll.dx,P.roll.dy)){const tx=Math.floor(P.x/TILE)-1,ty=Math.floor(P.y/TILE)-1;const ax=Math.abs(P.roll.dx)>=Math.abs(P.roll.dy)?Math.sign(P.roll.dx||0):0,ay=ax?0:Math.sign(P.roll.dy||0);P.x=(tx+1+ax)*TILE+8;P.y=(ty+1+ay)*TILE+8}else fallPlayer(P)}
+ if((P.slideVx||P.slideVy)&&!P.roll){moveBody(P,P.slideVx||0,P.slideVy||0,true);P.slideVx*=.92;P.slideVy*=.92;if(Math.abs(P.slideVx)<.04)P.slideVx=0;if(Math.abs(P.slideVy)<.04)P.slideVy=0}
+ if(pitAt(P.x,P.y)&&!P.hover&&!P.fallT&&!(P.roll&&isOneTileGap(P.x,P.y,P.roll.dx,P.roll.dy)))fallPlayer(P)}
+{const _up=updatePlayer;updatePlayer=function(){const P=GS.run&&GS.run.P;if(P&&P.silenced>0){const _ra=readAim;readAim=function(){return null};_up();readAim=_ra}else _up();if(GS.run&&GS.run.P)v5PlayerAfter(GS.run.P)}}
+// ===== mini-bosses =====
+function spawnMini(id,x,y,role){const run=GS.run,M=MINIS[id];if(!M)return null;
+ if(id=='poly'&&!role){const pack=[];const roles=POLY_ROLES.slice();for(let i=0;i<roles.length;i++){const a=i*TAU/5,e=spawnMini('poly',x+Math.cos(a)*28,y+Math.sin(a)*20,roles[i]);if(e){e.pair='p'+run.time;e.ang=a;pack.push(e)}}return pack[0]}
+ const fl=Math.min(run.floor||1,MAX_FLOOR),mul=1+.2*(fl-1);let hp=(role&&POLY_HP[role])||M.hp;if(id=='totem')hp=M.hp;hp=Math.round(hp*mul);
+ const e={t:'mini',mini:id,x,y,vx:0,vy:0,r:M.r,hp,max:hp,spd:.45,flash:0,st:'intro',stt:id=='scream'?130:100,cd:50,face:1,anim:0,ph:1,k:0,lane:null,mark:null,role,fly:!!M.fly||id=='winged',pair:0,shiny:id=='mirror'?1:0,dullT:0,crystals:id=='pyrite'?4:0,crown:id=='quartz'?6:0,heads:id=='totem'?3:0,head:0,headHp:id=='totem'?[hp,hp,hp]:null};
+ if(id=='jam'||id=='stogie')e.wake=0;run.ents.push(e);return e}
+{const _se=spawnEnemy;spawnEnemy=function(t,x,y,champ,bossId){if(t=='mini')return spawnMini(champ||bossId,x,y);return _se(t,x,y,champ,bossId)}}
+function miniIntro(e){GS.miniIntro={e,t:0};GS.banner=null;SFX.glitch();if(e.mini=='scream')SFX.scream();shake(5)}
+function miniFrame(e){const t=e.anim,id=e.mini;if(id=='scream')return e.st=='scream'||e.st=='a'?'a':e.st=='chomp'||e.st=='ram'?'x':e.ph>1?'g':(t>>4)%2?'1':'0';
+ if(id=='quartz')return e.st=='shatter'||e.shattered&&e.crown<=0&&e.st=='idle'?'x':e.crown<=0?'b':(e.st=='shards'||e.st=='pillars'||e.st=='a'?'a':(t>>4)%2?'1':'0');
+ if(id=='totem')return String(Math.max(0,3-e.heads)*0+ (e.heads==3?((t>>4)%2):e.heads==2?2:3)); // 0/1 full, 2 two-heads, 3 one-head — fixed below
+ if(id=='poly')return (e.role||'lead')+'_'+((e.st=='prism'||e.st=='a')?'a':(t>>4)%2?'1':'0');
+ if(id=='mirror')return e.shiny&&e.dullT<=0?(e.st=='volley'||e.st=='a'?'a':'0'):'d';
+ if(id=='cyborg'&&e.st=='swap')return 'x';if(id=='pyrite'&&e.crystals<=0)return 'b';
+ if(id=='winged')return e.st=='dive'||e.st=='a'?'a':(t>>4)%2?'1':'0';
+ return (e.st=='intro'||e.st=='idle')?((t>>4)%2?'1':'0'):'a'}
+function miniSpr(e){const fr=miniFrame(e);if(e.mini=='totem'){const n=e.heads;return n>=3?((e.anim>>4)%2?'mb_totem_1':'mb_totem_0'):n==2?'mb_totem_2':'mb_totem_3'}
+ return 'mb_'+e.mini+'_'+fr}
+function miniDefeated(e){const run=GS.run,M=MINIS[e.mini];if(!M)return;if(e._paid)return;e._paid=1;
+ SAVE.stats.mini=(SAVE.stats.mini||0)+1;SAVE.miniKills[e.mini]=(SAVE.miniKills[e.mini]||0)+1;V5().miniDown++;
+ banner(M.name+' DEFEATED',M.die,M.col,140);SFX.kill();shake(8);GS.glitch=16;GS.ca=12;GS.miniIntro=null;
+ dropCoin(e.x,e.y,5+FX.int(4));const avail=run.pool.filter(k=>!run.used.has(k));const it=avail.length?FX.pick(avail):'crust';run.used.add(it);
+ run.picks.push({t:'item',id:it,x:e.x-16,y:e.y+12,ped:1},{t:'coin',v:3,x:e.x+16,y:e.y+10});
+ for(const o of run.ents)if(!o.dead&&(o.t=='bee'||o.t=='shardling')){o.dead=true;burst(o.x,o.y,'#ffd400',6)}
+ if(run.room&&!run.room.cleared)roomClear();
+ if(!SAVE.relics.includes('hover')){SAVE.relics.push('hover');run.unlocks.push('HOVER CRUMBS');setTimeout(()=>{if(GS.run!==run)return;banner('RELIC UNLOCKED','HOVER CRUMBS JOINS THE ITEM POOL','#00f0ff',140);SFX.secret()},2000)}
+ const all=MINI_IDS.every(k=>SAVE.miniKills[k]);if(all&&!SAVE.skinOwn.includes('void')){SAVE.skinOwn.push('void');run.unlocks.push('VOID CRUMB SKIN');setTimeout(()=>{if(GS.run!==run)return;banner('SKIN UNLOCKED','VOID CRUMB — COSMETIC ONLY','#ff2bd6',140);SFX.secret()},3600)}
+ save()}
+function miniGroupAlive(e){return GS.run.ents.filter(o=>!o.dead&&o.mini==e.mini&&(e.pair?o.pair==e.pair:true))}
+{const _ke=killEnemy;killEnemy=function(e){if(e&&e.mini){if(e.dead)return;e.dead=true;GS.run.kills++;SAVE.bestiary[e.mini]=(SAVE.bestiary[e.mini]||0)+1;hitstop(6);SFX.kill();burst(e.x,e.y,MINIS[e.mini].col,24,2.4);
+  const left=miniGroupAlive(e);if(!left.length)miniDefeated(e);return}_ke(e)}}
+{const _de=damageEnemy;damageEnemy=function(e,dm,s){if(e&&e.mini&&e.st=='intro')return;
+ if(e&&e.mini=='mirror'&&e.shiny&&!(e.dullT>0)&&s&&typeof s=='object'&&s.vx!=null){const behind=Math.sign(s.vx||0)===e.face;if(!behind){const sp=Math.hypot(s.vx,s.vy)||1;const b=ebullet(e.x,e.y,-s.vx/sp*2.2,-s.vy/sp*2.2,{col:'#c080ff',r:3,life:140});if(b)b.trap=0;burst(e.x,e.y,'#c080ff',6);SFX.hit();if(s.hit)s.hit.add(e);return}}
+ if(e&&e.mini=='pyrite'&&e.crystals>0&&s){e.crystals=Math.max(0,e.crystals-1);dm*=.35;burst(e.x,e.y-16,'#ffd400',6);if(e.crystals==0)floatText(e.x,e.y-20,'CRACKED','#ffd400')}
+ if(e&&e.mini=='totem'&&e.headHp){e.headHp[e.head]-=dm;e.flash=5;SFX.hit();if(e.headHp[e.head]<=0){e.heads--;burst(e.x,e.y-e.heads*14,MINIS.totem.col,16,2);floatText(e.x,e.y-20,['SPEAK NO','SEE NO','HEAR NO'][e.head]+' DOWN','#ffd400');e.head=Math.min(2,e.head+1);if(e.heads<=0){e.hp=0;killEnemy(e);return}e.cd=40;e.st='idle'}else e.hp=e.headHp.reduce((a,b)=>a+Math.max(0,b),0);e.max=MINIS.totem.hp*3*(1+.2*((GS.run.floor||1)-1));return}
+ if(e&&e.mini=='poly'&&e.role=='lead'&&s&&typeof s=='object'&&s.vx!=null&&!s.ghost){const a=Math.atan2(s.vy,s.vx);for(const o of[-.4,0,.4])ebullet(e.x,e.y,Math.cos(a+o+Math.PI)*1.6,Math.sin(a+o+Math.PI)*1.6,{col:'#9be7ff',r:2.5})}
+ _de(e,dm,s)}}
+function miniMove(e,tx,ty,sp){const ddx=tx-e.x,ddy=ty-e.y,dd=Math.hypot(ddx,ddy)||1;moveBody(e,ddx/dd*Math.min(sp,dd),ddy/dd*Math.min(sp,dd),false,e.fly)}
+function updateMini(e){const run=GS.run,P=run.P,M=MINIS[e.mini];if(!M)return;e.anim++;if(e.flash>0)e.flash--;if(e.dullT>0){e.dullT--;if(e.dullT==0)e.shiny=1}const dx=P.x-e.x,dy=P.y-e.y,d=Math.hypot(dx,dy)||1,aim=Math.atan2(dy,dx);e.face=dx>0?1:-1;
+ const done=(cd)=>{e.st='idle';e.cd=cd;e.stt=0;e.k=0;e.lane=null;e.mark=null};const p2=e.ph>1||(e.hp/e.max)<.4;
+ if(e.mini=='quartz'&&e.crown<6&&e.anim%36==0&&e.st!='shards'&&e.st!='shatter')e.crown++;
+ if(e.mini=='scream'&&e.hp/e.max<.4&&e.ph<2){e.ph=2;banner('PHASE 2','STATIC SCREAM','#ff2bd6',80);SFX.scream();GS.glitch=20;run.ebul.length=0}
+ if(e.mini=='quartz'&&e.hp/e.max<.4&&!e.shattered){e.shattered=1;e.ph=2;e.st='shatter';e.stt=0;banner('PHASE 2','THE CROWN SHATTERS','#ffb0e0',80);SFX.shatter&&SFX.shatter()||SFX.glitch();shake(8)}
+ switch(e.st){
+ case'intro':if(e.stt==(e.mini=='scream'?130:100))miniIntro(e);if(--e.stt<=0){e.st='idle';e.cd=30}break;
+ case'idle':{if(e.mini=='winged')miniMove(e,clamp(P.x+Math.cos(e.anim*.03)*40,40,RPW-40),clamp(40+Math.sin(e.anim*.04)*16,30,70),.7);
+  else if(e.mini=='poly'&&e.role!='lead'){const lead=run.ents.find(o=>o.mini=='poly'&&o.role=='lead'&&!o.dead);const c=lead||{x:RPW/2,y:RPH/2};e.ang=(e.ang||0)+.03;miniMove(e,c.x+Math.cos(e.ang)*34,c.y+Math.sin(e.ang)*24,.8)}
+  else miniMove(e,RPW/2+Math.cos(e.anim*.015)*40,RPH/2-8+Math.sin(e.anim*.02)*12,.4);
+  if(--e.cd<=0){let pk=FX.pick(M.pats);if(pk==e.last)pk=FX.pick(M.pats);e.last=pk;e.st=pk;e.stt=0;e.k=0;if(['chomp','dive','stomp','scream','laser'].includes(pk))SFX.warn()}break}
+ // Chrome Screamer
+ case'scream':{if(e.stt==0)SFX.scream();e.stt++;if(e.stt==18||e.stt==36){ring(e.x,e.y+(p2?8:16),p2?20:16,1.35,e.stt*.1,{col:'#ff2bd6',r:3,gap:p2?0:.4,gapA:aim});shake(5);GS.ca=8;fxAdd({k:'ring',x:e.x,y:e.y+12,r:8,life:20,col:'#ff2bd6',big:50})}if(e.stt>70)done(60);break}
+ case'spit':{if(e.stt++%12==1){fan(e.x,e.y+18,aim,p2?7:5,.7,2.1,{col:'#c0b0d0',r:2.8});e.k++;SFX.shoot(.6)}if(e.k>=(p2?5:3))done(50);break}
+ case'chomp':{if(!e.lane)e.lane={a:aim,x:e.x,y:e.y};e.stt++;if(e.stt<28){e.lane.a+=clamp(angDiff(e.lane.a,aim),-.04,.04);e.lane.x=e.x;e.lane.y=e.y}
+  else{if(e.stt==28){e.cx=Math.cos(e.lane.a);e.cy=Math.sin(e.lane.a);e.lane=null;SFX.slam()}const hit=moveBody(e,e.cx*4.2,e.cy*4.2,false,false);
+   if(Math.hypot(P.x-e.x,P.y-e.y)<e.r+P.r+2)hurtPlayer(2,e);if(hit||e.stt>70){shake(8);ring(e.x,e.y,10,1.2,0,{col:'#e8e0f0'});done(55)}}break}
+ // Red-Eye Chrome
+ case'laser':{if(!e.lane)e.lane={a:aim,x:e.x-e.face*6,y:e.y-6};e.stt++;e.lane.a+=clamp(angDiff(e.lane.a,aim),-.03,.03);e.lane.x=e.x-e.face*8;e.lane.y=e.y-6;
+  if(e.stt>24&&e.stt%2==0){const a=e.lane.a;ebullet(e.lane.x,e.lane.y,Math.cos(a)*3.2,Math.sin(a)*3.2,{col:'#ff4a1a',r:2.5,life:80});if(e.stt%8==0)SFX.shoot(1.4)}if(e.stt>70){e.lane=null;done(55)}break}
+ case'swap':{if(e.stt==0){e.chrome=!e.chrome;GS.glitch=10;burst(e.x,e.y,e.chrome?'#c0a878':'#141018',12)}e.stt++;if(e.stt%10==1){fan(e.x,e.y,aim,3,.3,2,{col:e.chrome?'#ffd400':'#ff2bd6',r:2.5});e.k++}if(e.k>=3)done(50);break}
+ // Red Stogie
+ case'rings':{if(e.stt++%18==1){const a=aim+(FX()-.5)*.2,sp=1.3;for(let i=0;i<10;i++){const aa=a+i*TAU/10;if(Math.abs(angDiff(i*TAU/10,0))<.7)continue;ebullet(e.x+e.face*10,e.y+4,Math.cos(a)*sp+Math.cos(aa)*.15,Math.sin(a)*sp+Math.sin(aa)*.15,{col:'#c0c0c8',r:2.2,life:200})}e.k++;SFX.shoot(.4)}if(e.k>=3)done(55);break}
+ case'stomp':{if(e.stt==0)e.mark={x:e.x,y:e.y+16,r:18,t:28};e.stt++;if(e.stt==28){explode(e.x,e.y+10,28,8,'hot');for(let i=0;i<8;i++){const a=i*TAU/8;ebullet(e.x,e.y,Math.cos(a)*1.4,Math.sin(a)*1.4,{col:'#ff8a00',r:3})}stampDecal('scorch',e.x,e.y+8);if(Math.hypot(P.x-e.x,P.y-e.y)<32)hurtPlayer(1,e);e.mark=null}if(e.stt>50)done(60);break}
+ // Hexcomb
+ case'bees':{if(e.stt==0){let n=0;for(const o of run.ents)if(o.t=='bee'&&!o.dead)n++;for(let i=0;i<3&&n<5;i++,n++){const a=FX()*TAU,m=spawnEnemy('bee',e.x+Math.cos(a)*20,e.y+Math.sin(a)*16);if(m)m.wake=8}}e.stt++;if(e.stt>40)done(70);break}
+ case'grid':{if(e.stt++%22==1){const off=e.k%2?8:0;for(let x=TILE+6+off;x<RPW-TILE;x+=16)ebullet(x,TILE+6,0,1.05,{col:'#ffd400',r:2.5,life:220});e.k++;SFX.shoot(.4)}if(e.k>=3)done(55);break}
+ // Black Cut
+ case'burst':{if(e.stt==1){ring(e.x,e.y,p2?16:12,1.5,FX(),{col:'#7a2cff',r:3,life:260});SFX.shatter&&SFX.shatter()||SFX.hit()}e.stt++;if(e.stt>36)done(50);break}
+ case'volley':{if(e.stt++%14==1){fan(e.x,e.y,aim,5,.55,2.2,{col:e.mini=='mirror'?'#c080ff':'#7a2cff',r:2.8});e.k++;SFX.shoot(.7)}if(e.k>=3)done(50);break}
+ // Pyrite King
+ case'coins':{if(e.stt++%14==1){const tx=P.x+(FX()-.5)*40,ty=P.y+(FX()-.5)*30;V5().coins.push({x:e.x,y:e.y,t:50,spin:0,tx,ty});e.k++;SFX.coin&&SFX.coin()}if(e.k>=4)done(60);break}
+ case'spikes':{if(e.stt==1){for(let i=0;i<6;i++){const tx=clamp(P.x+(FX()-.5)*70,TILE+16,RPW-TILE-16),ty=clamp(P.y+(FX()-.5)*40,TILE+16,RPH-TILE-16);V5().spikes.push({x:tx,y:ty,t:50,up:22})}SFX.warn()}e.stt++;if(e.stt>55)done(60);break}
+ // Silver Blaze
+ case'trail':{if(e.stt==0){e.cx=Math.cos(aim);e.cy=Math.sin(aim)}e.stt++;moveBody(e,e.cx*3.2,e.cy*3.2,false,false);if(e.stt%4==0)run.puddles.push({x:e.x,y:e.y+4,r:8,t:160,crumb:1});if(Math.hypot(P.x-e.x,P.y-e.y)<e.r+P.r)hurtPlayer(1,e);if(e.stt>28)done(50);break}
+ case'wave':{if(e.stt++%8==1){const a=aim+(e.k-1)*.35;fan(e.x,e.y,a,5,.8,1.7,{col:'#ff8a00',r:3});e.k++;SFX.shoot(.5)}if(e.k>=4)done(55);break}
+ // Low-Poly Five
+ case'orbit':{e.stt++;if(e.role=='lead'&&e.stt%20==1){ring(e.x,e.y,8,1.2,e.stt*.1,{col:'#9be7ff',r:2.5});e.k++}if(e.stt>80)done(40);break}
+ case'prism':{if(e.role=='lead'&&e.stt++%16==1){fan(e.x,e.y,aim,6,.9,1.8,{col:'#c0f0ff',r:2.5});e.k++;SFX.glitch()}else e.stt++;if(e.stt>70)done(50);break}
+ // Gilded Wings
+ case'feathers':{if(e.stt++%10==1){fan(e.x,e.y,aim,p2?7:5,.7,2.3,{col:'#ffd400',r:2.5,life:200});e.k++;SFX.shoot(.8)}if(e.k>=4)done(50);break}
+ case'dive':{if(e.stt==0)e.mark={x:P.x,y:P.y,r:14,t:24};e.stt++;if(e.stt<24){e.mark.x+=clamp(P.x-e.mark.x,-1.2,1.2);e.mark.y+=clamp(P.y-e.mark.y,-1.2,1.2)}
+  if(e.stt==24){e.cx=(e.mark.x-e.x)/14;e.cy=(e.mark.y-e.y)/14;SFX.slam()}if(e.stt>=24){moveBody(e,e.cx*5,e.cy*5,false,true);if(Math.hypot(P.x-e.x,P.y-e.y)<e.r+P.r+2)hurtPlayer(2,e)}if(e.stt>50){e.mark=null;done(60)}break}
+ // No-Evil Totem
+ case'curse':{if(e.stt==0){const kind=['speak','see','hear'][e.head]||'speak';if(kind=='speak'){P.silenced=90;floatText(P.x,P.y-16,'NO FIRE','#ff2bd6')}
+   if(kind=='see'){GS.blind=90;floatText(P.x,P.y-16,'NO SEE','#7a2cff')}if(kind=='hear'){GS.muteTell=90;floatText(P.x,P.y-16,'NO HEAR','#c080ff')}SFX.warn()}e.stt++;if(e.stt>40)done(50);break}
+ case'shots':{if(e.stt++%16==1){fan(e.x,e.y-e.heads*8,aim,4,.4,1.8,{col:'#e0b0e0',r:2.5});e.k++;SFX.shoot(.5)}if(e.k>=3)done(50);break}
+ // Black Mirror
+ case'reflect':{e.shiny=1;e.stt++;if(e.stt%16==1){fan(e.x,e.y,aim,3,.25,2,{col:'#c080ff',r:2.5});e.k++}if(e.k>=3)done(50);break}
+ case'shards':{if(e.stt++%14==1){if(e.crown>0){const b=ebullet(e.x,e.y-18,Math.cos(aim)*1.4,Math.sin(aim)*1.4,{col:'#ffb0e0',r:3.2,life:240});if(b)b.home=1.15;e.crown--;e.k++;SFX.shoot(.7)}else e.k=99}if(e.k>=4||e.stt>60)done(50);break}
+ case'pillars':{if(e.stt==1){for(let i=1;i<=6;i++){const x=clamp(e.x+Math.cos(aim)*i*20,TILE+16,RPW-TILE-16),y=clamp(e.y+Math.sin(aim)*i*16,TILE+16,RPH-TILE-16);V5().spikes.push({x,y,t:36+i*5,up:18,crystal:1})}SFX.warn()}e.stt++;if(e.stt>70)done(60);break}
+ case'shatter':{if(e.stt==0){ring(e.x,e.y-12,18,1.6,FX(),{col:'#ffb0e0',r:3.5,life:260});for(let i=0;i<10;i++){const a=i*TAU/10,b=ebullet(e.x,e.y-16,Math.cos(a)*1.7,Math.sin(a)*1.7,{col:'#f4e8ff',r:3,life:220});if(b)b.home=.8}e.crown=0;GS.ca=10}e.stt++;if(e.stt>50)done(70);break}
+ default:if(e.st!='idle'&&e.st!='intro'){e.stt=(e.stt||0)+1;if(e.stt>80)done(40)}}
+ if(e.st!='intro'&&e.st!='dive'&&e.st!='chomp'&&Math.hypot(P.x-e.x,P.y-e.y)<e.r+P.r-2)hurtPlayer(1,e)}
+// wrap updateEnemies: run minis first (spd 0 dummy not needed), then pit-kill grounded foes
+{const _ue=updateEnemies;updateEnemies=function(){const run=GS.run;if(run)for(const e of run.ents){if(e.dead)continue;if(e.mini){if(e.wake>0){e.wake--;continue}if(e.flash>0)e.flash--;updateMini(e)}}
+ _ue();if(!GS.run)return;for(const e of GS.run.ents){if(e.dead||e.fly||(e.mini&&MINIS[e.mini]&&MINIS[e.mini].fly))continue;if(pitAt(e.x,e.y)&&(Math.hypot(e.vx||0,e.vy||0)>.25||e._kb))pitKillEnemy(e)} }}
+{const _de2=damageEnemy;damageEnemy=function(e,dm,s){_de2(e,dm,s);if(e&&!e.dead&&(e.vx||e.vy))e._kb=1}}
+// after movement, clear _kb next tick
+// ===== room enter / hub / tick =====
+{const _er=enterRoom;enterRoom=function(id,from){_er(id,from);const run=GS.run;if(!run)return;initTraps(run.room);if(run.v5){run.v5.coins=[];run.v5.spikes=[]}
+ if(run.room.kind=='miniboss'&&!run.room.cleared&&run.room.mini){const M=MINIS[run.room.mini];if(M){banner(M.name,M.sub,M.col,110);GS.glitch=Math.max(GS.glitch,12)}}}}
+{const _ur=updateRun;updateRun=function(){if(GS.blind>0)GS.blind--;if(GS.muteTell>0)GS.muteTell--;_ur();if(GS.run&&GS.mode=='play'&&!GS.heroIntro){trapTick();const r=GS.run;if(r&&r.ents){for(const e of r.ents)if(!e.dead&&e.hp<=0)e.dead=true;if(r.room&&!r.room.cleared&&r.ents.every(e=>e.dead||e.hp<=0))roomClear()}}}}
+// curator + stats hooks
+{const _rp=renderPanel;renderPanel=function(id){_rp(id);if(id=='curator'){const L=$('pList');const hdr=document.createElement('p');const n=Object.keys(SAVE.miniKills||{}).length;hdr.textContent='MINI-BOSSES: '+n+' / '+MINI_IDS.length+'  ·  KILLS: '+(SAVE.stats.mini||0);L.appendChild(hdr);
+  for(const k of MINI_IDS){const kn=(SAVE.miniKills||{})[k],M=MINIS[k];const row=document.createElement('div');row.className='row info';const ic=document.createElement('canvas');const spr=k=='poly'?'mb_poly_lead_0':k=='totem'?'mb_totem_0':'mb_'+k+'_0';
+   /* reuse existing row builder if present */ }
+  // append using the same row() in scope? it's inside renderPanel. Fall back to simple lines:
+  for(const k of MINI_IDS){const kn=(SAVE.miniKills||{})[k]||0,M=MINIS[k];const p=document.createElement('div');p.className='row info';p.innerHTML='<span>'+(kn?M.name:'??? (MINI)')+'</span><small>'+(kn?M.sub+' · BEATEN '+kn+'X':'NOT YET DEFEATED')+'</small><em>'+(kn?'★':'-')+'</em>';L.appendChild(p)}}
+ if(id=='cat'){const box=$('pList').querySelector('.stats');if(box){const s=document.createElement('span');s.textContent='MINI-BOSSES';const v=document.createElement('span');v.textContent=String(SAVE.stats.mini||0);box.appendChild(s);box.appendChild(v)}}}}
+
 // ---- v0.2 juice layer (cosmetic only: uses the FX rng, never touches gameplay state) ----
 // muzzle flashes, projectile trails, hit sparks, squash on knockback, death pops, coin sparkles, damage numbers,
 // door slam / rise animation, room-clear flash, glitch room transitions, hurt vignette.
@@ -2182,7 +2708,7 @@ function drawRun(){const run=GS.run,R=run.room,P=run.P;const sx=GS.shake?(FX()-.
   if(p.price){const s=priceOf(p)+'G';text5o(bx,s,p.x-text5w(s)/2,p.y+8,P.gold>=priceOf(p)?'#48e070':'#ff2045')}}
  // y-sorted actors
  const actors=run.ents.filter(e=>!e.dead).concat([{player:1,y:P.y}],liveProps().map(p=>({prop:p,y:p.py+5})),v4Actors(R));actors.sort((a,b)=>a.y-b.y);
- for(const e of actors){if(e.player){drawPlayer(P);continue}if(e.v4){drawV4Actor(e,lights);continue}if(e.prop){drawProp(e.prop,lights);continue}if(e.boss){drawBoss(e,lights);continue}
+ for(const e of actors){if(e.player){drawPlayer(P);continue}if(e.v4){drawV4Actor(e,lights);continue}if(e.prop){drawProp(e.prop,lights);continue}if(e.mini){drawMini(e,lights);continue}if(e.boss){drawBoss(e,lights);continue}
   const E=ENEMIES[e.t];if(e.dormant){shadow(e.x,e.y+4,3);spr('coin_0',e.x,e.y+bob*.5);continue}
   if(e.wake>0&&!e.tele&&e.t!='lurker'&&GS.t%4<2&&e.wake>14)continue;
   shadow(e.x,e.y+e.r+1,e.r*.9);const fl=e.flash>0;const hop=e.t=='lurker'&&(e.hop%40)<22?-Math.sin((e.hop%40)/22*Math.PI)*4:0;
@@ -2483,6 +3009,114 @@ drawHeroIntro=function(){const I=GS.heroIntro;if(!I)return;const T=I.t,H=HEROES[
  if(T<4){bx.globalAlpha=(4-T)/4*.8;bx.fillStyle='#ffffff';bx.fillRect(0,0,LW,LH)}bx.globalAlpha=k;if(T>30&&T%30<18){const m=IS_TOUCH?'TAP TO GO':'PRESS ANY KEY';text5s(bx,m,LW-text5w(m,.5)-6,LH-10,'#ffd400',.5)}
  bx.fillStyle='#000';bx.fillRect(0,0,LW,14*k);bx.fillRect(0,LH-14*k,LW,14*k);bx.globalAlpha=1;if(T<14||T%41<4)GS.ca=Math.max(GS.ca,6)}
 
+// ---- v0.5 render: pit voids, traps, skull mini-bosses, HUD bar, map marks, curses, hover/fall ----
+if(!SFX.slam)SFX.slam=SFX.hit||SFX.hurt;
+if(!SFX.shatter)SFX.shatter=SFX.glitch||SFX.hit;
+if(!SFX.dull)SFX.dull=SFX.glitch||SFX.hit;
+
+function drawPits(R){if(!R||!R.pits)return;const t=GS.t;
+ for(let y=0;y<7;y++)for(let x=0;x<13;x++){if(!R.pits[y*13+x])continue;
+  const px=TILE+x*TILE,py=TILE+y*TILE;
+  bx.fillStyle='#050208';bx.fillRect(px,py,TILE,TILE);
+  bx.fillStyle='#0c0718';bx.fillRect(px+2,py+3,TILE-4,TILE-5);
+  bx.fillStyle='#000';bx.beginPath();bx.ellipse(px+8,py+10,5,3.2,0,0,TAU);bx.fill();
+  for(let i=0;i<TILE;i++){if(((t+x*7+y*13+i*3)&7)<2){bx.globalAlpha=.6;bx.fillStyle=i%2?'#ff2bd6':'#00f0ff';
+   bx.fillRect(px+i,py,1,1);bx.fillRect(px+i,py+TILE-1,1,1);bx.fillRect(px,py+i,1,1);bx.fillRect(px+TILE-1,py+i,1,1)}}
+  bx.globalAlpha=.35;bx.fillStyle='#7a2cff';bx.fillRect(px+3+(t+x)%3,py+TILE-3,TILE-6,1);bx.globalAlpha=1}}
+
+function trapSprite(t){const k=t.k;
+ if(k=='spike')return 'tr_spike_'+(t.st=='up'?2:t.st=='tell'?1:0);
+ if(k=='zap')return 'tr_zap_'+(t.st=='on'?1:0);
+ if(k=='slick')return 'tr_slick';
+ if(k=='plate')return 'tr_plate_'+(t.st=='in'?1:0);
+ if(k=='turret')return 'tr_turret';
+ if(k=='wheel')return t.crush?('tr_crush_'+(t.slam>16?1:t.slam>0?2:0)):('tr_wheel_'+((GS.t>>2)%3));
+ return null}
+
+function drawFloorTraps(R){const off=V5&&GS.run&&(V5().trapOff>0);for(const t of (R&&R.tl)||[]){
+  if(t.k=='wheel')continue; // y-sorted as an actor
+  const n=trapSprite(t);if(!n||!SPR[n])continue;
+  const a=off?.45:1;const flip=t.k=='turret'&&(t.dir=='w'||t.dir=='n');
+  spr(n,t.px,t.py+(t.k=='spike'&&t.st=='up'?-2:0),flip,{alpha:a});
+  if(t.st=='tell'&&!GS.muteTell){bx.globalAlpha=.35+.2*Math.sin(GS.t*.4);bx.fillStyle='#ff8a00';bx.fillRect(t.px-7,t.py-7,14,14);bx.globalAlpha=1}}
+ const V=GS.run&&GS.run.v5;if(!V)return;
+ for(const c of V.coins||[]){spr('coin_'+((GS.t>>2)%4),c.x,c.y);bx.globalAlpha=.5;bx.fillStyle='#ff2045';bx.beginPath();bx.arc(c.x,c.y,6+Math.sin(GS.t*.3),0,TAU);bx.stroke();bx.globalAlpha=1}
+ for(const s of V.spikes||[]){const up=s.t<=s.up,k=up?Math.min(1,(s.up-s.t)/6):0;
+  if(s.crystal){const h=4+k*16;bx.fillStyle=up?'#ffb0e0':'#ff8a0088';_P(bx,[s.x-4,s.y+6,s.x,s.y+6-h,s.x+4,s.y+6],up?'#ffb0e0':'#ff8a0088');bx.fillStyle='#ffffffaa';if(up)bx.fillRect(s.x-1,s.y+2-h,1,h*.5)}
+  else if(up)spr('tr_spike_2',s.x,s.y-2);else if(!GS.muteTell){bx.globalAlpha=.4;bx.fillStyle='#ff8a00';bx.fillRect(s.x-6,s.y-6,12,12);bx.globalAlpha=1}}}
+
+function drawV5TrapActor(t,lights){const n=trapSprite(t);if(!n)return;spr(n,t.wx||t.px,t.wy||t.py,false);if(t.crush)lights.push({x:t.wx||t.px,y:t.wy||t.py,r:22,col:'#ff8a00',ga:.15})}
+
+function drawMini(e,lights){const M=MINIS[e.mini];if(!M)return;
+ const fly=(e.fly?Math.sin((e.anim||GS.t)*.12)*3-5:0)+(e.st=='dive'?8:0);
+ const lift=e.mini=='scream'?-10:e.mini=='totem'?-22:e.mini=='quartz'?-10:e.mini=='winged'?-8:e.mini=='pyrite'?-4:0;
+ shadow(e.x,e.y+e.r+1,e.r*.95);
+ const name=miniSpr(e),split=(e.ph>1&&e.mini=='scream')?2:0;
+ spr(name,e.x,e.y+fly+lift,e.face<0,{flash:e.flash>0,split,alpha:e.st=='intro'?.85:1});
+ if(e.mini=='mirror'&&e.shiny&&e.dullT<=0){bx.globalAlpha=.25+.15*Math.sin(GS.t*.2);bx.fillStyle='#e8e0ff';bx.beginPath();bx.ellipse(hd(e.x+6),hd(e.y-8),6,9,0,0,TAU);bx.fill();bx.globalAlpha=1}
+ if(e.mini=='quartz'&&e.crown>0&&e.st!='shatter'){lights.push({x:e.x,y:e.y-22,r:18+e.crown*2,col:'#ffb0e0',ga:.16})}
+ lights.push({x:e.x,y:e.y-6,r:36,col:M.col,ga:.2});
+ if(e.st=='intro'){const pulse=.5+.5*Math.sin(GS.t*.25);bx.globalAlpha=.25*pulse;bx.strokeStyle=M.col;bx.lineWidth=2;bx.beginPath();bx.arc(e.x,e.y,e.r+8+pulse*4,0,TAU);bx.stroke();bx.globalAlpha=1}}
+
+function drawMiniBar(){const run=GS.run;if(!run)return;
+ const group=run.ents.filter(e=>e.mini&&!e.dead);if(!group.length)return;
+ const lead=group.find(e=>e.st!='intro')||group[0];if(!lead||lead.st=='intro')return;
+ const M=MINIS[lead.mini];if(!M)return;
+ let hp=0,max=0;
+ if(lead.mini=='poly'){for(const e of group)if(e.mini=='poly'){hp+=e.hp;max+=e.max}}
+ else if(lead.mini=='totem'&&lead.headHp){hp=lead.headHp.reduce((a,c)=>a+Math.max(0,c),0);max=lead.max*3}
+ else{hp=lead.hp;max=lead.max}
+ const w=150,x=(LW-w)/2|0,y=ROOMY+RPH-11;bx.fillStyle=INK;bx.fillRect(x-1.5,y-1.5,w+3,8);bx.fillStyle='#2a1020';bx.fillRect(x,y,w,5);
+ const fw=Math.max(0,w*hp/Math.max(1,max));bx.fillStyle=M.col;bx.fillRect(x,y,fw,5);bx.fillStyle=mix(M.col,'#ffffff',.45);bx.fillRect(x,y,fw,1);
+ bx.fillStyle=INK;for(const t of[.7,.4,.15])bx.fillRect(x+w*t,y,.5,5);
+ bx.fillStyle=INK;bx.fillRect(x-8,y-2,7,8);miniSkull(bx,x-7.5,y-1,M.col);
+ text5o(bx,M.name,(LW-text5w(M.name))/2|0,y-7,'#fff')}
+
+function drawMiniIntro(){const I=GS.miniIntro;if(!I)return;I.t++;const T=I.t,dur=110,e=I.e,M=e&&MINIS[e.mini];
+ if(T>dur||!e||e.dead){GS.miniIntro=null;return}if(!M)return;
+ const k=Math.min(1,T/10,(dur-T)/12);if(k<=0)return;
+ bx.globalAlpha=k;bx.fillStyle='rgba(6,2,10,.72)';bx.fillRect(0,0,LW,LH);
+ const title=M.name,sub=M.sub||'',line=M.intro||'';
+ const w1=text5w(title,2),w2=text5w(sub),w3=text5w(line);
+ text5(bx,title,((LW-w1)/2|0)+1,42,'#ff2bd6',2);text5(bx,title,((LW-w1)/2|0)-1,42,'#00f0ff',2);text5(bx,title,(LW-w1)/2|0,42,M.col,2);
+ text5s(bx,sub,(LW-w2)/2|0,62,'#fff');text5s(bx,line,(LW-w3)/2|0,78,'#c9ccd6');
+ const sprn=e.mini=='poly'?'mb_poly_lead_0':e.mini=='totem'?'mb_totem_0':('mb_'+e.mini+'_0');
+ if(SPR[sprn])spr(sprn,LW/2,LH/2+8,false,{sx:1.1,sy:1.1});bx.globalAlpha=1}
+
+function drawV5Overlay(){if(GS.blind>0){const a=.5+.25*Math.min(1,GS.blind/20);bx.fillStyle='rgba(4,0,12,'+a+')';bx.fillRect(ROOMX,ROOMY,RPW,RPH);
+  const P=GS.run&&GS.run.P;if(P){bx.save();bx.globalCompositeOperation='destination-out';const g=bx.createRadialGradient(ROOMX+P.x,ROOMY+P.y,8,ROOMX+P.x,ROOMY+P.y,46);
+   g.addColorStop(0,'rgba(0,0,0,1)');g.addColorStop(1,'rgba(0,0,0,0)');bx.fillStyle=g;bx.fillRect(ROOMX,ROOMY,RPW,RPH);bx.restore()}}
+ if(GS.run&&GS.run.P&&GS.run.P.silenced>0){const s='NO FIRE';text5o(bx,s,(LW-text5w(s))/2|0,ROOMY+8,'#ff2bd6')}}
+
+function drawMiniSheet(){bx.fillStyle='#0a0614';bx.fillRect(0,0,LW,LH);
+ const ids=MINI_IDS,cols=6,rows=Math.ceil(ids.length/cols),cw=LW/cols,ch=(LH-16)/rows;
+ text5o(bx,'THE SKULL COLLECTION',(LW-text5w('THE SKULL COLLECTION'))/2|0,4,'#ffd400');
+ ids.forEach((id,i)=>{const M=MINIS[id],cx=(i%cols)*cw+cw/2,cy=16+((i/cols)|0)*ch+ch/2+4;
+  const n=id=='poly'?'mb_poly_lead_0':id=='totem'?'mb_totem_0':'mb_'+id+'_0';
+  if(SPR[n])spr(n,cx,cy-4,false,{sx:.7,sy:.7});const nm=M.name;text5s(bx,nm,cx-text5w(nm)/2,cy+ch/2-12,M.col)})}
+
+// hooks
+{const _drl=drawRoomLayer;drawRoomLayer=function(R,theme,ox,oy,live){_drl(R,theme,ox,oy,live);bx.save();bx.translate(ox,oy);drawPits(R);drawFloorTraps(R);bx.restore()}}
+{const _v4=v4Actors;v4Actors=function(R){const a=_v4(R);for(const t of (R.tl||[]))if(t.k=='wheel')a.push({v5:'trap',t,y:(t.wy||t.py)+4});return a}}
+{const _dv=drawV4Actor;drawV4Actor=function(a,lights){if(a.v5=='trap')return drawV5TrapActor(a.t,lights);_dv(a,lights)}}
+{const _dh=drawHUD;drawHUD=function(){_dh();drawMiniBar()}}
+{const _dbi=drawBossIntro;drawBossIntro=function(){_dbi();drawMiniIntro()}}
+{const _dhu=drawHurt;drawHurt=function(){drawV5Overlay();_dhu()}}
+{const _dm=drawMarks;drawMarks=function(run){if(GS.muteTell>0)return;_dm(run)}}
+{const _rc=roomColor;roomColor=function(r){return r&&r.kind=='miniboss'?'#ff8a00':_rc(r)}}
+{const _dk=doorKind;doorKind=function(R,d,rooms){if(R.kind=='miniboss')return 'miniboss';const o=rooms&&rooms[R.doors[d]];if(o&&o.kind=='miniboss')return 'miniboss';return _dk(R,d,rooms)}}
+{const _dd=drawDoor;drawDoor=function(ctx,d,open,kind,theme,cracked,R){_dd(ctx,d,open,kind,theme,cracked,R);
+  if(kind!='miniboss')return;const horiz=d=='n'||d=='s';let x,y,w,h;if(horiz){w=24;h=16;x=RPW/2-12;y=d=='n'?0:RPH-16}else{w=16;h=24;x=d=='w'?0:RPW-16;y=RPH/2-12}
+  const cxp=x+w/2,cyp=y+h/2,kx=horiz?cxp:(d=='w'?x+3:x+w-3),ky=horiz?(d=='n'?y+3:y+h-3):cyp;
+  ctx.fillStyle=INK;ctx.fillRect(kx-4,ky-3.5,8,7);miniSkull(ctx,kx-3,ky-2.5,'#ff8a00')}}
+{const _dbm=drawBigMap;drawBigMap=function(){_dbm();const tag='MINI';const w=text5w(tag)+14;text5s(bx,tag,LW-w,LH-12,'#ff8a00');bx.fillStyle='#ff8a00';bx.fillRect(LW-w-8,LH-12,5,5)}}
+{const _dp=drawPlayer;drawPlayer=function(P){
+  if(P.hover){const bob=Math.sin(GS.t*.2)*1.5;if(SPR.i_hover)spr('i_hover',P.x,P.y+8+bob,false,{alpha:.85})}
+  if(P.fallT>0){bx.globalAlpha=.55;bx.fillStyle='#12051c';bx.beginPath();bx.ellipse(hd(P.x),hd(P.y+4),10,5,0,0,TAU);bx.fill();bx.globalAlpha=1}
+  _dp(P)}}
+{const _ren=render;render=function(){if(GS.v5sheet){bx.setTransform(HD,0,0,HD,0,0);bx.imageSmoothingEnabled=false;bx.fillStyle='#000';bx.fillRect(0,0,LW,LH);drawMiniSheet();
+  const BW=buf.width,BH=buf.height;cx.imageSmoothingEnabled=false;cx.fillStyle='#000';cx.fillRect(0,0,cv.width,cv.height);const W=LW*SC,H=LH*SC;cx.drawImage(buf,0,0,BW,BH,OX,OY,W,H);return}_ren()}}
+
 // ---- touch: floating twin sticks (left MOVE, right AIM + FIRE; tap or hold the right stick to shoot) ----
 const TOUCH={l:{on:false,id:null,ox:0,oy:0,vx:0,vy:0,mag:0},r:{on:false,id:null,ox:0,oy:0,vx:0,vy:0,mag:0,t0:0,moved:0,hold:false},tapFire:0,roll:0,blank:0,
  reset(){for(const s of[this.l,this.r]){s.on=false;s.id=null;s.vx=s.vy=s.mag=0;s.hold=false}this.tapFire=0;this.roll=this.blank=0;layoutSticks()}};
@@ -2562,5 +3196,25 @@ Object.assign(window.CR,{heroIntro:(h,o)=>heroIntro(h,o),useSpecial,raiseFlag,re
 {const _ra=readAim;readAim=function(){const a=_ra();if(a&&GS.run&&GS.run.P&&Math.abs(a.x)+Math.abs(a.y)>.05){const m=Math.hypot(a.x,a.y)||1;GS.run.P.aim=[a.x/m,a.y/m]}return a}}
 Object.assign(window.CR,{VERSION,FURN_HP,GUNS,OBSTACLE_KS,isObstacle,furnKind,obstDmg,gunId,gunOf,gunAngle,gunHand,muzzleOf,drawGun,liveProps,buildDyn,hitProp,breakProp,initRoomProps,flipTable,restoreFloor,fire,mkShot,
  gunInfo(){const P=GS.run&&GS.run.P;if(!P)return null;const[mx,my]=muzzleOf(P),[hx,hy]=gunHand(P);return{id:gunId(P),spr:gunOf(P).spr,ang:gunAngle(P),aim:(P.aim||[]).slice(),muzzle:[+mx.toFixed(2),+my.toFixed(2)],hand:[+hx.toFixed(2),+hy.toFixed(2)],kick:P.gunKick||0,wpn:P.wpn}}});
+
+SKIN_LOOK.void=L=>({...L,skull:mix(L.skull,'#1a1030',.45),body:'#161022',leg:'#0a0814',eye:'#00f0ff',shoe:'#ff2bd6',hatC:'#2a1248',teeth:'#c9b8ff',rgb:1});
+// ---- v0.5 test hooks ----
+function setPits(cells){const R=GS.run&&GS.run.room;if(!R)return;R.pits=new Uint8Array(91);
+ for(const c of cells||[]){const x=c.x??c[0],y=c.y??c[1];if(x>=0&&y>=0&&x<=12&&y<=6)R.pits[y*13+x]=1}
+ v5BuildWalk(R)}
+function addTrapsHook(list){const R=GS.run&&GS.run.room;if(!R)return;
+ R.traps=(list||[]).map(t=>{if(Array.isArray(t))return {k:t[0],x:t[1],y:t[2],dir:t[3]||'e',axis:t[4],len:t[5],crush:t[6]};return {...t}});
+ R.tl=null;initTraps(R)}
+function trapsOffFor(n){if(GS.run)V5().trapOff=Math.max(V5().trapOff,n||180)}
+Object.assign(window.CR,{
+ VERSION,MINIS,MINI_IDS,MINI_POOL,TRAP_KS,PIT_LAYOUTS,POLY_ROLES,
+ V5:()=>V5(),
+ pitAt,pitCell,fallPlayer,isOneTileGap,nearestFloor,setPits,initTraps,triggerPlate,trapTick,trapsOff,
+ addTraps:addTrapsHook,trapsOffFor,
+ spawnMini,updateMini,miniDefeated,miniSpr,miniFrame,miniIntro,
+ pitGrid,v5Ok,v5FillPits,pickMiniRoom,v5Decorate,v5BuildWalk,
+ showMiniSheet(){GS.v5sheet=1},hideMiniSheet(){GS.v5sheet=0},
+ ITEMS,SKINS
+});
 
 </script></body></html>
