@@ -1,0 +1,66 @@
+[
+  {
+    "id": "toasty75",
+    "file": "assets/nfts/toasty75.jpg",
+    "collection": "Mr. Toasty's Skullz",
+    "title": "Mr. Toasty's Skulls #75",
+    "source": "solana - Mr.Toasty's skullz - Mr. Toasty's Skulls #75.jpg",
+    "anim": "glitch"
+  },
+  {
+    "id": "messed58",
+    "file": "assets/nfts/messed58.jpg",
+    "collection": "Messed and Mixed",
+    "title": "Messed and Mixed #58",
+    "source": "solana - Messed and Mixed - Messed and Mixed 58.png",
+    "anim": "scan"
+  },
+  {
+    "id": "messed74",
+    "file": "assets/nfts/messed74.jpg",
+    "collection": "Messed and Mixed",
+    "title": "Messed and Mixed #74",
+    "source": "solana - Messed and Mixed - Messed and Mixed 74.png",
+    "anim": "crt"
+  },
+  {
+    "id": "messed124",
+    "file": "assets/nfts/messed124.jpg",
+    "collection": "Messed and Mixed",
+    "title": "Messed and Mixed #124",
+    "source": "solana - Messed and Mixed - Messed and Mixed 124.png",
+    "anim": "glitch"
+  },
+  {
+    "id": "messed186",
+    "file": "assets/nfts/messed186.jpg",
+    "collection": "Messed and Mixed",
+    "title": "Messed and Mixed #186",
+    "source": "solana - Messed and Mixed - Messed and Mixed 186.png",
+    "anim": "scan"
+  },
+  {
+    "id": "skulrz4076",
+    "file": "assets/nfts/skulrz4076.jpg",
+    "collection": "SkulRz PFP",
+    "title": "SkulRz PFP #4076",
+    "source": "solana - SkulRz PFP - SkulRz PFP #4076.jpg",
+    "anim": "crt"
+  },
+  {
+    "id": "skulrz4173",
+    "file": "assets/nfts/skulrz4173.jpg",
+    "collection": "SkulRz PFP",
+    "title": "SkulRz PFP #4173",
+    "source": "solana - SkulRz PFP - SkulRz PFP #4173.jpg",
+    "anim": "glitch"
+  },
+  {
+    "id": "skulrz4493",
+    "file": "assets/nfts/skulrz4493.jpg",
+    "collection": "SkulRz PFP",
+    "title": "SkulRz PFP #4493",
+    "source": "solana - SkulRz PFP - SkulRz PFP #4493.jpg",
+    "anim": "scan"
+  }
+]
