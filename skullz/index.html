@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.20.3"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.20.4"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <link rel="icon" href="data:,"><title>MR. TOASTY'S NO SIGNAL SKULLZ — Therapy Toaster</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Anton&family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
@@ -12950,9 +12950,11 @@ if(typeof TT==='object'){
 const VER='0.20.0';
 const CLOSE=1.15;
 // v0.20.3: sit a little lower and tip the muzzle down toward screen center.
+// v0.20.4: keep that aim, but clamp the posed cutout so the buttstock stays on screen.
 // Drop is a fraction of overlay height; pitch is extra radians of muzzle-down (CCW).
 const AIM_DROP=0.035;
 const AIM_PITCH=3*Math.PI/180;
+const AIM_PAD=8; // overlay px of stock clearance from the right and bottom edges
 const SW=1280, SH=720;
 function wepSmall(){return (typeof sets!=='function')||sets().wepSz!=='normal'}
 function wepMul(){return wepSmall()?1:1.12}
@@ -13102,15 +13104,40 @@ drawWeapon=function(rdt){
   const gy=(OH-dh)+bobY*kpx+(P.kick||0)*0.35*s0*0.55 + drop*OH*0.10 + swapDrop*OH*0.46 - sw*OH*0.08 + AIM_DROP*OH;
 
   const fr=frameOf(id,'idle')||frameOf(id);
+  const kickTilt=Math.min(.09,(P.kick||0)*.007)*mul;
+  const ang=-0.03-AIM_PITCH-kickTilt-tilt-sw*.34+(Math.sin(now*S.fx)*S.r);
+  // Pivot near the gun's center (slightly forward) so a muzzle-down tip
+  // lifts the stock instead of shoving it off the bottom-right.
+  let px=gx+((fr&&fr.ox||0)+(fr&&fr.aw||SW)*0.38)*s0;
+  let py=gy+((fr&&fr.oy||0)+(fr&&fr.ah||SH)*0.88)*s0;
+  let fitX=0,fitY=0,fitS=1;
+  // During swap/reload the gun is supposed to leave the frame; otherwise
+  // keep the posed cutout (bob + recoil included) fully inside the overlay.
+  if(fr&&swapDrop<0.02&&drop<0.02){
+    const dx0=gx+fr.ox*s0, dy0=gy+fr.oy*s0, dw0=fr.aw*s0, dh0=fr.ah*s0;
+    const ca=Math.cos(ang), sa=Math.sin(ang);
+    const rot=(x,y)=>{const rx=x-px,ry=y-py;return[px+rx*ca-ry*sa,py+rx*sa+ry*ca]};
+    const pts=[[dx0,dy0],[dx0+dw0,dy0],[dx0,dy0+dh0],[dx0+dw0,dy0+dh0]].map(([x,y])=>rot(x,y));
+    let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
+    for(const[x,y]of pts){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+    const pad=AIM_PAD;
+    if(x1>OW-pad)fitX=(OW-pad)-x1;
+    if(x0+fitX<pad)fitX=pad-x0;
+    if(y1>OH-pad)fitY=(OH-pad)-y1;
+    if(y0+fitY<pad)fitY=Math.max(fitY,pad-y0);
+    // If a shift would clip the opposite edge, shrink just enough to fit.
+    const bw=x1-x0,bh=y1-y0,maxW=OW-pad*2,maxH=OH-pad*2;
+    if(bw>maxW||bh>maxH){
+      fitS=Math.min(maxW/Math.max(1,bw), maxH/Math.max(1,bh), 1);
+      // re-center the fitted box inside the pad after the scale around the pivot
+    }
+  }
   g.save();
   if(lefty){g.translate(OW/2,0);g.scale(-1,1);g.translate(-OW/2,0)}
-  // Pivot at the sleeve / lower-left of the cutout so a muzzle-down tip
-  // does not push the glove off the bottom edge.
-  const px=gx+((fr&&fr.ox||0)+(fr&&fr.aw||SW)*0.12)*s0;
-  const py=gy+((fr&&fr.oy||0)+(fr&&fr.ah||SH))*s0;
-  const kickTilt=Math.min(.09,(P.kick||0)*.007)*mul;
+  g.translate(fitX,fitY);
   g.translate(px,py);
-  g.rotate(-0.03-AIM_PITCH-kickTilt-tilt-sw*.34+(Math.sin(now*S.fx)*S.r));
+  if(fitS!==1)g.scale(fitS,fitS);
+  g.rotate(ang);
   g.translate(-px,-py);
   g.imageSmoothingEnabled=true;
   if(g.imageSmoothingQuality)g.imageSmoothingQuality='high';
@@ -13163,7 +13190,8 @@ if(typeof TT==='object'){
   TT.gunVer=VER;TT.liveVer=VER;TT.wepClose=CLOSE;TT.wepSmall=wepSmall;TT.wepMul=wepMul;
   TT.gunLayer=()=>gunov;
   TT.gunMode='cutout';
-  TT.aimDrop=AIM_DROP;TT.aimPitch=AIM_PITCH;
+  TT.aimDrop=AIM_DROP;TT.aimPitch=AIM_PITCH;TT.aimPad=AIM_PAD;
+  TT.resetGunSwap=function(){swapT=0;lastW=P&&P.w};
 }
 })();
 
@@ -14056,6 +14084,18 @@ if(typeof TT==='object'){
 // No center reticle.
 (function(){
   const VER='0.20.3';
+  const CLOSE=1.15;
+  if(typeof TT==='object'){
+    TT.gunVer=VER;TT.liveVer=VER;TT.wepClose=CLOSE;TT.xh=false;
+    if(TT.exitVer)TT.exitVer=VER;
+  }
+})();
+
+// v0.20.4 — keep the 3.5% / 3° muzzle-down aim, but keep every gun's stock on screen.
+// Size stays the same unless a pose would not fit; then a minimal scale is applied.
+// CLOSE=1.15. No center reticle. Bob and fire recoil are clamped to the overlay.
+(function(){
+  const VER='0.20.4';
   const CLOSE=1.15;
   if(typeof TT==='object'){
     TT.gunVer=VER;TT.liveVer=VER;TT.wepClose=CLOSE;TT.xh=false;
