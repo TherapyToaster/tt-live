@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.15.1"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.16.0"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <link rel="icon" href="data:,"><title>MR. TOASTY'S NO SIGNAL SKULLZ — Therapy Toaster</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Anton&family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
@@ -157,7 +157,7 @@ body.lefty #bParry{right:auto;left:calc(var(--sl) + 14px)}
 <div class="ov" id="title" style="display:flex">
 <h1 class="tth"><canvas id="tlogo" width="240" height="160" role="img" aria-label="Mr. Toasty's No Signal Skullz"></canvas><span class="sr">MR. TOASTY'S NO SIGNAL SKULLZ</span><small>A 404 DUNGEON CRAWLER · STARRING MR. TOASTY</small></h1>
 <p id="greet"></p><div id="tcap" aria-live="off"></div><canvas id="tsil" width="160" height="34" aria-hidden="true"></canvas><div class="drip"></div><p id="quip"></p>
-<div class="modes"><button class="btn" data-start="standard">START RUN<small>15 FLOORS · BEAT THE GLITCH</small></button><button class="btn" id="bdaily" data-start="daily">DAILY</button><button class="btn" id="bendless" data-start="endless">ENDLESS</button><button class="btn" id="berrands" data-start="errands">MONDAY ERRANDS<small>SUBURB · 4 SILLY STOPS</small></button><button class="btn" id="bsalvage" data-start="salvage">SALVAGE SHIFT<small>DEPOT · MEET QUOTA</small></button><button class="btn" id="btoaster" data-start="toaster">CYBERTOASTER<small>SUBURB · SHORT COMMUTE</small></button></div>
+<div class="modes"><button class="btn" data-start="standard">START RUN<small>15 FLOORS · BEAT THE GLITCH</small></button><button class="btn" id="bdaily" data-start="daily">DAILY</button><button class="btn" id="bendless" data-start="endless">ENDLESS</button><button class="btn" id="berrands" data-start="errands">MONDAY ERRANDS<small>SUBURB · 4 SILLY STOPS</small></button><button class="btn" id="bsalvage" data-start="salvage">SALVAGE SHIFT<small>DEPOT · MEET QUOTA</small></button><button class="btn" id="btoaster" data-start="toaster">CYBERTOASTER<small>SUBURB · SHORT COMMUTE</small></button><button class="btn" id="bstatic" data-start="static">WHITE STATIC<small>FOREST · BARN · SEWER</small></button></div>
 <p id="load">LOADING SIGNAL…</p>
 <div class="lo"><button id="lset">⚙ SETTINGS</button><button id="lgal">🖼 GALLERY</button><button id="lsnd">🔊 SOUND: ON</button><button id="lw"></button><button id="lp"></button><button id="lsh"></button><button id="lsg"></button></div>
 <p id="tcrew"></p><p id="tstats"></p>
@@ -1057,13 +1057,13 @@ const unlocked=id=>meta().unlocked.includes(id);
 // ---------- floor helpers ----------
 const bossById=id=>BOSSES.find(b=>b.id==id);
 // floors 3/6/9: the run's seeded Coty order; FINAL_FLOOR: The Glitch; run.special: the secret boss floor (No Insider Threat)
-const bossFor=f=>run&&run.special&&f==run.floor?bossById(run.special):f%FINAL_FLOOR==0?bossById('glitch'):f%3==0?bossById((run&&run.bossOrder||BOSS_POOL)[((f/3)-1)%BOSS_POOL.length]):null;
+let bossFor=f=>run&&run.special&&f==run.floor?bossById(run.special):f%FINAL_FLOOR==0?bossById('glitch'):f%3==0?bossById((run&&run.bossOrder||BOSS_POOL)[((f/3)-1)%BOSS_POOL.length]):null;
 // crew perks: every Coty you've freed (and kept in your crew) lends a perk. Daily runs ignore the crew for fairness.
 function crewPerks(){if(run&&run.mode=='daily')return run.freed.map(n=>BOSSES.find(b=>b.freed==n)).filter(b=>b&&b.perk).map(b=>b.perk.id);const c=crew();return BOSSES.filter(b=>b.perk&&c[b.freed]).map(b=>b.perk.id)}
 const perk=id=>crewPerks().includes(id);
 function eatFood(P,n,name){if(P.hp>=P.maxhp)return false;const m=perk('feast')?1.5:1;P.hp=Math.min(P.maxhp,P.hp+n*m);msg('+'+Math.round(n*m)+' HEALTH ('+name+(m>1?' · FAT COTY APPROVES':'')+')')}
 const isBoss=f=>!!bossFor(f);
-const themeFor=f=>{const ff=((f-1)%FINAL_FLOOR)+1;return THEMES.find(t=>ff>=t.floors[0]&&ff<=t.floors[1])||THEMES[THEMES.length-1]};
+let themeFor=f=>{const ff=((f-1)%FINAL_FLOOR)+1;return THEMES.find(t=>ff>=t.floors[0]&&ff<=t.floors[1])||THEMES[THEMES.length-1]};
 function wallTex(x,y){const ws=theme.walls;return TILE[ws[(x*7+y*13)%ws.length]]||1}
 function genMaze(f,force=[]){
   const cw=Math.min(15,6+f),ch=Math.min(10,4+((f+1)>>1)),w=cw*2+1,h=ch*2+1,g=new Uint8Array(w*h).fill(1),marks=[];
@@ -2128,7 +2128,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden&&isTouch&&s
 // appended to tools/art_pieces.json later without breaking progress.
 // Art screens: 2-3 normal walls per floor become NO SIGNAL TV screens looping Coty's animated pieces (frames from the atlas;
 // a screen costs nothing unless it is drawn).
-const ART_META=window.ARTMETA||[],ART_N=ART_META.length,ART_ANIM=ART_META.map((m,i)=>m.n>1?i:-1).filter(i=>i>=0);
+const ART_META=window.ARTMETA||[];let ART_N=ART_META.length;const ART_ANIM=ART_META.map((m,i)=>m.n>1?i:-1).filter(i=>i>=0);
 const OPENING=new Map(),WSPEC=new Map();let GAL=null;const V07HOOKS=[];let HIDDEN=null,ARTC=null,ART_POCKET=-1,ART_PIECE=-1,ART_GOT=false,MAIN_SEC=-1;
 function galLoad(){const g=load('skullz_gallery',{});g.ids=(g.ids||[]).filter(id=>ART_META.some(m=>m.id==id));return g}
 function galHas(i){return galLoad().ids.includes(ART_META[i].id)}
@@ -8119,6 +8119,1087 @@ if(typeof loadAtlas==='function'){
 
 TT.artVer=ART_VER;
 TT.bossArtVer=ART_VER;
+})();
+
+// =====================================================================
+// v0.16.0 WHITE STATIC — Coty's music-video previz + his NFT art.
+// Black Forest / Dark Barn / Flooded Sewer chapter, new enemies,
+// THE PALE SIGNAL + Crystal Obelisk, file music, wall-screen clips,
+// and a gallery expansion. Original pixel art based on his footage.
+// Guns, CLOSE=1.15, recoil, ART_V and gfxVer are unchanged.
+// =====================================================================
+(function(){
+'use strict';
+const VER='0.16.0';
+const MEDIA=(typeof window!=='undefined'&&window.MEDIA_BASE)||'media/';
+const BASE=MEDIA+(MEDIA.slice(-1)==='/'?'':'/')+'static/';
+const WS=128, BH=256, FH=64;
+
+function lcg(s){s=(s>>>0)||1;return function(){s=(Math.imul(s,1664525)+1013904223)>>>0;return s/4294967296}}
+function PBn(s){return new PB(s,s)}
+function done(Q){autoShade(Q);Q.outline(INK,true);return texFromPB(Q)}
+function ring(Q,cx,cy,rx,ry,c,w){w=w||2;const v=u32(c);for(let a=0;a<360;a+=2){const r=a*Math.PI/180;for(let k=0;k<w;k++)Q.set(cx+Math.cos(r)*(rx+k),cy+Math.sin(r)*(ry+k),v)}}
+function spark(Q,x,y,s,c){const v=u32(c);for(let i=-s;i<=s;i++){Q.set(x+i,y,v);Q.set(x,y+i,v)}}
+function typo(Q,s,x,y,c,sc){
+  const G={A:[7,5,7,5,5],B:[7,5,7,5,7],C:[7,4,4,4,7],D:[6,5,5,5,6],E:[7,4,6,4,7],F:[7,4,6,4,4],G:[7,4,5,5,7],H:[5,5,7,5,5],I:[7,2,2,2,7],K:[5,6,4,6,5],L:[4,4,4,4,7],M:[5,7,7,5,5],N:[5,7,7,7,5],O:[7,5,5,5,7],P:[7,5,7,4,4],R:[7,5,6,5,5],S:[7,4,7,1,7],T:[7,2,2,2,2],U:[5,5,5,5,7],W:[5,5,7,7,5],Y:[5,5,2,2,2],'0':[7,5,5,5,7],'1':[2,2,2,2,2],'-':[0,0,7,0,0],'.':[0,0,0,0,2],' ':[0,0,0,0,0]};
+  sc=sc||2;let cx=x;for(const ch of (''+s).toUpperCase()){const g=G[ch]||G['-'];for(let r=0;r<5;r++)for(let b=0;b<3;b++)if(g[r]&(4>>b))Q.rect(cx+b*sc,y+r*sc,sc,sc,c);cx+=4*sc}
+}
+function grit(Q,n,cols,seed){const r=lcg(seed||11);for(let i=0;i<n;i++)Q.set((r()*Q.w)|0,(r()*Q.h)|0,u32(cols[(r()*cols.length)|0]))}
+
+function isStatic(){return !!(run&&(run.mode==='static'||run.special==='static'))}
+function biomeOf(){
+  if(!isStatic())return null;
+  if(boss&&boss.B&&boss.B.id==='pale')return 'shrine';
+  const f=(run&&run.floor)|0;
+  return f>=3?'sewer':f===2?'barn':'forest';
+}
+
+// ---------- 128px wall painters (mono + cyan glitch) ----------
+function foBark(Q,v){
+  Q.box(0,0,128,128,'#0a0a0c',0);
+  const r=lcg(40+v);
+  for(let i=0;i<18;i++){const x=(r()*120)|0,y=(r()*120)|0,w=8+(r()*18)|0,h=40+(r()*80)|0;Q.box(x,y-20,w,h,v?'#1a1a1e':'#141416',3)}
+  for(let i=0;i<10;i++){const x=(r()*128)|0,y=(r()*128)|0;Q.rect(x,y,20+(r()*40)|0,2,r()<.3?'#c8d0d4':'#3a3a40')}
+  grit(Q,80,['#2a2a30','#00f0ff','#ecfdff'],41+v);
+}
+function foCrystal(Q,v){
+  Q.box(0,0,128,128,'#07080c',0);
+  const r=lcg(70+v);
+  for(let i=0;i<9;i++){
+    const x=10+(r()*100)|0,y=8+(r()*90)|0,w=10+(r()*22)|0,h=24+(r()*50)|0;
+    Q.box(x,y,w,h,v?'#c8e8f0':'#8aa0aa',3);
+    Q.rect(x+2,y+2,3,h-4,'#ecfdff');
+    if(r()<.4)spark(Q,x+w-2,y+4,2,'#00f0ff');
+  }
+  grit(Q,40,['#00f0ff','#ecfdff'],71+v);
+}
+function foBranch(Q,v){
+  foBark(Q,v);
+  const r=lcg(90+v);
+  for(let i=0;i<7;i++){const x=(r()*128)|0,y=20+(r()*90)|0;Q.rect(x,y,40,3,'#c8d0d4');Q.rect(x+20,y-16,3,20,v?'#ecfdff':'#8a9098')}
+}
+function baWood(Q,v){
+  Q.box(0,0,128,128,v?'#2a2218':'#1c1812',0);
+  for(let y=0;y<128;y+=16){Q.rect(0,y,128,2,'#0a0806');Q.rect(0,y+1,128,1,v?'#6a5a40':'#4a3e2c')}
+  for(let x=8;x<128;x+=32)Q.rect(x,0,2,128,'#0a0806');
+  typo(Q,v?'STALL':'BARN',36,56,'#3a3428',2);
+  grit(Q,50,['#8a7a60','#0a0806'],21+v);
+}
+function baStall(Q,v){
+  baWood(Q,0);
+  Q.box(12,20,104,88,'#16120c',4);
+  Q.rect(16,24,96,8,'#3a3228');
+  Q.box(20,40,88,60,v?'#2a2418':'#1a160e',2);
+  for(let i=0;i<4;i++)Q.rect(28+i*20,44,8,52,'#0a0806');
+  grit(Q,30,['#c8d0d4','#00f0ff'],22+v);
+}
+function baHall(Q,v){
+  Q.box(0,0,128,128,'#15120e',0);
+  Q.box(8,0,112,128,v?'#2c261c':'#221c16',0);
+  for(let y=0;y<128;y+=10)Q.rect(8,y,112,2,'#0c0a08');
+  Q.rect(60,0,8,128,v?'#f4f0e0':'#c8c0b0'); // far door light
+  Q.rect(62,0,4,128,'#ffffff');
+  grit(Q,40,['#8a7a60'],23+v);
+}
+function seBrick(Q,v){
+  Q.box(0,0,128,128,'#121418',0);
+  for(let y=0;y<128;y+=16)for(let x=-((y>>4)&1)*10;x<128;x+=20){
+    Q.box(x+1,y+1,18,14,v?'#2a3038':'#1c2228',2);
+  }
+  grit(Q,40,['#00f0ff','#3a4048'],31+v);
+}
+function sePipe(Q,v){
+  seBrick(Q,0);
+  Q.ell(64,64,38,38,'#1a1a1e');
+  Q.ell(64,64,30,30,'#0a0a0c');
+  Q.ell(64,64,22,22,'#050506');
+  ring(Q,64,64,32,32,v?'#00f0ff':'#4a5058',3);
+  if(v){Q.ell(44,78,8,7,'#c8c0b8');Q.rect(40,76,3,3,'#0b0a0f');Q.rect(46,76,3,3,'#0b0a0f')} // peek hint
+  grit(Q,20,['#00f0ff'],32+v);
+}
+function seWet(Q,v){
+  seBrick(Q,v);
+  for(let y=80;y<128;y++)Q.rect(0,y,128,1,y%3?'#0a1a22':'#0e2430');
+  if(v){Q.rect(0,90,128,4,'#00f0ff');spark(Q,40,88,2,'#ecfdff')}
+}
+function vhsShell(Q){
+  Q.box(0,0,128,128,'#050506',0);
+  Q.box(8,8,112,112,'#101014',4);
+  Q.rect(8,8,112,3,'#c8d0d4');Q.rect(8,117,112,3,'#c8d0d4');
+  typo(Q,'PLAY',12,12,'#ecfdff',1);
+  typo(Q,'00 00',84,12,'#8a9098',1);
+}
+function seStrobe(Q,v){
+  seBrick(Q,0);
+  const c=v?'#ecfdff':'#1a3040';
+  Q.ell(64,36,28,20,c);
+  if(v){Q.ell(64,36,14,10,'#ffffff');grit(Q,80,['#ffffff','#00f0ff'],33)}
+}
+
+const WALL_FN={
+  fo_bark:foBark, fo_branch:foBranch, fo_crystal:foCrystal,
+  ba_wood:baWood, ba_stall:baStall, ba_hall:baHall,
+  se_brick:seBrick, se_pipe:sePipe, se_wet:seWet, se_strobe:seStrobe,
+  ws_screen:vhsShell, ws_screen2:vhsShell, ws_screen3:vhsShell, ws_screen4:vhsShell,
+  fo_hollow(Q,v){foBark(Q,0);Q.box(28,20,72,96,'#030304',4);if(v)typo(Q,'STATIC',36,60,'#00f0ff',2)},
+  fo_crack(Q){foBark(Q,0);for(let i=0;i<6;i++)Q.rect(40+i,10+i*16,3,20,'#00f0ff')},
+  ba_hollow(Q,v){baWood(Q,0);Q.box(28,20,72,96,'#080604',4);if(v)typo(Q,'SIGNAL',34,60,'#e3b303',2)},
+  ba_crack(Q){baWood(Q,0);Q.rect(60,0,4,128,'#00f0ff')},
+  se_hollow(Q,v){seBrick(Q,0);Q.box(28,20,72,96,'#030406',4);if(v)typo(Q,'SHRINE',34,60,'#00f0ff',2)},
+  se_crack(Q){seBrick(Q,0);Q.rect(20,0,3,128,'#00f0ff');Q.rect(90,0,3,128,'#ecfdff')},
+  ws_frame(Q,v){Q.box(0,0,128,128,'#0b0a0f',0);Q.box(6,6,116,116,v?'#e3b303':'#8a7a40',4);Q.box(14,14,100,100,'#111118',2)},
+  ws_tear(Q,v){Q.box(0,0,128,128,'#050508',0);for(let i=0;i<16;i++)Q.rect((i*9)%120,0,3,128,i%2?'#00f0ff':'#ecfdff');typo(Q,'WHITE',28,48,v?'#fff':'#00f0ff',2);typo(Q,'STATIC',24,72,'#ecfdff',2)},
+  ws_stripe(Q,v){
+    Q.box(0,0,128,128,'#050508',0);
+    for(let i=-1;i<9;i++){
+      const x=i*20-(v?6:0);
+      Q.rect(x,0,10,128,v?'#c8d0d8':'#1a1c22');
+      Q.rect(x+10,0,10,128,'#050508');
+    }
+    Q.rect(0,48,128,32,'#050508');
+    typo(Q,'SIGNAL',20,56,v?'#00f0ff':'#8a9098',3);
+  }
+};
+
+function wallVars(){return (typeof WALL_VAR!=='undefined'&&WALL_VAR)||(typeof TT!=='undefined'&&TT.wallVar)||null}
+function addWall(name, texA, texB){
+  if(typeof TILE==='undefined'||!TEX)return;
+  const WV=wallVars();
+  if(TILE[name]){
+    const i=TILE[name]-1;
+    TEX[i]=texA; if(TEX0)TEX0[i]=texA;
+    if(WV)WV[i]=texB?[texA,texB]:[texA];
+    return;
+  }
+  const i=TEX.length;
+  TILE[name]=i+1;
+  if(typeof WALL_KEYS!=='undefined')WALL_KEYS.push(name);
+  TEX[i]=texA; if(TEX0)TEX0[i]=texA;
+  if(WV)WV[i]=texB?[texA,texB]:[texA];
+}
+function addAnimWall(name, frames, ms){
+  if(!frames||!frames.length)return;
+  addWall(name, frames[0]);
+  if(typeof ANIMS==='undefined')return;
+  const i=TILE[name]-1;
+  const existing=ANIMS.find(a=>a.k===name);
+  if(existing){existing.fr0=frames;existing.fr=frames.slice();existing.n=frames.length;existing.ms=ms||existing.ms;existing.i=i;return}
+  ANIMS.push({k:name,i,fr0:frames,fr:frames.slice(),ms:ms||160,n:frames.length});
+}
+function bakeWall(name,v){
+  const Q=PBn(WS);
+  const fn=WALL_FN[name];
+  if(fn)fn(Q,v||0);else Q.box(0,0,128,128,'#111',0);
+  const t=done(Q);t.ts=WS;return t;
+}
+function installWSWalls(){
+  if(!TEX||TEX.length<11)return;
+  const names=Object.keys(WALL_FN);
+  for(const n of names){
+    const a=bakeWall(n,0),b=bakeWall(n,1);
+    addWall(n,a,b);
+  }
+  if(typeof TEX0!=='undefined')TEX0=TEX.slice();
+  if(typeof TINTC!=='undefined'){for(const k in TINTC)delete TINTC[k]}
+  if(typeof CUR!=='undefined'&&CUR&&CUR.L&&typeof applyTint==='function')applyTint(CUR.L.tint||null);
+  if(typeof bakeNftWalls==='function'){bakeNftWalls._done=0;bakeNftWalls()}
+}
+
+// ---------- 64px floors / ceils (lutFor assumes 64) ----------
+function installFloors(){
+  if(typeof FLOOR_ART==='undefined')return;
+  FLOOR_ART.ws_snow={fn:(g)=>{g.fillStyle='#0c0c10';g.fillRect(0,0,64,64);g.fillStyle='#c8d0d4';for(let i=0;i<80;i++){g.fillRect((Math.random()*64)|0,(Math.random()*64)|0,1,1)}g.fillStyle='#3a3a44';for(let i=0;i<20;i++)g.fillRect((Math.random()*64)|0,(Math.random()*64)|0,2,1)}};
+  FLOOR_ART.ws_dirt={fn:(g)=>{g.fillStyle='#1a1610';g.fillRect(0,0,64,64);g.fillStyle='#2a2418';for(let y=0;y<64;y+=8)g.fillRect(0,y,64,1);g.fillStyle='#0a0806';for(let i=0;i<40;i++)g.fillRect((Math.random()*64)|0,(Math.random()*64)|0,2,1)}};
+  FLOOR_ART.ws_water={n:4,ms:220,fn:(g,k)=>{g.fillStyle='#061018';g.fillRect(0,0,64,64);g.fillStyle=k%2?'#0a2830':'#082028';for(let y=0;y<64;y+=6)g.fillRect(0,y+(k%3),64,2);g.fillStyle='#00f0ff';for(let i=0;i<8;i++)g.fillRect((i*9+k*3)%64,(i*7+k*5)%64,1,1)}};
+  if(typeof CEIL_ART!=='undefined'){
+    CEIL_ART.ws_beams={fn:(g)=>{g.fillStyle='#14110c';g.fillRect(0,0,64,64);g.fillStyle='#2a2418';for(let x=4;x<64;x+=16)g.fillRect(x,0,6,64);g.fillStyle='#0a0806';for(let x=4;x<64;x+=16)g.fillRect(x,0,1,64)}};
+    CEIL_ART.ws_pipes={fn:(g)=>{g.fillStyle='#101418';g.fillRect(0,0,64,64);g.fillStyle='#2a3038';g.fillRect(0,20,64,10);g.fillRect(24,0,10,64);g.fillStyle='#00f0ff';g.fillRect(0,24,64,1);g.fillRect(28,0,1,64)}};
+  }
+}
+
+// ---------- looks / wallsets / themes ----------
+function installLooks(){
+  if(typeof WALLSETS!=='undefined'){
+    WALLSETS.forest={base:{fo_bark:4,fo_branch:2,fo_crystal:2},trim:['fo_branch','ws_stripe'],accent:['fo_crystal','ws_frame','ws_frame','ws_frame','ws_tear'],anim:['ws_screen','ws_screen2'],crack:'fo_crack',hollow:'fo_hollow',pAcc:.14};
+    WALLSETS.barn={base:{ba_wood:4,ba_stall:3,ba_hall:2},trim:['ba_wood','ws_stripe'],accent:['ba_hall','ws_frame','ws_frame','ws_frame','ws_tear'],anim:['ws_screen2','ws_screen4'],crack:'ba_crack',hollow:'ba_hollow',pAcc:.14};
+    WALLSETS.sewer={base:{se_brick:4,se_pipe:3,se_wet:2},trim:['se_pipe','ws_stripe'],accent:['se_strobe','ws_frame','ws_frame','ws_tear'],anim:['se_strobe','ws_screen3'],crack:'se_crack',hollow:'se_hollow',pAcc:.12};
+    WALLSETS.shrine=WALLSETS.sewer;
+  }
+  if(typeof ARENA_LOOKS!=='undefined'){
+    ARENA_LOOKS.obelisk={sub:'CRYSTAL SHRINE',floor:'ws_water',sky:'stars',anim:['se_strobe','ws_screen3'],pAnim:.2};
+  }
+  if(typeof ARENA_THEMES!=='undefined'){
+    ARENA_THEMES.obelisk={n:'CRYSTAL OBELISK SHRINE',layout:'obelisk',walls:['se_brick','se_pipe','fo_crystal'],pillar:'fo_crystal',sky:[2,4,8],gnd:[8,16,22],line:[0,240,255]};
+  }
+  if(typeof ARENAS!=='undefined'){
+    ARENAS.obelisk=function(){
+      const w=23,h=17,g=new Uint8Array(w*h).fill(1);
+      for(let y=3;y<=15;y++)for(let x=1;x<=21;x++)g[y*w+x]=0;
+      for(const[x,y] of [[6,6],[16,6],[6,12],[16,12],[11,5],[11,13]])g[y*w+x]=2;
+      g[w+11]=0;
+      return{g,w,h,start:9*w+2,ex:9*w+22,pocket:w+11,sec:2*w+11,bx:14.5,by:9.5,face:0,
+        items:[[2,5,'health'],[2,13,'ammo'],[20,5,'cells'],[20,13,'shells'],[11,9,'health']]};
+    };
+  }
+}
+
+const WS_LOOKS={
+  forest:{sub:'BLACK FOREST',floor:'ws_snow',ceil:null,mode:2,sky:'stars',tint:[.88,.92,1.12],bias:{fo_bark:3,fo_crystal:2},pAnim:.14},
+  barn:{sub:'DARK BARN',floor:'ws_dirt',ceil:'ws_beams',mode:0,tint:[1.02,.98,.9],bias:{ba_wood:3,ba_stall:2},pAnim:.1},
+  sewer:{sub:'FLOODED SEWER',floor:'ws_water',ceil:'ws_pipes',mode:0,tint:[.9,1.04,1.12],bias:{se_pipe:3,se_brick:2},pAnim:.16},
+  shrine:{sub:'CRYSTAL SHRINE',floor:'ws_water',sky:'stars',anim:['se_strobe','ws_screen3'],pAnim:.22}
+};
+const WS_THEMES={
+  forest:{id:'forest',n:'BLACK FOREST',floors:[1,1],sky:[2,2,4],gnd:[10,10,14],line:[200,210,220],walls:['fo_bark','fo_branch','fo_crystal','ws_screen'],weights:{wsbuck:2,wswolf:3,skull:1},rooms:{arena:1,hall:2,nest:2,cross:1,line:2,vault:1},props:{crt:1,bonepile:1},flick:0,amb:'rain',motes:'#c8d0d4',fog:9},
+  barn:{id:'barn',n:'DARK BARN',floors:[2,2],sky:[6,5,4],gnd:[20,16,10],line:[180,170,150],walls:['ba_wood','ba_stall','ba_hall','ws_screen2'],weights:{wsbuck:2,wswolf:2,wscoon:2,skull:1},rooms:{hall:3,line:2,vault:1,cross:1,arena:1},props:{crate:2,crt:1,barrel:1},flick:1,amb:'hum',motes:'#c8c0b0',fog:10},
+  sewer:{id:'sewer',n:'FLOODED SEWER',floors:[3,3],sky:[2,4,8],gnd:[8,16,22],line:[0,240,255],walls:['se_brick','se_pipe','se_wet','fo_crystal'],weights:{wscoon:3,wswolf:2,wsbuck:1},rooms:{hall:2,vault:2,cross:1,nest:1,arena:1},props:{barrel:2,crt:1,brazier:1},flick:1,amb:'drip',motes:'#00f0ff',fog:14}
+};
+
+// ---------- enemy + boss pixel art (256, fill the billboard) ----------
+function pose(p){
+  const S={ox:0,oy:0,lean:0,flash:0,dead:0,howl:0,charge:0,crouch:0,peek:0,sprint:0,scale:1};
+  if(p==='idle1')S.oy=3;
+  else if(p==='idle2')S.oy=1;
+  else if(p==='w0'){S.ox=-8;S.oy=2}
+  else if(p==='w1')S.oy=0;
+  else if(p==='w2'){S.ox=8;S.oy=2}
+  else if(p==='w3')S.oy=0;
+  else if(p==='atk'){S.charge=1;S.ox=10;S.oy=-6;S.scale=1.04}
+  else if(p==='atk1'){S.charge=2;S.ox=16;S.sprint=1}
+  else if(p==='atk2'){S.ox=-4}
+  else if(p==='hurt'){S.flash=1;S.ox=10}
+  else if(p==='hurt1'){S.flash=1;S.ox=16;S.oy=6}
+  else if(p==='dead'){S.dead=1;S.oy=30;S.scale=.8}
+  else if(p==='dead1'){S.dead=2;S.oy=50;S.scale=.65}
+  else if(p==='dead2'){S.dead=3;S.oy=70;S.scale=.5}
+  else if(p==='howl'){S.howl=1;S.oy=-8}
+  else if(p==='crouch'){S.crouch=1;S.oy=16;S.scale=.95}
+  else if(p==='peek')S.peek=1;
+  else if(p==='sprint'){S.sprint=1;S.ox=18;S.oy=-4}
+  return S;
+}
+function flashHurt(Q){const d=Q.d;for(let i=0;i<d.length;i++){const v=d[i];if(!v)continue;const r=Math.min(255,(v&255)+90),g=((v>>8)&255)*.5|0,b=((v>>16)&255)*.5|0;d[i]=((255<<24)|(b<<16)|(g<<8)|r)>>>0}}
+
+function paintBuck(Q,S){
+  const cx=128+S.ox, cy=130+S.oy, sc=S.scale||1;
+  // antlers
+  const col=S.flash?'#ffffff':'#ecfdff';
+  Q.box(cx-8,cy-70,16,36,col,4);
+  Q.rect(cx-28,cy-88,22,8,col);Q.rect(cx+6,cy-88,22,8,col);
+  Q.rect(cx-28,cy-100,6,20,col);Q.rect(cx+22,cy-100,6,20,col);
+  Q.rect(cx-40,cy-96,14,6,col);Q.rect(cx+26,cy-96,14,6,col);
+  // head + body
+  Q.ell(cx,cy-40,28,26,col);
+  Q.ell(cx+(S.charge?18:12),cy-36,22,16,col);
+  Q.box(cx-36,cy-20,72,70,col,10);
+  // legs
+  const g=S.charge?10:0;
+  Q.box(cx-28,cy+44,12,46+g,'#c8d0d4',3);
+  Q.box(cx-8,cy+44,12,40,'#c8d0d4',3);
+  Q.box(cx+10,cy+44,12,46+g,'#c8d0d4',3);
+  Q.box(cx+28,cy+44,12,40,'#c8d0d4',3);
+  // cyan eyes
+  if(!S.dead){Q.rect(cx+8,cy-44,8,8,'#00f0ff');Q.rect(cx+18,cy-44,6,8,'#00f0ff')}
+  ring(Q,cx,cy-10,70,80,'#c8d0d4',1);
+  spark(Q,cx+40,cy-70,3,'#00f0ff');
+  if(S.flash)flashHurt(Q);
+  if(S.dead){Q.box(cx-50,cy+40,100,40,col,8)}
+}
+function paintWolf(Q,S){
+  const cx=128+S.ox, cy=140+S.oy, col=S.flash?'#ffffff':'#e8eef2';
+  // body
+  Q.ell(cx-4,cy+4,54,28,col);
+  Q.box(cx-40,cy-8,70,36,col,10);
+  // legs
+  Q.box(cx-32,cy+24,12,50,'#c8d0d4',3);
+  Q.box(cx-10,cy+24,12,46,'#c8d0d4',3);
+  Q.box(cx+12,cy+24,12,50,'#c8d0d4',3);
+  Q.box(cx+30,cy+24,12,46,'#c8d0d4',3);
+  // tail
+  Q.ell(cx-58,cy+8,18,8,col);
+  // head
+  const hy=cy-30-(S.howl?24:0), hx=cx+28;
+  Q.ell(hx,hy,24,20,col);
+  Q.ell(hx+20,hy+6,16,10,col);
+  Q.rect(hx-8,hy-22,8,16,col);Q.rect(hx+6,hy-22,8,16,col); // ears
+  if(!S.dead){Q.rect(hx+8,hy-4,6,6,'#00f0ff');Q.rect(hx+16,hy-4,5,6,'#00f0ff')}
+  if(S.howl){Q.rect(hx+22,hy-2,6,10,'#0b0a0f');ring(Q,hx,hy-8,36,36,'#00f0ff',1)}
+  ring(Q,cx,cy,66,50,'#c8d0d4',1);
+  if(S.flash)flashHurt(Q);
+}
+function paintCoon(Q,S){
+  const cx=128, cy=150;
+  // pipe
+  Q.ell(cx,cy-10,78,70,'#2a3038');
+  Q.ell(cx,cy-10,64,58,'#0a0a0c');
+  Q.ell(cx,cy-10,50,46,'#050506');
+  ring(Q,cx,cy-10,68,62,'#4a5058',4);
+  if(S.dead){Q.ell(cx,cy+20,20,8,'#3a3a40');return}
+  if(!S.peek&&!S.charge&&!S.flash){
+    // mostly hidden, eyes only
+    Q.rect(cx-14,cy+8,8,6,'#ecfdff');Q.rect(cx+6,cy+8,8,6,'#ecfdff');
+    Q.rect(cx-12,cy+10,4,3,'#0b0a0f');Q.rect(cx+8,cy+10,4,3,'#0b0a0f');
+    return;
+  }
+  // peek / throw: raccoon face out of the hole
+  const ox=S.ox|0, oy=(S.charge?-18:0)+(S.oy|0);
+  Q.ell(cx+ox,cy+20+oy,28,24,'#c8c0b8');
+  Q.box(cx-22+ox,cy+8+oy,16,16,'#1a1a1e',3); // mask
+  Q.box(cx+6+ox,cy+8+oy,16,16,'#1a1a1e',3);
+  Q.rect(cx-14+ox,cy+14+oy,8,8,'#ecfdff');Q.rect(cx+8+ox,cy+14+oy,8,8,'#ecfdff');
+  Q.rect(cx-12+ox,cy+16+oy,4,4,'#0b0a0f');Q.rect(cx+10+ox,cy+16+oy,4,4,'#0b0a0f');
+  Q.ell(cx+ox,cy+28+oy,10,6,'#1a1a1e'); // nose
+  if(S.charge){Q.ell(cx+40,cy-10,10,10,'#8a7a60');spark(Q,cx+40,cy-10,3,'#00f0ff')}
+  if(S.flash)flashHurt(Q);
+}
+function paintPale(Q,S){
+  // THE PALE SIGNAL: tall faceless glowing figure, NO suit, NO tie.
+  // Organic statue-like body, scanline static at the edges, cyan slit "signal".
+  const cx=128+S.ox, sc=S.scale||1;
+  const cro=S.crouch?36:0, spr=S.sprint?1:0;
+  const cy=40+cro+S.oy;
+  const col=S.flash?'#ffffff':'#f4f6f8';
+  const skin='#e8eef4';
+  // glow first (rings, not a filled oval)
+  ring(Q,cx,cy+80,40,90,'#c8d0d4',1);
+  ring(Q,cx,cy+80,48,100,'#00f0ff',1);
+  spark(Q,cx-36,cy+20,2,'#00f0ff');spark(Q,cx+40,cy+40,2,'#00f0ff');
+  // legs
+  const ly=cy+110;
+  if(S.dead){
+    Q.ell(cx,200,60,16,skin);
+    Q.ell(cx-10,170,22,28,skin);
+    return;
+  }
+  const llean=spr?18:S.crouch?8:0;
+  Q.box(cx-20-llean,ly,16,70,skin,6);
+  Q.box(cx+6+llean,ly,16,66,skin,6);
+  Q.ell(cx-12-llean,ly+70,12,8,skin);
+  Q.ell(cx+14+llean,ly+66,12,8,skin);
+  // torso — bare / statue, slightly narrow, not a suit jacket
+  Q.box(cx-22,cy+48,44,70,skin,10);
+  Q.ell(cx,cy+50,24,16,skin);
+  // scanline static down the body (signal texture, not clothing)
+  for(let y=cy+52;y<cy+114;y+=5)Q.rect(cx-18,y,36,1,'#c8d0d8');
+  // arms long, ending in simple hands (no cuffs)
+  const armY=cy+58, armX=spr?28:22;
+  Q.box(cx-armX-14,armY+(S.crouch?16:0),12,80,skin,5);
+  Q.box(cx+armX,armY+(S.crouch?10:0)+(spr?-20:0),12,80,skin,5);
+  Q.ell(cx-armX-8,armY+80+(S.crouch?16:0),10,8,skin);
+  Q.ell(cx+armX+6,armY+80+(spr?-20:0),10,8,skin);
+  // faceless head: smooth tall oval, one cyan signal slit (not a face)
+  const hy=cy+22;
+  Q.ell(cx,hy,20,26,col);
+  Q.rect(cx-8,hy-2,16,3,'#00f0ff'); // signal slit
+  if(S.flash||S.sprint)spark(Q,cx,hy-16,3,'#00f0ff');
+  if(S.flash)flashHurt(Q);
+}
+function paintObelisk(Q,broken){
+  const cx=128, cy=40;
+  // water base
+  Q.ell(cx,220,80,18,'#0a2430');
+  Q.ell(cx,218,70,12,'#00f0ff');
+  // crystal shaft with a skull in the facets
+  const col=broken?'#4a6070':'#c8e8f4';
+  // tapered pillar
+  for(let i=0;i<9;i++){
+    const t=i/8, w=18+t*50, y=cy+i*18;
+    Q.box(cx-w/2,y,w,20,broken?'#2a3840':(i%2?'#d8f0f8':'#a8d0e0'),4);
+  }
+  Q.rect(cx-4,cy,6,170,'#ffffff');
+  if(!broken){
+    // skull face in the crystal
+    Q.ell(cx,120,28,26,'#ecfdff');
+    Q.rect(cx-16,112,10,12,'#0a1a22');Q.rect(cx+6,112,10,12,'#0a1a22');
+    Q.rect(cx-8,130,16,4,'#0a1a22');
+    ring(Q,cx,110,50,80,'#00f0ff',2);
+    spark(Q,cx+30,70,3,'#00f0ff');
+  }else{
+    typo(Q,'DEAD',52,120,'#00f0ff',3);
+  }
+}
+
+const POSES=['idle','idle1','idle2','idle1'];
+const WALKS=['w0','w1','w2','w3'];
+function bakeSet(paint, extra){
+  function fr(p){const Q=PBn(BH);paint(Q,pose(p));const t=done(Q);t.ts=BH;return t}
+  const pack={
+    idle:[fr('idle'),fr('idle1'),fr('idle2'),fr('idle1')],
+    walk:[fr('w0'),fr('w1'),fr('w2'),fr('w3')],
+    atk:[fr('atk'),fr('atk1'),fr('atk2')],
+    hurt:[fr('hurt'),fr('hurt1')],
+    dead:[fr('dead'),fr('dead1'),fr('dead2')]
+  };
+  if(extra){for(const k of extra)pack[k]=[fr(k)]}
+  pack.side=pack.idle[0];pack.back=pack.idle[1];
+  return pack;
+}
+
+function downTex16(T,to){
+  if(!T)return T;
+  const fr=T.ts||(Math.sqrt(T.length)|0);
+  const Q=new Uint32Array(to*to);Q.ts=to;
+  const sc=fr/to;
+  for(let y=0;y<to;y++)for(let x=0;x<to;x++)Q[y*to+x]=T[((y*sc)|0)*fr+((x*sc)|0)];
+  return Q;
+}
+function cacheWSActors(){
+  const C=(typeof TT!=='undefined'&&TT.enCache)||null;
+  if(!C||typeof ANIM==='undefined')return;
+  const keys=['wsbuck','wswolf','wscoon','wspale'];
+  for(const k of keys){
+    const pack=ANIM[k]; if(!pack)continue;
+    C.hi[k]=pack;
+    const lo={};
+    for(const pk of Object.keys(pack)){
+      const v=pack[pk];
+      lo[pk]=Array.isArray(v)?v.map(t=>downTex16(t,128)):downTex16(v,128);
+    }
+    C.lo[k]=lo;
+  }
+  if(typeof fxHigh==='function'&&!fxHigh()&&typeof TT.swapEnemyRes==='function')TT.swapEnemyRes();
+}
+function installActors(){
+  if(typeof ANIM==='undefined'||typeof SPR==='undefined')return;
+  const buck=bakeSet(paintBuck);
+  const wolf=bakeSet(paintWolf,['howl']);
+  const coon=bakeSet(paintCoon,['peek']);
+  const pale=bakeSet(paintPale,['crouch','sprint']);
+  ANIM.wsbuck=buck;SPR.wsbuck=buck.idle[0];
+  ANIM.wswolf=wolf;SPR.wswolf=wolf.idle[0];
+  ANIM.wscoon=coon;SPR.wscoon=coon.idle[0];
+  ANIM.wspale=pale;SPR.wspale=pale.idle[0];
+  const Q=PBn(BH);paintObelisk(Q,0);SPR.wsobelisk=done(Q);SPR.wsobelisk.ts=BH;
+  const Q2=PBn(BH);paintObelisk(Q2,1);SPR.wsobeliskX=done(Q2);SPR.wsobeliskX.ts=BH;
+  const Qt=PBn(128);WALL_FN.ws_tear(Qt,1);SPR.wstear=done(Qt);SPR.wstear.ts=128;
+  if(typeof ENEMIES!=='undefined'){
+    ENEMIES.wsbuck={n:'WHITE BUCK',spr:'wsbuck',ai:'wsbuck',hp:90,spd:2.6,dmg:14,r:.4,s:.95,bob:.1,bones:3,score:25,charge:3.2,gib:['#ecfdff','#00f0ff','#c8d0d4'],bark:['—','CHARGE']};
+    ENEMIES.wswolf={n:'GHOST WOLF',spr:'wswolf',ai:'wswolf',hp:55,spd:3.1,dmg:11,r:.34,s:.8,bob:.15,bones:2,score:18,gib:['#e8eef2','#00f0ff','#fff'],bark:['HOWL']};
+    ENEMIES.wscoon={n:'PIPE RACCOON',spr:'wscoon',ai:'wscoon',hp:40,spd:0,dmg:10,r:.36,s:.85,bob:0,bones:2,score:16,proj:'shard',pspd:7,cd:1.6,range:12,keep:0,gib:['#c8c0b8','#1a1a1e','#00f0ff'],bark:['...']};
+    ENEMIES.wspale={n:'THE PALE SIGNAL',spr:'wspale',ai:'wspale',hp:9999,spd:3.6,dmg:18,r:.4,s:1.35,bob:0,bones:0,score:0,gib:['#f4f6f8','#00f0ff','#fff'],bark:['']};
+  }
+  if(typeof PROPS!=='undefined'){
+    PROPS.wstear={spr:'wstear',s:.7,tear:1,light:[180,230,255,2.4,90]};
+    PROPS.wsobelisk={spr:'wsobelisk',s:1.6,solid:1,hp:420,obelisk:1,light:[180,240,255,5.5,200]};
+  }
+  if(typeof AI!=='undefined'){
+    AI.wsbuck=function(e,dt,d,dx,dy,sees,dm){
+      e.ct=(e.ct??e.D.charge)-dt;
+      if(e.chg){e.chg-=dt;const v=e.spd*4.2*dt;tryMove(e,e.x+e.cvx*v,e.y+e.cvy*v,.32);
+        if(d<.95&&e.cd<=0){hurt(e.D.dmg*dm,'melee');e.cd=.9;e.chg=0}return}
+      if(sees&&e.ct<=0&&d<8&&d>2){e.ct=e.D.charge;e.chg=.85;e.cvx=dx/d;e.cvy=dy/d;pop(e.x,e.y,'CHARGE','#ecfdff');tone(90,.25,'sawtooth',.07,40);return}
+      AI.chase(e,dt,d,dx,dy,sees,dm);
+    };
+    AI.wswolf=function(e,dt,d,dx,dy,sees,dm){
+      if(sees&&!e.howled){e.howled=1;e.howlT=.7;pop(e.x,e.y,'HOWL','#ecfdff');tone(220,.4,'sawtooth',.05,80);tone(140,.5,'sine',.08,50);
+        // wake nearby wolves
+        for(const n of ents)if(n!==e&&n.t==='wswolf'&&n.hp>0&&Math.hypot(n.x-e.x,n.y-e.y)<8){n.awake=true;if(!n.howled){n.howled=1;n.howlT=.5}}}
+      if(e.howlT>0){e.howlT-=dt;e.pose='howl';return}
+      AI.chase(e,dt,d,dx,dy,sees,dm);
+    };
+    AI.wscoon=function(e,dt,d,dx,dy,sees,dm){
+      const D=e.D;
+      e.peekT=(e.peekT||0)-dt;
+      if(e.peekT<=0){e.peek=!e.peek;e.peekT=e.peek?.7+Math.random()*.5:1.1+Math.random()}
+      if(e.peek)e.pose='peek';
+      if(sees&&e.peek&&e.cd<=0&&d<D.range){
+        projs.push({x:e.x,y:e.y,vx:dx/d*D.pspd,vy:dy/d*D.pspd,dmg:D.dmg*dm,T:SPR[D.proj]||SPR.shard});
+        e.cd=D.cd;e.pose='atk';tone(400,.08,'square',.04);
+      }
+    };
+    AI.wspale=function(e,dt,d,dx,dy,sees,dm){
+      // stalker (floors 1-2): keep distance, twitch, teleport; occasional lunge
+      e.tw=(e.tw||2)-dt;
+      if(e.tw<=0){e.pose=(e.pose==='crouch'?'idle':'crouch');e.tw=.4+Math.random()*1.4}
+      if(e.lunge){e.lunge-=dt;const v=e.spd*5.2*dt;tryMove(e,e.x+e.lvx*v,e.y+e.lvy*v,.3);
+        if(d<.9&&e.cd<=0){hurt(e.D.dmg*dm,'melee');e.cd=1;e.lunge=0}if(e.lunge<=0)e.lunge=0;return}
+      if(sees&&d<3.2&&e.cd<=0){e.lunge=.55;e.lvx=dx/d;e.lvy=dy/d;e.pose='sprint';pop(e.x,e.y,'—','#ecfdff');return}
+      if(d<6&&d>3){ /* loom */ return}
+      if(d<2.2||(!sees&&d<10)){
+        // teleport in static
+        for(let k=0;k<16;k++){const a=Math.random()*6.28,r=6+Math.random()*5,x=P.x+Math.cos(a)*r,y=P.y+Math.sin(a)*r;
+          if(!solid(x,y)){gib(e.x,e.y,['#fff','#00f0ff'],14,.5);e.x=x;e.y=y;gib(x,y,['#fff','#00f0ff'],14,.5);if(typeof SFX!=='undefined'&&SFX.tele)SFX.tele();break}}
+      }
+    };
+  }
+  cacheWSActors();
+}
+
+function installBoss(){
+  if(typeof BOSSES==='undefined')return;
+  if(BOSSES.some(b=>b.id==='pale'))return;
+  BOSSES.push({id:'pale',n:'THE PALE SIGNAL',freed:null,arena:'obelisk',hp:2400,s:1.45,r:.7,col:'#ecfdff',
+    taunts:{wake:'THE PALE SIGNAL IS LOOKING AT YOU',rage:'STATIC — THE SIGNAL BREAKS',idle:['NO FACE. NO NAME.','THE SCREEN IS STILL PLAYING.','WHITE STATIC.'],freed:'THE SIGNAL FADES.'},
+    phases:[
+      {hp:1,spr:'wspale',move:{want:5,spd:1.6},attacks:[{p:'wslunge',cd:4.2,first:1,dmg:16},{p:'spread',n:5,arc:.8,spd:5,cd:1.8,dmg:9,T:'shard'},{p:'wstele',cd:7,first:3}]},
+      {hp:.5,spr:'wspale',rage:1,dark:7,move:{want:3.5,spd:2.2},attacks:[{p:'wslunge',cd:3.2,dmg:20},{p:'ring',n:14,spd:3.6,cd:3.0,dmg:8,T:'shard'},{p:'wstele',cd:5},{p:'wsreanim',cd:8,first:1,n:2}]}
+    ]});
+  if(typeof PATTERNS!=='undefined'){
+    PATTERNS.wslunge=function(b,A,base){b.charge={vx:Math.cos(base)*(A.spd||9),vy:Math.sin(base)*(A.spd||9),t:.55,dmg:A.dmg};b.pose='sprint';flash('#ecfdff',.12);if(SFX&&SFX.rage)SFX.rage()};
+    PATTERNS.wstele=function(b){for(let k=0;k<20;k++){const x=2+rnd()*(MW-4),y=3+rnd()*((typeof MHP==='number'?MHP:MH)-5);if(!solid(x,y)&&Math.hypot(x-P.x,y-P.y)>4){gib(b.x,b.y,['#fff','#00f0ff'],18,.5);b.x=x;b.y=y;gib(x,y,['#fff','#00f0ff'],18,.5);if(SFX&&SFX.tele)SFX.tele();break}}};
+    PATTERNS.wsreanim=function(b,A){
+      if(run&&run.obeliskDown)return;
+      let n=A.n||1;
+      for(const e of ents){
+        if(n<=0)break;
+        if(e.hp<=0&&e.t!=='boss'&&e.t!=='wspale'&&e.D){
+          e.hp=e.max||e.D.hp;e.awake=true;e.hit=.2;
+          gib(e.x,e.y,['#00f0ff','#ecfdff'],10,.5);
+          pop(e.x,e.y,'REANIMATED','#00f0ff');n--;
+        }
+      }
+      if(n>0){const m=spawnEnemy('wswolf',b.x+1.2,b.y,{awake:true,minion:true});if(m){m.hp*=.6;m.max=m.hp;stats.total++}}
+      if(SFX&&SFX.summon)SFX.summon();
+    };
+  }
+  // B7TEX set so bossTex works
+  if(typeof B7TEX!=='undefined'){
+    const pack=ANIM&&ANIM.wspale;
+    if(pack){
+      const set={idle:pack.idle,move:pack.walk,atk:pack.atk,hurt:pack.hurt,death:pack.dead};
+      B7TEX.pale={base:set,rage:set};
+    }
+  }
+}
+
+// ---------- floor build / theme hooks ----------
+function hookWorld(){
+  if(typeof themeFor==='function'){
+    const _tf=themeFor;
+    themeFor=function(f){
+      if(isStatic()){
+        const b=(f|0)>=3?'sewer':(f|0)===2?'barn':'forest';
+        return WS_THEMES[b];
+      }
+      return _tf(f);
+    };
+  }
+  if(typeof lookFor==='function'){
+    const _lf=lookFor;
+    lookFor=function(f,B){
+      if(isStatic()){
+        if(B)return ARENA_LOOKS.obelisk||WS_LOOKS.shrine;
+        const b=(f|0)>=3?'sewer':(f|0)===2?'barn':'forest';
+        return WS_LOOKS[b];
+      }
+      return _lf(f,B);
+    };
+  }
+  if(typeof bossFor==='function'){
+    const _bf=bossFor;
+    bossFor=function(f){
+      if(isStatic())return (f|0)>=3&&typeof bossById==='function'?bossById('pale'):null;
+      return _bf(f);
+    };
+  }
+  if(typeof buildFloor==='function'){
+    const _bf16=buildFloor;
+    buildFloor=function(){
+      if(isStatic()){
+        _bf16();
+        const bio=biomeOf();
+        const th=WS_THEMES[bio==='shrine'?'sewer':(bio||'forest')];
+        if(th&&th.fog){FL.fog=th.fog*(typeof fxHigh==='function'&&!fxHigh()?1.3:1);FL.baseFog=FL.fog}
+        // crate nubs and any leftover office caution become monochrome signal stripes
+        if(typeof map!=='undefined'&&TILE){
+          const stripe=TILE.ws_stripe||TILE.fo_bark||TILE.ba_wood||1;
+          const allow=new Set([TILE.exit,TILE.cursed,stripe].filter(Boolean));
+          const names=['fo_bark','fo_branch','fo_crystal','fo_crack','fo_hollow',
+            'ba_wood','ba_stall','ba_hall','ba_crack','ba_hollow',
+            'se_brick','se_pipe','se_wet','se_strobe','se_crack','se_hollow',
+            'ws_screen','ws_screen2','ws_screen3','ws_screen4','ws_frame','ws_tear','ws_stripe','ws_hollow'];
+          names.forEach(n=>{if(TILE[n])allow.add(TILE[n])});
+          const base=TILE[(th&&th.walls&&th.walls[0])||'fo_bark']||stripe;
+          for(let i=0;i<map.length;i++){
+            const t=map[i];
+            if(!t)continue;
+            if(t===TILE.caution||t===TILE.glitch||!allow.has(t))map[i]=(t===TILE.caution||t===TILE.glitch)?stripe:base;
+          }
+        }
+        // stalker on non-boss floors
+        if(!boss||!boss.B||boss.B.id!=='pale'){
+          const sx=P.x+Math.cos(P.a)*7,sy=P.y+Math.sin(P.a)*7;
+          const x=solid(sx,sy)?P.x+4:sx,y=solid(sx,sy)?P.y+4:sy;
+          if(typeof spawnEnemy==='function'&&!solid(x,y)){
+            const s=spawnEnemy('wspale',x,y,{awake:true});
+            if(s){s.stalk=1;s.hp=9999;s.max=9999}
+          }
+        }else{
+          // place obelisk in the shrine
+          if(typeof props!=='undefined'&&SPR.wsobelisk){
+            const bx=(boss&&boss.x)||P.x+4, by=(boss&&boss.y)||P.y;
+            props.push({t:'prop',D:PROPS.wsobelisk,x:bx,y:by-1.2,hp:PROPS.wsobelisk.hp,max:PROPS.wsobelisk.hp,s:PROPS.wsobelisk.s,spr:'wsobelisk',light:PROPS.wsobelisk.light,obelisk:1});
+            if(typeof lights!=='undefined'||typeof AL!=='undefined'){/* render uses prop light fields */}
+          }
+        }
+        document.body.classList.add('whitestatic');
+        return;
+      }
+      document.body.classList.remove('whitestatic');
+      _bf16();
+      placeTear();
+    };
+  }
+}
+
+function placeTear(){
+  if(isStatic()||!run||run.floor<4||run.floor>12)return;
+  if(!props||!PROPS.wstear||!SPR.wstear)return;
+  // one tear near the secret / a mid-floor hall, hashed so it is stable
+  const h=((run.seed||1)*131+(run.floor*977))>>>0;
+  if((h%5)!==0)return; // not every floor
+  const spots=[];
+  for(let y=2;y<MH-2;y++)for(let x=2;x<MW-2;x++){
+    const i=y*MW+x;if(!map[i]&&map[i-1]&&!map[i+1])spots.push([x+.5,y+.5]);
+  }
+  if(!spots.length)return;
+  const s=spots[h%spots.length];
+  props.push({t:'prop',D:PROPS.wstear,x:s[0],y:s[1],s:.7,spr:'wstear',tear:1,light:PROPS.wstear.light});
+}
+
+function enterStaticFromTear(){
+  if(!run)return;
+  run.staticFrom={mode:run.mode,floor:run.floor,seed:run.seed};
+  run.mode='static';run.special='static';run.floor=1;
+  if(typeof buildFloor==='function')buildFloor();
+  msg('WHITE STATIC — THE SIGNAL PULLS YOU IN');
+  playStaticIntro(null, true);
+  wsPlay('rainonme');
+}
+
+function endStatic(win){
+  if(run&&run.staticFrom){
+    const f=run.staticFrom;
+    run.mode=f.mode;run.special=null;run.floor=(f.floor||1)+1;
+    msg('THE TEAR CLOSES. YOU ARE BACK.');
+    if(typeof buildFloor==='function')buildFloor();
+    wsStop();
+    return;
+  }
+  run.won=true;state='victory';if(SFX&&SFX.win)SFX.win();
+  const r=(typeof recordRun==='function')?recordRun():{};
+  const box=$('victory');
+  const h=box&&box.querySelector('h1');
+  if(h){h.setAttribute('data-old',h.innerHTML);h.innerHTML='WHITE<br>STATIC<small>THE PALE SIGNAL FADES · THE OBELISK IS QUIET</small>'}
+  if($('vs'))$('vs').innerHTML='THE FOREST, THE BARN, AND THE SEWER FALL SILENT.<br>'+(typeof summary==='function'?summary(r):'');
+  if($('vcont'))$('vcont').style.display='none';
+  show('victory');
+  wsPlay('better');
+}
+
+// ---------- music (file tracks, respects SOUND toggle + MUSIC volume) ----------
+const WS_TRACKS={
+  better:BASE+'music/better.ogg',
+  rainonme:BASE+'music/rainonme.ogg',
+  reanimator:BASE+'music/reanimator.ogg'
+};
+let wsAudio=null, wsKey=null, wsWant=null;
+function musVol(){
+  if(typeof SOUND_OFF!=='undefined'&&SOUND_OFF)return 0;
+  if(typeof MUTE!=='undefined'&&MUTE)return 0;
+  const s=(typeof sets==='function'?sets():{})||{};
+  const v=s.music;return (v==null?70:v)/100*.72;
+}
+function wsStop(){
+  if(wsAudio){try{wsAudio.pause()}catch(e){}wsAudio=null}wsKey=null;
+}
+function wsPlay(key, opt){
+  opt=opt||{};
+  wsWant=key;
+  if(!key){wsStop();return}
+  if(typeof SOUND_OFF!=='undefined'&&SOUND_OFF){wsStop();return}
+  if(wsKey===key&&wsAudio&&!wsAudio.paused){wsAudio.volume=musVol();return}
+  wsStop();
+  const a=new Audio(WS_TRACKS[key]);
+  a.loop=!opt.once;a.preload='auto';a.volume=musVol();
+  const p=a.play();if(p&&p.catch)p.catch(()=>{});
+  if(opt.once)a.onended=function(){if(opt.then)opt.then()};
+  wsAudio=a;wsKey=key;
+  // duck procedural score
+  if(typeof MUS!=='undefined'&&MUS.out){try{MUS.out.gain.setTargetAtTime(0,MUS.out.context.currentTime,.15)}catch(e){}}
+}
+function wsTick(){
+  if(!wsAudio)return;
+  const v=musVol();
+  if(v<=0){if(!wsAudio.paused)wsAudio.pause();return}
+  if(wsAudio.paused&&wsWant){wsAudio.volume=v;const p=wsAudio.play();if(p&&p.catch)p.catch(()=>{})}
+  else wsAudio.volume=v;
+  if(document.hidden){try{wsAudio.pause()}catch(e){}}
+}
+function hookMusic(){
+  if(typeof mWant==='function'){
+    const _mw=mWant;
+    mWant=function(){
+      if(isStatic()||(state==='victory'&&wsKey==='better'))return null;
+      return _mw();
+    };
+  }
+  document.addEventListener('visibilitychange',()=>{if(document.hidden&&wsAudio)try{wsAudio.pause()}catch(e){}});
+}
+
+// ---------- skippable video (jumpscare / intro) ----------
+function playWSVideo(file, then){
+  const o=$('egg');if(!o){then&&then();return}
+  const v=document.createElement('video');
+  v.playsInline=true;v.setAttribute('playsinline','');v.src=BASE+'clips/'+file;v.preload='auto';
+  o.innerHTML='';o.appendChild(v);
+  const sk=document.createElement('p');sk.textContent='TAP / CLICK / ANY KEY TO SKIP';o.appendChild(sk);
+  v.muted=!!(typeof SOUND_OFF!=='undefined'&&SOUND_OFF);v.currentTime=0;o.className='on';
+  let done=false;
+  const fin=()=>{if(done)return;done=true;removeEventListener('keydown',kf,true);o.className='out';try{v.pause()}catch(e){}setTimeout(()=>{o.className='';o.innerHTML='';then&&then()},300)};
+  const kf=e=>{e.preventDefault();e.stopPropagation();fin()};
+  setTimeout(()=>{if(!done)addEventListener('keydown',kf,true)},200);
+  o.onclick=fin;o.ontouchstart=e=>{e.preventDefault();fin()};v.onended=fin;v.onerror=fin;
+  const p=v.play();if(p&&p.catch)p.catch(()=>{v.muted=true;v.play().catch(fin)});
+}
+function playStaticIntro(then, skipVid){
+  if(skipVid){then&&then();return}
+  playWSVideo('pale-forest.mp4', then);
+  wsPlay('better',{once:true});
+}
+
+// ---------- snow / strobe overlay ----------
+const SNOW=[];
+function tickSnow(dt){
+  const bio=biomeOf();
+  const want=(bio==='forest'||bio==='barn')?160:0;
+  while(SNOW.length<want)SNOW.push({x:Math.random()*W,y:Math.random()*H,v:.4+Math.random()*1.2,s:1+(Math.random()*2)|0});
+  while(SNOW.length>want)SNOW.pop();
+  for(const p of SNOW){p.y+=p.v*dt*40;p.x+=Math.sin(p.y*.08)*dt*8;if(p.y>H){p.y=0;p.x=Math.random()*W}}
+}
+function drawSnow(){
+  if(!SNOW.length||!ctx)return;
+  ctx.fillStyle='#e8eef2';
+  for(const p of SNOW){ctx.globalAlpha=.7;ctx.fillRect(p.x|0,p.y|0,p.s,p.s)}
+  ctx.globalAlpha=1;
+}
+let strobeT=0;
+function tickStrobe(dt){
+  if(biomeOf()!=='sewer'&&biomeOf()!=='shrine')return;
+  strobeT-=dt;
+  if(strobeT<=0){strobeT=1.4+Math.random()*2.2;if(Math.random()<.6){flash('#ecfdff',.08);if(FL)FL.flashT=.08}}
+}
+
+// ---------- gallery + NFT walls ----------
+function installGallery(){
+  const url=BASE+'nft/manifest.json';
+  fetch(url).then(r=>r.json()).then(list=>{
+    if(!Array.isArray(list)||typeof ART_META==='undefined')return;
+    const have=new Set(ART_META.map(m=>m.id));
+    for(const m of list){
+      if(have.has(m.id))continue;
+      ART_META.push({id:m.id,name:m.name,w:m.w||96,h:m.h||96,n:1,ms:0,row:-1,ox:0,oy:0,ext:BASE+'nft/'+m.id+'.webp',col:m.collection});
+    }
+    ART_N=ART_META.length;
+    if(typeof ART_ANIM!=='undefined'){/* leave animated index as original */}
+    preloadNFT();
+    if(typeof titleUI==='function')try{titleUI()}catch(e){}
+  }).catch(()=>{});
+}
+const NFT_IMG={};
+
+function texFromCanvas(c){
+  const g=c.getContext('2d');
+  const id=g.getImageData(0,0,c.width,c.height);
+  const t=new Uint32Array(id.data.buffer.slice(0));t.ts=c.width;return t;
+}
+function bakeNftWalls(){
+  if(bakeNftWalls._done||typeof TILE==='undefined'||!TILE.ws_frame)return;
+  const ids=[];
+  if(typeof ART_META!=='undefined')ART_META.forEach(M=>{if(M&&M.ext&&NFT_IMG[M.id]&&NFT_IMG[M.id].naturalWidth)ids.push(M.id)});
+  if(ids.length<1)return;
+  const framed=[];
+  ids.forEach(id=>{
+    const im=NFT_IMG[id];
+    const c=document.createElement('canvas');c.width=c.height=128;
+    const g=c.getContext('2d');g.imageSmoothingEnabled=false;
+    g.fillStyle='#0b0a0f';g.fillRect(0,0,128,128);
+    g.fillStyle='#8a7a40';g.fillRect(4,4,120,120);
+    g.fillStyle='#e3b303';g.fillRect(6,6,116,4);g.fillRect(6,118,116,4);g.fillRect(6,6,4,116);g.fillRect(118,6,4,116);
+    g.fillStyle='#111118';g.fillRect(14,14,100,100);
+    g.drawImage(im,16,16,96,96);
+    framed.push(texFromCanvas(c));
+  });
+  const i=TILE.ws_frame-1;
+  TEX[i]=framed[0];
+  if(typeof TEX0!=='undefined')TEX0[i]=framed[0];
+  const WV=wallVars(); if(WV)WV[i]=framed; if(typeof TT!=='undefined')TT.wsNft=framed.length;
+  if(typeof VAR_TINT!=='undefined'){for(const k in VAR_TINT)delete VAR_TINT[k]}
+  if(typeof TINTC!=='undefined'){for(const k in TINTC)delete TINTC[k]}
+  // secret-room hollows: a batch of framed NFTs in the recess
+  ['fo_hollow','ba_hollow','se_hollow'].forEach(name=>{
+    if(!TILE[name]||!framed.length)return;
+    const c=document.createElement('canvas');c.width=c.height=128;
+    const g=c.getContext('2d');g.imageSmoothingEnabled=false;
+    // start from the baked hollow tex if present
+    const base=TEX[TILE[name]-1];
+    if(base){
+      const oc=document.createElement('canvas');oc.width=oc.height=base.ts||128;
+      const og=oc.getContext('2d');const id=og.createImageData(oc.width,oc.height);
+      new Uint32Array(id.data.buffer).set(base);og.putImageData(id,0,0);
+      g.drawImage(oc,0,0,128,128);
+    }else{g.fillStyle='#030304';g.fillRect(0,0,128,128)}
+    const cols=3,rows=3,pad=2,x0=28,y0=20,bw=72,bh=96;
+    const cw=((bw-pad*(cols+1))/cols)|0, ch=((bh-pad*(rows+1))/rows)|0;
+    for(let r=0;r<rows;r++)for(let c0=0;c0<cols;c0++){
+      const id=ids[(r*cols+c0)%ids.length], im=NFT_IMG[id];
+      const x=x0+pad+c0*(cw+pad), y=y0+pad+r*(ch+pad);
+      g.fillStyle='#e3b303';g.fillRect(x-1,y-1,cw+2,ch+2);
+      if(im)g.drawImage(im,x,y,cw,ch);
+    }
+    const t=texFromCanvas(c);
+    const hi=TILE[name]-1;
+    const WV2=wallVars();
+    const prev=(WV2&&WV2[hi])?WV2[hi].slice():[TEX[hi]];
+    TEX[hi]=t;
+    if(typeof TEX0!=='undefined')TEX0[hi]=t;
+    if(WV2)WV2[hi]=[t].concat(prev.filter(Boolean));
+  });
+  bakeNftWalls._done=1;
+  if(typeof CUR!=='undefined'&&CUR&&CUR.L&&typeof applyTint==='function')applyTint(CUR.L.tint||null);
+}
+
+function preloadNFT(){
+  if(typeof ART_META==='undefined')return;
+  ART_META.forEach((M,i)=>{
+    if(!M.ext)return;
+    const im=new Image();
+    im.decoding='async';
+    im.onload=()=>{NFT_IMG[M.id]=im; if(typeof BLOCKS!=='undefined'&&typeof paintBlock==='function')try{paintBlock(i)}catch(e){} };
+    im.src=M.ext;
+  });
+  // once a handful have loaded, bake framed wall paintings + secret-room collages
+  const _nftWait=setInterval(()=>{
+    const n=Object.keys(NFT_IMG).length;
+    if(n>=8||(n>0&&n>=ART_META.filter(m=>m.ext).length)){
+      clearInterval(_nftWait);bakeNftWalls();
+    }
+  },200);
+  setTimeout(()=>{clearInterval(_nftWait);if(Object.keys(NFT_IMG).length)bakeNftWalls()},4000);
+  if(typeof artDraw==='function'&&!artDraw._ws){
+    const _ad=artDraw;
+    artDraw=function(g,i,f,x,y,w,h){
+      const M=ART_META[i];
+      if(M&&M.ext){
+        const im=NFT_IMG[M.id];
+        if(!im||!im.complete||!im.naturalWidth){
+          g.fillStyle='#111118';g.fillRect(x,y,w,h);
+          g.strokeStyle='#e3b303';g.strokeRect(x,y,w,h);
+          return false;
+        }
+        g.imageSmoothingEnabled=false;
+        g.drawImage(im,x,y,w,h);
+        return true;
+      }
+      return _ad(g,i,f,x,y,w,h);
+    };
+    artDraw._ws=1;
+  }
+}
+
+function loadScreenAnims(){
+  const packs=[['ws_screen','pale-forest.webp',160],['ws_screen2','barn-hall.webp',160],['ws_screen3','sprint.webp',120],['ws_screen4','snow-road.webp',160]];
+  packs.forEach(([name,file,ms])=>{
+    const im=new Image();
+    im.onload=()=>{
+      const fw=(im.width/8)|0, fh=im.height;
+      const frames=[];
+      for(let k=0;k<8;k++){
+        const c=document.createElement('canvas');c.width=c.height=128;
+        const g=c.getContext('2d');g.imageSmoothingEnabled=false;
+        g.fillStyle='#050506';g.fillRect(0,0,128,128);
+        // fit panel
+        const scale=Math.min(112/fw,112/fh);
+        const dw=fw*scale, dh=fh*scale;
+        g.drawImage(im,k*fw,0,fw,fh,64-dw/2,64-dh/2,dw,dh);
+        const id=g.getImageData(0,0,128,128);
+        const t=new Uint32Array(id.data.buffer.slice(0));t.ts=128;
+        frames.push(t);
+      }
+      addAnimWall(name,frames,ms);
+      if(typeof TEX0!=='undefined')TEX0=TEX.slice();
+    };
+    im.src=BASE+'frames/'+file;
+  });
+}
+
+// ---------- hooks: start, use, update, render, bossDown, nextFloor ----------
+function hookPlay(){
+  if(typeof start==='function'){
+    const _st=start;
+    start=function(mode){
+      if(mode==='static'&&!start._wsgo){
+        playStaticIntro(function(){start._wsgo=1;_st('static');start._wsgo=0;wsPlay('rainonme')});
+        return;
+      }
+      _st.apply(this,arguments);
+      if(isStatic())wsPlay((run.floor|0)>=3?'reanimator':'rainonme');
+      else if(wsKey&&wsKey!=='better')wsStop();
+    };
+  }
+  if(typeof use==='function'){
+    const _use=use;
+    use=function(){
+      if(state==='play'&&props){
+        for(const q of props){
+          if(q.gone||!q.tear)continue;
+          if(Math.hypot(q.x-P.x,q.y-P.y)<1.25){enterStaticFromTear();return}
+        }
+      }
+      _use.apply(this,arguments);
+    };
+  }
+  if(typeof nextFloor==='function'){
+    const _nf=nextFloor;
+    nextFloor=function(){
+      if(isStatic()){
+        if((run.floor|0)>=3){endStatic(true);return}
+        _nf();
+        wsPlay((run.floor|0)>=3?'reanimator':'rainonme');
+        // biome transition clip (optional)
+        if((run.floor|0)===2)playWSVideo('snow-road.mp4');
+        return;
+      }
+      _nf();
+    };
+  }
+  if(typeof bossDown==='function'){
+    const _bd=bossDown;
+    bossDown=function(b){
+      if(isStatic()&&b&&b.B&&b.B.id==='pale'){
+        if(b.freed)return;
+        b.freed=true;b.hp=0;stats.kills++;run.kills++;
+        endStatic(true);return;
+      }
+      return _bd(b);
+    };
+  }
+  if(typeof update==='function'){
+    const _upd16=update;
+    update=function(dt){
+      _upd16(dt);
+      if(!isStatic()||state!=='play'){wsTick();return}
+      tickSnow(dt);tickStrobe(dt);wsTick();
+      // obelisk reanimate pulse
+      if(boss&&boss.B&&boss.B.id==='pale'&&boss.awake&&!boss.freed&&!(run&&run.obeliskDown)){
+        run._reaT=(run._reaT||6)-dt;
+        if(run._reaT<=0){run._reaT=8;if(PATTERNS.wsreanim)PATTERNS.wsreanim(boss,{n:1})}
+      }
+      // pick song
+      const want=(boss&&boss.B&&boss.B.id==='pale'&&boss.awake)||biomeOf()==='sewer'||biomeOf()==='shrine'?'reanimator':'rainonme';
+      if(wsWant!==want)wsPlay(want);
+    };
+  }
+  if(typeof render==='function'){
+    const _ren=render;
+    render=function(t,rdt){
+      _ren(t,rdt);
+      if(isStatic()&&state==='play')drawSnow();
+    };
+  }
+  if(typeof damage==='function'){
+    const _dmg=damage;
+    damage=function(e,amt,o){
+      const r=_dmg(e,amt,o);
+      // pale stalker cannot be finished on explore floors
+      if(e&&e.stalk&&e.hp<=0){e.hp=e.max;e.hit=.2;
+        for(let k=0;k<16;k++){const a=Math.random()*6.28,rr=7+Math.random()*4,x=P.x+Math.cos(a)*rr,y=P.y+Math.sin(a)*rr;
+          if(typeof solid==='function'&&!solid(x,y)){gib(e.x,e.y,['#fff','#00f0ff'],16,.5);e.x=x;e.y=y;break}}
+      }
+      if(e&&e.obelisk&&e.hp<=0){run.obeliskDown=1;e.spr='wsobeliskX';e.T=SPR.wsobeliskX;pop(e.x,e.y,'OBELISK BROKEN','#00f0ff');msg('THE OBELISK CRACKS — THE DEAD STAY DEAD')}
+      // pale boss teleports when hit (in addition to pattern)
+      if(e&&e.t==='boss'&&e.B&&e.B.id==='pale'&&e.hp>0&&Math.random()<.22){
+        if(PATTERNS.wstele)PATTERNS.wstele(e);
+      }
+      return r;
+    };
+  }
+  // jumpscare when pale fight starts
+  if(typeof updateBoss==='function'){
+    const _ub=updateBoss;
+    updateBoss=function(b,dt,d,dx,dy,sees){
+      if(b&&b.B&&b.B.id==='pale'&&b.awake&&!b._wsJump){
+        b._wsJump=1;playWSVideo('sprint.mp4');wsPlay('reanimator');
+      }
+      return _ub(b,dt,d,dx,dy,sees);
+    };
+  }
+}
+
+function hookTitle(){
+  if(typeof titleUI==='function'){
+    const _t=titleUI;
+    titleUI=function(){
+      _t();
+      const b=$('bstatic');
+      // leave enabled; just ensure it exists
+      if(b)b.style.display='';
+    };
+  }
+}
+
+// ---------- cosmetic skull skins (optional, no wallet) ----------
+function installSkullSkins(){
+  // a few SkulRz PFPs as rare cosmetic skull variants in this chapter only
+  const ids=['skulrz-2237','skulrz-4214','skulrz-4348','skulrz-4555'];
+  ids.forEach((id,n)=>{
+    const im=new Image();
+    im.onload=()=>{
+      const c=document.createElement('canvas');c.width=c.height=256;
+      const g=c.getContext('2d');g.imageSmoothingEnabled=false;
+      g.clearRect(0,0,256,256);
+      g.drawImage(im,48,36,160,160);
+      const idat=g.getImageData(0,0,256,256);
+      const t=new Uint32Array(idat.data.buffer.slice(0));t.ts=BH;
+      const key='wsskin'+n;
+      SPR[key]=t;
+      if(ANIM){ANIM[key]={idle:[t,t,t,t],walk:[t,t,t,t],atk:[t,t,t],hurt:[t,t],dead:[t,t,t]}}
+    };
+    im.src=BASE+'nft/'+id+'.webp';
+  });
+  if(typeof spawnEnemy==='function'){
+    const _sp=spawnEnemy;
+    spawnEnemy=function(type,x,y,o){
+      const e=_sp(type,x,y,o);
+      if(e&&isStatic()&&type==='skull'&&SPR.wsskin0&&Math.random()<.45){
+        const k='wsskin'+((Math.random()*4)|0);
+        if(SPR[k]){e.spr=k;e.D=Object.assign({},e.D,{spr:k})}
+      }
+      return e;
+    };
+  }
+}
+
+// ---------- boot ----------
+let _booted=0;
+function boot160(){
+  try{
+    installFloors();
+    installLooks();
+    installWSWalls();
+    installActors();
+    installBoss();
+    if(!_booted){hookWorld();hookPlay();hookMusic();hookTitle();installGallery();loadScreenAnims();installSkullSkins()}
+    _booted=1;
+    if(typeof TT!=='undefined'){TT.staticVer=VER;TT.whiteStatic=VER}
+  }catch(err){console.error('v0160 WHITE STATIC',err)}
+}
+function whenTex16(fn,tries){
+  tries=tries||0;
+  if(typeof TEX!=='undefined'&&TEX&&TEX.length>=11){fn();return}
+  if(tries>80){fn();return}
+  setTimeout(()=>whenTex16(fn,tries+1),50);
+}
+boot160();
+whenTex16(boot160);
+if(typeof stylizeWalls==='function'){
+  const _sw16=stylizeWalls;
+  stylizeWalls=function(){_sw16();boot160()};
+}
+if(typeof loadAtlas==='function'){
+  const _la=loadAtlas;
+  loadAtlas=function(){const r=_la.apply(this,arguments);whenTex16(boot160);return r};
+}
 })();
 </script>
 </body></html>
