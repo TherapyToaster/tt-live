@@ -1,0 +1,419 @@
+<!-- TT DONT ROW v2: shared host for Don't-click + header video. Places #tt-dont-row
+     INSIDE #tt-notice (Mr. Toasty's Daily Glitch), immediately after .ttdg-box, once
+     that card has been lifted (ttdg-moved). Desktop CSS puts the toys beside the
+     card; mobile stacks them under it. HOME ONLY. Survives hourly Home rebuilds
+     because this lives in the sitewide footer injection, not the Home code block. -->
+<script>
+window.__ttDontRow=window.__ttDontRow||function(){
+  var row=document.getElementById('tt-dont-row');
+  var n=document.getElementById('tt-notice');
+  if(!n||!n.isConnected||!n.classList.contains('ttdg-moved'))return null;
+  if(!row){
+    row=document.createElement('div');
+    row.id='tt-dont-row';
+    row.setAttribute('role','group');
+    row.setAttribute('aria-label',"Don't click this, and Therapy Toaster video");
+  }
+  var box=n.querySelector('.ttdg-box');
+  if(row.parentNode!==n||(box&&row.previousElementSibling!==box)||(!box&&n.lastElementChild!==row)){
+    if(box)n.insertBefore(row,box.nextSibling);
+    else n.appendChild(row);
+  }
+  return row;
+};
+</script>
+
+<!-- TT header video v2: HOME ONLY. 9:16 looping video (styles: Custom CSS "header VIDEO v1" + fullscreen styles below). v2: tap the video = fullscreen with sound. Placement (dont-move v2): in #tt-dont-row inside #tt-notice, beside .ttdg-box on desktop and under it on mobile, not in the header title. -->
+<style id="tt-hv-v2-css">
+.tt-hv{position:relative}
+.tt-hv video{cursor:pointer}
+.tt-hv-hint{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);z-index:2;font:700 7px/1 Arial,sans-serif;letter-spacing:.02em;color:#FFD400;background:rgba(0,0,0,.6);padding:2px 4px;border-radius:3px;white-space:nowrap;pointer-events:none;text-transform:lowercase}
+.tt-hv-fs{position:fixed;inset:0;z-index:2147483647;background:#000;display:none;align-items:center;justify-content:center}
+.tt-hv-fs.tt-open{display:flex}
+.tt-hv-fs video{height:100%;max-height:100vh;max-height:100dvh;width:auto;max-width:100vw;aspect-ratio:9/16;object-fit:contain;background:#000}
+.tt-hv-x{position:absolute;top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));width:44px;height:44px;border:0;border-radius:50%;background:rgba(0,0,0,.55);color:#FFD400;font:400 34px/44px Arial,sans-serif;cursor:pointer;padding:0}
+.tt-hv-x:focus-visible{outline:2px solid #FFD400;outline-offset:2px}
+html.tt-hv-lock,html.tt-hv-lock body{overflow:hidden}
+</style>
+<script>
+(function(){
+  if(window.__ttHdrVid)return;window.__ttHdrVid=1;
+  /* SRC = the MP4 uploaded to Squarespace (file link upload gives /s/<name>.mp4). Change it if the uploaded name differs. */
+  var SRC="https://therapytoaster.github.io/tt-live/header/therapytoaster-header-480-nozoom.mp4";
+  var POSTER="https://therapytoaster.github.io/tt-live/header/poster-nozoom.jpg";
+  var ICON_OFF='<svg class="tt-hv-i-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3z"/><path d="M16.3 8.7l1.4-1.4L20 9.6l2.3-2.3 1.4 1.4-2.3 2.3 2.3 2.3-1.4 1.4-2.3-2.3-2.3 2.3-1.4-1.4 2.3-2.3z"/></svg>';
+  var ICON_ON='<svg class="tt-hv-i-on" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3z"/><path d="M16.5 12a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4z"/><path d="M14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>';
+  function start(){
+    var b=document.body;
+    if(!b||!b.classList.contains('homepage'))return;
+    var rm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var box=document.createElement('span');box.className='tt-hv';
+    box.style.backgroundImage='url("'+POSTER+'")';
+    var v=document.createElement('video');
+    v.muted=true;v.defaultMuted=true;v.setAttribute('muted','');
+    v.loop=true;v.setAttribute('loop','');
+    v.playsInline=true;v.setAttribute('playsinline','');v.setAttribute('webkit-playsinline','');
+    if(!rm){v.autoplay=true;v.setAttribute('autoplay','');}
+    v.preload=rm?'metadata':'auto';
+    v.setAttribute('disablepictureinpicture','');v.setAttribute('disableremoteplayback','');
+    v.setAttribute('poster',POSTER);
+    v.setAttribute('aria-label',"Therapy Toaster video: I just beat the case, I'm back");
+    v.src=SRC;
+    var btn=document.createElement('button');
+    btn.type='button';btn.className='tt-hv-snd';
+    btn.setAttribute('aria-label','Turn sound on');btn.setAttribute('aria-pressed','false');
+    btn.innerHTML=ICON_OFF+ICON_ON;
+    box.appendChild(v);box.appendChild(btn);
+    function ui(){var on=!v.muted;box.classList.toggle('tt-hv-unmuted',on);
+      btn.setAttribute('aria-pressed',on?'true':'false');btn.setAttribute('aria-label',on?'Mute sound':'Turn sound on');}
+    function play(){var p=v.play();if(p&&p.catch)p.catch(function(){});}
+    function toggle(e){
+      e.preventDefault();e.stopPropagation();
+      if(v.muted){v.muted=false;if(v.paused)play();}else{v.muted=true;}
+      ui();
+    }
+    btn.addEventListener('click',toggle);
+    var hint=document.createElement('span');hint.className='tt-hv-hint';hint.textContent='tap for sound';
+    box.appendChild(hint);
+    v.setAttribute('role','button');v.setAttribute('tabindex','0');
+    /* v2: fullscreen overlay with sound */
+    var fs=document.createElement('div');fs.className='tt-hv-fs';
+    fs.setAttribute('role','dialog');fs.setAttribute('aria-modal','true');fs.setAttribute('aria-label','Therapy Toaster video');
+    var fv=document.createElement('video');
+    fv.playsInline=true;fv.setAttribute('playsinline','');fv.setAttribute('webkit-playsinline','');
+    fv.preload='none';fv.setAttribute('poster',POSTER);fv.setAttribute('disablepictureinpicture','');
+    fv.loop=true;fv.setAttribute('loop','');
+    var x=document.createElement('button');x.type='button';x.className='tt-hv-x';x.setAttribute('aria-label','Close video');x.innerHTML='&times;';
+    fs.appendChild(fv);fs.appendChild(x);b.appendChild(fs);
+    var isOpen=false;
+    function openFs(e){
+      if(e){e.preventDefault();e.stopPropagation();}
+      if(isOpen)return;isOpen=true;
+      v.pause();
+      if(!fv.src)fv.src=SRC;
+      fs.classList.add('tt-open');document.documentElement.classList.add('tt-hv-lock');
+      fv.muted=false;fv.defaultMuted=false;fv.removeAttribute('muted');
+      try{fv.currentTime=0;}catch(_){}
+      var p=fv.play();if(p&&p.catch)p.catch(function(){fv.muted=true;fv.play().catch(function(){});});
+      var rq=fs.requestFullscreen||fs.webkitRequestFullscreen;
+      if(rq){try{var r=rq.call(fs);if(r&&r.catch)r.catch(function(){});}catch(_){}}
+      x.focus({preventScroll:true});
+    }
+    function closeFs(e){
+      if(e){e.preventDefault();e.stopPropagation();}
+      if(!isOpen)return;isOpen=false;
+      fv.pause();fv.muted=true;
+      fs.classList.remove('tt-open');document.documentElement.classList.remove('tt-hv-lock');
+      var d=document;if(d.fullscreenElement||d.webkitFullscreenElement){var ex=d.exitFullscreen||d.webkitExitFullscreen;try{var r=ex.call(d);if(r&&r.catch)r.catch(function(){});}catch(_){}}
+      v.muted=true;ui();play();
+    }
+    v.addEventListener('click',openFs);
+    v.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' ')openFs(e);});
+    x.addEventListener('click',closeFs);
+    fs.addEventListener('click',function(e){if(e.target===fs)closeFs(e);});
+    fv.addEventListener('click',function(e){e.stopPropagation();if(fv.paused)fv.play().catch(function(){});else fv.pause();});
+    document.addEventListener('keydown',function(e){if(isOpen&&(e.key==='Escape'||e.key==='Esc'))closeFs(e);});
+    function fsChange(){if(isOpen&&!(document.fullscreenElement||document.webkitFullscreenElement))closeFs();}
+    document.addEventListener('fullscreenchange',fsChange);document.addEventListener('webkitfullscreenchange',fsChange);
+    v.addEventListener('volumechange',ui);
+    v.addEventListener('error',function(){box.classList.add('tt-hv-err');});
+    /* Place in #tt-dont-row beside/under the Daily Glitch card (not in the header). Retry until #tt-notice has been lifted. */
+    function place(){
+      var h=window.__ttDontRow&&window.__ttDontRow();
+      if(!h)return false;
+      if(box.parentNode!==h)h.appendChild(box);
+      if(!v.paused||v.autoplay)play();
+      return true;
+    }
+    function bootPlace(){
+      if(!place())return false;
+      b.classList.add('tt-hv-ready');
+      b.classList.add('tt-dont-moved');
+      return true;
+    }
+    bootPlace();
+    var tries=0,tid=setInterval(function(){if(bootPlace()||++tries>40)clearInterval(tid);},100);
+    var rt;window.addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(place,150);});
+    window.addEventListener('load',place);
+    /* pause while the mobile menu overlay is open (video is hidden then), resume after */
+    var wasPlaying=false;
+    if(window.MutationObserver)new MutationObserver(function(){
+      var open=b.classList.contains('header--menu-open');
+      if(open&&!v.paused){wasPlaying=true;v.pause();}
+      else if(!open&&wasPlaying){wasPlaying=false;play();}
+    }).observe(b,{attributes:true,attributeFilter:['class']});
+    if(!rm)play();
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
+})();
+</script>
+<!-- /TT header video v2 -->
+
+<!-- TT DON'T CLICK v3 (cycle, self-contained CSS): HOME ONLY. Real <button class="tt-dont"> in #tt-dont-row
+     inside #tt-notice (Daily Glitch), beside the header video. Click = harmless 1.2 s glitch + self-closing "TOASTER OVERLOAD" box.
+     No navigation, nothing stored, sound only if the header video's sound toggle is on. Styles: the <style id="tt-dont-css"> right here (no Custom CSS needed).
+     VARIANT 'cycle' = all three faces stacked in the one button, crossfading 1 > 2 > 3 every 3 s
+     (reduced motion: instant swap every 6 s). Paused while the click effect runs, while hovered or focused, and while the tab is hidden. -->
+<style id="tt-dont-css">
+/* TT DON'T CLICK v3 styles — inline in the footer block on purpose: NOT run through Squarespace's LESS compiler
+   (v2 in Custom CSS broke the whole stylesheet: LESS treats saturate() and contrast() as its own color functions). */
+
+
+/* host row inside #tt-notice — layout also in Custom CSS TT DONT MOVE v2.
+   Mobile: full-width under .ttdg-box. Desktop: Custom CSS turns #tt-notice
+   into a flex row and this host into a compact column/row beside the card. */
+#tt-dont-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 980px;
+  margin: 16px auto 8px;
+  padding: 0;
+  position: relative;
+  z-index: 3;
+}
+#tt-dont-row .tt-dont,
+#tt-dont-row .tt-hv { margin: 0; }
+
+/* hide the old PFP pseudo-element once the real button is in */
+body.homepage .header .header-title-text a::after,
+body.homepage.tt-dont-ready .header .header-title-text a::after { display: none !important; }
+
+/* the button: same frame as the old PFP and the video */
+body.homepage .tt-dont {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  width: 240px;
+  height: 240px;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  border: 3px solid #FFD400;
+  border-radius: 0;
+  background: #05070d;
+  color: inherit;
+  font: inherit;
+  line-height: 0;
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow: -5px 0 0 rgba(255, 40, 60, .75), 5px 0 0 rgba(0, 240, 255, .65), 0 0 18px rgba(255, 212, 0, .3);
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-fill-color: initial;
+  transition: box-shadow .2s ease, filter .2s ease;
+}
+body.homepage .tt-dont svg { display: block; width: 100%; height: 100%; pointer-events: none; }
+/* faces: one per variant, stacked in the same box; only .tt-dont-cur is visible (opacity only, so no layout change) */
+body.homepage .tt-dont .tt-dont-face {
+  position: absolute; top: 0; right: 0; bottom: 0; left: 0;
+  display: block; opacity: 0; pointer-events: none;
+  transition: opacity .25s ease;
+}
+body.homepage .tt-dont .tt-dont-face.tt-dont-cur { opacity: 1; }
+body.homepage .tt-dont:hover { filter: brightness(1.08); box-shadow: -6px 0 0 rgba(255, 40, 60, .9), 6px 0 0 rgba(0, 240, 255, .8), 0 0 26px rgba(255, 212, 0, .5); }
+body.homepage .tt-dont:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
+/* subtle pulse (opacity only — no movement) */
+body.homepage .tt-dont .tt-dont-glow { animation: ttDontPulse 2.8s ease-in-out infinite; }
+@keyframes ttDontPulse { 0%, 100% { opacity: .25; } 50% { opacity: .7; } }
+
+/* variant 1: safety cover flips up on hover or focus, stays up while "on" */
+body.homepage .tt-dont .tt-dont-lid { transform-box: fill-box; transform-origin: 50% 0; transition: transform .35s ease; }
+body.homepage .tt-dont:hover .tt-dont-lid,
+body.homepage .tt-dont:focus-visible .tt-dont-lid,
+body.homepage .tt-dont.tt-dont-on .tt-dont-lid { transform: scaleY(-.3); }
+/* pressed (variants 1 and 3) */
+body.homepage .tt-dont .tt-dont-press { transform-box: fill-box; transform-origin: 50% 50%; transition: transform .12s ease, filter .12s ease; }
+body.homepage .tt-dont:active .tt-dont-press,
+body.homepage .tt-dont.tt-dont-on .tt-dont-press { transform: translateY(3px) scale(.95); filter: brightness(1.35); }
+
+/* no longer in the header: do not collapse the row when the menu is open */
+
+/* phones — same steps as the old PFP */
+@media screen and (max-width: 799px) {
+  body.homepage .tt-dont {
+    width: 160px; height: 160px; margin: 0; border-width: 2px;
+    box-shadow: -3px 0 0 rgba(255, 40, 60, .75), 3px 0 0 rgba(0, 240, 255, .65), 0 0 10px rgba(255, 212, 0, .25);
+  }
+}
+@media screen and (max-width: 559px) { body.homepage .tt-dont { width: 140px; height: 140px; margin: 0; } }
+
+/* ---- the harmless "problem" ---- */
+.tt-dont-fx {
+  position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+  z-index: 2147483000; pointer-events: none; overflow: hidden;
+  animation: ttDontFx 1.2s steps(1) forwards;
+}
+@keyframes ttDontFx {
+  0%   { -webkit-backdrop-filter: hue-rotate(150deg) saturate(2.2); backdrop-filter: hue-rotate(150deg) saturate(2.2); }
+  18%  { -webkit-backdrop-filter: contrast(1.6) saturate(2.5); backdrop-filter: contrast(1.6) saturate(2.5); }
+  34%  { -webkit-backdrop-filter: invert(1) hue-rotate(180deg); backdrop-filter: invert(1) hue-rotate(180deg); }
+  42%  { -webkit-backdrop-filter: hue-rotate(-90deg) saturate(2); backdrop-filter: hue-rotate(-90deg) saturate(2); }
+  66%  { -webkit-backdrop-filter: grayscale(1) contrast(1.4); backdrop-filter: grayscale(1) contrast(1.4); }
+  84%  { -webkit-backdrop-filter: hue-rotate(40deg); backdrop-filter: hue-rotate(40deg); }
+  100% { -webkit-backdrop-filter: none; backdrop-filter: none; opacity: 0; }
+}
+.tt-dont-fx i {
+  position: absolute; left: 0; right: 0; display: block;
+  mix-blend-mode: screen; opacity: 0;
+  animation: ttDontBar .36s steps(1) infinite;
+}
+@keyframes ttDontBar {
+  0%   { opacity: .75; transform: translateX(-6%); }
+  33%  { opacity: .4;  transform: translateX(8%); }
+  66%  { opacity: 0;   transform: none; }
+  100% { opacity: 0; }
+}
+.tt-dont-fx::after { /* scanlines */
+  content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0;
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, .25) 0 1px, transparent 1px 3px);
+}
+.tt-dont-fx.tt-dont-calm { animation: ttDontCalm .5s ease-out forwards; background: #FFD400; }
+.tt-dont-fx.tt-dont-calm::after { display: none; }
+@keyframes ttDontCalm { 0% { opacity: .4; } 100% { opacity: 0; } }
+
+.tt-dont-dlg {
+  position: fixed; left: 50%; top: 50%;
+  z-index: 2147483001;
+  width: 340px; max-width: 88vw;
+  box-sizing: border-box;
+  transform: translate(-50%, -50%);
+  background: #05070d;
+  border: 3px solid #FFD400;
+  box-shadow: -6px 0 0 rgba(255, 40, 60, .85), 6px 0 0 rgba(0, 240, 255, .75), 0 0 40px rgba(255, 212, 0, .35);
+  color: #FFD400;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 15px;
+  line-height: 1.35;
+  text-align: left;
+  animation: ttDontIn .18s ease-out;
+}
+@keyframes ttDontIn { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.92); } 100% { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+.tt-dont-dlg .tt-dont-ttl { display: flex; justify-content: space-between; align-items: center; margin: 0; padding: 4px 8px; background: #FFD400; color: #05070d; font-weight: 700; letter-spacing: .04em; }
+.tt-dont-dlg .tt-dont-x { width: 22px; height: 20px; padding: 0; border: 0; background: #05070d; color: #FFD400; font: inherit; font-weight: 700; line-height: 20px; cursor: pointer; }
+.tt-dont-dlg .tt-dont-msg { margin: 14px 14px 4px; font-size: 17px; font-weight: 700; color: #fff; }
+.tt-dont-dlg .tt-dont-sub { margin: 0 14px 12px; color: #FFD400; }
+.tt-dont-dlg .tt-dont-bar { height: 10px; margin: 0 14px 14px; border: 1px solid #FFD400; }
+.tt-dont-dlg .tt-dont-bar span { display: block; height: 100%; width: 0; background: repeating-linear-gradient(90deg, #FF283C 0 8px, #FFD400 8px 16px); animation: ttDontLoad 2.6s linear forwards; }
+@keyframes ttDontLoad { 100% { width: 100%; } }
+.tt-dont-dlg .tt-dont-ok { display: block; margin: 0 auto 14px; padding: 4px 18px; border: 2px solid; border-color: #fff #7a6600 #7a6600 #fff; background: #FFD400; color: #05070d; font: inherit; font-weight: 700; cursor: pointer; }
+.tt-dont-dlg .tt-dont-ok:focus-visible, .tt-dont-dlg .tt-dont-x:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  body.homepage .tt-dont .tt-dont-glow { animation: none; }
+  body.homepage .tt-dont .tt-dont-lid, body.homepage .tt-dont .tt-dont-press, body.homepage .tt-dont { transition: none; }
+  body.homepage .tt-dont .tt-dont-face { transition: none; } /* instant swap (JS also slows the cycle to 6 s) */
+  .tt-dont-dlg { animation: none; }
+  .tt-dont-dlg .tt-dont-bar span { animation: none; width: 100%; }
+}
+</style>
+<script>
+(function(){
+  if(window.__ttDont)return;window.__ttDont=1;
+  var VARIANT='cycle'; /* 'cycle' = rotate 1>2>3, or a single one: 1 = panic button + safety cover, 2 = hazard sign, 3 = retro error dialog */
+  var CYCLE_MS=3000,CYCLE_MS_CALM=6000;
+  var SVG={"1": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 240 240\" width=\"240\" height=\"240\" aria-hidden=\"true\" focusable=\"false\"><defs><pattern id=\"ttd1-hz\" width=\"20\" height=\"20\" patternUnits=\"userSpaceOnUse\" patternTransform=\"rotate(45)\"><rect width=\"20\" height=\"20\" fill=\"#FFD400\"/><rect width=\"10\" height=\"20\" fill=\"#05070d\"/></pattern><radialGradient id=\"ttd1-btn\" cx=\"42%\" cy=\"36%\" r=\"70%\"><stop offset=\"0\" stop-color=\"#ff6a76\"/><stop offset=\".55\" stop-color=\"#ff1430\"/><stop offset=\"1\" stop-color=\"#8a0012\"/></radialGradient><pattern id=\"ttd1-scan\" width=\"4\" height=\"4\" patternUnits=\"userSpaceOnUse\"><rect width=\"4\" height=\"1\" fill=\"#000\" opacity=\".22\"/></pattern></defs><rect width=\"240\" height=\"240\" fill=\"#05070d\"/><rect x=\"44\" y=\"34\" width=\"152\" height=\"142\" rx=\"10\" fill=\"#1b1f28\" stroke=\"#3a3f4b\" stroke-width=\"2\"/><g fill=\"#FFD400\"><circle cx=\"56\" cy=\"46\" r=\"4\"/><circle cx=\"184\" cy=\"46\" r=\"4\"/><circle cx=\"56\" cy=\"164\" r=\"4\"/><circle cx=\"184\" cy=\"164\" r=\"4\"/></g><circle class=\"tt-dont-glow\" cx=\"120\" cy=\"108\" r=\"54\" fill=\"#FF283C\" opacity=\".35\"/><g class=\"tt-dont-press\"><ellipse cx=\"120\" cy=\"118\" rx=\"46\" ry=\"14\" fill=\"#5a000c\"/><circle cx=\"120\" cy=\"106\" r=\"44\" fill=\"#a3001a\"/><circle cx=\"120\" cy=\"104\" r=\"38\" fill=\"url(#ttd1-btn)\"/><ellipse cx=\"106\" cy=\"88\" rx=\"14\" ry=\"8\" fill=\"#fff\" opacity=\".35\"/></g><g class=\"tt-dont-lid\"><rect x=\"62\" y=\"48\" width=\"116\" height=\"118\" rx=\"10\" fill=\"#00F0FF\" fill-opacity=\".14\" stroke=\"#00F0FF\" stroke-opacity=\".85\" stroke-width=\"3\"/><path d=\"M70 60l26 0\" stroke=\"#fff\" stroke-opacity=\".5\" stroke-width=\"4\" stroke-linecap=\"round\"/><rect x=\"104\" y=\"156\" width=\"32\" height=\"10\" rx=\"3\" fill=\"#00F0FF\" fill-opacity=\".7\"/></g><rect x=\"58\" y=\"42\" width=\"124\" height=\"8\" rx=\"3\" fill=\"#8a909c\"/><rect x=\"0\" y=\"188\" width=\"240\" height=\"40\" fill=\"url(#ttd1-hz)\"/><rect x=\"24\" y=\"194\" width=\"192\" height=\"28\" fill=\"#05070d\"/><text x=\"120\" y=\"215\" text-anchor=\"middle\" font-family=\"Anton, Impact, 'Arial Black', sans-serif\" font-size=\"21\" fill=\"#FF283C\" textLength=\"176\" lengthAdjust=\"spacingAndGlyphs\" transform=\"translate(-1.5 0)\">DON'T CLICK THIS</text><text x=\"120\" y=\"215\" text-anchor=\"middle\" font-family=\"Anton, Impact, 'Arial Black', sans-serif\" font-size=\"21\" fill=\"#00F0FF\" textLength=\"176\" lengthAdjust=\"spacingAndGlyphs\" transform=\"translate(1.5 0)\">DON'T CLICK THIS</text><text x=\"120\" y=\"215\" text-anchor=\"middle\" font-family=\"Anton, Impact, 'Arial Black', sans-serif\" font-size=\"21\" fill=\"#FFD400\" textLength=\"176\" lengthAdjust=\"spacingAndGlyphs\">DON'T CLICK THIS</text><rect width=\"240\" height=\"240\" fill=\"url(#ttd1-scan)\"/></svg>", "2": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 240 240\" width=\"240\" height=\"240\" aria-hidden=\"true\" focusable=\"false\"><defs><pattern id=\"ttd2-hz\" width=\"22\" height=\"22\" patternUnits=\"userSpaceOnUse\" patternTransform=\"rotate(-45)\"><rect width=\"22\" height=\"22\" fill=\"#FFD400\"/><rect width=\"11\" height=\"22\" fill=\"#05070d\"/></pattern><pattern id=\"ttd2-scan\" width=\"4\" height=\"4\" patternUnits=\"userSpaceOnUse\"><rect width=\"4\" height=\"1\" fill=\"#000\" opacity=\".1\"/></pattern><path id=\"ttd2-tri\" d=\"M120 40l44 76H76z\"/></defs><rect width=\"240\" height=\"240\" fill=\"#FFD400\"/><rect x=\"0\" y=\"0\" width=\"240\" height=\"26\" fill=\"url(#ttd2-hz)\"/><rect x=\"0\" y=\"214\" width=\"240\" height=\"26\" fill=\"url(#ttd2-hz)\"/><rect x=\"0\" y=\"26\" width=\"240\" height=\"3\" fill=\"#05070d\"/><rect x=\"0\" y=\"211\" width=\"240\" height=\"3\" fill=\"#05070d\"/><use class=\"tt-dont-glow\" href=\"#ttd2-tri\" fill=\"none\" stroke=\"#FF283C\" stroke-width=\"14\" stroke-linejoin=\"round\" opacity=\".35\"/><use href=\"#ttd2-tri\" fill=\"#FF283C\" transform=\"translate(-4 0)\" stroke=\"#FF283C\" stroke-width=\"8\" stroke-linejoin=\"round\"/><use href=\"#ttd2-tri\" fill=\"#00C8E0\" transform=\"translate(4 0)\" stroke=\"#00C8E0\" stroke-width=\"8\" stroke-linejoin=\"round\"/><use href=\"#ttd2-tri\" fill=\"#05070d\" stroke=\"#05070d\" stroke-width=\"8\" stroke-linejoin=\"round\"/><rect x=\"115\" y=\"64\" width=\"10\" height=\"30\" rx=\"3\" fill=\"#FFD400\"/><circle cx=\"120\" cy=\"104\" r=\"6\" fill=\"#FFD400\"/><g font-family=\"Anton, Impact, 'Arial Black', sans-serif\" font-size=\"34\" text-anchor=\"middle\"><text x=\"118\" y=\"162\" fill=\"#FF283C\" textLength=\"204\" lengthAdjust=\"spacingAndGlyphs\">DON'T CLICK THIS</text><text x=\"122\" y=\"162\" fill=\"#00C8E0\" textLength=\"204\" lengthAdjust=\"spacingAndGlyphs\">DON'T CLICK THIS</text><text x=\"120\" y=\"162\" fill=\"#05070d\" textLength=\"204\" lengthAdjust=\"spacingAndGlyphs\">DON'T CLICK THIS</text></g><rect x=\"18\" y=\"176\" width=\"204\" height=\"24\" fill=\"#05070d\"/><text x=\"120\" y=\"193\" text-anchor=\"middle\" font-family=\"'Courier New', Courier, monospace\" font-weight=\"700\" font-size=\"13\" fill=\"#FFD400\" textLength=\"192\" lengthAdjust=\"spacingAndGlyphs\">or you're gonna cause a problem</text><rect width=\"240\" height=\"240\" fill=\"url(#ttd2-scan)\"/></svg>", "3": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 240 240\" width=\"240\" height=\"240\" aria-hidden=\"true\" focusable=\"false\"><defs><pattern id=\"ttd3-scan\" width=\"4\" height=\"4\" patternUnits=\"userSpaceOnUse\"><rect width=\"4\" height=\"1\" fill=\"#000\" opacity=\".25\"/></pattern><pattern id=\"ttd3-dots\" width=\"4\" height=\"4\" patternUnits=\"userSpaceOnUse\"><rect width=\"2\" height=\"2\" fill=\"#FFD400\" opacity=\".18\"/></pattern></defs><rect width=\"240\" height=\"240\" fill=\"#05070d\"/><rect width=\"240\" height=\"240\" fill=\"url(#ttd3-dots)\"/><rect x=\"13\" y=\"33\" width=\"214\" height=\"176\" fill=\"none\" stroke=\"#FF283C\" stroke-width=\"3\" transform=\"translate(-4 0)\"/><rect x=\"13\" y=\"33\" width=\"214\" height=\"176\" fill=\"none\" stroke=\"#00F0FF\" stroke-width=\"3\" transform=\"translate(4 0)\"/><rect x=\"13\" y=\"33\" width=\"214\" height=\"176\" fill=\"#0d1018\" stroke=\"#FFD400\" stroke-width=\"3\"/><rect x=\"14.5\" y=\"34.5\" width=\"211\" height=\"22\" fill=\"#FFD400\"/><text x=\"22\" y=\"50\" font-family=\"'Courier New', Courier, monospace\" font-weight=\"700\" font-size=\"13\" fill=\"#05070d\">toaster.exe</text><rect x=\"204\" y=\"38\" width=\"16\" height=\"15\" fill=\"#05070d\"/><path d=\"M208 41.5l8 8M216 41.5l-8 8\" stroke=\"#FFD400\" stroke-width=\"2.4\"/><path d=\"M42 70l20 34H22z\" fill=\"#FFD400\" stroke=\"#FFD400\" stroke-width=\"4\" stroke-linejoin=\"round\"/><rect x=\"40\" y=\"79\" width=\"4\" height=\"14\" fill=\"#05070d\"/><rect x=\"40\" y=\"96\" width=\"4\" height=\"4\" fill=\"#05070d\"/><g font-family=\"'Courier New', Courier, monospace\" font-weight=\"700\" font-size=\"14\"><text x=\"72\" y=\"80\" fill=\"#FF283C\">WARNING:</text><text x=\"72\" y=\"100\" fill=\"#FFD400\">Do not click.</text><text x=\"72\" y=\"124\" fill=\"#e9e9e9\" font-size=\"12.5\">You're gonna</text><text x=\"72\" y=\"141\" fill=\"#e9e9e9\" font-size=\"12.5\">cause a problem.</text></g><rect x=\"72\" y=\"146\" width=\"9\" height=\"2\" fill=\"#e9e9e9\" class=\"tt-dont-glow\"/><g class=\"tt-dont-press\"><rect x=\"80\" y=\"164\" width=\"80\" height=\"30\" fill=\"#FFD400\"/><path d=\"M80 194V164h80\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2\"/><path d=\"M80 194h80V164\" fill=\"none\" stroke=\"#7a6600\" stroke-width=\"2\"/><rect x=\"85\" y=\"168.5\" width=\"70\" height=\"21\" fill=\"none\" stroke=\"#05070d\" stroke-width=\"1.2\" stroke-dasharray=\"2 2\" class=\"tt-dont-glow\"/><text x=\"120\" y=\"184\" text-anchor=\"middle\" font-family=\"'Courier New', Courier, monospace\" font-weight=\"700\" font-size=\"14\" fill=\"#05070d\">[ OK ]</text></g><rect width=\"240\" height=\"240\" fill=\"url(#ttd3-scan)\"/></svg>"};
+  var SUBS=["Bread levels: critical.","Crumbs detected in the Cybertruck.","Fat Coty's burrito order was cancelled. (jk)","Toasty is not mad, just disappointed.","Recalibrating toast..."];
+  var running=false,timers=[],fx=null,dlg=null,lastFocus=null;
+  function T(f,ms){timers.push(setTimeout(f,ms));}
+  function el(t,c,h){var e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;}
+  function rm(){return window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;}
+  function start(){
+    var b=document.body;
+    if(!b||!b.classList.contains('homepage'))return;
+    var list=VARIANT==='cycle'?[1,2,3]:[SVG[VARIANT]?VARIANT:1];
+    var btn=el('button','tt-dont'+(list.length>1?' tt-dont-cycle':''));
+    btn.type='button';
+    var faces=list.map(function(v,i){var f=el('span','tt-dont-face tt-dont-v'+v+(i?'':' tt-dont-cur'),SVG[v]);f.setAttribute('aria-hidden','true');btn.appendChild(f);return f;});
+    var cur=0,ct=0,hovering=false,focused=false;
+    function show(i){faces[cur].classList.remove('tt-dont-cur');cur=i;faces[cur].classList.add('tt-dont-cur');btn.setAttribute('data-face',list[cur]);}
+    function canCycle(){return faces.length>1&&!running&&!hovering&&!focused&&!document.hidden;}
+    function stopCycle(){clearTimeout(ct);ct=0;}
+    function startCycle(){stopCycle();if(!canCycle())return;ct=setTimeout(function(){ct=0;if(!canCycle())return;show((cur+1)%faces.length);startCycle();},rm()?CYCLE_MS_CALM:CYCLE_MS);}
+    btn.setAttribute('data-face',list[0]);
+    /* pause while a mouse hovers (so the variant-1 cover flip can be seen) or keyboard focus is on it; touch taps don't pause */
+    btn.addEventListener('pointerenter',function(e){if(e.pointerType==='mouse'){hovering=true;stopCycle();}});
+    btn.addEventListener('pointerleave',function(e){if(hovering){hovering=false;startCycle();}});
+    btn.addEventListener('focus',function(){var kv=false;try{kv=btn.matches(':focus-visible');}catch(e){}if(kv){focused=true;stopCycle();}});
+    btn.addEventListener('blur',function(){focused=false;startCycle();});
+    document.addEventListener('visibilitychange',function(){if(document.hidden)stopCycle();else startCycle();});
+    btn.setAttribute('aria-label',"Don't click this, or you're gonna cause a problem");
+    function place(){
+      var h=window.__ttDontRow&&window.__ttDontRow();
+      if(!h)return false;
+      var hv=h.querySelector('.tt-hv')||document.querySelector('.tt-hv');
+      if(hv){
+        if(hv.parentNode!==h)h.appendChild(hv);
+        if(btn.parentNode!==h||btn.nextSibling!==hv)h.insertBefore(btn,hv);
+      } else if(btn.parentNode!==h){
+        h.appendChild(btn);
+      }
+      return true;
+    }
+    function bootPlace(){
+      if(!place())return false;
+      b.classList.add('tt-dont-ready');
+      b.classList.add('tt-dont-moved');
+      return true;
+    }
+    bootPlace();
+    var dtries=0,dtid=setInterval(function(){if(bootPlace()||++dtries>40)clearInterval(dtid);},100);
+    /* keep don't-click in front of the video if the video script re-appends itself */
+    var rt;window.addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(place,250);});
+    setTimeout(place,600);window.addEventListener('load',place);
+    function beep(){
+      if(!document.querySelector('.tt-hv.tt-hv-unmuted'))return; /* sound only when the video sound is on */
+      try{var C=window.AudioContext||window.webkitAudioContext;if(!C)return;var ac=new C(),o=ac.createOscillator(),g=ac.createGain();
+        o.type='square';o.frequency.setValueAtTime(320,ac.currentTime);o.frequency.exponentialRampToValueAtTime(70,ac.currentTime+.35);
+        g.gain.setValueAtTime(.05,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+.4);
+        o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+.42);setTimeout(function(){ac.close&&ac.close();},700);}catch(e){}
+    }
+    function onKey(e){if(e.key==='Escape'||e.key==='Esc')done();}
+    function done(){
+      timers.forEach(clearTimeout);timers=[];
+      document.removeEventListener('keydown',onKey,true);
+      if(fx&&fx.parentNode)fx.parentNode.removeChild(fx);fx=null;
+      if(dlg&&dlg.parentNode)dlg.parentNode.removeChild(dlg);dlg=null;
+      btn.classList.remove('tt-dont-on');
+      if(lastFocus&&lastFocus.focus)try{lastFocus.focus({preventScroll:true});}catch(e){}
+      lastFocus=null;running=false;
+      startCycle();
+    }
+    function boom(){
+      if(running)return;running=true;stopCycle();
+      var calm=rm();
+      lastFocus=document.activeElement;
+      btn.classList.add('tt-dont-on');
+      fx=el('div','tt-dont-fx'+(calm?' tt-dont-calm':''));fx.setAttribute('aria-hidden','true');
+      if(!calm){var cols=['#FF283C','#00F0FF','#FFD400','#FF283C','#00F0FF','#FFD400','#fff','#FF283C','#00F0FF'];
+        for(var i=0;i<cols.length;i++){var s=el('i');s.style.top=(Math.random()*96).toFixed(1)+'%';s.style.height=(1+Math.random()*9).toFixed(1)+'%';
+          s.style.background=cols[i];s.style.animationDelay=(-Math.random()*.36).toFixed(2)+'s';fx.appendChild(s);}}
+      document.body.appendChild(fx);
+      T(function(){if(fx&&fx.parentNode)fx.parentNode.removeChild(fx);fx=null;},calm?520:1220);
+      dlg=el('div','tt-dont-dlg',
+        '<p class="tt-dont-ttl"><span>\u26A0 TOASTER OVERLOAD</span><button type="button" class="tt-dont-x" aria-label="Close">\u00D7</button></p>'+
+        '<p class="tt-dont-msg">Great. Now you\u2019ve done it.\u00A0<span style="white-space:nowrap">\uD83C\uDF5E\uD83D\uDD25</span></p>'+
+        '<p class="tt-dont-sub"></p><div class="tt-dont-bar"><span></span></div>'+
+        '<button type="button" class="tt-dont-ok">[ OK ]</button>');
+      dlg.setAttribute('role','alertdialog');dlg.setAttribute('aria-live','assertive');dlg.setAttribute('aria-label','Toaster overload (joke)');
+      dlg.querySelector('.tt-dont-sub').textContent=SUBS[Math.floor(Math.random()*SUBS.length)];
+      dlg.querySelector('.tt-dont-x').addEventListener('click',done);
+      dlg.querySelector('.tt-dont-ok').addEventListener('click',done);
+      T(function(){document.body.appendChild(dlg);try{dlg.querySelector('.tt-dont-ok').focus({preventScroll:true});}catch(e){}},calm?0:260);
+      document.addEventListener('keydown',onKey,true);
+      beep();
+      T(done,3200); /* closes itself */
+    }
+    btn.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();boom();});
+    startCycle();
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
+})();
+</script>
+<!-- /TT DON'T CLICK v3 -->

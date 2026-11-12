@@ -1,0 +1,148 @@
+/* TT DONT MOVE v2 START */
+/* TherapyToaster Home — move the "DON'T CLICK THIS" button and the
+   9:16 header video out of the desktop/mobile header title cluster
+   and into #tt-dont-row, which the footer script now places INSIDE
+   #tt-notice (Mr. Toasty's Daily Glitch), immediately after .ttdg-box.
+
+   Desktop (>=800px): the glitch card and the two toys share one row.
+   The card sits on the left; the button and video sit to its right.
+   At mid widths (800–1779px) the toys stack so the row stays clear of
+   the fixed Toaster Radio dock on the left (#ttmp / #ttpa) and the
+   Chipotle widget on the right (#ttcl). From 1780px up, the toys sit
+   side by side at the original 240 / 135×240 size, vertically centered
+   on the card. Horizontal padding on #tt-notice reserves those docks
+   (360px left, 304px right) from 1366px up.
+
+   Mobile (<800px): #tt-notice stays a normal block, and #tt-dont-row
+   stacks under the glitch card, toys side by side, as in v1.
+
+   HOME ONLY (footer script bails on every other page). Header is just
+   the 3-line logo + nav: the old 240px CSS PFP (a::after) stays hidden
+   from first paint. Widget behavior (click-problem, sound toggle,
+   tap-to-fullscreen) is unchanged. Do not recrop #tt-topwall or move
+   #tt-vc. Hourly Home rebuilds keep the move because placement lives
+   in the footer injection, not the Home code block. */
+
+body.homepage .header .header-title-text a::after {
+  display: none !important;
+}
+
+#tt-dont-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 980px;
+  margin: 16px auto 8px;
+  padding: 0;
+  position: relative;
+  z-index: 3;
+}
+
+body.homepage #tt-dont-row .tt-dont,
+body.homepage #tt-dont-row .tt-hv {
+  margin: 0 !important;
+  vertical-align: middle;
+}
+
+/* They no longer live in the header, so don't collapse the row when
+   the mobile menu overlay is open (the overlay already covers them). */
+body.homepage.header--menu-open #tt-dont-row .tt-dont,
+body.homepage.header--menu-open #tt-dont-row .tt-hv {
+  display: inline-block !important;
+}
+
+/* Desktop: card + toys in one row, toys stacked to the right. */
+@media screen and (min-width: 800px) {
+  body.homepage #tt-notice.ttdg-moved {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    padding: 14px 32px 18px;
+    box-sizing: border-box;
+  }
+  body.homepage #tt-notice.ttdg-moved .ttdg-box {
+    flex: 1 1 0;
+    width: auto;
+    max-width: 980px;
+    min-width: 0;
+    margin: 0 !important;
+  }
+  body.homepage #tt-dont-row {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+    flex: 0 0 auto;
+    width: auto;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    gap: 14px;
+  }
+}
+
+/* 1366-class and up: pad past the fixed radio (left) and Chipotle (right). */
+@media screen and (min-width: 1366px) {
+  body.homepage #tt-notice.ttdg-moved {
+    padding-top: 14px;
+    padding-right: 304px;
+    padding-bottom: 18px;
+    padding-left: 360px;
+  }
+}
+
+/* Mid desktop: slightly smaller stacked toys so the card stays readable
+   inside the dock padding (~502px card at 1366). */
+@media screen and (min-width: 800px) and (max-width: 1779px) {
+  body.homepage #tt-dont-row .tt-dont {
+    width: 180px !important;
+    height: 180px !important;
+  }
+  body.homepage #tt-dont-row .tt-hv {
+    width: 101px !important;
+    height: 180px !important;
+  }
+}
+
+/* Wide desktop: room for the 240 / 135×240 pair beside a ~840px card. */
+@media screen and (min-width: 1780px) {
+  body.homepage #tt-dont-row {
+    flex-direction: row;
+    gap: 18px;
+  }
+}
+
+/* Mobile: keep the under-the-card sizes from v1. */
+@media screen and (max-width: 799px) {
+  body.homepage #tt-dont-row .tt-dont {
+    width: 160px !important;
+    height: 160px !important;
+    border-width: 2px !important;
+  }
+  body.homepage #tt-dont-row .tt-hv {
+    width: 90px !important;
+    height: 160px !important;
+    border-width: 2px !important;
+  }
+}
+
+@media screen and (max-width: 559px) {
+  body.homepage #tt-dont-row .tt-dont {
+    width: 140px !important;
+    height: 140px !important;
+  }
+  body.homepage #tt-dont-row .tt-hv {
+    width: 79px !important;
+    height: 140px !important;
+  }
+}
+
+/* TT DONT MOVE v2 END */
