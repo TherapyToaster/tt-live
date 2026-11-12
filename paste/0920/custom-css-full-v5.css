@@ -1,0 +1,1011 @@
+/* ========================================================================
+   TherapyToaster Squarespace Custom CSS — full replacement v2
+   Select-all + paste into /config/pages/custom-css (do not append).
+
+   Reconstructed live sheet:
+     1) Original base already on the site before 2026-11-12 (css-restore-v1
+        + burger-pop v1 + caution welcome v1 + ook bunny v1 + caution
+        speed v1 + home mobile fix v1 + caution bar v6 typography).
+        Verified: minified form is identical to the live custom.css
+        prefix before @keyframes ttNavGlitch.
+     2) TT NAV GLITCH v2 (replaces live v1)
+     3) TT HOME TIGHT v1 (unchanged)
+     4) TT SPACE FOOTER TIGHT v1 (unchanged)
+     5) TT DAILY GLITCH DROP v2 (mural clearance, retuned for #tt-vc out of flow)
+     6) TT VISITS TOPRIGHT v1 (Site Visits chip under the welcome banner)
+   ======================================================================== */
+@media screen and (max-width:799px){.header-burger .top-bun,.header-burger .patty,.header-burger .bottom-bun{background-color:#ffd400 !important;height:2px !important;box-shadow:-2px 0 0 rgba(255,40,60,.85),2px 0 0 rgba(0,240,255,.75);transition:transform .35s cubic-bezier(.7,-.3,.3,1.3),opacity .2s,width .3s !important}.header-burger .patty{width:70% !important;margin-left:auto}.header-burger-btn:hover .top-bun,.header-burger-btn:focus-visible .top-bun{animation:ttBunGlitch .4s steps(2) 2}.header--menu-open .header-burger .patty{opacity:0 !important}.header--menu-open .header-burger .top-bun,.header--menu-open .header-burger .bottom-bun{box-shadow:-3px 0 0 rgba(255,40,60,.9),3px 0 0 rgba(0,240,255,.8)}.header--menu-open .header .header-title-text a,.header--menu-open .header .header-title-text,body.header--menu-open #header .header-title-text a{color:#ffd400 !important;-webkit-text-fill-color:#ffd400 !important}.header--menu-open .header .header-title-logo img{filter:drop-shadow(0 0 1px #000)}.header-menu .header-menu-bg{background:repeating-linear-gradient(0deg,rgba(0,0,0,.35) 0 1px,transparent 1px 3px),radial-gradient(120% 80% at 50% 0%,rgba(255,212,0,.1),transparent 60%),radial-gradient(90% 60% at 100% 100%,rgba(200,20,40,.14),transparent 60%),#05070d !important}.header-menu .header-menu-bg::after{content:"";position:absolute;inset:0;pointer-events:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='.5'/></svg>"),linear-gradient(180deg,transparent 0 45%,rgba(255,212,0,.07) 50%,transparent 55% 100%);background-size:160px 160px,100% 300%;opacity:.22;mix-blend-mode:screen;animation:ttRoll 6s linear infinite}.header-menu-nav-wrapper{position:relative}.header-menu-nav-wrapper::before{content:"// MENU — THERAPYTOASTER";display:block;padding:0 6vw 2.2rem;font:600 11px/1 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.32em;color:#ffd400;opacity:.85;text-shadow:1px 0 rgba(255,40,60,.7),-1px 0 rgba(0,240,255,.6)}.header-menu-nav-wrapper::after{content:"SYS.OK ▮ SIGNAL 82%";display:block;padding:2.5rem 6vw 0;font:500 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.25em;color:rgba(255,255,255,.35)}.header-menu-nav-item{padding:0 !important}.header-menu-nav-item a{position:relative;display:block !important;padding:.55rem 6vw !important;min-height:56px;text-decoration:none !important}.header-menu-nav-item-content{position:relative;display:inline-block;font-size:clamp(2rem,10.5vw,3.1rem) !important;line-height:1.05 !important;font-weight:800 !important;text-transform:uppercase;letter-spacing:.02em;color:#f2ecd6 !important;text-shadow:-2px 0 rgba(255,40,60,.75),2px 0 rgba(0,240,255,.6)}.header-menu-nav-item-content::after{content:"";position:absolute;left:0;bottom:-4px;height:3px;width:100%;background:#ffd400;box-shadow:0 0 10px rgba(255,212,0,.6);transform:scalex(0);transform-origin:left;transition:transform .35s ease}.header-menu-nav-item a:hover .header-menu-nav-item-content,.header-menu-nav-item a:focus-visible .header-menu-nav-item-content,.header-menu-nav-item a:active .header-menu-nav-item-content{color:#ffd400 !important;animation:ttJitter .32s steps(3) 2}.header-menu-nav-item a:hover .header-menu-nav-item-content::after,.header-menu-nav-item a:focus-visible .header-menu-nav-item-content::after,.header-menu-nav-item--active a .header-menu-nav-item-content::after{transform:scalex(1)}.header-menu-nav-item--active a::before{content:"▶";position:absolute;left:1.4vw;top:50%;transform:translatey(-50%);font-size:12px;color:#c8142a}.header--menu-open .header-menu-nav-item{animation:ttIn .5s cubic-bezier(.2,.8,.2,1) both}.header--menu-open .header-menu-nav-item:nth-child(1){animation-delay:.05s}.header--menu-open .header-menu-nav-item:nth-child(2){animation-delay:.11s}.header--menu-open .header-menu-nav-item:nth-child(3){animation-delay:.17s}.header--menu-open .header-menu-nav-item:nth-child(4){animation-delay:.23s}.header--menu-open .header-menu-nav-item:nth-child(5){animation-delay:.29s}.header--menu-open .header-menu-nav-item:nth-child(n+6){animation-delay:.35s}}@keyframes ttIn{0%{opacity:0;transform:translatex(-24px) skewx(-12deg);filter:blur(3px);clip-path:inset(0 100% 0 0)}60%{opacity:1;transform:translatex(4px) skewx(3deg);clip-path:inset(0 0 0 0);filter:none}100%{opacity:1;transform:none}}@keyframes ttJitter{0%{transform:translate(0);text-shadow:-2px 0 rgba(255,40,60,.8),2px 0 rgba(0,240,255,.7)}33%{transform:translate(-2px,1px);text-shadow:4px 0 rgba(255,40,60,.9),-3px 0 rgba(0,240,255,.8);clip-path:inset(10% 0 35% 0)}66%{transform:translate(2px,-1px);text-shadow:-4px 0 rgba(255,40,60,.9),3px 0 rgba(0,240,255,.8);clip-path:inset(50% 0 5% 0)}100%{transform:translate(0);clip-path:none}}@keyframes ttBunGlitch{50%{transform:translatex(3px)}}@keyframes ttRoll{from{background-position:0 0,0 0}to{background-position:160px 160px,0 300%}}@media (prefers-reduced-motion:reduce){.header-menu-nav-item,.header-menu-nav-item-content,.header-menu .header-menu-bg::after,.header-burger .top-bun{animation:none !important}.header-menu-nav-item-content::after{transition:none !important}}body.homepage .header .header-title-text a::after{content:"";display:inline-block;width:240px;height:240px;margin:0 0 0 24px;box-sizing:border-box;border:3px solid #f5c400;background-color:#05070d;background-image:url("https://images.squarespace-cdn.com/content/v1/6a9884b7f61a583fee1371eb/cb330927-2fd5-4a8f-85d7-bfc4f5ba0cd9/therapytoaster_profile_v3.jpg?format=500w");background-position:center center;background-size:cover;background-repeat:no-repeat;box-shadow:-5px 0 0 rgba(255,40,60,.75),5px 0 0 rgba(0,240,255,.65),0 0 18px rgba(245,196,0,.3);-webkit-text-fill-color:initial;pointer-events:none;vertical-align:middle}@media screen and (max-width:799px){body.homepage .header .header-title-text a::after{width:160px;height:160px;margin:0 0 0 10px;border-width:2px;box-shadow:-3px 0 0 rgba(255,40,60,.75),3px 0 0 rgba(0,240,255,.65),0 0 10px rgba(245,196,0,.25)}}@media screen and (max-width:374px){body.homepage .header .header-title-text a::after{width:130px;height:130px;margin-left:8px}}@media screen and (max-width:349px){body.homepage .header .header-title-text a::after{width:104px;height:104px}}body.homepage.header--menu-open .header .header-title-text a::after{display:none}body.homepage .fe-block-yui_3_17_2_1_1792175150010_5219{display:none !important}@media screen and (min-width:768px){body.homepage .fe-block-0a6b0f7edf2123baea80{grid-column-start:10 !important;grid-column-end:14 !important}body.homepage .fe-block-65a870b7aa2d7d9e8347{grid-column-start:14 !important;grid-column-end:18 !important}}.header,.header .header-announcement-bar-wrapper,.header-background-solid{background-color:#05070d !important}.header{border-bottom:3px solid #ffd400 !important;box-shadow:0 2px 0 rgba(255,40,60,.55),0 0 18px rgba(255,212,0,.35) !important}.header .header-title-text a,.header .header-nav-item a,.header-menu-nav-item a{color:#ffd400 !important}.header .header-nav-item a:hover,.header .header-nav-item--active a{color:#fff !important;text-shadow:1px 0 rgba(255,40,60,.8),-1px 0 #ffd400}h1,h2,h3{color:#ffd400;text-shadow:2px 0 rgba(255,40,60,.55)}.sqs-block-html a,.sqs-block-markdown a{color:#ffd400}.sqs-block-button-element--primary,.sqs-button-element--primary,.btn--primary{background-color:#ffd400 !important;color:#000 !important;border-color:#ffd400 !important;box-shadow:3px 3px 0 rgba(255,40,60,.85) !important}::selection{background:#ffd400;color:#000}body.homepage .header .header-title-text{white-space:nowrap}body.homepage .tt-hv{position:relative;display:inline-block;vertical-align:middle;width:135px;height:240px;margin:0 0 0 18px;padding:0;box-sizing:border-box;border:3px solid #ffd400;background-color:#05070d;background-position:center center;background-size:cover;background-repeat:no-repeat;box-shadow:-5px 0 0 rgba(255,40,60,.75),5px 0 0 rgba(0,240,255,.65),0 0 18px rgba(255,212,0,.3);overflow:hidden;line-height:0;white-space:normal;-webkit-text-fill-color:initial;animation:ttHvGlitch 6.5s steps(1) infinite}body.homepage .tt-hv video{display:block;width:100%;height:100%;margin:0;padding:0;border:0;object-fit:cover;object-position:center center;background:transparent;cursor:pointer}body.homepage .tt-hv::after{content:"";position:absolute;top:0;right:0;bottom:0;left:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.14) 0 1px,transparent 1px 3px);mix-blend-mode:multiply}body.homepage .tt-hv .tt-hv-snd{position:absolute;right:5px;bottom:5px;z-index:2;display:flex;align-items:center;justify-content:center;width:30px;height:30px;margin:0;padding:0;box-sizing:border-box;border:1px solid #ffd400;border-radius:0;background:rgba(5,7,13,.8);color:#ffd400;line-height:0;cursor:pointer;box-shadow:-2px 0 0 rgba(255,40,60,.8),2px 0 0 rgba(0,240,255,.7);-webkit-tap-highlight-color:transparent;-webkit-appearance:none;appearance:none}body.homepage .tt-hv .tt-hv-snd::before{content:"";position:absolute;top:-8px;right:-6px;bottom:-6px;left:-8px}body.homepage .tt-hv .tt-hv-snd svg{display:block;width:18px;height:18px;fill:currentColor}body.homepage .tt-hv .tt-hv-snd .tt-hv-i-on{display:none}body.homepage .tt-hv.tt-hv-unmuted .tt-hv-snd .tt-hv-i-on{display:block}body.homepage .tt-hv.tt-hv-unmuted .tt-hv-snd .tt-hv-i-off{display:none}body.homepage .tt-hv.tt-hv-unmuted .tt-hv-snd{background:#ffd400;color:#05070d}body.homepage .tt-hv .tt-hv-snd:hover{animation:ttBunGlitch .3s steps(2) 2}body.homepage .tt-hv .tt-hv-snd:focus-visible{outline:2px solid #fff;outline-offset:2px}body.homepage .tt-hv.tt-hv-err .tt-hv-snd{display:none}@keyframes ttHvGlitch{0%{transform:none;box-shadow:-5px 0 0 rgba(255,40,60,.75),5px 0 0 rgba(0,240,255,.65),0 0 18px rgba(255,212,0,.3)}93%{transform:translate(-2px,1px) skewx(-2deg);box-shadow:6px 0 0 rgba(255,40,60,.9),-6px 0 0 rgba(0,240,255,.8),0 0 18px rgba(255,212,0,.3)}95%{transform:translate(2px,-1px);box-shadow:-8px 0 0 rgba(255,40,60,.9),4px 0 0 rgba(0,240,255,.8),0 0 18px rgba(255,212,0,.3)}97%{transform:none;box-shadow:-5px 0 0 rgba(255,40,60,.75),5px 0 0 rgba(0,240,255,.65),0 0 18px rgba(255,212,0,.3)}}body.homepage.header--menu-open .tt-hv{display:none}@media screen and (max-width:799px){body.homepage .tt-hv{width:90px;height:160px;margin-left:8px;border-width:2px;box-shadow:-3px 0 0 rgba(255,40,60,.75),3px 0 0 rgba(0,240,255,.65),0 0 10px rgba(255,212,0,.25);animation:none}body.homepage .tt-hv .tt-hv-snd{right:4px;bottom:4px;width:26px;height:26px}body.homepage .tt-hv .tt-hv-snd svg{width:16px;height:16px}}@media screen and (max-width:559px){body.homepage.tt-hv-ready .header .header-title-text a::after{width:104px;height:104px;margin-left:8px}body.homepage .tt-hv{width:59px;height:104px;margin-left:6px}body.homepage .tt-hv .tt-hv-snd{right:3px;bottom:3px;width:22px;height:22px}body.homepage .tt-hv .tt-hv-snd svg{width:14px;height:14px}}@media screen and (max-width:389px){body.homepage.tt-hv-ready .header .header-title-text a::after{width:92px;height:92px}body.homepage .tt-hv{width:52px;height:92px}body.homepage .tt-hv .tt-hv-snd{right:2px;bottom:2px;width:20px;height:20px}body.homepage .tt-hv .tt-hv-snd svg{width:12px;height:12px}}@media screen and (max-width:374px){body.homepage.tt-hv-ready .header .header-title-text a::after{width:84px;height:84px;margin-left:6px}body.homepage .tt-hv{width:47px;height:84px;margin-left:5px}body.homepage .tt-hv .tt-hv-snd{width:18px;height:18px}body.homepage .tt-hv .tt-hv-snd svg{width:11px;height:11px}}@media screen and (max-width:349px){body.homepage.tt-hv-ready .header .header-title-text a::after{width:68px;height:68px}body.homepage .tt-hv{width:38px;height:68px;margin-left:4px;border-width:1px}body.homepage .tt-hv .tt-hv-snd{right:1px;bottom:1px;width:16px;height:16px}body.homepage .tt-hv .tt-hv-snd svg{width:10px;height:10px}}@media (prefers-reduced-motion:reduce){body.homepage .tt-hv,body.homepage .tt-hv .tt-hv-snd{animation:none !important}}body.homepage .page-section:has(#tt-art) .fluid-engine{grid-template-rows:auto !important;grid-auto-rows:auto !important}body.homepage section[data-section-id="6ad3c161641cab5b820666d8"] .fluid-engine{grid-template-rows:auto !important;grid-auto-rows:auto !important}body.homepage .page-section:has(#tt-art) .fe-block:has(#tt-art){grid-column-start:2 !important;grid-column-end:-2 !important;grid-row-start:1 !important;grid-row-end:auto !important;height:auto !important;min-height:0 !important}body.homepage .fe-block.fe-block-yui_3_17_2_1_1792262411134_2458{grid-column-start:2 !important;grid-column-end:-2 !important;grid-row-start:1 !important;grid-row-end:auto !important;height:auto !important;min-height:0 !important}body.homepage .fe-block.fe-block-yui_3_17_2_1_1792262411134_2458 .sqs-block,body.homepage .fe-block.fe-block-yui_3_17_2_1_1792262411134_2458 .sqs-block-content{width:100%;height:auto !important}body.homepage section.page-section.gallery-section[data-section-id="6ad2c5ddbb85b52afb033706"]{display:none !important}body.tt-glitch.tt-gx .page-section.tt-glitch-see .content-wrapper{transform:none !important}.header .header-nav-item--folder .header-nav-folder-title,.header .header-nav-item--folder .header-nav-folder-title-text,.header .header-nav-item--folder .header-nav-folder-title *{color:#ffd400 !important}
+
+/* TT ABOUT GAP v2: collapse the empty first About section but keep its header offset so content is not cut off */
+section[data-section-id="6aed2d499e2d5b64b78ba7fb"]{min-height:0 !important}
+section[data-section-id="6aed2d499e2d5b64b78ba7fb"] .content-wrapper{padding-bottom:0 !important;min-height:0 !important}
+section[data-section-id="6aed2d499e2d5b64b78ba7fb"] .content{display:none !important}
+section[data-section-id="6aed2d499e2d5b64b78ba7fb"] .section-background{display:none !important}
+/* /TT ABOUT GAP v2 */
+/* TT CAUTION BAR v5: scrolling caution-tape bar, slower pulse, longer TRUST NO ONE / BE NICE swaps with RGB slice glitch bursts */
+.sqs-announcement-bar{background:repeating-linear-gradient(-45deg,#FFD400 0 22px,#000 22px 44px)!important;background-size:62.23px 62.23px!important;animation:ttcb-stripes 1.2s linear infinite;padding:10px 0!important;overflow:hidden!important}
+.sqs-announcement-bar-text{padding:0!important;overflow:hidden!important}
+.sqs-announcement-bar-text-inner{display:block!important;overflow:hidden!important;background:#000!important;border-top:3px solid #FFD400;border-bottom:3px solid #FFD400;max-width:none!important;width:100%!important}
+.sqs-announcement-bar-text-inner p{position:relative;display:inline-block!important;white-space:nowrap!important;padding-left:100%!important;margin:6px 0!important;font-family:'Space Mono','Courier New',monospace!important;font-weight:700!important;font-size:clamp(20px,3.2vw,36px)!important;line-height:1.2!important;letter-spacing:.12em!important;text-transform:uppercase!important;color:#FFD400!important;text-shadow:0 0 10px rgba(255,212,0,.7);animation:ttcb-marquee 18s linear infinite,ttcb-flash 2.6s ease-in-out infinite}
+.sqs-announcement-bar-text-inner p *{color:#FFD400!important}
+.sqs-announcement-bar-close{background:#000!important;color:#FFD400!important;z-index:2}
+@keyframes ttcb-stripes{from{background-position:0 0}to{background-position:62.23px 0}}
+@keyframes ttcb-marquee{from{transform:translateX(0)}to{transform:translateX(-100%)}}
+@keyframes ttcb-flash{0%,100%{opacity:1}50%{opacity:.45}}
+/* Independent CSS-only 26s / 33s loops; each swap holds ~3s, glitch bursts at every change. */
+.sqs-announcement-bar-text-inner p{display:inline-flex!important;align-items:baseline;column-gap:clamp(12px,1.5vw,20px);font-size:0!important;letter-spacing:0!important;color:transparent!important;text-shadow:none;animation:ttcb-marquee 18s linear infinite,ttcb-flash 2.6s ease-in-out infinite}
+.sqs-announcement-bar-text-inner p *{color:transparent!important;font-size:0!important}
+.sqs-announcement-bar-text-inner p::before,.sqs-announcement-bar-text-inner p::after{position:relative;display:block;flex:none;white-space:nowrap;pointer-events:none;font-size:clamp(20px,3.2vw,36px);letter-spacing:.12em;color:#FFD400;text-shadow:0 0 10px rgba(255,212,0,.7)}
+.sqs-announcement-bar-text-inner p::before{content:"Trust Everyone." / "";animation:ttcb-trust 26s steps(1,end) infinite,ttcb-gt 26s steps(1,end) infinite}
+.sqs-announcement-bar-text-inner p::after{content:"Be Mean." / "";animation:ttcb-kind 33s steps(1,end) infinite,ttcb-gk 33s steps(1,end) infinite}
+@keyframes ttcb-trust{
+0%,18.6%,19.6%,32%,33.4%,60.6%,61.6%,75%,76.2%,100%{content:"Trust Everyone." / ""}
+18%,19%,20%,32.6%,60%,61%,62%,75.6%{content:"Trust No One." / ""}
+}
+@keyframes ttcb-kind{
+0%,38.5%,39.6%,50%,51%,78.5%,79.5%,89%,90%,100%{content:"Be Mean." / ""}
+38%,39%,40%,50.5%,78%,79%,80%,89.5%{content:"Be Nice." / ""}
+}
+@keyframes ttcb-gt{
+0%,100%,20.2%,33.8%,62.2%,76.6%{text-shadow:0 0 10px rgba(255,212,0,.7);transform:none;clip-path:none}
+17.5%,19.4%,33%,59.5%,61.4%,76%{text-shadow:-4px 0 #00edff,4px 0 #ff37cf;transform:translateX(3px) skewX(-8deg);clip-path:inset(0 0 45% 0)}
+18.2%,31.8%,60.2%,74.8%{text-shadow:5px 0 #00edff,-5px 0 #ff37cf;transform:translateX(-4px) skewX(6deg);clip-path:inset(40% 0 0 0)}
+18.8%,32.4%,60.8%,75.4%{text-shadow:-6px 0 #00edff,6px 0 #ff37cf,0 0 14px #FFD400;transform:translateX(2px) scaleY(1.15);clip-path:inset(20% 0 25% 0)}
+}
+@keyframes ttcb-gk{
+0%,100%,40.2%,51.6%,80.2%,90.6%{text-shadow:0 0 10px rgba(255,212,0,.7);transform:none;clip-path:none}
+37.5%,39.5%,51%,77.5%,79.4%,90%{text-shadow:-4px 0 #00edff,4px 0 #ff37cf;transform:translateX(3px) skewX(-8deg);clip-path:inset(0 0 45% 0)}
+38.3%,49.8%,78.2%,88.8%{text-shadow:5px 0 #00edff,-5px 0 #ff37cf;transform:translateX(-4px) skewX(6deg);clip-path:inset(40% 0 0 0)}
+38.9%,50.4%,78.8%,89.4%{text-shadow:-6px 0 #00edff,6px 0 #ff37cf,0 0 14px #FFD400;transform:translateX(2px) scaleY(1.15);clip-path:inset(20% 0 25% 0)}
+}
+@media (prefers-reduced-motion:reduce){
+.sqs-announcement-bar,.sqs-announcement-bar-text-inner p{animation:none!important}
+.sqs-announcement-bar-text-inner p{display:block!important;padding-left:0!important;white-space:normal!important;font-size:clamp(20px,3.2vw,36px)!important;letter-spacing:.12em!important;color:#FFD400!important;text-align:center;filter:none!important;text-shadow:none!important}
+.sqs-announcement-bar-text-inner p *{color:#FFD400!important;font-size:inherit!important}
+.sqs-announcement-bar-text-inner p::before,.sqs-announcement-bar-text-inner p::after{content:none!important;animation:none!important}
+}
+/* TT FOOTER EMAIL v1 */
+#footer-sections #block-505699511b5474d244dd h2 {
+  font-size: ~"clamp(14px, 1.65vw, 24px)" !important;
+  line-height: 1.25;
+  text-align: left !important;
+  white-space: nowrap !important;
+}
+/* /TT FOOTER EMAIL v1 */
+/* TT burger-pop v1: make the mobile menu button stand out */
+@media screen and (max-width: 799px) {
+  .header-burger .header-burger-btn {
+    position: relative;
+    width: 50px !important;
+    height: 50px !important;
+    padding: 0 !important;
+    background: #FFD400 !important;
+    border: 2px solid #000 !important;
+    border-radius: 10px !important;
+    box-shadow: 3px 3px 0 #e10600, 0 0 0 0 rgba(255,212,0,0.75);
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    animation: ttBurgerPulse 2.2s ease-in-out infinite;
+  }
+  .header-burger .header-burger-btn .burger-box {
+    width: 26px !important;
+    height: 20px !important;
+    margin: 0 auto;
+  }
+  .header-burger .header-burger-btn .burger-inner > div,
+  .header-burger .header-burger-btn .burger-inner::before,
+  .header-burger .header-burger-btn .burger-inner::after {
+    background-color: #000 !important;
+    height: 3px !important;
+  }
+  .header-burger .header-burger-btn::after {
+    content: "MENU";
+    position: absolute;
+    left: 50%;
+    bottom: -17px;
+    transform: translateX(-50%);
+    font: 800 10px/1 Arial, Helvetica, sans-serif;
+    letter-spacing: 0.12em;
+    color: #FFD400;
+    text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+    pointer-events: none;
+  }
+  .header--menu-open .header-burger .header-burger-btn {
+    animation: none;
+  }
+  .header--menu-open .header-burger .header-burger-btn::after {
+    content: "CLOSE";
+  }
+}
+@keyframes ttBurgerPulse {
+  0%, 100% { transform: scale(1) rotate(0deg); box-shadow: 3px 3px 0 #e10600, 0 0 0 0 rgba(255,212,0,0.75); }
+  8% { transform: scale(1.08) rotate(-4deg); }
+  16% { transform: scale(1.08) rotate(4deg); }
+  24% { transform: scale(1) rotate(0deg); }
+  50% { box-shadow: 3px 3px 0 #e10600, 0 0 0 10px rgba(255,212,0,0); }
+}
+/* TT caution welcome v1: welcome line + signature in the scrolling bar */
+.sqs-announcement-bar-text-inner p{animation:ttcb-marquee 36s linear infinite,ttcb-flash 2.6s ease-in-out infinite}
+.sqs-announcement-bar-text-inner p strong{order:-1;position:relative;display:block;flex:none;white-space:nowrap;pointer-events:none;font-weight:700;font-size:clamp(20px,3.2vw,36px)!important;letter-spacing:.06em;text-transform:none;color:#FFD400!important;text-shadow:0 0 10px rgba(255,212,0,.7);padding-right:clamp(18px,2.4vw,36px)}
+/* /TT caution welcome v1 */
+/* TT OOK follow bunny v1: bunny photo instead of Ashley's old Twitter picture */
+#tt-ook .ook-btn img{display:none!important}
+#tt-ook .ook-btn:before{content:"";display:block;flex:none;width:52px;height:52px;border-radius:2px;border:2px solid #000;background-color:#fff;background-image:url(https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@c336791/assets/ashley-pets/bunny-b.webp);background-position:center 32%;background-size:cover;background-repeat:no-repeat}
+@media (max-width:640px){#tt-ook .ook-btn:before{width:42px;height:42px}}
+/* /TT OOK follow bunny v1 */
+/* TT caution speed v1: scrolling bar a touch faster */
+.sqs-announcement-bar-text-inner p{animation:ttcb-marquee 31s linear infinite,ttcb-flash 2.6s ease-in-out infinite}
+/* /TT caution speed v1 */
+/* TT home mobile fix v1
+   Home lifts the Daily Glitch (#tt-notice.ttdg-moved) to the top of #page,
+   under the absolute header. The view counter normally adds a header-height
+   margin-top, but when that counter has not loaded (API error, blocked, or
+   slow), the Glitch title sits behind the header on phones. This adds the
+   same clearance. If the counter is present, the extra margin is removed.
+   Desktop is left unchanged. */
+@media screen and (max-width: 799px) {
+  body.homepage #tt-notice.ttdg-moved {
+    margin-top: 336px;
+  }
+  body.homepage #tt-vc.tt-vc-on ~ #tt-notice.ttdg-moved {
+    margin-top: 0;
+  }
+  /* Room to scroll past the fixed radio and Chipotle docks */
+  body.homepage #page {
+    padding-bottom: 96px;
+  }
+}
+@media screen and (max-width: 640px) {
+  body.homepage #tt-notice.ttdg-moved {
+    margin-top: 310px;
+  }
+}
+@media screen and (max-width: 559px) {
+  body.homepage #tt-notice.ttdg-moved {
+    margin-top: 250px;
+  }
+}
+@media screen and (max-width: 430px) {
+  body.homepage #tt-notice.ttdg-moved {
+    margin-top: 230px;
+  }
+}
+@media screen and (max-width: 389px) {
+  body.homepage #tt-notice.ttdg-moved {
+    margin-top: 200px;
+  }
+}
+@media screen and (max-width: 349px) {
+  body.homepage #tt-notice.ttdg-moved {
+    margin-top: 180px;
+  }
+}
+/* /TT home mobile fix v1 */
+/* TT CAUTION BAR v6: show only the "Welcome to this" announcement text (Trust/Be Nice swaps removed) */
+.sqs-announcement-bar-text-inner p{display:inline-block!important;font-size:clamp(20px,3.2vw,36px)!important;letter-spacing:.12em!important;color:#FFD400!important;text-shadow:0 0 10px rgba(255,212,0,.7)!important}
+.sqs-announcement-bar-text-inner p *{color:#FFD400!important;font-size:inherit!important}
+.sqs-announcement-bar-text-inner p::before,.sqs-announcement-bar-text-inner p::after{content:none!important;animation:none!important;display:none!important}
+
+/* TT NAV GLITCH v2 START */
+/* TT desktop nav glitch tabs v2 — full replacement for v1.
+   Desktop only: this site hides .header-display-desktop at max-width 799px
+   (and pointer:coarse up to 1024px). Mobile overlay (.header-menu) is untouched.
+
+   Layout: tabs are ~3× v1 (13px Anton → ~36-40px) with matching padding,
+   3px borders, and a stronger cyan/red glitch shadow. Ten tabs no longer
+   fit beside the logo / “Don’t click this” / video cluster, so on desktop
+   the nav becomes its own full-width row UNDER that cluster, as a centered
+   5+5 CSS grid (two tidy rows). Long labels may wrap to two lines inside a
+   tab so the grid stays even at 1280, 1440, and 1920. Dropdowns are
+   anchored to the whole nav list so they open below both rows.
+
+   Selectors:
+     .header-display-desktop .header-title-nav-wrapper
+     .header-display-desktop .header-title
+     .header-display-desktop .header-nav
+     .header-display-desktop .header-nav-list
+     .header-display-desktop .header-nav-item
+     .header-display-desktop .header-nav-item > a
+     .header-display-desktop .header-nav-item--folder .header-nav-folder-title
+     .header-display-desktop .header-nav-item--folder .header-nav-folder-title-text
+     .header-display-desktop .header-nav-item--active
+     .header-display-desktop .header-nav-folder-content
+     .header-display-desktop .header-nav-folder-item a
+
+   Overrides the v1 block and:
+     - Injected style making folders white (#fff !important)
+     - custom.css nav color / hover-active #fff / folder #ffd400
+     - Theme navRight layout (title and nav on one row, 1vw/2vw margins,
+       1rem Epilogue, underline via background-image)
+     - custom.css .header { border-bottom: 3px solid #ffd400 } is set
+       transparent while a desktop folder is open so the line doesn’t
+       slice the dropdown.
+*/
+
+@keyframes ttNavGlitch {
+  0% {
+    transform: translate(0, 0);
+    text-shadow: -3px 0 rgba(255, 40, 60, 0.85), 3px 0 rgba(0, 240, 255, 0.75);
+    clip-path: none;
+  }
+  25% {
+    transform: translate(-4px, 2px);
+    text-shadow: 6px 0 rgba(255, 40, 60, 0.95), -5px 0 rgba(0, 240, 255, 0.85);
+    clip-path: inset(12% 0 40% 0);
+  }
+  50% {
+    transform: translate(4px, -2px);
+    text-shadow: -6px 0 rgba(255, 40, 60, 0.95), 6px 0 rgba(0, 240, 255, 0.85);
+    clip-path: inset(45% 0 8% 0);
+  }
+  75% {
+    transform: translate(-3px, 0);
+    text-shadow: 5px 0 rgba(255, 40, 60, 0.9), -6px 0 rgba(0, 240, 255, 0.8);
+    clip-path: inset(20% 0 30% 0);
+  }
+  100% {
+    transform: translate(0, 0);
+    text-shadow: -3px 0 rgba(255, 40, 60, 0.85), 3px 0 rgba(0, 240, 255, 0.75);
+    clip-path: none;
+  }
+}
+
+@media screen and (min-width: 800px) {
+  /* ---- Layout: logo cluster on row 1, full-width nav on row 2 ---- */
+  .header-display-desktop {
+    align-items: stretch !important;
+    height: auto !important;
+  }
+
+  .header-display-desktop .header-title-nav-wrapper {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    flex-direction: row;
+    align-items: flex-start;
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 1 1 100% !important;
+  }
+
+  .header-display-desktop .header-title,
+  .header-layout-nav-right .header-display-desktop .header-title,
+  .header-display-desktop .header-layout-nav-right .header-title {
+    flex: 0 0 100% !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  .header-display-desktop .header-nav,
+  .header-layout-nav-right .header-display-desktop .header-nav,
+  .header-display-desktop .header-layout-nav-right .header-nav {
+    flex: 0 0 100% !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 12px 16px 18px !important;
+    text-align: center !important;
+    box-sizing: border-box;
+  }
+
+  .header-display-desktop .header-nav-wrapper {
+    width: 100%;
+  }
+
+  .header-display-desktop .header-nav-list {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    justify-content: center;
+    align-items: stretch;
+    gap: 10px 10px;
+    width: 100%;
+    max-width: 1680px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 5;
+  }
+
+  .header-display-desktop .header-nav-item,
+  .header-layout-nav-right .header-display-desktop .header-nav-item:not(:first-child):not(.header-actions-action--cart),
+  .header-display-desktop .header-nav-item {
+    margin: 0 !important;
+    position: static;
+    min-width: 0;
+    width: auto;
+    display: flex;
+  }
+
+  /* Keep an open dropdown above the header’s 3px yellow bottom border */
+  .header:has(.header-display-desktop .header-nav-folder-title[aria-expanded="true"]) {
+    z-index: 40;
+    border-bottom-color: transparent !important;
+  }
+
+  /* ---- Tab chrome, ~3× v1 ---- */
+  .header-display-desktop .header-nav-item > a,
+  .header-display-desktop .header-nav-item .header-nav-folder-title {
+    position: relative;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3em;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: #05070d !important;
+    background-image: none !important;
+    color: #ffd400 !important;
+    -webkit-text-fill-color: #ffd400 !important;
+    border: 3px solid #ffd400 !important;
+    border-radius: 3px;
+    padding: 0.42em 0.45em 0.55em !important;
+    margin: 0 !important;
+    font-family: "Anton", Impact, sans-serif !important;
+    font-weight: 400 !important;
+    font-style: normal !important;
+    font-size: ~"clamp(34px, 1.3vw + 17px, 40px)" !important;
+    line-height: 0.95 !important;
+    letter-spacing: 0.015em !important;
+    text-transform: uppercase !important;
+    text-decoration: none !important;
+    text-align: center !important;
+    text-shadow: -3px 0 rgba(255, 40, 60, 0.8), 3px 0 rgba(0, 240, 255, 0.7);
+    box-shadow:
+      4px 4px 0 #000,
+      -2px 0 0 rgba(255, 40, 60, 0.5),
+      2px 0 0 rgba(0, 240, 255, 0.4);
+    white-space: normal;
+    text-wrap: balance;
+    hyphens: manual;
+    cursor: pointer;
+    overflow: hidden;
+    transition: box-shadow 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
+  }
+
+  /* Beat the injected “folders are white” rule and theme underlines */
+  .header-display-desktop .header-nav-item--folder .header-nav-folder-title,
+  .header-display-desktop .header-nav-item--folder .header-nav-folder-title-text,
+  .header-display-desktop .header-nav-item--folder .header-nav-folder-title * {
+    color: #ffd400 !important;
+    -webkit-text-fill-color: #ffd400 !important;
+    background-image: none !important;
+    text-decoration: none !important;
+    text-transform: uppercase !important;
+    opacity: 1 !important;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .header-display-desktop .header-nav-item--active .header-nav-folder-title-text,
+  .header-display-desktop .header-nav-item--active > a,
+  .header-display-desktop .header-nav-item > a,
+  .header-display-desktop .header-nav-folder-title-text {
+    background-image: none !important;
+    text-decoration: none !important;
+  }
+
+  .header-display-desktop .header-nav-item > a::after,
+  .header-display-desktop .header-nav-item--active:not(.header-nav-item--folder) a::after,
+  .header-display-desktop .header-nav-item--folder .header-nav-folder-title-text {
+    transform: none !important;
+    background-image: none !important;
+    text-decoration: none !important;
+  }
+
+  /* Active page: red ▶ + yellow underline, same language as the mobile menu */
+  .header-display-desktop .header-nav-item--active > a,
+  .header-display-desktop .header-nav-item--active .header-nav-folder-title {
+    color: #ffd400 !important;
+    -webkit-text-fill-color: #ffd400 !important;
+    padding-left: 0.7em !important;
+    box-shadow:
+      4px 4px 0 #000,
+      0 0 18px rgba(255, 212, 0, 0.3),
+      -2px 0 0 rgba(255, 40, 60, 0.55),
+      2px 0 0 rgba(0, 240, 255, 0.4);
+  }
+
+  .header-display-desktop .header-nav-item--active > a::before,
+  .header-display-desktop .header-nav-item--active .header-nav-folder-title::before {
+    content: "▶";
+    position: absolute;
+    left: 0.28em;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.5em;
+    line-height: 1;
+    color: #c8142a !important;
+    -webkit-text-fill-color: #c8142a !important;
+    text-shadow: none;
+    pointer-events: none;
+  }
+
+  .header-display-desktop .header-nav-item--active > a::after,
+  .header-display-desktop .header-nav-item--active .header-nav-folder-title::after {
+    content: "";
+    position: absolute !important;
+    left: 50%;
+    right: auto;
+    bottom: 0.32em;
+    width: 2.6em !important;
+    height: 5px !important;
+    background: #ffd400 !important;
+    background-color: #ffd400 !important;
+    box-shadow: 0 0 10px rgba(255, 212, 0, 0.7);
+    transform: translateX(-50%) !important;
+    pointer-events: none;
+  }
+
+  /* Hover / keyboard / preview-forced glitch */
+  .header-display-desktop .header-nav-item > a:hover,
+  .header-display-desktop .header-nav-item > a:focus-visible,
+  .header-display-desktop .header-nav-item .header-nav-folder-title:hover,
+  .header-display-desktop .header-nav-item .header-nav-folder-title:focus-visible,
+  .header-display-desktop .header-nav-item.preview-hover > a,
+  .header-display-desktop .header-nav-item.preview-hover .header-nav-folder-title {
+    color: #ffd400 !important;
+    -webkit-text-fill-color: #ffd400 !important;
+    background-color: #000 !important;
+    border-color: #fff !important;
+    box-shadow:
+      6px 6px 0 #c8142a,
+      -4px 0 0 rgba(255, 40, 60, 0.85),
+      4px 0 0 rgba(0, 240, 255, 0.75),
+      0 0 20px rgba(255, 212, 0, 0.35);
+    animation: ttNavGlitch 0.38s steps(2, end) 2;
+    outline: none;
+  }
+
+  .header-display-desktop .header-nav-item--folder:hover .header-nav-folder-title,
+  .header-display-desktop .header-nav-item--folder:hover .header-nav-folder-title-text,
+  .header-display-desktop .header-nav-item--folder:hover .header-nav-folder-title *,
+  .header-display-desktop .header-nav-item.preview-hover .header-nav-folder-title-text {
+    color: #ffd400 !important;
+    -webkit-text-fill-color: #ffd400 !important;
+  }
+
+  /* Dropdown panel — opens below the full 2-row grid */
+  .header-display-desktop .header-nav-folder-content,
+  .header-display-desktop .header-nav-item--folder .header-nav-folder-title[aria-expanded="true"] + .header-nav-folder-content {
+    background: #05070d !important;
+    background-color: #05070d !important;
+    border: 3px solid #ffd400;
+    border-radius: 3px;
+    box-shadow:
+      6px 6px 0 #000,
+      -3px 0 0 rgba(255, 40, 60, 0.65),
+      3px 0 0 rgba(0, 240, 255, 0.5);
+    padding: 0.35em 0;
+    min-width: 280px;
+    width: max-content;
+    max-width: ~"min(420px, 90vw)";
+    top: ~"calc(100% + 10px)";
+    left: auto;
+    right: auto;
+    z-index: 130;
+    text-align: left !important;
+  }
+
+  .header-display-desktop .header-nav-folder-item {
+    line-height: 1.15;
+  }
+
+  .header-display-desktop .header-nav-folder-item a,
+  .header-display-desktop .header-nav-folder-item a .header-nav-folder-item-content {
+    display: block !important;
+    width: 100%;
+    box-sizing: border-box;
+    color: #ffd400 !important;
+    -webkit-text-fill-color: #ffd400 !important;
+    font-family: "Anton", Impact, sans-serif !important;
+    font-weight: 400 !important;
+    font-size: 22px !important;
+    line-height: 1.15 !important;
+    letter-spacing: 0.03em !important;
+    text-transform: uppercase !important;
+    text-decoration: none !important;
+    background-image: none !important;
+    text-shadow: -2px 0 rgba(255, 40, 60, 0.7), 2px 0 rgba(0, 240, 255, 0.6);
+    padding: 0.45em 0.95em !important;
+    white-space: normal;
+  }
+
+  .header-display-desktop .header-nav-folder-item a::after {
+    content: none !important;
+    display: none !important;
+  }
+
+  .header-display-desktop .header-nav-folder-item a:hover,
+  .header-display-desktop .header-nav-folder-item a:focus-visible,
+  .header-display-desktop .header-nav-folder-item.preview-hover a {
+    color: #ffd400 !important;
+    -webkit-text-fill-color: #ffd400 !important;
+    background-color: #14110a !important;
+    animation: ttNavGlitch 0.38s steps(2, end) 2;
+  }
+
+  .header-display-desktop .header-nav-folder-item--active .header-nav-folder-item-content,
+  .header-display-desktop .header-nav-folder-item--active a {
+    background-image: none !important;
+    text-decoration: none !important;
+    box-shadow: inset 5px 0 0 #ffd400;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header-display-desktop .header-nav-item > a,
+  .header-display-desktop .header-nav-item .header-nav-folder-title,
+  .header-display-desktop .header-nav-folder-item a {
+    animation: none !important;
+    transition: none !important;
+    clip-path: none !important;
+    transform: none !important;
+  }
+}
+/* TT NAV GLITCH v2 END */
+
+/* TT HOME TIGHT v1 START */
+/* TherapyToaster Home — desktop spacing tighten v1
+   PREVIEW / not live. Paste into Squarespace Custom CSS after Coty approves.
+   Scoped to Home only (body.homepage). Desktop only (min-width: 768px),
+   matching the site's own mobile breakpoint. Mobile is unchanged.
+   Does not edit the Home main code block (routines can keep rebuilding it).
+*/
+
+@media screen and (min-width: 768px) {
+
+  /* -------------------------------------------------------------------------
+     1) First (hero) section — data-section-id 6a988533c6d1d146aaea1e2a
+     Squarespace adds padding-top = header height (~401px at 1920, ~379px at
+     1366) so content clears the absolute header. The Daily Glitch (#tt-notice)
+     and #tt-vc were lifted above this section, so that padding is now a
+     large empty band under the notice. Leave a small gap only.
+     Do not touch #tt-vc, #tt-notice, or #tt-topwall.
+     ------------------------------------------------------------------------- */
+  body.homepage section[data-section-id="6a988533c6d1d146aaea1e2a"] {
+    padding-top: 32px !important;
+  }
+
+  /* -------------------------------------------------------------------------
+     2) Main Home code-block section — data-section-id 6ad2c19d6ec9816f0fc57a29
+     section-height--medium (min-height 66vh) plus content-wrapper padding of
+     6.6vw (~127px at 1920, ~90px at 1366) on top and bottom.
+     Fluid Engine still lays out 79 fixed rows (~38px each) sized for when
+     #ttwall (Toaster Wall) lived inside this code block. The wall is now
+     moved out to a .tw-host between sections, so ~450px of empty grid is
+     left under #ttmerch, plus the section's bottom padding — the big black
+     gap before Toaster Wall.
+     Collapse rows to auto and tighten section padding. Self-positioned
+     #ttmerch / #ttcb stay in normal flow inside this block.
+     ------------------------------------------------------------------------- */
+  body.homepage section[data-section-id="6ad2c19d6ec9816f0fc57a29"] {
+    min-height: 0 !important;
+  }
+  body.homepage section[data-section-id="6ad2c19d6ec9816f0fc57a29"] .content-wrapper {
+    padding-top: 40px !important;
+    padding-bottom: 24px !important;
+    min-height: 0 !important;
+  }
+  body.homepage section[data-section-id="6ad2c19d6ec9816f0fc57a29"] .fluid-engine {
+    grid-template-rows: auto !important;
+    grid-auto-rows: auto !important;
+    min-height: 0 !important;
+  }
+  body.homepage section[data-section-id="6ad2c19d6ec9816f0fc57a29"] .fe-block.fe-block-yui_3_17_2_1_1792196864022_6140,
+  body.homepage section[data-section-id="6ad2c19d6ec9816f0fc57a29"] .fe-block:has(#ttlive-css) {
+    grid-row-start: 1 !important;
+    grid-row-end: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+  body.homepage section[data-section-id="6ad2c19d6ec9816f0fc57a29"] .fe-block.fe-block-yui_3_17_2_1_1792196864022_6140 .sqs-block,
+  body.homepage section[data-section-id="6ad2c19d6ec9816f0fc57a29"] .fe-block.fe-block-yui_3_17_2_1_1792196864022_6140 .sqs-block-content,
+  body.homepage section[data-section-id="6ad2c19d6ec9816f0fc57a29"] .fe-block.fe-block-yui_3_17_2_1_1792196864022_6140 .sqs-code-container,
+  body.homepage section[data-section-id="6ad2c19d6ec9816f0fc57a29"] .fe-block:has(#ttlive-css) .sqs-block,
+  body.homepage section[data-section-id="6ad2c19d6ec9816f0fc57a29"] .fe-block:has(#ttlive-css) .sqs-block-content,
+  body.homepage section[data-section-id="6ad2c19d6ec9816f0fc57a29"] .fe-block:has(#ttlive-css) .sqs-code-container {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  /* -------------------------------------------------------------------------
+     3) Glitch Art teaser — data-section-id 6ad3c161641cab5b820666d8
+     Already collapsed to one auto row (existing custom CSS) with a modest
+     56px wrapper padding. Leave that padding alone so #tt-art is not clipped.
+     Only drop the unused 66vh min-height (content is already taller).
+     ------------------------------------------------------------------------- */
+  body.homepage section[data-section-id="6ad3c161641cab5b820666d8"] {
+    min-height: 0 !important;
+  }
+
+  /* -------------------------------------------------------------------------
+     4) Tag Wall section — data-section-id 6adc833ba83bfe1099491707
+     Medium section padding (~127px) above and below #ttpw-root, plus leftover
+     Fluid Engine rows under the wall. Tighten padding; collapse empty rows.
+     Do not change #ttpw-root's own height / padding.
+     ------------------------------------------------------------------------- */
+  body.homepage section[data-section-id="6adc833ba83bfe1099491707"] {
+    min-height: 0 !important;
+  }
+  body.homepage section[data-section-id="6adc833ba83bfe1099491707"] .content-wrapper {
+    padding-top: 40px !important;
+    padding-bottom: 40px !important;
+    min-height: 0 !important;
+  }
+  body.homepage section[data-section-id="6adc833ba83bfe1099491707"] .fluid-engine {
+    grid-template-rows: auto !important;
+    grid-auto-rows: auto !important;
+    min-height: 0 !important;
+  }
+
+  /* -------------------------------------------------------------------------
+     5) Footer contact row — data-section-id 6a988533c6d1d146aaea1e55
+     Fluid Engine uses 7 fixed rows; the 3 text/link blocks only occupy the
+     middle, leaving ~98px unused above and ~147px below (1920). Collapse
+     empty rows. Leave the block layout (columns) alone.
+     ------------------------------------------------------------------------- */
+  body.homepage #footer-sections section[data-section-id="6a988533c6d1d146aaea1e55"] .fluid-engine {
+    grid-template-rows: auto !important;
+    grid-auto-rows: auto !important;
+  }
+  body.homepage #footer-sections section[data-section-id="6a988533c6d1d146aaea1e55"] .fe-block {
+    height: auto !important;
+  }
+
+  /* -------------------------------------------------------------------------
+     6) Footer copyright — data-section-id 6ade641ba1c4f9285a3277d6
+     section-height--medium forces min-height: 66vh (~713px at 1080 tall,
+     ~507px at 768 tall) around a single 87px line, plus 6.6vw padding and
+     leftover FE rows. The obvious empty band under the copyright.
+     ------------------------------------------------------------------------- */
+  body.homepage #footer-sections section[data-section-id="6ade641ba1c4f9285a3277d6"] {
+    min-height: 0 !important;
+  }
+  body.homepage #footer-sections section[data-section-id="6ade641ba1c4f9285a3277d6"] .content-wrapper {
+    padding-top: 24px !important;
+    padding-bottom: 32px !important;
+    min-height: 0 !important;
+  }
+  body.homepage #footer-sections section[data-section-id="6ade641ba1c4f9285a3277d6"] .fluid-engine {
+    grid-template-rows: auto !important;
+    grid-auto-rows: auto !important;
+    min-height: 0 !important;
+  }
+  body.homepage #footer-sections section[data-section-id="6ade641ba1c4f9285a3277d6"] .fe-block {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+}
+/* TT HOME TIGHT v1 END */
+/* TT SPACE FOOTER TIGHT v1 START */
+/* Coty's Space — desktop footer tighten v1 (optional companion to home-tight-v1)
+   PREVIEW / not live. The Coty's Space main column is already reasonably tight;
+   the only obviously large gap is the site footer (same two sections as Home):
+   leftover Fluid Engine rows in the contact bar, and section-height--medium
+   (66vh) around the copyright line. Mobile unchanged.
+   Scoped to collection-6ad2d49a5ed1b35236cc54b2 so Home/other pages are untouched
+   if this is pasted on its own. If Home's CSS is already in Custom CSS (sitewide
+   but body.homepage-scoped), also add this block for Coty's Space.
+*/
+
+@media screen and (min-width: 768px) {
+  body.collection-6ad2d49a5ed1b35236cc54b2 #footer-sections section[data-section-id="6a988533c6d1d146aaea1e55"] .fluid-engine {
+    grid-template-rows: auto !important;
+    grid-auto-rows: auto !important;
+  }
+  body.collection-6ad2d49a5ed1b35236cc54b2 #footer-sections section[data-section-id="6a988533c6d1d146aaea1e55"] .fe-block {
+    height: auto !important;
+  }
+
+  body.collection-6ad2d49a5ed1b35236cc54b2 #footer-sections section[data-section-id="6ade641ba1c4f9285a3277d6"] {
+    min-height: 0 !important;
+  }
+  body.collection-6ad2d49a5ed1b35236cc54b2 #footer-sections section[data-section-id="6ade641ba1c4f9285a3277d6"] .content-wrapper {
+    padding-top: 24px !important;
+    padding-bottom: 32px !important;
+    min-height: 0 !important;
+  }
+  body.collection-6ad2d49a5ed1b35236cc54b2 #footer-sections section[data-section-id="6ade641ba1c4f9285a3277d6"] .fluid-engine {
+    grid-template-rows: auto !important;
+    grid-auto-rows: auto !important;
+    min-height: 0 !important;
+  }
+  body.collection-6ad2d49a5ed1b35236cc54b2 #footer-sections section[data-section-id="6ade641ba1c4f9285a3277d6"] .fe-block {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+}
+/* TT SPACE FOOTER TIGHT v1 END */
+
+/* TT DAILY GLITCH DROP v2 START */
+/* TherapyToaster Home — move Mr. Toasty's Daily Glitch down so the
+   Mr. Toasty graffiti top-wall mural behind it is fully visible.
+
+   v2 retune: TT VISITS TOPRIGHT takes #tt-vc out of flow (it no longer
+   sits under the header and no longer pushes #tt-notice down). Margin
+   is therefore the full locked wall height minus a 16px fade overlap,
+   not "wall minus header minus #tt-vc". !important also beats the
+   existing mobile-fix rule that zeros #tt-notice margin when
+   #tt-vc.tt-vc-on is a preceding sibling.
+
+   The top-wall script sizes #tt-topwall to #tt-notice.bottom; lock the
+   wall height with !important so the mural does not recrop. */
+
+@media screen and (min-width: 768px) {
+  html.tt-topwall body.homepage #tt-topwall {
+    /* 3200x1500 art = 46.875vw when width-limited; 850px floor keeps
+       the tall cover crop at 768–1600. */
+    height: ~"max(46.875vw, 850px)" !important;
+  }
+  html.tt-topwall body.homepage #tt-notice.ttdg-moved,
+  html.tt-topwall body.homepage #tt-vc.tt-vc-on ~ #tt-notice.ttdg-moved {
+    margin-top: ~"calc(max(46.875vw, 850px) - 16px)" !important;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  html.tt-topwall body.homepage #tt-topwall {
+    height: 820px !important;
+  }
+  html.tt-topwall body.homepage #tt-notice.ttdg-moved,
+  html.tt-topwall body.homepage #tt-vc.tt-vc-on ~ #tt-notice.ttdg-moved {
+    margin-top: 804px !important;
+  }
+}
+@media screen and (max-width: 340px) {
+  html.tt-topwall body.homepage #tt-topwall {
+    height: 808px !important;
+  }
+  html.tt-topwall body.homepage #tt-notice.ttdg-moved,
+  html.tt-topwall body.homepage #tt-vc.tt-vc-on ~ #tt-notice.ttdg-moved {
+    margin-top: 792px !important;
+  }
+}
+@media screen and (min-width: 520px) and (max-width: 767px) {
+  html.tt-topwall body.homepage #tt-topwall {
+    height: 880px !important;
+  }
+  html.tt-topwall body.homepage #tt-notice.ttdg-moved,
+  html.tt-topwall body.homepage #tt-vc.tt-vc-on ~ #tt-notice.ttdg-moved {
+    margin-top: 864px !important;
+  }
+}
+/* TT DAILY GLITCH DROP v2 END */
+
+/* TT VISITS TOPRIGHT v1 START */
+/* TherapyToaster Home — move the Site Visits counter (#tt-vc) to the
+   top-right, just under the scrolling "Welcome to this…" announcement
+   bar. Compact chip (skull + label + odometer). Does not overlap the
+   banner close ×, the logo cluster, or the v2 nav tabs.
+
+   #tt-vc is injected as the first child of #page. fit() writes an
+   inline margin-top equal to the header height; beat that with
+   !important and take the box out of flow so Daily Glitch / mural
+   spacing can be handled by TT DAILY GLITCH DROP v2.
+
+   z-index 20 sits above the absolute header (10) so the chip is
+   visible in the header’s empty right side, but it is placed at
+   top: <banner height> so it starts below the bar (the bar’s own
+   close button lives in the top 40px of the banner). */
+
+body.homepage #tt-vc,
+body.homepage #tt-vc.tt-vc-on {
+  display: block !important;
+  position: absolute !important;
+  left: auto !important;
+  right: 16px !important;
+  top: 66px !important; /* mobile banner is ~62px */
+  width: auto !important;
+  max-width: ~"calc(100vw - 96px)" !important; /* leave room for the burger on small screens */
+  margin: 0 !important;
+  margin-top: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  text-align: right !important;
+  z-index: 20 !important;
+  clear: none !important;
+  pointer-events: auto;
+}
+
+body.homepage #tt-vc .tt-vc-in {
+  gap: 8px 10px !important;
+  padding: 5px 8px 5px 6px !important;
+  max-width: 100% !important;
+}
+
+body.homepage #tt-vc .tt-vc-wel {
+  display: none !important; /* redundant with the announcement bar */
+}
+
+body.homepage #tt-vc .tt-vc-sk {
+  width: 40px !important;
+  height: 42px !important;
+  animation: none; /* calmer in the tight header corner */
+}
+
+body.homepage #tt-vc .tt-vc-lbl {
+  font-size: 10px !important;
+  letter-spacing: 0.14em !important;
+}
+
+body.homepage #tt-vc .tt-vc-d {
+  width: 14px !important;
+  height: 20px !important;
+}
+
+body.homepage #tt-vc .tt-vc-strip span {
+  height: 18px !important;
+  line-height: 18px !important;
+  font-size: 14px !important;
+}
+
+/* Mid / desktop banner heights (measured live): 69px at 800, 81px at 1280+. */
+@media screen and (min-width: 600px) {
+  body.homepage #tt-vc,
+  body.homepage #tt-vc.tt-vc-on {
+    top: 72px !important;
+    right: 16px !important;
+    max-width: none !important;
+  }
+}
+@media screen and (min-width: 1100px) {
+  body.homepage #tt-vc,
+  body.homepage #tt-vc.tt-vc-on {
+    top: 85px !important; /* 81px banner + 4px gap; close × is in the top 40px */
+    right: 20px !important;
+  }
+  body.homepage #tt-vc .tt-vc-sk {
+    width: 44px !important;
+    height: 46px !important;
+  }
+}
+
+/* If the visitor closed the announcement bar, sit just under the top edge. */
+body.homepage:not(:has(.sqs-announcement-bar)) #tt-vc,
+body.homepage:not(:has(.sqs-announcement-bar)) #tt-vc.tt-vc-on {
+  top: 8px !important;
+}
+
+/* Mobile: make a slim row under the banner for the chip so it does not
+   sit on top of the logo cluster or the MENU burger. */
+@media screen and (max-width: 799px) {
+  body.homepage #tt-vc,
+  body.homepage #tt-vc.tt-vc-on {
+    top: 64px !important;
+    right: 10px !important;
+    max-width: ~"calc(100vw - 24px)" !important;
+  }
+  body.homepage #header .header-display-mobile {
+    padding-top: 48px !important;
+  }
+  body.homepage #tt-vc .tt-vc-sk {
+    width: 32px !important;
+    height: 34px !important;
+  }
+}
+/* TT VISITS TOPRIGHT v1 END */
+
+
+/* TT NAV CLEAR v1 START */
+/* Append-only desktop override for nav v2.
+   Transparent tab boxes so the graffiti shows through; yellow labels stay
+   solid and readable via a crisp black letter stroke (not a box fill).
+   Yellow borders and the active underline are unchanged. Dropdown panels
+   keep their dark fill. Mobile (.header-menu) is untouched.
+
+   Scope matches v2: @media screen and (min-width: 800px) and
+   .header-display-desktop only.
+*/
+
+@keyframes ttNavGlitchClear {
+  0%, 100% {
+    transform: translate(0, 0);
+    text-shadow:
+      -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000,
+      -3px 0 0 #000, 3px 0 0 #000, 0 -3px 0 #000, 0 3px 0 #000,
+      0 0 6px #000,
+      -3px 0 rgba(255, 40, 60, 0.85), 3px 0 rgba(0, 240, 255, 0.75);
+    clip-path: none;
+  }
+  25% {
+    transform: translate(-4px, 2px);
+    text-shadow:
+      -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000,
+      -3px 0 0 #000, 3px 0 0 #000, 0 -3px 0 #000, 0 3px 0 #000,
+      0 0 6px #000,
+      6px 0 rgba(255, 40, 60, 0.95), -5px 0 rgba(0, 240, 255, 0.85);
+    clip-path: inset(12% 0 40% 0);
+  }
+  50% {
+    transform: translate(4px, -2px);
+    text-shadow:
+      -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000,
+      -3px 0 0 #000, 3px 0 0 #000, 0 -3px 0 #000, 0 3px 0 #000,
+      0 0 6px #000,
+      -6px 0 rgba(255, 40, 60, 0.95), 6px 0 rgba(0, 240, 255, 0.85);
+    clip-path: inset(45% 0 8% 0);
+  }
+  75% {
+    transform: translate(-3px, 0);
+    text-shadow:
+      -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000,
+      -3px 0 0 #000, 3px 0 0 #000, 0 -3px 0 #000, 0 3px 0 #000,
+      0 0 6px #000,
+      5px 0 rgba(255, 40, 60, 0.9), -6px 0 rgba(0, 240, 255, 0.8);
+    clip-path: inset(20% 0 30% 0);
+  }
+}
+
+@media screen and (min-width: 800px) {
+  /* Clear the tab fill and the solid black offset shadow (that shadow
+     would still cover the graffiti). Keep the 3px yellow border. */
+  .header-display-desktop .header-nav-item > a,
+  .header-display-desktop .header-nav-item .header-nav-folder-title,
+  .header-display-desktop .header-nav-item--active > a,
+  .header-display-desktop .header-nav-item--active .header-nav-folder-title {
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    color: #ffd400 !important;
+    -webkit-text-fill-color: #ffd400 !important;
+    opacity: 1 !important;
+    -webkit-text-stroke: 0.06em #000;
+    paint-order: stroke fill;
+    text-shadow:
+      -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000,
+      -3px 0 0 #000, 3px 0 0 #000, 0 -3px 0 #000, 0 3px 0 #000,
+      0 0 6px #000,
+      -3px 0 rgba(255, 40, 60, 0.85), 3px 0 rgba(0, 240, 255, 0.75);
+    box-shadow:
+      -2px 0 0 rgba(255, 40, 60, 0.5),
+      2px 0 0 rgba(0, 240, 255, 0.4);
+    overflow: visible;
+  }
+
+  .header-display-desktop .header-nav-item--folder .header-nav-folder-title,
+  .header-display-desktop .header-nav-item--folder .header-nav-folder-title-text,
+  .header-display-desktop .header-nav-item--folder .header-nav-folder-title * {
+    background: transparent !important;
+    background-color: transparent !important;
+    color: #ffd400 !important;
+    -webkit-text-fill-color: #ffd400 !important;
+    opacity: 1 !important;
+  }
+
+  .header-display-desktop .header-nav-item--active > a,
+  .header-display-desktop .header-nav-item--active .header-nav-folder-title {
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow:
+      0 0 18px rgba(255, 212, 0, 0.3),
+      -2px 0 0 rgba(255, 40, 60, 0.55),
+      2px 0 0 rgba(0, 240, 255, 0.4);
+  }
+
+  /* Hover: still no fill. White border + red offset remain as feedback. */
+  .header-display-desktop .header-nav-item > a:hover,
+  .header-display-desktop .header-nav-item > a:focus-visible,
+  .header-display-desktop .header-nav-item .header-nav-folder-title:hover,
+  .header-display-desktop .header-nav-item .header-nav-folder-title:focus-visible,
+  .header-display-desktop .header-nav-item.preview-hover > a,
+  .header-display-desktop .header-nav-item.preview-hover .header-nav-folder-title {
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    color: #ffd400 !important;
+    -webkit-text-fill-color: #ffd400 !important;
+    animation-name: ttNavGlitchClear;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header-display-desktop .header-nav-item > a,
+  .header-display-desktop .header-nav-item .header-nav-folder-title {
+    animation: none !important;
+  }
+}
+/* TT NAV CLEAR v1 END */
