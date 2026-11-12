@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.20.2"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.20.3"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <link rel="icon" href="data:,"><title>MR. TOASTY'S NO SIGNAL SKULLZ — Therapy Toaster</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Anton&family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
@@ -12949,6 +12949,10 @@ if(typeof TT==='object'){
 (function(){
 const VER='0.20.0';
 const CLOSE=1.15;
+// v0.20.3: sit a little lower and tip the muzzle down toward screen center.
+// Drop is a fraction of overlay height; pitch is extra radians of muzzle-down (CCW).
+const AIM_DROP=0.035;
+const AIM_PITCH=3*Math.PI/180;
 const SW=1280, SH=720;
 function wepSmall(){return (typeof sets!=='function')||sets().wepSz!=='normal'}
 function wepMul(){return wepSmall()?1:1.12}
@@ -13095,15 +13099,18 @@ drawWeapon=function(rdt){
   const lefty=typeof sets==='function'&&!!sets().left;
   const kpx=OH/200; // scale 0180-style bob (tuned on a 200px-tall view) to overlay pixels
   const gx=(OW-dw)+bobX*kpx;
-  const gy=(OH-dh)+bobY*kpx+(P.kick||0)*0.35*s0*0.55 + drop*OH*0.10 + swapDrop*OH*0.46 - sw*OH*0.08;
+  const gy=(OH-dh)+bobY*kpx+(P.kick||0)*0.35*s0*0.55 + drop*OH*0.10 + swapDrop*OH*0.46 - sw*OH*0.08 + AIM_DROP*OH;
 
   const fr=frameOf(id,'idle')||frameOf(id);
   g.save();
   if(lefty){g.translate(OW/2,0);g.scale(-1,1);g.translate(-OW/2,0)}
-  const px=OW-4, py=OH-4;
+  // Pivot at the sleeve / lower-left of the cutout so a muzzle-down tip
+  // does not push the glove off the bottom edge.
+  const px=gx+((fr&&fr.ox||0)+(fr&&fr.aw||SW)*0.12)*s0;
+  const py=gy+((fr&&fr.oy||0)+(fr&&fr.ah||SH))*s0;
   const kickTilt=Math.min(.09,(P.kick||0)*.007)*mul;
   g.translate(px,py);
-  g.rotate(-0.03-kickTilt-tilt-sw*.34+(Math.sin(now*S.fx)*S.r));
+  g.rotate(-0.03-AIM_PITCH-kickTilt-tilt-sw*.34+(Math.sin(now*S.fx)*S.r));
   g.translate(-px,-py);
   g.imageSmoothingEnabled=true;
   if(g.imageSmoothingQuality)g.imageSmoothingQuality='high';
@@ -13156,6 +13163,7 @@ if(typeof TT==='object'){
   TT.gunVer=VER;TT.liveVer=VER;TT.wepClose=CLOSE;TT.wepSmall=wepSmall;TT.wepMul=wepMul;
   TT.gunLayer=()=>gunov;
   TT.gunMode='cutout';
+  TT.aimDrop=AIM_DROP;TT.aimPitch=AIM_PITCH;
 }
 })();
 
@@ -14040,6 +14048,18 @@ if(typeof TT==='object'){
       return gatherFloorStats();
     };
     TT.gradeOf=function(S){return (S||gatherFloorStats()).grade};
+  }
+})();
+
+// v0.20.3 — viewmodels sit 3.5% lower and tip 3° muzzle-down toward screen center.
+// Size, lower-right entry, gloves, bob, fire anims, and CLOSE=1.15 are unchanged.
+// No center reticle.
+(function(){
+  const VER='0.20.3';
+  const CLOSE=1.15;
+  if(typeof TT==='object'){
+    TT.gunVer=VER;TT.liveVer=VER;TT.wepClose=CLOSE;TT.xh=false;
+    if(TT.exitVer)TT.exitVer=VER;
   }
 })();
 </script>
