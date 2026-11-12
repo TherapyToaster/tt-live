@@ -1,0 +1,206 @@
+<style>
+#cotys-space{box-sizing:border-box;text-align:left;line-height:normal}
+#cotys-space{margin:0;color:#dee3de;font:11px Verdana,Arial,sans-serif}
+#cotys-space a{color:#FFD400;text-decoration:none}
+#cotys-space a:hover{text-decoration:underline;color:#fff}
+#cotys-space .wrap{width:800px;margin:0 auto}
+#cotys-space .top{background:transparent}
+#cotys-space .bar{display:flex;align-items:center;justify-content:space-between;height:52px}
+#cotys-space .logo{font:bold 26px Arial;color:#dee3de;letter-spacing:-1px;position:relative}
+#cotys-space .logo span{color:#FFD400}
+#cotys-space .glitch{animation:gl 3s infinite steps(1)}
+@keyframes gl{0%,92%{text-shadow:none;transform:none}93%{text-shadow:2px 0 #f0f,-2px 0 #0ff;transform:translateX(1px)}96%{text-shadow:-2px 0 #FFD400,2px 0 #0ff;transform:translateX(-1px)}}
+#cotys-space .search input{font:11px Verdana;width:150px;background:#dee3de;border:1px solid #FFD400}
+#cotys-space .search button{font:10px Verdana;background:#FFD400;border:0;padding:2px 6px;font-weight:bold}
+#cotys-space .player{background:#000;border:1px solid #FFD400;padding:3px 6px;width:190px;font-size:10px}
+#cotys-space .player .np{color:#FFD400;font-weight:bold}
+#cotys-space .eq{display:inline-block;vertical-align:middle}
+#cotys-space .eq i{display:inline-block;width:3px;background:#FFD400;margin-right:1px;animation:eq .6s infinite alternate}
+#cotys-space .eq i:nth-child(2){animation-delay:.2s}
+#cotys-space .eq i:nth-child(3){animation-delay:.4s}
+@keyframes eq{from{height:2px}to{height:10px}}
+#cotys-space .prog{height:4px;background:#222;margin-top:2px}
+#cotys-space .prog b{display:block;height:4px;width:37%;background:#FFD400}
+#cotys-space .nav{background:#FFD400;font:bold 10px Verdana;padding:4px 0;text-align:center;color:#05070d}
+#cotys-space .nav a{color:#05070d}
+#cotys-space .main{display:flex;gap:10px;padding:10px 0;align-items:flex-start}
+#cotys-space .left{width:300px}
+#cotys-space .right{width:490px}
+#cotys-space .box{border:1px solid #FFD400;margin-bottom:10px;background:#03112b}
+#cotys-space .hd{background:#FFD400;color:#05070d;font-weight:bold;padding:3px 5px;font-size:11px}
+#cotys-space .bd{padding:6px}
+#cotys-space h1.name{font:bold 16px Arial;margin:0 0 6px;color:#dee3de}
+#cotys-space .pf{display:flex;gap:8px}
+#cotys-space .pf img{width:150px;border:1px solid #FFD400}
+#cotys-space .online{color:#3f3;font-weight:bold;font-size:10px}
+#cotys-space .online:before{content:"";display:inline-block;width:8px;height:8px;background:#3f3;border-radius:50%;margin-right:3px;box-shadow:0 0 4px #3f3;animation:bl 1s infinite}
+@keyframes bl{50%{opacity:.3}}
+#cotys-space table{border-collapse:collapse;font-size:10px}
+#cotys-space .contact td{width:50%;padding:3px;font-weight:bold}
+#cotys-space .int td{border:1px solid #233;padding:4px;vertical-align:top}
+#cotys-space .int td.k{background:#0b1e44;color:#FFD400;font-weight:bold;width:70px}
+#cotys-space .links ul{margin:0;padding-left:16px;line-height:1.7}
+#cotys-space .ext{border:1px solid #FFD400;padding:10px;font:bold 15px Arial;text-align:center;margin-bottom:10px;background:#03112b}
+#cotys-space .sparkle{background:linear-gradient(90deg,#FFD400,#fff6c0,#FFD400,#7a6820,#fff,#FFD400);background-size:300% 100%;-webkit-background-clip:text;color:transparent;animation:sh 2s linear infinite;position:relative}
+@keyframes sh{to{background-position:-300% 0}}
+#cotys-space .glit{position:relative;display:inline-block}
+#cotys-space .glit:after{content:"✦ ✧ ✦";position:absolute;right:-48px;top:-4px;color:#fff6c0;font-size:12px;animation:tw 1.2s infinite}
+@keyframes tw{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.1;transform:scale(.5) rotate(40deg)}}
+#cotys-space .sec{color:#FFD400;font:bold 12px Verdana;border-bottom:1px solid #FFD400;margin:12px 0 6px}
+#cotys-space .blog li{margin-bottom:3px}
+#cotys-space .about p{margin:0 0 8px;line-height:1.45}
+#cotys-space .vid{max-width:100%}
+#cotys-space .top8{width:100%}
+#cotys-space .top8 td{text-align:center;padding:6px;width:25%;font-weight:bold;vertical-align:top}
+#cotys-space .top8 img,#cotys-space .ph{width:90px;height:90px;object-fit:cover;border:1px solid #FFD400;margin-top:3px}
+#cotys-space .ph{display:flex;align-items:center;justify-content:center;margin:3px auto 0;font:bold 13px Arial;color:#05070d;flex-direction:column}
+#cotys-space .tom{background:#dee3de}
+#cotys-space .a54{background:#FFD400}
+#cotys-space .tw{background:#9146ff;color:#fff}
+#cotys-space .it{background:#05070d;color:#FFD400;border-color:#FFD400}
+#cotys-space .gal{display:flex;flex-wrap:wrap;gap:4px}
+#cotys-space .gal img{width:92px;height:70px;object-fit:cover;border:1px solid #FFD400;filter:contrast(1.1)}
+#cotys-space .gal img:hover{filter:hue-rotate(90deg) saturate(2)}
+#cotys-space .com{width:100%}
+#cotys-space .com td{border:1px solid #233;padding:6px;vertical-align:top}
+#cotys-space .cw{width:100px;text-align:center;background:#0b1e44;font-weight:bold}
+#cotys-space .cw img,#cotys-space .cw .ph{width:80px;height:80px;object-fit:cover}
+#cotys-space .cb{background:#05070d}
+#cotys-space .ts{color:#FFD400}
+#cotys-space .sample{color:#f66;font-size:9px;font-weight:bold}
+#cotys-space .foot{text-align:center;font-size:9px;padding:15px;border-top:1px solid #FFD400;color:#889}
+#cotys-space .chatbox{position:relative;width:100%;height:460px;overflow:hidden;background:#05070d}
+/* ===== v6: 2005 MySpace wallpaper. Tiled gold skull + red star checker (inline SVG), glitter, fixed. Fills the whole Squarespace section via :has(); #cotys-space carries it as a fallback. ===== */
+#cotys-space,section.page-section:has(#cotys-space) .section-background{background-color:#050505;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cdefs%3E%3Cg id='k'%3E%3Cpath d='M-15 4L15 22M15 4L-15 22' stroke-width='4' stroke-linecap='round'/%3E%3Ccircle cx='-15' cy='4' r='3'/%3E%3Ccircle cx='15' cy='4' r='3'/%3E%3Ccircle cx='-15' cy='22' r='3'/%3E%3Ccircle cx='15' cy='22' r='3'/%3E%3Ccircle cy='-5' r='13'/%3E%3Crect x='-7.5' y='3' width='15' height='10' rx='2'/%3E%3Cg fill='%23050505' stroke='%23050505'%3E%3Ccircle cx='-5' cy='-4' r='3.8'/%3E%3Ccircle cx='5' cy='-4' r='3.8'/%3E%3Cpath d='M0 2l-2 4h4z'/%3E%3Cpath d='M-3.5 9v4M0 9v4M3.5 9v4' stroke-width='1.2'/%3E%3C/g%3E%3C/g%3E%3Cpolygon id='s' points='0,-8 1.9,-2.7 7.6,-2.5 3.1,1 4.7,6.5 0,3.3 -4.7,6.5 -3.1,1 -7.6,-2.5 -1.9,-2.7'/%3E%3CclipPath id='c'%3E%3Crect x='96' y='114' width='60' height='6'/%3E%3C/clipPath%3E%3C/defs%3E%3Crect width='160' height='160' fill='%23050505'/%3E%3Cpath d='M0 0h80v80H0zM80 80h80v80H80z' fill='%23160407'/%3E%3Cg opacity='.5'%3E%3Cuse href='%23k' x='38' y='38' fill='%23e00018' stroke='%23e00018' opacity='.6'/%3E%3Cuse href='%23k' x='42' y='38' fill='%2300e5ff' stroke='%2300e5ff' opacity='.3'/%3E%3Cuse href='%23k' x='40' y='38' fill='%23FFD400' stroke='%23FFD400'/%3E%3Cuse href='%23k' x='118' y='118' fill='%23e00018' stroke='%23e00018' opacity='.6'/%3E%3Cuse href='%23k' x='122' y='118' fill='%2300e5ff' stroke='%2300e5ff' opacity='.3'/%3E%3Cuse href='%23k' x='120' y='118' fill='%23FFD400' stroke='%23FFD400'/%3E%3Crect x='96' y='114' width='60' height='6' fill='%23160407'/%3E%3Cg clip-path='url(%23c)'%3E%3Cuse href='%23k' x='127' y='118' fill='%23FFD400' stroke='%23FFD400'/%3E%3C/g%3E%3C/g%3E%3Cuse href='%23s' x='120' y='40' fill='%23c8142a' opacity='.65'/%3E%3Cuse href='%23s' x='40' y='120' fill='%23c8142a' opacity='.65'/%3E%3Crect x='0' y='66' width='58' height='1.5' fill='%23FFD400' opacity='.35'/%3E%3Crect x='104' y='92' width='56' height='2' fill='%23e00018' opacity='.4'/%3E%3Crect x='18' y='147' width='34' height='1' fill='%2300e5ff' opacity='.3'/%3E%3Ccircle cx='80' cy='80' r='1.2' fill='%23FFD400' opacity='.7'/%3E%3Ccircle cx='0' cy='0' r='1.2' fill='%23FFD400' opacity='.7'/%3E%3Ccircle cx='160' cy='0' r='1.2' fill='%23FFD400' opacity='.7'/%3E%3Ccircle cx='0' cy='160' r='1.2' fill='%23FFD400' opacity='.7'/%3E%3Ccircle cx='160' cy='160' r='1.2' fill='%23FFD400' opacity='.7'/%3E%3C/svg%3E");background-size:160px 160px;background-repeat:repeat;background-attachment:fixed}
+@supports selector(a:has(b)){#cotys-space{background:transparent}}
+section.page-section:has(#cotys-space) .section-background{animation:cs-gx 9s steps(1) infinite}
+section.page-section:has(#cotys-space) .section-background:before,section.page-section:has(#cotys-space) .section-background:after{content:"";position:absolute;top:0;right:0;bottom:0;left:0;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='230' height='190'%3E%3Cpath transform='translate(22 30)' fill='%23fff6c0' d='M0 -6L1.3 -1.3L6 0L1.3 1.3L0 6L-1.3 1.3L-6 0L-1.3 -1.3Z'/%3E%3Cpath transform='translate(140 18)' fill='%23fff' d='M0 -4L0.9 -0.9L4 0L0.9 0.9L0 4L-0.9 0.9L-4 0L-0.9 -0.9Z'/%3E%3Cpath transform='translate(196 96)' fill='%23fff6c0' d='M0 -7L1.5 -1.5L7 0L1.5 1.5L0 7L-1.5 1.5L-7 0L-1.5 -1.5Z'/%3E%3Cpath transform='translate(70 120)' fill='%23fff' d='M0 -3L0.7 -0.7L3 0L0.7 0.7L0 3L-0.7 0.7L-3 0L-0.7 -0.7Z'/%3E%3Cpath transform='translate(118 170)' fill='%23fff6c0' d='M0 -5L1.1 -1.1L5 0L1.1 1.1L0 5L-1.1 1.1L-5 0L-1.1 -1.1Z'/%3E%3Ccircle cx='96' cy='60' r='1.2' fill='%23fff'/%3E%3Ccircle cx='176' cy='150' r='1' fill='%23fff6c0'/%3E%3Ccircle cx='30' cy='170' r='1.2' fill='%23fff'/%3E%3C/svg%3E");background-size:230px 190px;background-repeat:repeat;background-attachment:fixed;animation:cs-tw 1.8s steps(1) infinite}
+section.page-section:has(#cotys-space) .section-background:after{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='250'%3E%3Cpath transform='translate(60 40)' fill='%23fff' d='M0 -5L1.1 -1.1L5 0L1.1 1.1L0 5L-1.1 1.1L-5 0L-1.1 -1.1Z'/%3E%3Cpath transform='translate(150 110)' fill='%23fff6c0' d='M0 -4L0.9 -0.9L4 0L0.9 0.9L0 4L-0.9 0.9L-4 0L-0.9 -0.9Z'/%3E%3Cpath transform='translate(30 160)' fill='%23ffe27a' d='M0 -6L1.3 -1.3L6 0L1.3 1.3L0 6L-1.3 1.3L-6 0L-1.3 -1.3Z'/%3E%3Cpath transform='translate(110 220)' fill='%23fff' d='M0 -3L0.7 -0.7L3 0L0.7 0.7L0 3L-0.7 0.7L-3 0L-0.7 -0.7Z'/%3E%3Ccircle cx='130' cy='20' r='1.2' fill='%23fff6c0'/%3E%3Ccircle cx='80' cy='120' r='1' fill='%23fff'/%3E%3Ccircle cx='12' cy='236' r='1.2' fill='%23ffe27a'/%3E%3C/svg%3E");background-size:170px 250px;animation-duration:2.3s;animation-delay:-1.1s}
+@keyframes cs-tw{0%{opacity:.95}25%{opacity:.2}50%{opacity:.75}75%{opacity:.35}}
+@keyframes cs-gx{0%{background-position:0 0}94%{background-position:9px 0}95%{background-position:-6px 2px}96%{background-position:3px -1px}97%{background-position:0 0}}
+#cotys-space .top .bar{background:rgba(3,17,43,.92);border:1px solid #FFD400;border-bottom:0;padding:0 10px;box-sizing:border-box}
+#cotys-space .nav{width:800px;margin:0 auto;box-sizing:border-box;box-shadow:3px 3px 0 rgba(200,20,42,.55)}
+#cotys-space .box,#cotys-space .ext{background:rgba(3,17,43,.87);box-shadow:3px 3px 0 rgba(200,20,42,.5),0 0 10px rgba(0,0,0,.6)}
+#cotys-space .int td.k,#cotys-space .cw{background:rgba(11,30,68,.8)}
+#cotys-space .cb{background:rgba(5,7,13,.55)}
+#cotys-space .foot{width:800px;margin:0 auto 10px;box-sizing:border-box;background:rgba(5,7,13,.88);border:1px solid #FFD400;color:#aab}
+#cotys-space .twmore{text-align:right;font-weight:bold;margin:6px 0 8px}
+/* ===== Mobile / responsive (max-width:768px). Desktop styles above are unchanged. ===== */
+@media (max-width:768px){
+#cotys-space{overflow-x:hidden;max-width:100%;font-size:14px;overflow-wrap:anywhere;word-break:normal;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+#cotys-space *,#cotys-space *:before,#cotys-space *:after{box-sizing:border-box;max-width:100%}
+#cotys-space img,#cotys-space iframe,#cotys-space video,#cotys-space embed,#cotys-space object{max-width:100%}
+#cotys-space img{height:auto}
+#cotys-space .wrap{width:auto;max-width:100%;margin:0;padding-left:8px;padding-right:8px}
+#cotys-space .bar{height:auto;flex-direction:column;align-items:stretch;gap:8px;padding-top:8px;padding-bottom:8px}
+#cotys-space .logo{text-align:center;font-size:26px}
+#cotys-space .logo sup{font-size:14px!important}
+#cotys-space .search{display:flex;gap:4px}
+#cotys-space .search input{flex:1 1 auto;min-width:0;width:auto;font-size:16px;padding:4px}
+#cotys-space .search button{flex:0 0 auto;font-size:14px;padding:4px 10px}
+#cotys-space .player{width:100%;font-size:14px;padding:6px 8px}
+#cotys-space .nav{font-size:14px;line-height:1.9;padding:6px 8px;white-space:normal;overflow-wrap:normal;word-break:normal}
+#cotys-space .nav a{display:inline-block;padding:0 2px;white-space:nowrap}
+#cotys-space .main{flex-direction:column;align-items:stretch;gap:0}
+#cotys-space .left,#cotys-space .right{width:100%;max-width:100%;flex:0 0 auto;min-width:0}
+#cotys-space .box,#cotys-space .ext{width:100%;max-width:100%}
+#cotys-space .hd{font-size:15px;padding:5px 8px}
+#cotys-space .bd{padding:8px}
+#cotys-space h1.name{font-size:20px}
+#cotys-space .pf{flex-wrap:wrap}
+#cotys-space .pf img{width:42%;max-width:150px;height:auto;flex:0 0 auto}
+#cotys-space .pf>div{flex:1 1 140px;min-width:0}
+#cotys-space .online{font-size:14px}
+#cotys-space table{font-size:14px;width:100%;max-width:100%}
+/* Contact + Interests tables reflow into stacked blocks */
+#cotys-space .contact,#cotys-space .contact tbody,#cotys-space .contact tr,#cotys-space .contact td{display:block;width:100%}
+#cotys-space .contact td{padding:6px 3px}
+#cotys-space .int,#cotys-space .int tbody,#cotys-space .int tr,#cotys-space .int td{display:block;width:100%}
+#cotys-space .int tr{margin-bottom:6px}
+#cotys-space .int td.k{width:100%;border-bottom:0}
+#cotys-space .links ul{padding-left:20px;line-height:1.9}
+#cotys-space .ext{font-size:17px;padding:10px 8px}
+#cotys-space .glit{display:inline}
+#cotys-space .glit:after{position:static;display:inline-block;margin-left:6px;font-size:14px}
+#cotys-space .sec{font-size:15px}
+#cotys-space .about p{line-height:1.5}
+/* Facebook video: fluid 16:9 */
+#cotys-space iframe.vid{display:block;width:100%!important;max-width:100%;height:auto!important;aspect-ratio:16/9;margin:0 auto}
+/* Twitter / SociableKit embeds */
+#cotys-space .twitter-tweet,#cotys-space .sk-ww-twitter-feed{max-width:100%!important;width:100%!important;min-width:0!important;margin-left:0!important;margin-right:0!important}
+/* Top 8: grid, 4 per row (3 on small phones, 2 on very narrow) */
+#cotys-space .bd>b.sparkle{font-size:15px!important}
+#cotys-space .top8,#cotys-space .top8 tbody{display:block;width:100%}
+#cotys-space .top8 tbody{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:6px}
+#cotys-space .top8 tr{display:contents}
+#cotys-space .top8 td{display:block;width:auto;padding:4px 2px;font-size:14px;min-width:0}
+#cotys-space .top8 img,#cotys-space .top8 .ph{width:100%;max-width:90px;height:auto;aspect-ratio:1/1;margin-left:auto;margin-right:auto}
+#cotys-space .top8 img{display:block}
+#cotys-space .ph{font-size:14px}
+/* Gallery: fluid 3-up grid */
+#cotys-space .gal{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+#cotys-space .gal a{display:block;min-width:0}
+#cotys-space .gal img{display:block;width:100%;height:auto;aspect-ratio:92/70}
+/* Comments table: keep table but fixed, fluid layout; scroll as fallback */
+#cotys-space .com{table-layout:fixed;display:table}
+#cotys-space .cw{width:96px;font-size:14px;padding:6px 4px}
+#cotys-space .cw img,#cotys-space .cw .ph{width:100%;max-width:80px;height:auto;aspect-ratio:1/1;margin-left:auto;margin-right:auto}
+#cotys-space .cw img{display:block}
+#cotys-space .com td.cb{font-size:14px;line-height:1.45}
+#cotys-space .sample{font-size:14px}
+#cotys-space .foot{font-size:14px;padding:15px 10px;line-height:1.6}
+/* Chatango boxes */
+#cotys-space .chatbox{height:420px;width:100%}
+#cotys-space .chatbox iframe{width:100%!important}
+}
+@media (max-width:560px){
+#cotys-space .top8 tbody{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media (max-width:340px){
+#cotys-space .top8 tbody{grid-template-columns:repeat(2,minmax(0,1fr))}
+#cotys-space .gal{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+/* v6 wallpaper: mobile + reduced motion */
+@media (max-width:768px){
+#cotys-space,section.page-section:has(#cotys-space) .section-background,section.page-section:has(#cotys-space) .section-background:before,section.page-section:has(#cotys-space) .section-background:after{background-attachment:scroll}
+section.page-section:has(#cotys-space) .section-background{background-size:128px 128px}
+#cotys-space .top .bar{padding:8px}
+#cotys-space .nav{width:auto}
+#cotys-space .foot{width:auto;margin:0 0 10px}
+}
+@media (prefers-reduced-motion:reduce){section.page-section:has(#cotys-space) .section-background,section.page-section:has(#cotys-space) .section-background:before,section.page-section:has(#cotys-space) .section-background:after{animation:none}}
+</style>
+<div id="cotys-space">
+<div class="top"><div class="wrap bar"><div class="logo glitch">Coty's<span>Space</span><sup style="font-size:9px">™</sup></div>
+<form class="search" onsubmit="return false"><input placeholder="Search Coty's Space"> <button>Search</button></form>
+<div class="player"><span class="np">▶ Now Playing:</span> <span class="eq"><i></i><i></i><i></i></span><br>Toaster Anthem (Glitch Remix) - Mr. Toasty<div class="prog"><b></b></div>⏮ ⏸ ⏭ &nbsp;1:23 / 3:45 &nbsp;🔊</div></div>
+<div class="nav"><a href="#">Home</a> | <a href="#">Browse</a> | <a href="#">Search</a> | <a href="#">Invite</a> | <a href="#">Film</a> | <a href="#">Mail</a> | <a href="#">Blog</a> | <a href="#">Favorites</a> | <a href="#">Forum</a> | <a href="#">Groups</a> | <a href="#">Events</a> | <a href="#">Videos</a> | <a href="#">Music</a> | <a href="#">Comedy</a> | <a href="#">Classifieds</a></div></div>
+<div class="wrap main"><div class="left">
+<div class="box"><div class="bd"><h1 class="name glitch">〽️®️ Ƭᴏᴀsᴛʏ</h1><div class="pf"><img src="https://pbs.twimg.com/profile_images/2111322663851356160/jePSuzWu_400x400.jpg" alt="Coty"><div>"Therapy Toaster's pilot"<br><br>Male<br>Army Veteran 🇺🇸<br>Dad of 4<br>United States<br><br><span class="online">Online Now!</span><br><br>Last Login:<br>10/16/2026</div></div>
+<p><b>Mood:</b> toasty 🍞🔥</p><p><b>View My:</b> <a href="#pics">Pics</a></p></div></div>
+<div class="box"><div class="hd">Contacting Coty</div><div class="bd"><table class="contact"><tr><td><a href="https://x.com/TherapyToaster" target="_blank" rel="noopener">✉️ Send Message</a></td><td><a href="https://x.com/TherapyToaster" target="_blank" rel="noopener">➕ Add to Friends</a></td></tr><tr><td><a href="https://x.com/TherapyToaster" target="_blank" rel="noopener">📨 Forward to Friend</a></td><td><a href="https://x.com/TherapyToaster" target="_blank" rel="noopener">⭐ Add to Favorites</a></td></tr><tr><td><a href="https://x.com/TherapyToaster" target="_blank" rel="noopener">💬 Instant Message</a></td><td><a href="https://x.com/TherapyToaster" target="_blank" rel="noopener">🚫 Block User</a></td></tr><tr><td><a href="https://x.com/TherapyToaster" target="_blank" rel="noopener">👥 Add to Group</a></td><td><a href="https://x.com/TherapyToaster" target="_blank" rel="noopener">🏆 Rank User</a></td></tr><tr></tr></table></div></div>
+<div class="box"><div class="bd"><b>Coty's Space URL:</b><br><a href="https://TherapyToaster.com/" target="_blank">http://TherapyToaster.com/</a></div></div>
+<div class="box"><div class="hd">Coty's Interests</div><div class="bd"><table class="int">
+<tr><td class="k">General</td><td>Glitch art, Cybertrucks (the Therapy Toaster), Grok, video games, my cat (this freaking cat, I swear), Electric Speed Square</td></tr>
+<tr><td class="k">Music</td><td>Glitchy synthwave, chiptune, whatever's on Area54.fm, road-trip bangers blasting in the Toaster</td></tr>
+<tr><td class="k">Movies</td><td>Sci-fi, anything with a stainless steel vehicle, Mars movies</td></tr>
+<tr><td class="k">Heroes</td><td>My wife (23 yrs of putting up with me), my 4 kids, fellow vets, Tom</td></tr></table></div></div>
+<div class="box links"><div class="hd">Coty's Links</div><div class="bd"><ul><li><a href="https://x.com/TherapyToaster" target="_blank" rel="noopener">X @TherapyToaster</a></li><li><a href="https://x.com/FatCoty" target="_blank" rel="noopener">@FatCoty</a></li><li><a href="https://x.com/ToastyCoty" target="_blank" rel="noopener">@ToastyCoty</a></li><li><a href="https://x.com/TriggeredCoty" target="_blank" rel="noopener">@TriggeredCoty</a></li><li><a href="https://x.com/YellowBlankey" target="_blank" rel="noopener">@YellowBlankey</a></li><li><a href="https://www.instagram.com/mr.toastysoriginal/" target="_blank" rel="noopener">Instagram</a></li><li><a href="https://www.twitch.tv/therapytoaster" target="_blank" rel="noopener">Twitch</a></li><li><a href="https://www.facebook.com/Mr.Toasty" target="_blank" rel="noopener">Facebook: Mr.Toasty</a></li><li><a href="http://Area54.fm/" target="_blank" rel="noopener">Area54.fm</a></li><li><a href="https://TherapyToaster.com/" target="_blank" rel="noopener">TherapyToaster.com</a></li><li><a href="https://www.sns.id/domain/therapytoaster" target="_blank" rel="noopener">therapytoaster.sns</a></li></ul></div></div>
+<div class="box" id="toaster-chat"><div class="hd">Toaster Chat</div><div class="bd"><div class="chatbox"><script id="cid0020000453196839198" data-cfasync="false" async src="https://st.chatango.com/js/gz/emb.js" style="width: 100%;height: 100%;">{"handle":"therapytoasterchat","arch":"js","styles":{"a":"FFD400","b":100,"c":"FFFFFF","d":"FFFFFF","k":"FFD400","l":"FFD400","m":"FFD400","n":"FFFFFF","p":"10","q":"FFD400","r":100,"fwtickm":1}}</script></div></div></div>
+</div><div class="right">
+<div class="ext"><span class="glit sparkle">〽️ Ƭᴏᴀsᴛʏ is in your extended network</span></div>
+<div class="box"><div class="hd">Coty's Latest Blog Entries</div><div class="bd blog"><ul>
+<li><a href="#pics">Glitch Art</a> (<a href="#pics">view more</a>)</li>
+<li><a href="https://TherapyToaster.com/" target="_blank">Cybertruck</a> (<a href="https://TherapyToaster.com/" target="_blank">view more</a>)</li>
+<li><a href="https://cybertruck-starship-launch.grok.me/" target="_blank" rel="noopener">Then Mars: launch a Cybertruck on Starship (game!)</a></li></ul>[<a href="#">Subscribe to this Blog</a>]</div></div>
+<div class="box"><div class="hd">Coty's Blurbs</div><div class="bd about"><div class="sec" style="margin-top:0">About me:</div><p>I&#x27;m a U.S. Army veteran. Around 2009 I deployed to Afghanistan, and somewhere over there I lost my wedding ring. I never replaced it, but I plan to, because my loving wife has put up with my sh*t all these years. Twenty-three years married, father of four, and still going.</p><p>On March 30th, 2026 I had an accident that left me with a TBI. After the concussion I made a Facebook page called Therapy Toaster. Then I did something that got it restricted. LMFAO. &quot;Therapy Toaster&quot; is what I call my Cybertruck, because let&#x27;s be honest, it looks like a toaster. It has also never once asked me to take the trash out. Even my daughter backs me up on this, since mom drives the kids around in the toaster all the time. My dad still doesn&#x27;t think it&#x27;s a real truck.</p><p>I make my own versions of the art I want to see: glitch-style art, Electric Speed Square content, and whatever else I can talk @grok into. It&#x27;s been fun so far, and I want to see where I can take it.</p><p>Stick around for the art, the Cybertruck, the cat (this freaking cat, I swear), and my other accounts: @FatCoty, @TriggeredCoty, @ToastyCoty and @YellowBlankey.</p></div></div>
+<div class="box"><div class="hd">Latest from Twitter</div><div class="bd"><blockquote class="twitter-tweet" data-theme="dark" data-align="center"><a href="https://twitter.com/TherapyToaster/status/2120826284171288643"></a></blockquote><script async src="https://platform.twitter.com/widgets.js"></script>
+<div class="twmore"><a href="https://x.com/TherapyToaster" target="_blank" rel="noopener">Read more on Twitter &raquo;</a></div>
+<div class="sk-ww-twitter-feed" data-embed-id="25722761"></div><script src="https://widgets.sociablekit.com/twitter-feed/widget.js" defer></script></div></div>
+<div class="box"><div class="hd">Coty's Friend Space</div><div class="bd"><b class="sparkle" style="font-size:12px">Coty has 1,638 friends.</b><table class="top8"><tr><td><a href="https://myspace.com/" target="_blank" rel="noopener">Tom<br><div class="ph tom">🙂<br>TOM</div></a></td><td><a href="https://x.com/FatCoty" target="_blank" rel="noopener">FatCoty<br><img src="https://pbs.twimg.com/profile_images/2109100949629251584/ADJOTQmL_400x400.jpg" alt="FatCoty"></a></td><td><a href="https://x.com/ToastyCoty" target="_blank" rel="noopener">ToastyCoty<br><img src="https://pbs.twimg.com/profile_images/2111248807753056256/_HWXa41d_400x400.jpg" alt="ToastyCoty"></a></td><td><a href="https://x.com/TriggeredCoty" target="_blank" rel="noopener">TriggeredCoty<br><img src="https://pbs.twimg.com/profile_images/2107545327381237761/KLsR_PWO_400x400.jpg" alt="TriggeredCoty"></a></td></tr><tr><td><a href="https://x.com/YellowBlankey" target="_blank" rel="noopener">YellowBlankey<br><img src="https://pbs.twimg.com/profile_images/2110228931383115776/CVgFJD6V_400x400.jpg" alt="YellowBlankey"></a></td><td><a href="http://Area54.fm/" target="_blank" rel="noopener">Area54.fm<br><div class="ph a54">📻<br>A54</div></a></td><td><a href="https://www.twitch.tv/therapytoaster" target="_blank" rel="noopener">Twitch<br><div class="ph tw">🎮<br>LIVE</div></a></td><td><a href="https://insiderthreatclothing.com/" target="_blank" rel="noopener">Insider Threat<br><div class="ph it">🕶️<br>THREAT</div></a></td></tr></table><div style="text-align:right"><a href="#">View All of Coty's Friends</a></div></div></div>
+<div class="box" id="pics"><div class="hd">Coty's Pics: Glitch Art</div><div class="bd gal"><a href="https://pbs.twimg.com/media/HUx6-6xXMAAiJJR.jpg" target="_blank"><img src="https://pbs.twimg.com/media/HUx6-6xXMAAiJJR.jpg" alt="glitch art 1"></a><a href="https://pbs.twimg.com/media/HUu8ZnlWcAAMwKv.jpg" target="_blank"><img src="https://pbs.twimg.com/media/HUu8ZnlWcAAMwKv.jpg" alt="glitch art 2"></a><a href="https://pbs.twimg.com/media/HUuWGx2XMAA68zt.jpg" target="_blank"><img src="https://pbs.twimg.com/media/HUuWGx2XMAA68zt.jpg" alt="glitch art 3"></a><a href="https://pbs.twimg.com/media/HUt8Jf6XAAAbwfZ.jpg" target="_blank"><img src="https://pbs.twimg.com/media/HUt8Jf6XAAAbwfZ.jpg" alt="glitch art 4"></a><a href="https://pbs.twimg.com/media/HUtw3CVXQAAHNFE.jpg" target="_blank"><img src="https://pbs.twimg.com/media/HUtw3CVXQAAHNFE.jpg" alt="glitch art 5"></a><a href="https://pbs.twimg.com/media/HUtRzfXXMAAtDvg.jpg" target="_blank"><img src="https://pbs.twimg.com/media/HUtRzfXXMAAtDvg.jpg" alt="WETBandits 1"></a><a href="https://pbs.twimg.com/media/HUtLRpOXsAATomF.jpg" target="_blank"><img src="https://pbs.twimg.com/media/HUtLRpOXsAATomF.jpg" alt="WETBandits 2"></a><a href="https://pbs.twimg.com/media/HUtLRoaXYAAxU82.jpg" target="_blank"><img src="https://pbs.twimg.com/media/HUtLRoaXYAAxU82.jpg" alt="WETBandits 3"></a><a href="https://pbs.twimg.com/media/HUtLRpYWIAEONU7.jpg" target="_blank"><img src="https://pbs.twimg.com/media/HUtLRpYWIAEONU7.jpg" alt="WETBandits 4"></a><a href="https://pbs.twimg.com/media/HUtLRpYXkAAf26Y.jpg" target="_blank"><img src="https://pbs.twimg.com/media/HUtLRpYXkAAf26Y.jpg" alt="WETBandits 5"></a></div></div>
+<div class="box" id="shout-wall"><div class="hd">Coty's Shout Wall</div><div class="bd"><div class="chatbox"><script id="cid0020000453196866032" data-cfasync="false" async src="https://st.chatango.com/js/gz/emb.js" style="width: 100%;height: 100%;">{"handle":"therapytoasterwall","arch":"js","styles":{"a":"FFD400","b":100,"c":"FFFFFF","d":"FFFFFF","k":"FFD400","l":"FFD400","m":"FFD400","n":"FFFFFF","p":"10","q":"FFD400","r":100,"fwtickm":1}}</script></div></div></div>
+<div class="box"><div class="hd">Coty's Friends Comments</div><div class="bd"><b>Displaying 3 of 3 comments</b> <span class="sample">(sample placeholder comments)</span> ( <a href="#">View All</a> | <a href="#">Add Comment</a> )<table class="com"><tr><td class="cw">FatCoty<br><img src="https://pbs.twimg.com/profile_images/2109100949629251584/ADJOTQmL_400x400.jpg"></td><td class="cb"><b class="ts">10/16/2026 8:12 PM</b> <span class="sample">[SAMPLE]</span><br>thx 4 the add!!! ur toaster is SO shiny omg. pc4pc?? 🍞✨</td></tr><tr><td class="cw">Tom<br><div class="ph tom">🙂<br>TOM</div></td><td class="cb"><b class="ts">10/15/2026 3:33 AM</b> <span class="sample">[SAMPLE]</span><br>Hey, thanks for keeping me in your Top 8 for 21 years. Nobody else did. ~Tom</td></tr><tr><td class="cw">YellowBlankey<br><img src="https://pbs.twimg.com/profile_images/2110228931383115776/CVgFJD6V_400x400.jpg"></td><td class="cb"><b class="ts">10/14/2026 11:59 PM</b> <span class="sample">[SAMPLE]</span><br>the cat sat on me again. send help. also ur page has 2 much glitter (never change)</td></tr></table></div></div>
+</div></div>
+<div class="foot">About | FAQ | Terms | Privacy | Safety Tips | Contact Coty's Space<br>© 2005-2026 Coty's Space. A parody mockup. Not affiliated with MySpace. Tom is still your friend.</div>
+</div>

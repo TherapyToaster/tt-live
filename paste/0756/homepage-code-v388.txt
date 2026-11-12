@@ -1,0 +1,1000 @@
+<style id="ttlive-css">/* ttlive-bar v1: LIVE on Twitter Spaces */
+#ttlive-bar{position:sticky;top:0;z-index:2147483100;display:none;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;padding:10px 16px;background:#FFD400;color:#000!important;text-decoration:none!important;font-family:inherit;font-weight:800;letter-spacing:.06em;text-transform:uppercase;font-size:15px;line-height:1.2;border-bottom:3px solid #000;box-shadow:0 3px 0 rgba(0,255,255,.85),0 6px 0 rgba(176,0,0,.85)}
+#ttlive-bar.on{display:flex}
+#ttlive-bar .tl-t{text-shadow:-2px 0 rgba(0,255,255,.9),2px 0 rgba(176,0,0,.9)}
+#ttlive-bar .tl-dot{width:12px;height:12px;border-radius:50%;background:#e00000;box-shadow:0 0 0 0 rgba(224,0,0,.7);animation:ttlivep 1.6s ease-in-out infinite;flex:none}
+#ttlive-bar .tl-n{font-weight:600;text-transform:none;letter-spacing:0;max-width:40ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#ttlive-bar .tl-go{background:#000;color:#FFD400;padding:6px 12px;border-radius:999px;font-size:13px;box-shadow:-2px 0 #0ff,2px 0 #b00000}
+#ttlive-bar:hover .tl-go,#ttlive-bar:focus-visible .tl-go{background:#fff;color:#000}
+#ttlive-bar:focus-visible{outline:3px solid #000;outline-offset:-6px}
+@keyframes ttlivep{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(224,0,0,.6)}50%{opacity:.55;box-shadow:0 0 0 6px rgba(224,0,0,0)}}
+@media (max-width:600px){#ttlive-bar{font-size:13px;gap:8px;padding:8px 10px}#ttlive-bar .tl-n{display:none}}
+@media (prefers-reduced-motion:reduce){#ttlive-bar .tl-dot{animation:none}}
+</style>
+<a id="ttlive-bar" href="https://spacesdashboard.com/u/TherapyToaster" target="_blank" rel="noopener" aria-live="polite"><span class="tl-dot" aria-hidden="true"></span><span class="tl-t">LIVE NOW on Twitter Spaces</span><span class="tl-n"></span><span class="tl-go">Join &#8599;</span></a>
+<script>/* ttlive-bar */(function(){var U="https://therapytoaster.github.io/tt-live/status.json",FB="https://spacesdashboard.com/u/TherapyToaster";
+var b=document.getElementById("ttlive-bar");if(!b)return;try{document.body.insertBefore(b,document.body.firstChild)}catch(e){}
+var n=b.querySelector(".tl-n"),F=/[?&]ttlive=1/.test(location.search);
+function set(j){var on=!!(j&&j.live===true);if(on&&!F){var t=Date.parse(j.updated||"");if(!(t>0)||Date.now()-t>9e5)on=false}
+if(on){var h=j.url||(j.id?"https://twitter.com/i/spaces/"+encodeURIComponent(j.id):FB);if(!/^https:\/\//.test(h))h=FB;b.href=h;n.textContent=j.title?"\u201C"+j.title+"\u201D":""}
+b.classList.toggle("on",on)}
+function poll(){if(F){set({live:true,title:"Live with TherapyToaster"});return}if(document.hidden)return;
+fetch(U+(U.indexOf("?")<0?"?":"&")+"t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.json():null}).then(set,function(){set(null)})}
+poll();setInterval(poll,60000);document.addEventListener("visibilitychange",function(){if(!document.hidden)poll()})})();</script>
+<style>
+#tt-glitch-cv{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-1;pointer-events:none;display:block!important;visibility:visible!important;opacity:1!important;image-rendering:pixelated;background:#05070d}
+#tt-glitch-fx{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:2147483000;pointer-events:none;display:none;opacity:0;image-rendering:pixelated;mix-blend-mode:screen}
+body.tt-glitch{background-color:#05070d!important}
+body.tt-glitch #siteWrapper,body.tt-glitch .site-wrapper,body.tt-glitch main,body.tt-glitch #page{background:transparent!important}
+body.tt-glitch .page-section.tt-glitch-see .section-background,body.tt-glitch .page-section.tt-glitch-see .section-border{background-color:rgba(5,7,13,.15)!important}
+body.tt-glitch .page-section.tt-glitch-see .section-background-overlay{display:none!important}
+body.tt-glitch #header,body.tt-glitch header.header{background-color:rgba(5,7,13,.82)!important}
+body.tt-glitch.tt-gx h1,body.tt-glitch.tt-gx h2,body.tt-glitch.tt-gx h3{text-shadow:-3px 0 rgba(0,255,255,.75),3px 0 rgba(176,0,0,.85),0 1px rgba(255,212,0,.6)}
+body.tt-glitch.tt-gx .page-section.tt-glitch-see .content-wrapper{transform:translateX(var(--tt-gx,4px))}
+@media (min-width:768px){
+body.tt-glitch .page-section.tt-glitch-see .sk-ww-twitter-feed{background-color:transparent!important}
+body.tt-glitch.tt-glitch-desk #tt-glitch-fx{display:block}
+}
+@media (prefers-reduced-motion:reduce){body.tt-glitch.tt-gx .page-section.tt-glitch-see .content-wrapper{transform:none}}
+</style>
+<script>
+(function(){
+var p=location.pathname.replace(/\/+$/,'');if(p!==''&&p!=='/home')return;
+if(document.getElementById('tt-glitch-cv'))return;
+var test=location.hash==='#glitchtest',rmTest=location.hash==='#glitchrm';
+function tag(){var secs=document.querySelectorAll('.page-section:not(.tt-glitch-seen)');
+for(var i=0;i<secs.length;i++){var s=secs[i],bg=s.querySelector('.section-background');if(!bg)continue;
+s.classList.add('tt-glitch-seen');
+if(bg.querySelector('img,video,iframe,.sqs-video-background'))continue;
+var m=getComputedStyle(bg).backgroundColor.match(/\d+/g);if(!m)continue;
+if((+m[0])+(+m[1])+(+m[2])<180)s.classList.add('tt-glitch-see');}}
+var tq=0;function tagSoon(){if(tq)return;tq=setTimeout(function(){tq=0;tag();},250);}
+function init(){
+var b=document.body;if(!b||document.getElementById('tt-glitch-cv'))return;b.classList.add('tt-glitch');tag();
+document.addEventListener('DOMContentLoaded',tagSoon);addEventListener('load',tagSoon);
+if(window.MutationObserver){var mo=new MutationObserver(tagSoon);mo.observe(b,{childList:true,subtree:true});setTimeout(function(){mo.disconnect();},30000);}
+var cv=document.createElement('canvas');cv.id='tt-glitch-cv';cv.setAttribute('aria-hidden','true');b.insertBefore(cv,b.firstChild);
+var fx=document.createElement('canvas');fx.id='tt-glitch-fx';fx.setAttribute('aria-hidden','true');b.appendChild(fx);
+var ctx=cv.getContext('2d'),fc=fx.getContext('2d'),off=document.createElement('canvas'),oc=off.getContext('2d');
+var W=0,H=0,mob=true,fxOp=0;
+function size(){var d=Math.min(window.devicePixelRatio||1,1.5);mob=innerWidth<768;var sc=(innerWidth<700?0.22:0.28)*d;
+W=Math.max(80,Math.round(innerWidth*sc));H=Math.max(60,Math.round(innerHeight*sc));
+cv.width=W;cv.height=H;off.width=W;off.height=H;fx.width=W;fx.height=H;ctx.imageSmoothingEnabled=false;fc.imageSmoothingEnabled=false;
+b.classList.toggle('tt-glitch-desk',!mob);}
+size();
+var mq=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)'),rm=rmTest||!!(mq&&mq.matches);
+if(mq&&mq.addEventListener)mq.addEventListener('change',function(){rm=rmTest||mq.matches;start();});
+var vel=0,wv=0,energy=0,raf=0,nextMini=0,miniEnd=0,gxEnd=0,gxNext=0,lastT=0,idle=0,lastY=scrollY,ly=window.WeakMap?new WeakMap():null;
+function kick(){if(!document.hidden)start();}
+document.addEventListener('scroll',function(e){var t=e.target,y,d;
+if(t===document||t===document.documentElement||t===document.body){y=scrollY;d=y-lastY;lastY=y;}
+else if(ly&&t&&t.nodeType===1){y=t.scrollTop;d=ly.has(t)?y-ly.get(t):0;ly.set(t,y);}else return;
+vel+=Math.abs(d);kick();},{capture:true,passive:true});
+addEventListener('wheel',function(e){var k=e.deltaMode===1?16:e.deltaMode===2?innerHeight:1;wv+=Math.min(Math.abs(e.deltaY*k)+Math.abs(e.deltaX*k),innerHeight);kick();},{passive:true});
+addEventListener('resize',function(){size();if(rm||!raf){base(lastT);ctx.drawImage(off,0,0);}start();},{passive:true});
+function R(n){return Math.random()*n;}
+function base(tt){
+var k=(Math.sin(tt*0.0004)+1)/2,g=oc.createLinearGradient(0,0,W,H);
+g.addColorStop(0,'#05070d');g.addColorStop(0.3+0.4*k,'rgb('+(40+30*k|0)+',8,12)');g.addColorStop(1,'rgb(18,15,6)');
+oc.fillStyle=g;oc.fillRect(0,0,W,H);
+var gs=Math.max(8,W/12|0),o=(tt*0.01)%gs;
+oc.strokeStyle='rgba(255,212,0,'+((mob?0.18:0.26)+0.1*k)+')';oc.lineWidth=1;oc.beginPath();
+for(var x=-gs+o;x<W;x+=gs){oc.moveTo(x|0,0);oc.lineTo(x|0,H);}
+for(var y=-gs+o*0.6;y<H;y+=gs){oc.moveTo(0,y|0);oc.lineTo(W,y|0);}oc.stroke();
+var n=(W*H/30)|0;for(var j=0;j<n;j++){oc.fillStyle=Math.random()<0.65?'rgba(255,212,0,0.35)':'rgba(176,0,0,0.45)';oc.fillRect(R(W)|0,R(H)|0,1,1);}
+var jit=(tt/60|0)%2;oc.fillStyle='rgba(0,0,0,0.3)';for(var s=jit;s<H;s+=3)oc.fillRect(0,s,W,1);
+var sy=((tt*0.05)%(H+30))-15;oc.fillStyle='rgba(255,212,0,0.16)';oc.fillRect(0,sy|0,W,4);oc.fillStyle='rgba(176,0,0,0.12)';oc.fillRect(0,(sy+6)|0,W,2);}
+function glitch(e,soft){
+var sh=Math.round(e*W*0.05)+1;
+ctx.globalCompositeOperation='lighter';ctx.globalAlpha=0.6*e;
+ctx.drawImage(off,-sh,0);ctx.fillStyle='rgba(0,255,255,'+(0.18*e)+')';ctx.fillRect(0,0,W,H);
+ctx.globalAlpha=0.6*e;ctx.drawImage(off,sh,(e*2)|0);ctx.fillStyle='rgba(176,0,0,'+(0.3*e)+')';ctx.fillRect(0,0,W,H);
+ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;
+var sl=4+(e*30)|0;for(var i=0;i<sl;i++){var y=R(H)|0,h=1+(R(H*0.12*e+2)|0),dx=((Math.random()-0.5)*W*0.7*e)|0;ctx.drawImage(cv,0,y,W,h,dx,y,W,h);
+if(Math.random()<0.3*e){ctx.fillStyle=Math.random()<0.5?'rgba(0,255,255,0.35)':'rgba(176,0,0,0.5)';ctx.fillRect(0,y,W,1);}}
+var bl=(e*60)|0;for(var q=0;q<bl;q++){var bw=3+(R(W*0.18)|0),bh=2+(R(H*0.1)|0),bx=R(W)|0,by=R(H)|0,r=Math.random();
+if(r<0.35){ctx.drawImage(cv,R(W)|0,R(H)|0,bw,bh,bx,by,bw,bh);}else{
+ctx.fillStyle=r<0.6?'rgba(255,212,0,'+(0.7*e)+')':r<0.82?'rgba(176,0,0,'+(0.75*e)+')':r<0.93?'rgba(0,255,255,'+(0.45*e)+')':'rgba(222,227,222,'+(0.5*e)+')';ctx.fillRect(bx,by,bw,bh);}}
+if(!soft&&e>0.45&&Math.random()<0.15){ctx.fillStyle=Math.random()<0.5?'rgba(222,227,222,0.35)':'rgba(176,0,0,0.4)';ctx.fillRect(0,0,W,H);}}
+function setFx(op){op=Math.round(op*100)/100;if(op===fxOp)return;fxOp=op;fx.style.opacity=op;}
+function frame(now){
+raf=0;if(document.hidden)return;
+if(rm&&now-lastT<120&&energy<0.02&&vel+wv===0){raf=requestAnimationFrame(frame);return;}
+lastT=now;
+var sv=Math.max(vel,wv);vel=0;wv=0;
+var target=mob?sv/(innerHeight*0.35):sv/(Math.min(innerHeight,900)*0.2);
+var cap=rm?0.4:1;
+energy=Math.min(cap,energy*(rm?0.93:(mob?0.97:0.96))+target*(rm?0.5:1));if(test)energy=1;
+base(rm?0:now);ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;ctx.drawImage(off,0,0);
+var e=energy;
+if(!rm){if(!nextMini)nextMini=now+1000+R(2000);
+if(now>nextMini){miniEnd=now+90+R(160);nextMini=now+1000+R(2000);}
+if(now<miniEnd)e=Math.max(e,0.35);}
+if(e>0.03)glitch(e,rm);
+if(!mob){var fo=energy>0.08?Math.min(rm?0.22:0.55,energy*(rm?0.5:0.7)):0;
+if(fo){fc.clearRect(0,0,W,H);fc.drawImage(cv,0,0);}setFx(fo);}
+if(!rm&&energy>(mob?0.55:0.4)&&now>gxNext){gxEnd=now+130;gxNext=now+400;b.style.setProperty('--tt-gx',((Math.random()<0.5?-1:1)*(2+R(5))|0)+'px');b.classList.add('tt-gx');}
+if(gxEnd&&now>gxEnd){gxEnd=0;b.classList.remove('tt-gx');}
+if(rm&&energy<0.02&&!test){energy=0;setFx(0);if(++idle>2){idle=0;return;}}else idle=0;
+raf=requestAnimationFrame(frame);}
+function start(){if(!raf)raf=requestAnimationFrame(frame);}
+document.addEventListener('visibilitychange',function(){if(document.hidden){if(raf)cancelAnimationFrame(raf);raf=0;b.classList.remove('tt-gx');setFx(0);}else start();});
+base(0);ctx.drawImage(off,0,0);start();}
+if(document.body)init();else document.addEventListener('DOMContentLoaded',init);
+})();
+</script>
+<!-- TT NOTICE START -->
+<!-- Mr. Toasty's Daily Glitch (TTDG) - replaces the old Notice. Self-contained; namespaced .ttdg / #tt-notice. -->
+<style>
+#tt-notice{box-sizing:border-box;width:100%;position:relative;z-index:3;background:#05070d;padding:14px 4vw 18px;margin:0 0 76px}
+#tt-notice.ttdg-moved{margin:0}
+#tt-notice *{box-sizing:border-box}
+#tt-notice .ttdg-box{position:relative;max-width:980px;margin:0 auto;background:#000;border:3px solid #FFD400;border-radius:12px;box-shadow:-4px 0 0 rgba(0,255,255,.6),4px 0 0 rgba(255,40,60,.75),0 0 24px rgba(255,212,0,.3);overflow:hidden;color:#fff;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+#tt-notice .ttdg-tape{height:12px;background:repeating-linear-gradient(-45deg,#FFD400 0 12px,#000 12px 24px)}
+#tt-notice .ttdg-scan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 3px)}
+#tt-notice .ttdg-hd{display:flex;align-items:center;gap:12px;padding:14px 20px 4px;flex-wrap:wrap}
+#tt-notice .ttdg-skull{width:46px;height:46px;flex:0 0 auto;filter:drop-shadow(-2px 0 #0ff) drop-shadow(2px 0 #ff283c)}
+#tt-notice .ttdg-title{margin:0;font:900 clamp(22px,4.4vw,34px)/1 "Anton","Bebas Neue",Impact,"Arial Black",sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#FFD400;text-shadow:-2px 0 rgba(0,255,255,.9),2px 0 rgba(255,40,60,.95)}
+#tt-notice .ttdg-date{margin-left:auto;font:700 12px/1.2 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.12em;text-transform:uppercase;color:#0ff}
+#tt-notice .ttdg-main{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;padding:8px 20px 18px}
+#tt-notice .ttdg-k{margin:0 0 6px;font:800 11px/1 ui-monospace,Menlo,monospace;letter-spacing:.2em;color:#ff5a6a;text-transform:uppercase}
+#tt-notice .ttdg-q{margin:0;font-size:clamp(18px,2.6vw,24px);line-height:1.35;font-weight:800;color:#fff;overflow-wrap:anywhere}
+#tt-notice .ttdg-q::before{content:"\201C";color:#FFD400}#tt-notice .ttdg-q::after{content:"\201D";color:#FFD400}
+#tt-notice .ttdg-sig{margin:8px 0 0;font-size:13px;color:#FFD400;opacity:.9}
+#tt-notice .ttdg-toaster{position:relative;width:150px;height:130px;justify-self:center}
+#tt-notice .ttdg-slice{position:absolute;left:35px;top:34px;width:80px;height:70px;background:linear-gradient(#e8b25a,#c98a33);border:3px solid #6b3f12;border-radius:26px 26px 6px 6px;transition:transform .45s cubic-bezier(.2,1.6,.4,1);z-index:1}
+#tt-notice .ttdg-slice::after{content:"";position:absolute;inset:8px;border-radius:18px 18px 4px 4px;background:#f3cf86}
+#tt-notice .ttdg-body{position:absolute;left:10px;right:10px;bottom:0;height:78px;background:#FFD400;border:3px solid #000;border-radius:18px 18px 12px 12px;z-index:2;box-shadow:-3px 0 0 #0ff,3px 0 0 #ff283c}
+#tt-notice .ttdg-body::before{content:"";position:absolute;left:22px;right:22px;top:8px;height:8px;background:#000;border-radius:4px}
+#tt-notice .ttdg-face{position:absolute;left:0;right:0;top:26px;text-align:center;font:900 20px/1 ui-monospace,monospace;color:#000;letter-spacing:.2em}
+#tt-notice .ttdg-toaster.pop .ttdg-slice{transform:translateY(-34px) rotate(-4deg)}
+#tt-notice .ttdg-ctl{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:0 20px 16px}
+#tt-notice .ttdg-btn{appearance:none;cursor:pointer;background:#FFD400;color:#000;font:900 15px/1 system-ui,sans-serif;padding:12px 20px;min-height:44px;border-radius:999px;border:2px solid #000;box-shadow:-3px 0 0 #0ff,3px 0 0 #ff283c;transition:transform .15s}
+#tt-notice .ttdg-btn:hover{transform:translateY(-2px)}
+#tt-notice .ttdg-btn:focus-visible{outline:3px solid #0ff;outline-offset:3px}
+#tt-notice .ttdg-streak{font:700 12px/1.3 ui-monospace,Menlo,monospace;color:#cfd;letter-spacing:.05em}
+#tt-notice .ttdg-streak b{color:#FFD400}
+#tt-notice .ttdg-bonus{margin:0 20px 18px;padding:12px 14px;border:2px dashed #0ff;border-radius:10px;background:#0a0a0a;font-weight:700;font-size:17px;line-height:1.4;color:#fff}
+#tt-notice .ttdg-bonus[hidden]{display:none}
+#tt-notice .ttdg-bonus.in{animation:ttdgIn .4s ease-out}
+#tt-notice .ttdg-bonus b{color:#FFD400}
+@keyframes ttdgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (max-width:600px){#tt-notice{padding:10px 10px 14px}#tt-notice .ttdg-main{grid-template-columns:1fr;padding:6px 14px 14px}#tt-notice .ttdg-toaster{width:130px;height:115px}#tt-notice .ttdg-hd,#tt-notice .ttdg-ctl{padding-left:14px;padding-right:14px}#tt-notice .ttdg-date{margin-left:0;flex-basis:100%}#tt-notice .ttdg-btn{flex:1 1 100%}#tt-notice .ttdg-bonus{margin:0 14px 14px}}
+@media (prefers-reduced-motion:reduce){#tt-notice .ttdg-slice,#tt-notice .ttdg-btn{transition:none}#tt-notice .ttdg-bonus.in{animation:none}}
+</style>
+<section id="tt-notice" class="ttdg" aria-labelledby="ttdg-title">
+<div class="ttdg-box">
+<div class="ttdg-tape" aria-hidden="true"></div><div class="ttdg-scan" aria-hidden="true"></div>
+<div class="ttdg-hd">
+<svg class="ttdg-skull" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 4C13 4 6 11.5 6 21c0 6 3 10 7 12.5V40a3 3 0 0 0 3 3h16a3 3 0 0 0 3-3v-6.5c4-2.5 7-6.5 7-12.5C42 11.5 35 4 24 4z" fill="#FFD400" stroke="#000" stroke-width="2"/><circle cx="17" cy="22" r="5" fill="#000"/><circle cx="31" cy="22" r="5" fill="#000"/><path d="M24 27l-3 5h6z" fill="#000"/><path d="M18 38v4M22 38v4M26 38v4M30 38v4" stroke="#000" stroke-width="2"/></svg>
+<h2 class="ttdg-title" id="ttdg-title">Mr. Toasty's Daily Glitch</h2>
+<span class="ttdg-date" id="ttdg-date"></span>
+</div>
+<div class="ttdg-main">
+<div><p class="ttdg-k">// fortune of the day</p>
+<p class="ttdg-q" id="ttdg-q" aria-live="polite"></p>
+<p class="ttdg-sig">&mdash; Mr. Toasty, Therapy Toaster</p></div>
+<div class="ttdg-toaster" id="ttdg-toaster" aria-hidden="true"><div class="ttdg-slice"></div><div class="ttdg-body"><div class="ttdg-face">x_x</div></div></div>
+</div>
+<div class="ttdg-ctl">
+<button type="button" class="ttdg-btn" id="ttdg-pop" aria-controls="ttdg-bonus">🍞 Pop the toaster</button>
+<span class="ttdg-streak" id="ttdg-streak"></span>
+</div>
+<p class="ttdg-bonus" id="ttdg-bonus" role="status" aria-live="polite" hidden></p>
+<div class="ttdg-tape" aria-hidden="true"></div>
+</div>
+</section>
+<script>
+(function(){
+var root=document.getElementById('tt-notice');if(!root||root.getAttribute('data-ok'))return;root.setAttribute('data-ok','1');
+var L=["Your brain is not broken. It is just buffering. Give it a minute.", "Today's forecast: 90% chance of golden-brown vibes.", "Even the best toast starts as plain bread. Keep going.", "Glitches are just the universe's way of making art.", "Unplug, cool down, reboot. You're allowed to.", "You don't have to be perfectly toasted to be wonderful.", "Crumbs happen. Sweep, smile, carry on.", "Mr. Toasty says: drink some water, you crispy legend.", "Rest is not a reward. It's maintenance.", "The pixels are scrambled, but the heart is intact.", "Small wins still pop. Celebrate the little ding.", "Some days you're the toast, some days you're the butter. Both are needed.", "Your feelings are valid, even the glitchy ones.", "Error 404: Self-doubt not found.", "Breathe in for four. Out for six. Repeat until warm.", "Asking for help is a power-up, not a game over.", "Too hot? Pop up and take a break.", "You are the main character in your own weird little movie.", "Every skull has a smile built in. Look closer.", "Low battery is not a personality flaw. Charge up.", "Corrupted file? Nah. Limited edition.", "Be gentle with yourself. You're running on a lot of tabs.", "Today is a good day to forgive yesterday's version of you.", "Static on the screen doesn't mean nobody's broadcasting.", "Ding! Your daily dose of 'you're doing better than you think' is ready.", "Progress, not perfection. Toast, not soufflé.", "Burnt edges add character.", "Log off the doom scroll. Log in to a snack.", "A glitch is just a feature you haven't named yet.", "You survived 100% of your worst days so far. Solid stats.", "Mr. Toasty believes in you. Mr. Toasty is never wrong.", "Warm thoughts only in this kitchen.", "Reset the dial. Try again at a lower setting.", "Your weird is somebody's favorite thing.", "Not every day needs to be productive. Some days just need to be survived.", "The toaster doesn't rush. Neither should you.", "Fortune: someone will laugh at your joke today. Probably you.", "Rewire the circuits with a little kindness.", "Even static has a rhythm. Find yours.", "It's okay to be a work in progress. Bread is too.", "Your inner child wants a nap and a snack. Listen to them.", "Stay crunchy. Stay kind.", "Noise fades. You stay.", "Talk to yourself like you'd talk to your favorite toaster.", "Feelings are weather, not climate.", "Tiny steps still move the slider.", "Plot twist: you're allowed to take up space.", "Fortune: a good song will find you at the exact right moment.", "Healing isn't linear. It's more like a glitchy GIF.", "The skull grins because it knows: you're still here.", "Cancel the overthinking subscription. Free trial over.", "Hot take: you deserve good things.", "Fortune: today's coffee will hit different.", "Be the butter you wish to see in the world.", "Defragment your day. One thing at a time.", "Some people are sunshine. You're a toaster coil. Equally warm.", "Unfollow the voice that says you're not enough.", "Ctrl+Z is not available in life, but Ctrl+S on good moments is.", "Your vibe today: lightly toasted, fully glowing.", "Fortune: you will find a crumb of joy in an unexpected place.", "Pause the scroll. Notice three things you can see. Welcome back.", "Being soft in a hard world is brave, not weak.", "Mr. Toasty's rule #1: never toast yourself too hard.", "Fortune: your next Tweet will make someone smile.", "Glitch in. Glow out.", "You are made of stardust and slightly burnt bread. Iconic."];
+function $(i){return document.getElementById(i);}
+function ny(){try{var p=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()),o={};p.forEach(function(x){o[x.type]=x.value;});return o.year+'-'+o.month+'-'+o.day;}catch(e){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}}
+var day=window.ttdgDate||ny(),dn=Math.floor(Date.parse(day+'T12:00:00Z')/864e5);
+var idx=((dn*37)%L.length+L.length)%L.length;
+$('ttdg-q').textContent=L[idx];
+try{$('ttdg-date').textContent=new Date(day+'T12:00:00Z').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',timeZone:'UTC'})+' // glitch #'+(idx+1);}catch(e){$('ttdg-date').textContent=day;}
+/* streak + visits (localStorage only, nothing leaves the browser) */
+var s={};try{s=JSON.parse(localStorage.getItem('ttdgStreak')||'{}')||{};}catch(e){}
+if(s.last!==day){var prev=s.last?Math.floor(Date.parse(s.last+'T12:00:00Z')/864e5):null;s.streak=(prev===dn-1)?(s.streak||0)+1:1;s.days=(s.days||0)+1;s.last=day;}
+s.visits=(s.visits||0)+1;s.pops=s.pops||0;
+function save(){try{localStorage.setItem('ttdgStreak',JSON.stringify(s));}catch(e){}}save();
+function streak(){$('ttdg-streak').innerHTML='🔥 Streak: <b>'+s.streak+'</b> day'+(s.streak==1?'':'s')+' · Visits: <b>'+s.visits+'</b> · Pops: <b>'+s.pops+'</b>';}streak();
+var t=$('ttdg-toaster'),b=$('ttdg-bonus'),last=idx,tm;
+$('ttdg-pop').addEventListener('click',function(){
+var r;do{r=Math.floor(Math.random()*L.length);}while(L.length>2&&(r===idx||r===last));last=r;
+t.classList.remove('pop');void t.offsetWidth;t.classList.add('pop');clearTimeout(tm);tm=setTimeout(function(){t.classList.remove('pop');},1400);
+b.hidden=false;b.classList.remove('in');void b.offsetWidth;b.classList.add('in');
+b.innerHTML='<b>Bonus fortune:</b> ';b.appendChild(document.createTextNode(L[r]));
+s.pops++;save();streak();});
+/* Same placement behavior as the old Notice: lift under header, above hero. */
+function lift(){var pg=document.getElementById('page'),tg=pg&&(pg.querySelector('#page-regions')||pg.querySelector('.page-section'));
+if(!tg||!tg.parentNode||root.classList.contains('ttdg-moved'))return;tg.parentNode.insertBefore(root,tg);root.classList.add('ttdg-moved');}
+lift();if(!root.classList.contains('ttdg-moved'))document.addEventListener('DOMContentLoaded',lift);
+})();
+</script>
+<!-- TT NOTICE END --><!-- TT TICKERS START --><style>
+#tt-tickers{margin:18px auto 28px;padding:0 12px;text-align:center}
+#tttsla{display:block;width:100%;max-width:500px;margin:0 auto 16px;border:3px solid #FFD400;border-radius:14px;background:#000;box-shadow:4px 4px 0 #ff2a2a,-4px -4px 0 #00e5ff;overflow:hidden;text-decoration:none}
+#tttsla .tth{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;font:700 16px/1.2 system-ui,sans-serif;letter-spacing:.04em;white-space:nowrap;gap:10px;color:#000;background:#FFD400}
+#tttsla .tts{font-weight:700;font-size:13px}
+#tttsla .tts i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;background:#ff2a2a;vertical-align:middle}
+#tttsla.open .tts i{background:#00c853}
+#tttsla .ttw{height:108px;pointer-events:none}
+#tttsla .ttw iframe{height:108px!important}
+#ttspcx{display:block;width:66%;max-width:330px;margin:0 auto;border:2px solid #FFD400;border-radius:12px;background:#000;box-shadow:3px 3px 0 #ff2a2a,-3px -3px 0 #00e5ff;overflow:hidden;text-decoration:none}
+#ttspcx .tth{display:flex;justify-content:space-between;align-items:center;padding:5px 10px;font:700 11px/1.2 system-ui,sans-serif;letter-spacing:.04em;white-space:nowrap;gap:8px;color:#000;background:#FFD400}
+#ttspcx .tts{font-weight:600}
+#ttspcx .tts i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;background:#ff2a2a;vertical-align:middle}
+#ttspcx.open .tts i{background:#00c853}
+#ttspcx .ttw{height:76px;pointer-events:none}
+#ttspcx .ttw iframe{height:76px!important}
+</style>
+<div id="tt-tickers">
+<!-- TT TSLA START --><a id="tttsla" href="https://www.tradingview.com/symbols/NASDAQ-TSLA/" target="_blank" rel="noopener" title="Tesla (NASDAQ: TSLA) live price"><span class="tth"><span>$TSLA · Tesla</span><span class="tts"><i></i><b class="ttl">NASDAQ</b></span></span><span class="ttw tradingview-widget-container" style="display:block"><span class="tradingview-widget-container__widget" style="display:block"></span></span></a><script>(function(){var a=document.getElementById('tttsla');if(!a)return;function st(){var p=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',weekday:'short',hour:'numeric',minute:'numeric',hourCycle:'h23'}).formatToParts(new Date()),o={};p.forEach(function(x){o[x.type]=x.value});var m=(+o.hour)*60+(+o.minute),wd=!/Sat|Sun/.test(o.weekday),open=wd&&m>=570&&m<960;a.classList.toggle('open',open);a.querySelector('.ttl').textContent=open?'LIVE · NASDAQ':'CLOSED · LAST CLOSE'}st();if(!a.dataset.ttTimer){a.dataset.ttTimer=1;setInterval(st,60000)}var w=a.querySelector('.ttw');if(w.querySelector('iframe,script'))return;var s=document.createElement('script');s.src='https://s3.tradingview.com/external-embedding/embed-widget-single-quote.js';s.async=true;s.textContent=JSON.stringify({symbol:'NASDAQ:TSLA',width:'100%',isTransparent:true,colorTheme:'dark',locale:'en'});w.appendChild(s)})();</script><!-- TT TSLA END -->
+<!-- TT SPCX START --><a id="ttspcx" href="https://www.tradingview.com/symbols/NASDAQ-SPCX/" target="_blank" rel="noopener" title="SpaceX (NASDAQ: SPCX) live price"><span class="tth"><span>$SPCX · SpaceX</span><span class="tts"><i></i><b class="ttl">NASDAQ</b></span></span><span class="ttw tradingview-widget-container" style="display:block"><span class="tradingview-widget-container__widget" style="display:block"></span></span></a><script>(function(){var a=document.getElementById('ttspcx');if(!a)return;function st(){var p=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',weekday:'short',hour:'numeric',minute:'numeric',hourCycle:'h23'}).formatToParts(new Date()),o={};p.forEach(function(x){o[x.type]=x.value});var m=(+o.hour)*60+(+o.minute),wd=!/Sat|Sun/.test(o.weekday),open=wd&&m>=570&&m<960;a.classList.toggle('open',open);a.querySelector('.ttl').textContent=open?'LIVE · NASDAQ':'CLOSED · LAST CLOSE'}st();if(!a.dataset.ttTimer){a.dataset.ttTimer=1;setInterval(st,60000)}var w=a.querySelector('.ttw');if(w.querySelector('iframe,script'))return;var s=document.createElement('script');s.src='https://s3.tradingview.com/external-embedding/embed-widget-single-quote.js';s.async=true;s.textContent=JSON.stringify({symbol:'NASDAQ:SPCX',width:'100%',isTransparent:true,colorTheme:'dark',locale:'en'});w.appendChild(s)})();</script><!-- TT SPCX END -->
+</div><!-- TT TICKERS END --><div style="text-align:center;max-width:520px;margin:0 auto 50px;background:#111;border:2px solid #FFD400;border-radius:14px;padding:22px"><h2 style="color:#FFD400;margin:0 0 6px">🎧 Area54.fm Live</h2><p style="color:#dee3de;margin:0 0 14px">America's Chill Radio. Press play.</p><audio controls preload="none" style="width:100%"><source src="https://s2.radio.co/sf146c37f4/listen" type="audio/mpeg"></audio><p style="margin:12px 0 0"><a href="https://area54.fm/" target="_blank" rel="noopener" style="color:#FFD400"><svg class="tti" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.247 7.761a6 6 0 0 1 0 8.478"/><path d="M19.075 4.933a10 10 0 0 1 0 14.134"/><path d="M4.925 19.067a10 10 0 0 1 0-14.134"/><path d="M7.753 16.239a6 6 0 0 1 0-8.478"/><circle cx="12" cy="12" r="2"/></svg>Visit Area54.fm ↗</a></p></div><!-- TTPS HEAD START --><style>
+#ttps{max-width:640px;margin:0 auto 26px;box-sizing:border-box;font-family:inherit;color:#dee3de;text-align:center}
+#ttps *{box-sizing:border-box}
+#ttps .ps-h{margin:0 0 4px;color:#FFD400;text-transform:uppercase;letter-spacing:.06em;text-shadow:-2px 0 rgba(255,40,60,.8),2px 0 rgba(0,240,255,.7)}
+#ttps .ps-s{margin:0 0 16px;font-size:14px;line-height:1.45;opacity:.9}
+#ttps .ps-s b{color:#FFD400}
+#ttps .ps-btns{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+#ttps .ps-b{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:118px;padding:16px 10px;border:3px solid #FFD400;border-radius:16px;background:#000 repeating-linear-gradient(0deg,rgba(255,212,0,.06) 0 1px,transparent 1px 4px);color:#FFD400;font:inherit;cursor:pointer;overflow:hidden;transition:background-color .2s,color .2s,box-shadow .2s;-webkit-tap-highlight-color:transparent}
+#ttps .ps-b .ps-n{font-size:26px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;line-height:1}
+#ttps .ps-b .ps-t{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;opacity:.8}
+#ttps .ps-b:hover .ps-n,#ttps .ps-b:focus-visible .ps-n{text-shadow:-3px 0 rgba(255,40,60,.9),3px 0 rgba(0,240,255,.85)}
+#ttps .ps-b:hover,#ttps .ps-b:focus-visible{box-shadow:-4px 0 0 rgba(255,40,60,.85),4px 0 0 rgba(0,240,255,.85),0 0 22px rgba(255,212,0,.35);outline:none}
+#ttps .ps-b[aria-selected=true]{background:#FFD400;color:#05070d;box-shadow:-5px 0 0 rgba(255,40,60,.9),5px 0 0 rgba(0,240,255,.9),0 0 26px rgba(255,212,0,.5)}
+#ttps .ps-b[aria-selected=true] .ps-t{opacity:1}
+#ttps .ps-b[aria-selected=true]::after{content:"\25B6  YOU ARE HERE";position:absolute;top:7px;right:10px;font-size:10px;font-weight:800;letter-spacing:.08em;color:#05070d;opacity:.75}
+.ttps-pane{position:relative}
+.ttps-pane[hidden]{display:none!important}
+.ttps-pane.ps-in{animation:ttpsIn .42s steps(1,end) both}
+.ttps-pane.ps-in::before{content:"";position:absolute;inset:0;z-index:5;pointer-events:none;border-radius:14px;background:repeating-linear-gradient(0deg,rgba(0,0,0,.55) 0 2px,rgba(255,212,0,.16) 2px 3px,transparent 3px 5px),linear-gradient(90deg,rgba(255,40,60,.22),rgba(0,240,255,.22));mix-blend-mode:normal;animation:ttpsStatic .42s linear both}
+@keyframes ttpsIn{0%{opacity:0}12%{opacity:.6}24%{opacity:.2}38%{opacity:.85}52%{opacity:.5}66%{opacity:1}100%{opacity:1}}
+@keyframes ttpsStatic{0%{opacity:1}70%{opacity:.5}100%{opacity:0}}
+#ttps-ig .ps-ig{background:#111;border:2px solid #FFD400;border-radius:14px;padding:22px 18px 18px;margin:0 auto 50px;max-width:640px;text-align:center}
+#ttps-ig .ps-igh{margin:0 0 4px;color:#FFD400;text-shadow:-2px 0 rgba(255,40,60,.75),2px 0 rgba(0,240,255,.65)}
+#ttps-ig .ps-igs{margin:0 0 14px;font-size:13px;opacity:.85}
+#ttps-ig .ps-igs a{color:#FFD400;font-weight:700;text-decoration:none}
+#ttps-ig .ps-frame{position:relative;border:2px solid #FFD400;border-radius:12px;overflow:hidden;background:#fff;box-shadow:-3px 0 0 rgba(255,40,60,.8),3px 0 0 rgba(0,240,255,.8)}
+#ttps-ig .ps-frame iframe{display:block;width:100%;height:560px;border:0;background:#fff}
+#ttps-ig .ps-load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#000;color:#FFD400;font-weight:700;font-size:14px;letter-spacing:.05em}
+#ttps-ig .ps-frame.ps-ok .ps-load{display:none}
+#ttps-ig .ps-open{display:inline-flex;align-items:center;gap:10px;margin:16px 0 0;padding:10px 22px;background:#FFD400;color:#05070d!important;border:2px solid #FFD400;border-radius:999px;font-weight:700;text-decoration:none!important;line-height:1.2;transition:background .2s,color .2s}
+#ttps-ig .ps-open:hover,#ttps-ig .ps-open:focus{background:#000;color:#FFD400!important}
+#ttps-ig .ps-open svg{width:18px;height:18px}
+@media (max-width:767px){#ttps .ps-btns{gap:10px}#ttps .ps-b{min-height:96px;padding:14px 6px}#ttps .ps-b .ps-n{font-size:20px}#ttps .ps-b .ps-t{font-size:10px}#ttps .ps-b[aria-selected=true]::after{content:"\25B6";right:8px}#ttps-ig .ps-ig{padding:16px 10px 14px}}
+@media (prefers-reduced-motion:reduce){#ttps .ps-b{transition:none}.ttps-pane.ps-in,.ttps-pane.ps-in::before{animation:none}.ttps-pane.ps-in::before{display:none}}
+/* ttps-tt v1: TikTok tab */
+#ttps .ps-btns{grid-template-columns:repeat(3,1fr)}
+#ttps .ps-b[data-p=tt] svg path[fill="currentColor"]{fill:#fff}
+#ttps .ps-b[data-p=tt][aria-selected=true] svg path[fill="currentColor"]{fill:#05070d}
+#ttps-tt .ps-ig{background:#111;border:2px solid #FFD400;border-radius:14px;padding:22px 18px 18px;margin:0 auto 50px;max-width:640px;text-align:center}
+#ttps-tt .ps-igh{margin:0 0 4px;color:#FFD400;text-shadow:-2px 0 rgba(254,44,85,.8),2px 0 rgba(37,244,238,.7)}
+#ttps-tt .ps-igs{margin:0 0 14px;font-size:13px;opacity:.85}
+#ttps-tt .ps-igs a{color:#FFD400;font-weight:700;text-decoration:none}
+#ttps-tt .ps-tk{min-height:120px;border:2px solid #FFD400;border-radius:12px;overflow:hidden;background:#000;box-shadow:-3px 0 0 rgba(254,44,85,.85),3px 0 0 rgba(37,244,238,.85);display:flex;align-items:center;justify-content:center}
+#ttps-tt .ps-tk .tiktok-embed{margin:0 auto!important;max-width:100%!important}
+#ttps-tt .ps-load{color:#FFD400;font-weight:700;font-size:14px;letter-spacing:.05em;padding:40px 10px}
+#ttps-tt .ps-open{display:inline-flex;align-items:center;gap:10px;margin:16px 0 0;padding:10px 22px;background:#FFD400;color:#05070d!important;border:2px solid #FFD400;border-radius:999px;font-weight:700;text-decoration:none!important;line-height:1.2;transition:background .2s,color .2s}
+#ttps-tt .ps-open:hover,#ttps-tt .ps-open:focus{background:#000;color:#FFD400!important}
+#ttps-tt .ps-open svg{width:18px;height:18px}
+@media (max-width:767px){#ttps .ps-btns{gap:8px}#ttps .ps-b{padding:14px 4px}#ttps .ps-b svg{width:26px;height:26px}#ttps .ps-b .ps-n{font-size:15px;letter-spacing:.02em}#ttps .ps-b .ps-t{font-size:9px;letter-spacing:.03em}#ttps .ps-b[aria-selected=true]::after{right:6px;top:5px}#ttps-tt .ps-ig{padding:16px 10px 14px}}
+/* ttps-sfx v1: Twitter tab audio */
+#ttps-sfx{position:absolute;top:8px;right:8px;z-index:6;display:none;align-items:center;gap:6px;height:32px;padding:0 12px;border:2px solid #FFD400;border-radius:999px;background:#000;color:#FFD400;font:inherit;font-size:12px;font-weight:700;letter-spacing:.04em;cursor:pointer;line-height:1}
+#ttps-sfx.on{display:inline-flex}
+#ttps-sfx:hover,#ttps-sfx:focus-visible{background:#FFD400;color:#000;outline:none}
+</style><!-- TTCP HERO START --><style>
+@keyframes ttcpPulse{0%,100%{box-shadow:0 0 0 4px #000,0 0 0 8px #FFD400,0 0 22px 8px rgba(255,212,0,.45)}50%{box-shadow:0 0 0 4px #000,0 0 0 8px #FFD400,0 0 48px 20px rgba(255,212,0,.85)}}
+@keyframes ttcpGlow{0%,100%{box-shadow:0 0 0 2px #000,0 0 30px rgba(255,212,0,.35),inset 0 0 40px rgba(255,212,0,.08)}50%{box-shadow:0 0 0 2px #000,0 0 56px rgba(255,212,0,.6),inset 0 0 60px rgba(255,212,0,.14)}}
+html body #ttps{position:relative;display:block;width:100%;margin:28px auto 36px;padding:44px 28px 34px;background:#000;background-image:repeating-linear-gradient(0deg,rgba(255,212,0,.045) 0 2px,transparent 2px 4px),radial-gradient(ellipse at 50% 0,rgba(255,212,0,.16),transparent 60%);border:6px solid #FFD400;border-radius:22px;text-align:center;container-type:inline-size;animation:ttcpGlow 3s ease-in-out infinite}
+html body #ttps::before,html body #ttps::after{content:"";position:absolute;width:44px;height:44px;pointer-events:none;border:0 solid #FF2850}
+html body #ttps::before{top:10px;left:10px;border-top-width:6px;border-left-width:6px;border-top-left-radius:10px;box-shadow:-3px -3px 0 -0px rgba(0,240,255,.0)}
+html body #ttps::after{top:10px;right:10px;border-top-width:6px;border-right-width:6px;border-color:#00F0FF;border-top-right-radius:10px}
+html body #ttps .ttcp-ev{display:inline-block;margin:0 0 14px;padding:7px 18px;border:3px solid #FFD400;border-radius:6px;background:#FFD400;color:#05070d;font-weight:900;font-size:14px;letter-spacing:.35em;text-transform:uppercase;box-shadow:-4px 0 0 #FF2850,4px 0 0 #00F0FF}
+html body #ttps .ps-h{margin:0 0 14px;font-size:clamp(40px,8.2cqw,96px);line-height:1;font-weight:900;letter-spacing:.03em;color:#FFD400;text-transform:uppercase;text-shadow:-4px 0 #FF2850,4px 0 #00F0FF,0 0 28px rgba(255,212,0,.45);animation:none;transform:none}
+html body #ttps .ps-s{max-width:760px;margin:0 auto 28px;font-size:clamp(16px,1.8vw,20px);line-height:1.5;opacity:.95}
+html body #ttps .ps-gate{max-width:900px;margin:0 auto;padding:40px 24px 34px;border:4px solid #FFD400;border-radius:18px;box-shadow:-6px 0 0 rgba(255,40,80,.7),6px 0 0 rgba(0,240,255,.7),0 0 34px rgba(255,212,0,.3)}
+html body #ttps .pg-sk{font-size:72px;margin:0 0 12px}
+html body #ttps .pg-k{display:inline-block;margin:0 0 16px;padding:10px 22px;border:3px solid #FFD400;border-radius:999px;font-size:20px;font-weight:900;letter-spacing:.28em;background:rgba(255,212,0,.08)}
+html body #ttps .pg-h{font-size:clamp(26px,4vw,44px);line-height:1.1;margin:0 0 10px}
+html body #ttps .pg-p{font-size:clamp(15px,1.6vw,18px);margin:0 0 30px}
+html body #ttps .pg-b{gap:16px;padding:26px 60px;font-size:clamp(28px,4vw,42px);border-width:4px;animation:ttcpPulse 1.8s ease-in-out infinite}
+html body #ttps .pg-b:hover,html body #ttps .pg-b:focus-visible{background:#fff200}
+html body #ttps .pg-b:focus-visible{outline:4px solid #00F0FF;outline-offset:10px}
+html body #ttps .pg-b[disabled]{animation:none}
+html body #ttps .pg-bar{max-width:560px;height:24px}
+html body #ttps .pg-msg{font-size:18px}
+html body #ttps .ps-btns{max-width:1100px;margin:0 auto 28px;grid-template-columns:repeat(3,1fr);gap:clamp(10px,2.5cqw,20px)}
+html body #ttps .ps-b{min-height:200px;padding:26px 14px;gap:12px;border-width:4px;border-radius:20px}
+html body #ttps .ps-b svg{width:56px;height:56px}
+html body #ttps .ps-b[aria-selected=true] .ps-n{font-size:clamp(16px,3.6cqw,30px)}
+html body #ttps .ps-b .ps-n{font-size:clamp(18px,4.2cqw,34px);letter-spacing:.02em;white-space:nowrap}
+html body #ttps .ps-b .ps-t{font-size:14px;letter-spacing:.08em}
+html body #ttps .ps-b[data-p=tw]{border-color:#FFD400}
+html body #ttps .ps-b[data-p=ig]{border-color:#FF2850}
+html body #ttps .ps-b[data-p=tt]{border-color:#00F0FF}
+html body #ttps .ps-b[aria-selected=true]{border-color:#FFD400}
+html body #ttps .ps-b[aria-selected=true]::after{content:"\25B6  YOU ARE HERE";top:10px;right:12px;font-size:11px}
+@media (max-width:640px){
+html body #ttps{margin:18px auto 26px;padding:36px 12px 22px;border-width:5px;border-radius:16px}
+html body #ttps::before,html body #ttps::after{width:28px;height:28px;top:7px;border-top-width:5px}
+html body #ttps::before{left:7px;border-left-width:5px}html body #ttps::after{right:7px;border-right-width:5px}
+html body #ttps .ttcp-ev{font-size:11px;letter-spacing:.25em;padding:5px 12px}
+html body #ttps .ps-h{font-size:clamp(40px,13.5cqw,60px)}
+html body #ttps .ps-gate{padding:28px 12px 24px}
+html body #ttps .pg-sk{font-size:54px}
+html body #ttps .pg-k{font-size:14px;letter-spacing:.18em;padding:8px 14px}
+html body #ttps .pg-b{padding:20px 34px;font-size:28px}
+html body #ttps .ps-btns{grid-template-columns:1fr;gap:12px}
+html body #ttps .ps-b{min-height:0;flex-direction:row;justify-content:flex-start;gap:16px;padding:20px 18px;text-align:left}
+html body #ttps .ps-b svg{width:44px;height:44px;flex:0 0 auto}
+html body #ttps .ps-b .ps-n,html body #ttps .ps-b[aria-selected=true] .ps-n{font-size:26px}
+html body #ttps .ps-b .ps-t{font-size:12px;margin-left:auto}
+html body #ttps .ps-b[aria-selected=true]::after{content:"\25B6";top:6px;right:10px}
+}
+@media (prefers-reduced-motion:reduce){html body #ttps,html body #ttps .pg-b{animation:none!important}}
+</style><!-- TTCP HERO END --><!-- TTPS GATE START --><script>(function(){try{if(sessionStorage.getItem('ttGate')!='1')document.documentElement.classList.add('ps-gl')}catch(e){document.documentElement.classList.add('ps-gl')}})();</script><style>
+html.ps-gl #ttps .ps-btns,html.ps-gl .ttps-pane{display:none!important}
+#ttps .ps-gate{display:none}
+html.ps-gl #ttps .ps-gate{display:block}
+#ttps .ps-gate{position:relative;overflow:hidden;text-align:center;background:#000;border:3px solid #FFD400;border-radius:16px;padding:26px 18px 22px;box-shadow:-4px 0 0 rgba(255,40,80,.55),4px 0 0 rgba(0,240,255,.55);background-image:repeating-linear-gradient(0deg,rgba(255,212,0,.05) 0 2px,transparent 2px 4px)}
+#ttps .pg-sk{font-size:44px;line-height:1;margin:0 0 6px}
+#ttps .pg-k{margin:0 0 4px;color:#FFD400;font-weight:800;font-size:13px;letter-spacing:.3em;text-transform:uppercase}
+#ttps .pg-h{margin:0 0 6px;color:#FFD400;font-weight:900;font-size:28px;letter-spacing:.06em;text-transform:uppercase;text-shadow:-2px 0 rgba(255,40,80,.85),2px 0 rgba(0,240,255,.85)}
+#ttps .pg-p{margin:0 0 18px;font-size:14px;opacity:.9}
+#ttps .pg-b{display:inline-flex;align-items:center;gap:10px;padding:16px 28px;border:3px solid #000;border-radius:999px;background:#FFD400;color:#05070d;font:inherit;font-size:20px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;box-shadow:0 0 0 3px #FFD400,-5px 0 0 3px rgba(255,40,80,.7),5px 0 0 3px rgba(0,240,255,.7);transition:box-shadow .2s,background .2s}
+#ttps .pg-b:hover,#ttps .pg-b:focus-visible{outline:none;background:#fff200;box-shadow:0 0 0 3px #FFD400,-8px 0 0 3px rgba(255,40,80,.85),8px 0 0 3px rgba(0,240,255,.85)}
+#ttps .pg-b:focus-visible{box-shadow:0 0 0 3px #000,0 0 0 6px #FFD400,-8px 0 0 6px rgba(255,40,80,.85),8px 0 0 6px rgba(0,240,255,.85)}
+#ttps .pg-b[disabled]{cursor:progress;opacity:.75}
+#ttps .pg-blink{animation:pgBlink 1.2s steps(1) infinite}
+@keyframes pgBlink{50%{opacity:0}}
+#ttps .pg-bar{display:none;max-width:420px;height:18px;margin:18px auto 8px;border:2px solid #FFD400;border-radius:6px;overflow:hidden;background:#111}
+#ttps .pg-fill{height:100%;width:0;background:repeating-linear-gradient(90deg,#FFD400 0 12px,#e0b800 12px 16px);transition:width .45s linear}
+#ttps .pg-msg{min-height:20px;margin:0;color:#FFD400;font-weight:700;font-size:14px;letter-spacing:.04em}
+#ttps .ps-gate.go .pg-bar{display:block}
+html.ps-rv #ttps .ps-btns,html.ps-rv .ttps-pane:not([hidden]){animation:pgRv .7s ease-out both}
+@keyframes pgRv{0%{opacity:0;clip-path:inset(0 0 100% 0);filter:drop-shadow(-4px 0 rgba(255,40,80,.9)) drop-shadow(4px 0 rgba(0,240,255,.9))}40%{opacity:.7;clip-path:inset(0 0 45% 0)}70%{opacity:1;filter:drop-shadow(-2px 0 rgba(255,40,80,.6)) drop-shadow(2px 0 rgba(0,240,255,.6))}100%{opacity:1;clip-path:inset(0 0 0 0);filter:none}}
+@media (prefers-reduced-motion:reduce){#ttps .pg-blink{animation:none}#ttps .pg-fill{transition:none}html.ps-rv #ttps .ps-btns,html.ps-rv .ttps-pane{animation:none!important}}
+</style><!-- TTPS GATE END --><section id="ttps" aria-label="Choose your path"><!-- TTCP EV START --><p class="ttcp-ev" aria-hidden="true">★ Main event ★</p><!-- TTCP EV END --><h2 class="ps-h">Choose your path</h2><p class="ps-s">Pick your poison: <b>Twitter</b> for the unfiltered toaster brain-dump, <b>Instagram</b> for the photo dump, or <b>TikTok</b> for Mr. Toasty in motion. Choose wisely, the toaster remembers.</p><!-- TTPS GATE UI --><div class="ps-gate" id="ttps-gate" role="region" aria-label="Unlock the feeds"><div class="pg-sk" aria-hidden="true">💀🍞</div><p class="pg-k">Player 1 · <span class="pg-blink">Insert coin</span></p><!-- TTCS DOOR START --><div class="cs-door" id="ttcs-door" aria-hidden="true"><span class="cs-bolt b1"></span><span class="cs-bolt b2"></span><span class="cs-bolt b3"></span><span class="cs-bolt b4"></span><span class="cs-price">50¢</span><span class="cs-slot"><span class="cs-coin">50</span></span><span class="cs-lbl">Insert coin</span></div><!-- TTCS DOOR END --><p class="pg-h">Press start to unlock the feeds</p><p class="pg-p">The toaster is guarding the timelines. One tap and they're yours.</p><button type="button" class="pg-b" id="ttps-unlock" aria-describedby="ttps-gmsg"><span aria-hidden="true">▶</span> Press start</button><div class="pg-bar" aria-hidden="true"><div class="pg-fill"></div></div><p class="pg-msg" id="ttps-gmsg" role="status" aria-live="polite"></p></div><div class="ps-btns" role="tablist" aria-label="Pick a feed"><button type="button" class="ps-b" role="tab" id="ttps-btw" data-p="tw" aria-controls="ttps-tw" aria-selected="true" tabindex="0"><svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true" focusable="false" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg><span class="ps-n">Twitter</span><span class="ps-t">Hot takes · live</span></button><button type="button" class="ps-b" role="tab" id="ttps-big" data-p="ig" aria-controls="ttps-ig" aria-selected="false" tabindex="-1"><svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.6" cy="6.4" r="1" fill="currentColor" stroke="none"/></svg><span class="ps-n">Instagram</span><span class="ps-t">Pics · reels</span></button><button type="button" class="ps-b" role="tab" id="ttps-btt" data-p="tt" aria-controls="ttps-tt" aria-selected="false" tabindex="-1"><svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true" focusable="false"><g transform="translate(1.6 1.5) scale(.86)"><path fill="#25F4EE" transform="translate(-1.4 -1.2)" d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/><path fill="#FE2C55" transform="translate(1.4 1.2)" d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/><path fill="currentColor" d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></g></svg><span class="ps-n">TikTok</span><span class="ps-t">Clips · chaos</span></button></div></section><div class="ttps-pane" id="ttps-tw" role="tabpanel" aria-labelledby="ttps-btw"><audio id="ttps-au" preload="none" src="https://audio.squarespace-cdn.com/content/v2/namespaces/website/libraries/6a9884b7f61a583fee1371eb/assets/c4c35392-5315-49f8-960c-f603ad3e2c8a/tt-spaces-loop.mp3"></audio><button type="button" id="ttps-sfx" aria-label="Stop music">&#9632; Stop music</button><!-- TTPS HEAD END --><style>.ttx-card{background:#111;border:2px solid #FFD400;border-radius:14px;padding:24px 20px;margin:0 auto 50px;max-width:640px;box-sizing:border-box;text-align:center;font-family:inherit}.ttx-card h2{margin:0 0 16px;color:#FFD400}.ttx-follow{display:inline-flex;align-items:center;gap:10px;padding:10px 22px;background:#FFD400;color:#05070d!important;border:2px solid #FFD400;border-radius:999px;font-weight:700;text-decoration:none!important;line-height:1.2;transition:background .2s,color .2s}.ttx-follow:hover,.ttx-follow:focus{background:#000;color:#FFD400!important}.ttx-tweet{margin-top:20px;min-height:120px}.ttx-tweet .twitter-tweet{margin:0 auto!important}.ttx-more{margin:16px 0 0}.ttx-more a{color:#FFD400;font-weight:700;text-decoration:none}.ttx-more a:hover,.ttx-more a:focus{text-decoration:underline}@media (max-width:767px){.ttx-card{padding:18px 10px}.ttx-follow{padding:10px 16px;font-size:15px}}</style><div class="ttx-card"><h2>Latest from Twitter</h2><a class="ttx-follow" href="https://x.com/TherapyToaster" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg><span>Follow Mr. Toasty on Twitter</span></a><div class="ttx-tweet"><blockquote class="twitter-tweet" data-theme="dark" data-align="center"><a href="https://twitter.com/TherapyToaster/status/2120826284171288643"></a></blockquote></div><p class="ttx-more"><a href="https://x.com/TherapyToaster" target="_blank" rel="noopener noreferrer"><svg class="tti" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>Read more on Twitter ↗</a></p><script async src="https://platform.twitter.com/widgets.js"></script></div><div class="ttx-card ttx-spaces"><h2>🎙️ My X Spaces</h2><p style="margin:0 0 18px;color:#dee3de">Catch the Spaces I host on X: live talks, replays and what's coming up next.</p><a class="ttx-follow" href="https://spacesdashboard.com/u/TherapyToaster" target="_blank" rel="noopener noreferrer"><svg class="tti" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19v3"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><rect x="9" y="2" width="6" height="13" rx="3"/></svg><span>See my Spaces</span></a></div><!-- TT48 START --><style>#tt48{background:#111;border:2px solid #FFD400;border-radius:14px;padding:22px 18px 16px;margin:0 auto 50px;max-width:640px;box-sizing:border-box;font-family:inherit;color:#dee3de;position:relative;min-width:0}
+#tt48 *{box-sizing:border-box}
+#tt48 .t4h{margin:0 0 4px;color:#FFD400;text-align:center;text-shadow:-2px 0 rgba(255,40,60,.75),2px 0 rgba(0,240,255,.65)}
+#tt48 .t4s{margin:0 0 12px;text-align:center;font-size:13px;opacity:.85}
+#tt48 .t4f{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:0 0 12px}
+#tt48 .t4f button{font:inherit;font-size:13px;font-weight:700;padding:5px 12px;border-radius:999px;border:2px solid #FFD400;background:#000;color:#FFD400;cursor:pointer;line-height:1.2}
+#tt48 .t4f button[aria-pressed=true]{background:#FFD400;color:#05070d}
+#tt48 .t4l{max-height:600px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:2px 6px 2px 2px;scrollbar-color:#FFD400 #000;scrollbar-width:thin;border-top:1px solid rgba(255,212,0,.3);border-bottom:1px solid rgba(255,212,0,.3)}
+#tt48 .t4l::-webkit-scrollbar{width:8px}#tt48 .t4l::-webkit-scrollbar-thumb{background:#FFD400;border-radius:8px}#tt48 .t4l::-webkit-scrollbar-track{background:#000}
+#tt48 .t4c{display:flex;gap:10px;background:#000;border:1px solid rgba(255,212,0,.35);border-radius:12px;padding:12px;margin:10px 0;min-width:0;transition:box-shadow .2s,border-color .2s;text-align:left}
+#tt48 .t4c:hover{border-color:#FFD400;box-shadow:-3px 0 0 rgba(255,40,60,.8),3px 0 0 rgba(0,240,255,.8)}
+#tt48 .t4p{flex:none;width:44px;height:44px;border-radius:50%;border:2px solid #FFD400;object-fit:cover;background:#222}
+#tt48 .t4b{flex:1;min-width:0}
+#tt48 .t4n{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 6px;font-size:14px;line-height:1.35;min-width:0}
+#tt48 .t4n b{color:#FFD400;overflow-wrap:anywhere}#tt48 .t4n span{opacity:.75}
+#tt48 .t4k{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:1px 7px;border-radius:999px;margin:3px 0 0;color:#05070d;background:#FFD400}
+#tt48 .t4k.r{background:rgba(0,240,255,.85)}#tt48 .t4k.p{background:rgba(255,40,60,.9);color:#fff}
+#tt48 .t4t{margin:6px 0 0;font-size:15px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word}
+#tt48 .t4t a,#tt48 .t4q a{color:#FFD400;text-decoration:none}#tt48 .t4t a:hover{text-decoration:underline}
+#tt48 .t4m{position:relative;display:block;margin:10px 0 0;border-radius:10px;overflow:hidden;border:1px solid rgba(255,212,0,.3);background:#111;max-width:100%}
+#tt48 .t4m img{display:block;width:100%;height:auto;max-height:300px;object-fit:cover}
+#tt48 .t4m i{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:54px;height:54px;border-radius:50%;background:rgba(0,0,0,.7);border:2px solid #FFD400;color:#FFD400;font-style:normal;font-size:22px;display:flex;align-items:center;justify-content:center;padding-left:4px}
+#tt48 .t4m em{position:absolute;right:8px;bottom:8px;font-style:normal;font-size:12px;font-weight:700;background:rgba(0,0,0,.75);color:#FFD400;padding:2px 8px;border-radius:999px}
+#tt48 .t4q{display:block;margin:8px 0 0;padding:8px 10px;border-left:3px solid rgba(0,240,255,.8);background:#111;border-radius:6px;font-size:13px;line-height:1.4;overflow-wrap:anywhere;white-space:pre-wrap;color:#dee3de!important;text-decoration:none!important}
+#tt48 .t4x{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;margin:10px 0 0;font-size:13px}
+#tt48 .t4x span{opacity:.8}
+#tt48 .t4x a{margin-left:auto;color:#FFD400;font-weight:700;text-decoration:none;white-space:nowrap}#tt48 .t4x a:hover{text-decoration:underline}
+#tt48 .t4e{text-align:center;padding:20px;opacity:.8}
+#tt48 .t4o{margin:12px 0 0;text-align:center}#tt48 .t4o a{color:#FFD400;font-weight:700;text-decoration:none}
+@media (max-width:767px){#tt48{padding:16px 10px 12px}#tt48 .t4l{max-height:560px;padding-right:2px}#tt48 .t4c{padding:10px;gap:8px}#tt48 .t4p{width:36px;height:36px}#tt48 .t4t{font-size:14px}#tt48 .t4m img{max-height:260px}#tt48 .t4x a{margin-left:0}}
+</style><section id="tt48" class="tt48" aria-label="Last 48hrs or So of Twitter"><h2 class="t4h">Last 48hrs or So of Twitter</h2><p class="t4s">@TherapyToaster’s posts from roughly the last two days</p><div class="t4f" role="group" aria-label="Filter posts"><button type="button" data-f="all" aria-pressed="true">All</button><button type="button" data-f="post" aria-pressed="false">Posts</button><button type="button" data-f="reply" aria-pressed="false">Replies</button><button type="button" data-f="repost" aria-pressed="false">Reposts</button></div><div class="t4l" tabindex="0"><p class="t4e">Loading the last 48 hours…</p></div><noscript><p class="t4e">Turn on JavaScript to see the timeline.</p></noscript><p class="t4o"><a href="https://x.com/TherapyToaster" target="_blank" rel="noopener noreferrer">See everything on Twitter ↗</a></p><script type="application/json" id="tt48-data">{"user":{"name":"〽️®️Ƭᴏᴀ𝙎ᴛʏ🎭","username":"TherapyToaster","pfp":"https://pbs.twimg.com/profile_images/2120750025391190016/skEt2cSN_bigger.jpg","verified":false},"hours":48,"fetched_at":"2026-11-12T10:53:57Z","posts":[{"id":"2120827681390711043","created_at":"2026-11-12T10:34:56.000Z","kind":"reply","text":"@LeviHoliday4 @grok You got this!","metrics":{"like":0,"rt":0,"reply":0,"quote":0,"view":5}},{"id":"2120826284171288643","created_at":"2026-11-12T10:29:23.000Z","kind":"post","text":"Gotta say, @grok @bot has been fun playing around with. \n\nNeed to set up a bot for my kids to play around with to see what games they can come up with. https://t.co/cKQTL4p8kO","urls":[["https://t.co/cKQTL4p8kO","",""]],"media":{"type":"photo","thumb":"https://pbs.twimg.com/media/HW6wJ7FXMAAiHc8.jpg?name=small","count":1,"w":3584,"h":1184},"metrics":{"like":0,"rt":0,"reply":2,"quote":0,"view":24}},{"id":"2120819934699946123","created_at":"2026-11-12T10:04:10.000Z","kind":"quote","quote":{"id":"2120551570756579488","text":"https://t.co/IRG0mwmr3h"},"text":"So this is @grok's take on me. \nhttps://t.co/wxAcrtU5Lq https://t.co/YwCnio6uMv","urls":[["https://t.co/wxAcrtU5Lq","",""],["https://t.co/YwCnio6uMv","https://twitter.com/Natism/status/2120551570756579488","x.com/Natism/status/…"]],"media":{"type":"photo","thumb":"https://pbs.twimg.com/media/HW6piA8WQAAZCeZ.jpg?name=small","count":1,"w":1408,"h":1392},"metrics":{"like":1,"rt":0,"reply":1,"quote":0,"view":45}},{"id":"2120818625531551997","created_at":"2026-11-12T09:58:57.000Z","kind":"reply","text":"@Natism I wonder what mine would say. Hey @grok dont do me dirty.","metrics":{"like":0,"rt":0,"reply":1,"quote":0,"view":16}},{"id":"2120813871309197495","created_at":"2026-11-12T09:40:04.000Z","kind":"reply","text":"@billYT2025 lol","metrics":{"like":0,"rt":0,"reply":0,"quote":0,"view":4}},{"id":"2120813759727804479","created_at":"2026-11-12T09:39:37.000Z","kind":"quote","quote":{"id":"2120758731701100582","text":"https://t.co/LSLT2yXXkB"},"text":"Come listen to a gay man snore. https://t.co/fhAz0TrIMe","urls":[["https://t.co/fhAz0TrIMe","https://twitter.com/BlackPilledFed/status/2120758731701100582","x.com/BlackPilledFed…"]],"metrics":{"like":0,"rt":0,"reply":0,"quote":0,"view":25}},{"id":"2120811587736875142","created_at":"2026-11-12T09:30:59.000Z","kind":"post","text":"Morning vibes. https://t.co/cTCL8IGy1n","urls":[["https://t.co/cTCL8IGy1n","",""]],"media":{"type":"photo","thumb":"https://pbs.twimg.com/media/HW6i4paX0AAkqSr.jpg?name=small","count":1,"w":3000,"h":4000},"metrics":{"like":10,"rt":0,"reply":3,"quote":0,"view":119}},{"id":"2120804065953087737","created_at":"2026-11-12T09:01:06.000Z","kind":"post","text":"Getting my sweat on after a small workout. https://t.co/OZJwYllngm","urls":[["https://t.co/OZJwYllngm","",""]],"media":{"type":"photo","thumb":"https://pbs.twimg.com/media/HW6cB6oXEAAeEy2.jpg?name=small","count":1,"w":2544,"h":3392},"metrics":{"like":4,"rt":0,"reply":0,"quote":0,"view":51}},{"id":"2120802639873024002","created_at":"2026-11-12T08:55:26.000Z","kind":"quote","quote":{"id":"2120793721163616565","text":"GM everyone\nHappy Thursday \nWishing everyone a great day\n\nBIG NEWS🔥\n\nSome pieces from \"Messed and Mixed\" collection are now available as MERCH.\nShoutout to @TherapyToaster for making it possible, you can now order your merch with our art.\n\nCheck link below, order yours⬇️ https://…"},"text":"Thanks for the shout-out man. This means a lot truly. https://t.co/WsPmHaAvVh","urls":[["https://t.co/WsPmHaAvVh","https://twitter.com/Shahr_Crew/status/2120793721163616565","x.com/Shahr_Crew/sta…"]],"metrics":{"like":1,"rt":0,"reply":0,"quote":0,"view":35}},{"id":"2120802554007150900","created_at":"2026-11-12T08:55:06.000Z","kind":"reply","text":"@Shahr_Crew 🙏🏼😊","metrics":{"like":1,"rt":0,"reply":1,"quote":0,"view":11}},{"id":"2120789917919780896","created_at":"2026-11-12T08:04:53.000Z","kind":"post","text":"Toasted. https://t.co/5DPxgjgVfU","urls":[["https://t.co/5DPxgjgVfU","",""]],"media":{"type":"photo","thumb":"https://pbs.twimg.com/media/HW6PLu9WkAAUWVs.jpg?name=small","count":1,"w":1792,"h":2390},"metrics":{"like":5,"rt":0,"reply":0,"quote":0,"view":70}},{"id":"2120789217550774425","created_at":"2026-11-12T08:02:06.000Z","kind":"reply","text":"@2starships @dkmitc I had to buy that.","metrics":{"like":2,"rt":0,"reply":0,"quote":0,"view":14}},{"id":"2120788759528562789","created_at":"2026-11-12T08:00:17.000Z","kind":"reply","text":"@BlackPilledFed Cheap Scottish whiskey","metrics":{"like":1,"rt":0,"reply":0,"quote":0,"view":14}},{"id":"2120787307787592015","created_at":"2026-11-12T07:54:31.000Z","kind":"post","text":"One more before bed. https://t.co/94ycA01mET","urls":[["https://t.co/94ycA01mET","",""]],"media":{"type":"photo","thumb":"https://pbs.twimg.com/media/HW6MzyrWAAAcZdm.jpg?name=small","count":1,"w":3000,"h":4000},"metrics":{"like":2,"rt":1,"reply":1,"quote":0,"view":70}},{"id":"2120785374641279139","created_at":"2026-11-12T07:46:50.000Z","kind":"post","text":"Another one from the vault. https://t.co/oPpdcEgBF6","urls":[["https://t.co/oPpdcEgBF6","",""]],"media":{"type":"photo","thumb":"https://pbs.twimg.com/media/HW6LDC_XEAAy7tt.jpg?name=small","count":1,"w":3000,"h":4000},"metrics":{"like":0,"rt":0,"reply":0,"quote":0,"view":31}},{"id":"2120779593443393980","created_at":"2026-11-12T07:23:51.000Z","kind":"post","text":"This is what peak HK looks like. https://t.co/SuouGaEgWQ","urls":[["https://t.co/SuouGaEgWQ","",""]],"media":{"type":"photo","thumb":"https://pbs.twimg.com/media/HW6FzCNXIAAowSR.jpg?name=small","count":1,"w":2048,"h":1150},"metrics":{"like":0,"rt":0,"reply":0,"quote":0,"view":33}},{"id":"2120760484551160263","created_at":"2026-11-12T06:07:55.000Z","kind":"reply","text":"@rsimpson610 @ToastyCoty 🫡","metrics":{"like":1,"rt":0,"reply":0,"quote":0,"view":11}},{"id":"2120760197714960769","created_at":"2026-11-12T06:06:47.000Z","kind":"reply","text":"@stew80497 Shart tooth, yes. Human tooth yes","metrics":{"like":1,"rt":0,"reply":1,"quote":0,"view":18}},{"id":"2120756367057203465","created_at":"2026-11-12T05:51:34.000Z","kind":"reply","text":"@LeviHoliday4 Goodnight!","metrics":{"like":1,"rt":0,"reply":1,"quote":0,"view":13}},{"id":"2120745987253674473","created_at":"2026-11-12T05:10:19.000Z","kind":"reply","text":"@LeviHoliday4 @ToastyCoty Goodnight Levi!","metrics":{"like":1,"rt":0,"reply":0,"quote":0,"view":10}},{"id":"2120745878701178967","created_at":"2026-11-12T05:09:53.000Z","kind":"reply","text":"@SIchatban @ToastyCoty Tell @BlackPilledFed to suck a big fat one for me.","metrics":{"like":1,"rt":0,"reply":0,"quote":0,"view":8}},{"id":"2120745807683219724","created_at":"2026-11-12T05:09:36.000Z","kind":"reply","text":"@GlitchyMagic_ @ToastyCoty Nite homie","metrics":{"like":0,"rt":0,"reply":0,"quote":0,"view":4}},{"id":"2120744401601220610","created_at":"2026-11-12T05:04:01.000Z","kind":"reply","text":"@BlackPilledFed @ToastyCoty https://t.co/bprPqhPlf8","urls":[["https://t.co/bprPqhPlf8","",""]],"media":{"type":"animated_gif","thumb":"https://pbs.twimg.com/tweet_video_thumb/HW5lynlXoAASTJM.jpg","count":1,"w":480,"h":480},"metrics":{"like":1,"rt":0,"reply":0,"quote":0,"view":10}},{"id":"2120744075263373663","created_at":"2026-11-12T05:02:43.000Z","kind":"post","text":"Goodnight twitter. https://t.co/Di8yrUvqTR","urls":[["https://t.co/Di8yrUvqTR","",""]],"media":{"type":"photo","thumb":"https://pbs.twimg.com/media/HW5lezqWIAAet7c.jpg?name=small","count":1,"w":3000,"h":4000},"metrics":{"like":19,"rt":0,"reply":7,"quote":0,"view":295}},{"id":"2120741590616486217","created_at":"2026-11-12T04:52:51.000Z","kind":"reply","text":"@SIchatban Its true, im still actually under investigation sadly.","metrics":{"like":6,"rt":1,"reply":1,"quote":0,"view":213}},{"id":"2120740235273253278","created_at":"2026-11-12T04:47:28.000Z","kind":"reply","text":"@SIchatban 😍","metrics":{"like":1,"rt":0,"reply":0,"quote":0,"view":9}},{"id":"2120740006012580220","created_at":"2026-11-12T04:46:33.000Z","kind":"reply","text":"@Chi_zencrackers @ToastyCoty Niether, I sat in the sauna","metrics":{"like":0,"rt":0,"reply":0,"quote":0,"view":8}},{"id":"2120739516759814651","created_at":"2026-11-12T04:44:36.000Z","kind":"reply","text":"@SIchatban Fuck you @BlackPilledFed for rugging your space while I was listing to that music you fuck.","metrics":{"like":1,"rt":1,"reply":1,"quote":0,"view":61}},{"id":"2120649492898754915","created_at":"2026-11-11T22:46:53.000Z","kind":"reply","text":"@SIchatban I like this version  https://t.co/2dWwBAC8AR","urls":[["https://t.co/2dWwBAC8AR","",""]],"media":{"type":"photo","thumb":"https://pbs.twimg.com/media/HWugp_PWwAAmiT7.jpg?name=small","count":1,"w":1792,"h":2372},"metrics":{"like":5,"rt":0,"reply":2,"quote":0,"view":42}},{"id":"2120644516961018276","created_at":"2026-11-11T22:27:07.000Z","kind":"quote","quote":{"id":"2120630435818377482","text":"https://t.co/jkvKnkypet"},"text":"Come drink with us.\n\nI don't drink often so I'm drinking mimosas tonight 😅 https://t.co/Sdr8Yfdtea https://t.co/bzPv0uUSpx","urls":[["https://t.co/Sdr8Yfdtea","",""],["https://t.co/bzPv0uUSpx","https://twitter.com/BlackPilledFed/status/2120630435818377482","x.com/BlackPilledFed…"]],"media":{"type":"photo","thumb":"https://pbs.twimg.com/media/HW4K6t7WYAA1yli.jpg?name=small","count":1,"w":3000,"h":4000},"metrics":{"like":4,"rt":0,"reply":1,"quote":0,"view":89}},{"id":"2120632999041790334","created_at":"2026-11-11T21:41:21.000Z","kind":"reply","text":"@MstrHappyJustin @RudyRud420 @SaltySierraDog @SIchatban @SilentServiceEV @slimc84 @stoneterry912 @TeslaBTYLUV44 @TevTevTevin @that1evguyjay @TheSensibleX @TonyBaumstarck @TyTyMania @USMC_NASCARFire @VTLink Thanks homie!","metrics":{"like":7,"rt":0,"reply":1,"quote":0,"view":40}},{"id":"2120628935285522879","created_at":"2026-11-11T21:25:12.000Z","kind":"reply","text":"@BroosterWeb3 @grok @bot I cant wait to see where things will be in 5 years.","metrics":{"like":1,"rt":0,"reply":0,"quote":0,"view":9}},{"id":"2120626428140265911","created_at":"2026-11-11T21:15:14.000Z","kind":"reply","text":"@stew80497 @AshleySavvie 🥶🥶🥶","metrics":{"like":2,"rt":0,"reply":1,"quote":0,"view":11}},{"id":"2120599700059332758","created_at":"2026-11-11T19:29:01.000Z","kind":"reply","text":"@BlackPilledFed lol. Was testing an audio thing. It works!","metrics":{"like":0,"rt":0,"reply":0,"quote":0,"view":9}},{"id":"2120595818533286157","created_at":"2026-11-11T19:13:36.000Z","kind":"reply","text":"@jakesna @grok @Hyfly11 sir, you cant park there.","metrics":{"like":2,"rt":0,"reply":2,"quote":0,"view":9}},{"id":"2120595699012342150","created_at":"2026-11-11T19:13:08.000Z","kind":"reply","text":"@grok @Hyfly11 hmm. I own a Cyberbeast paid off and a Model Y both 2026. Im thinking of adding another Cyberbeast on loan this time and im broke. How does this work.","metrics":{"like":0,"rt":0,"reply":1,"quote":0,"view":88}},{"id":"2120591538971361332","created_at":"2026-11-11T18:56:36.000Z","kind":"reply","text":"@ArcyloOfficial @Shahr_Crew these are from the messed-and-mixed collection that can be minted here. https://t.co/IFpu7rn3mZ\n\ncheck out the other cool ones that were minted.","urls":[["https://t.co/IFpu7rn3mZ","https://www.vvv.so/messed-and-mixed","vvv.so/messed-and-mix…"]],"metrics":{"like":2,"rt":1,"reply":1,"quote":0,"view":11}},{"id":"2120586776045588633","created_at":"2026-11-11T18:37:40.000Z","kind":"post","text":"Is this style appealing?\n\nWould you play it for free? https://t.co/bQP2Cz3FMA","urls":[["https://t.co/bQP2Cz3FMA","",""]],"media":{"type":"photo","thumb":"https://pbs.twimg.com/media/HW3WUf6W4AAc5Hi.jpg?name=small","count":1,"w":1705,"h":1031},"metrics":{"like":3,"rt":0,"reply":1,"quote":0,"view":70}},{"id":"2120585522091643068","created_at":"2026-11-11T18:32:41.000Z","kind":"reply","text":"@aldonamusica 🥰🥰🥰","metrics":{"like":1,"rt":0,"reply":1,"quote":0,"view":10}},{"id":"2120582055251812529","created_at":"2026-11-11T18:18:55.000Z","kind":"reply","text":"@trishgray90 @AshleySavvie Thank you!","metrics":{"like":1,"rt":0,"reply":0,"quote":0,"view":16}},{"id":"2120581779874869583","created_at":"2026-11-11T18:17:49.000Z","kind":"post","text":"Made a new song based off my last few days of X posting lol. \n\nNot half bad tbh. \nhttps://t.co/gGLasfQ6eL","urls":[["https://t.co/gGLasfQ6eL","https://suno.com/s/kuPYBx3vdJcHAzMN","suno.com/s/kuPYBx3vdJcH…"]],"metrics":{"like":5,"rt":1,"reply":1,"quote":0,"view":80}},{"id":"2120578637816582320","created_at":"2026-11-11T18:05:20.000Z","kind":"reply","text":"@BlackPilledFed Morning!","metrics":{"like":1,"rt":0,"reply":0,"quote":0,"view":8}},{"id":"2120575274995601850","created_at":"2026-11-11T17:51:58.000Z","kind":"reply","text":"@ArcyloOfficial @ToastyCoty 😅","metrics":{"like":1,"rt":0,"reply":0,"quote":0,"view":11}},{"id":"2120574638036287712","created_at":"2026-11-11T17:49:26.000Z","kind":"reply","text":"@Dr_Sminty @AshleySavvie Thank you for your too Dr. Sminty!","metrics":{"like":1,"rt":0,"reply":0,"quote":0,"view":13}},{"id":"2120574472000512323","created_at":"2026-11-11T17:48:47.000Z","kind":"quote","quote":{"id":"2120534208770920492","text":"https://t.co/pGZPIApipK"},"text":"Me larping at church. https://t.co/Ve80yxnadj","urls":[["https://t.co/Ve80yxnadj","https://twitter.com/AR46775831/status/2120534208770920492","x.com/AR46775831/sta…"]],"metrics":{"like":7,"rt":1,"reply":0,"quote":0,"view":204}},{"id":"2120572271354126423","created_at":"2026-11-11T17:40:02.000Z","kind":"post","text":"Coming soon thanks to @grok @bot. \n\nIm a game dev now. 🤣 https://t.co/D2PaDWDt9K","urls":[["https://t.co/D2PaDWDt9K","",""]],"media":{"type":"photo","thumb":"https://pbs.twimg.com/media/HW3JLATWoAACSIl.jpg?name=small","count":1,"w":1280,"h":720},"metrics":{"like":7,"rt":2,"reply":6,"quote":0,"view":125}},{"id":"2120571589947269313","created_at":"2026-11-11T17:37:20.000Z","kind":"reply","text":"@Jerubbaal68 And it's really really small  compared to the others I have. https://t.co/7QEtJ6lDki","urls":[["https://t.co/7QEtJ6lDki","",""]],"media":{"type":"photo","thumb":"https://pbs.twimg.com/media/HW3Im8mXUAAMiTM.jpg?name=small","count":1,"w":3000,"h":4000},"metrics":{"like":0,"rt":0,"reply":0,"quote":0,"view":9}},{"id":"2120564087809794160","created_at":"2026-11-11T17:07:31.000Z","kind":"reply","text":"@ggabrielmmm @CYBRBEATZ I have a VIP ticket if anyone wants it.","metrics":{"like":1,"rt":0,"reply":0,"quote":0,"view":29}},{"id":"2120562232605995128","created_at":"2026-11-11T17:00:09.000Z","kind":"quote","quote":{"id":"2120555127970938962","text":"https://t.co/tA74M3OgCl"},"text":"My take on it. https://t.co/1SfTRJTW8y https://t.co/GBiWk2o18x","urls":[["https://t.co/1SfTRJTW8y","",""],["https://t.co/GBiWk2o18x","https://twitter.com/waffen_barbie/status/2120555127970938962","x.com/waffen_barbie/…"]],"media":{"type":"photo","thumb":"https://pbs.twimg.com/media/HW3AGAPWcAApFCD.jpg?name=small","count":1,"w":1792,"h":2390},"metrics":{"like":7,"rt":2,"reply":0,"quote":0,"view":123}},{"id":"2120561504919449626","created_at":"2026-11-11T16:57:15.000Z","kind":"reply","text":"@JeebsTX I owned 3 out of the 4. 4th incoming as soon as I can.","metrics":{"like":0,"rt":0,"reply":1,"quote":0,"view":35}},{"id":"2120561309314138362","created_at":"2026-11-11T16:56:28.000Z","kind":"reply","text":"@CarlsCreek42 🫡💛","metrics":{"like":1,"rt":0,"reply":0,"quote":0,"view":18}},{"id":"2120561253869326533","created_at":"2026-11-11T16:56:15.000Z","kind":"reply","text":"@AMPDDUP 🫡💛💛💛","metrics":{"like":1,"rt":0,"reply":0,"quote":0,"view":12}},{"id":"2120560928030642623","created_at":"2026-11-11T16:54:58.000Z","kind":"reply","text":"@taylorbilt @TheBlondDon 🫡82nd Airborne checking in.","metrics":{"like":1,"rt":0,"reply":1,"quote":0,"view":12}},{"id":"2120560727010558136","created_at":"2026-11-11T16:54:10.000Z","kind":"reply","text":"@taylorbilt @TheBlondDon Happy Veterans day brother. Not sure if you served but I salute you either way.","metrics":{"like":1,"rt":0,"reply":1,"quote":0,"view":38}},{"id":"2120560583389200399","created_at":"2026-11-11T16:53:35.000Z","kind":"reply","text":"@Natism whoa, @Beckka112233","metrics":{"like":0,"rt":0,"reply":0,"quote":0,"view":36}},{"id":"2120560380456104182","created_at":"2026-11-11T16:52:47.000Z","kind":"reply","text":"@AshleySavvie that one hurts.","metrics":{"like":1,"rt":0,"reply":0,"quote":0,"view":9}},{"id":"2120560183067689050","created_at":"2026-11-11T16:52:00.000Z","kind":"reply","text":"@BlackPilledFed https://t.co/oeOYtWtCoT","media":{"type":"animated_gif","thumb":"https://pbs.twimg.com/tweet_video_thumb/HW2-PudWcAA1QZh.jpg","count":1,"w":480,"h":480},"metrics":{"like":1,"rt":0,"reply":0,"quote":0,"view":14}},{"id":"2120559909712306554","created_at":"2026-11-11T16:50:55.000Z","kind":"reply","text":"@BlackPilledFed and the dumpster for the house remodel is coming today also, supposedly 😅","metrics":{"like":1,"rt":0,"reply":1,"quote":0,"view":12}},{"id":"2120559696356532367","created_at":"2026-11-11T16:50:04.000Z","kind":"post","text":"I am Coty https://t.co/V47g4t6ycp","media":{"type":"video","thumb":"https://pbs.twimg.com/amplify_video_thumb/2120559416227360768/img/yB0KbI0Uzsk9y1OW.jpg?name=small","count":1,"w":720,"h":1280},"metrics":{"like":6,"rt":1,"reply":0,"quote":0,"view":237}},{"id":"2120557179472359429","created_at":"2026-11-11T16:40:04.000Z","kind":"reply","text":"@aldonamusica @ToastyCoty Everyday bro!","metrics":{"like":1,"rt":0,"reply":1,"quote":0,"view":11}},{"id":"2120557102691500494","created_at":"2026-11-11T16:39:45.000Z","kind":"reply","text":"@iLTardoNico @ToastyCoty ha, it was a sauna at the gym. Gonna make this a habbit for sure.","metrics":{"like":1,"rt":0,"reply":0,"quote":0,"view":16}},{"id":"2120556667322376694","created_at":"2026-11-11T16:38:02.000Z","kind":"reply","text":"@cedes0512 @AuthorJRGridley Crazy how time works, one day we are young and living life and the next we are older and enjoying it even more.","metrics":{"like":2,"rt":0,"reply":1,"quote":0,"view":29}},{"id":"2120556495737643440","created_at":"2026-11-11T16:37:21.000Z","kind":"reply","text":"@PorkyTrumpAF @sgtesco Happy Veterans day bro","metrics":{"like":2,"rt":0,"reply":1,"quote":0,"view":14}},{"id":"2120556392931094667","created_at":"2026-11-11T16:36:56.000Z","kind":"reply","text":"@sgtesco Happy Veterans day bro, thank you for serving the greatest country in the world.","metrics":{"like":1,"rt":0,"reply":0,"quote":0,"view":23}},{"id":"2120556155097465315","created_at":"2026-11-11T16:36:00.000Z","kind":"reply","text":"@BlackPilledFed Morning, thank you for your service. \n\nOn other news, I have an interview in 3 hours","metrics":{"like":2,"rt":0,"reply":1,"quote":0,"view":23}},{"id":"2120555991544873362","created_at":"2026-11-11T16:35:21.000Z","kind":"reply","text":"@cloud_mein @SIchatban Morning to you too!","metrics":{"like":1,"rt":0,"reply":0,"quote":0,"view":5}},{"id":"2120555926797103148","created_at":"2026-11-11T16:35:05.000Z","kind":"reply","text":"@SIchatban Morning homie","metrics":{"like":0,"rt":0,"reply":0,"quote":0,"view":18}},{"id":"2120555914344513550","created_at":"2026-11-11T16:35:02.000Z","kind":"post","text":"One of my newer skulls. https://t.co/mahxuBnIn4","media":{"type":"photo","thumb":"https://pbs.twimg.com/media/HW26WVMWsAAn_su.jpg?name=small","count":1,"w":3000,"h":4000},"metrics":{"like":5,"rt":0,"reply":3,"quote":0,"view":97}},{"id":"2120536361048437183","created_at":"2026-11-11T15:17:20.000Z","kind":"reply","text":"@OnlyKittensLol @AshleySavvie https://t.co/4GQg9HOoCH","media":{"type":"animated_gif","thumb":"https://pbs.twimg.com/tweet_video_thumb/HW2olFpWUAA06TA.jpg","count":1,"w":480,"h":350},"metrics":{"like":1,"rt":0,"reply":0,"quote":0,"view":8}},{"id":"2120535798466363731","created_at":"2026-11-11T15:15:06.000Z","kind":"reply","text":"@AshleySavvie Magic? 🪄✨","metrics":{"like":1,"rt":0,"reply":1,"quote":0,"view":13}},{"id":"2120531138120978868","created_at":"2026-11-11T14:56:35.000Z","kind":"reply","text":"@BlackPilledFed New game idea unlocked. I have so much grok usage.","metrics":{"like":1,"rt":0,"reply":1,"quote":0,"view":16}},{"id":"2120530974081749179","created_at":"2026-11-11T14:55:56.000Z","kind":"reply","text":"@platis_e @SolanaEvents hey @grok tell me about this event please","metrics":{"like":0,"rt":0,"reply":1,"quote":0,"view":21}},{"id":"2120530709748109598","created_at":"2026-11-11T14:54:53.000Z","kind":"reply","text":"@Web3Nobility_01 😅","metrics":{"like":0,"rt":0,"reply":0,"quote":0,"view":4}},{"id":"2120524165648126321","created_at":"2026-11-11T14:28:53.000Z","kind":"post","text":"Couple more from my @Shahr_Crew collection. https://t.co/G3WeE2X6Hy","media":{"type":"photo","thumb":"https://pbs.twimg.com/media/HW2dbWtW0AAJETn.jpg?name=small","count":2,"w":1480,"h":1850},"metrics":{"like":10,"rt":3,"reply":2,"quote":0,"view":121}},{"id":"2120516754006851780","created_at":"2026-11-11T13:59:26.000Z","kind":"post","text":"https://t.co/jLLXpn2KGN","media":{"type":"video","thumb":"https://pbs.twimg.com/amplify_video_thumb/2120516675573334016/img/hng9kunLOHGf9bQO.jpg?name=small","count":1,"w":1440,"h":1440},"metrics":{"like":2,"rt":1,"reply":0,"quote":0,"view":62}},{"id":"2120515164038394341","created_at":"2026-11-11T13:53:07.000Z","kind":"post","text":"Hearing about the end of production of the @cybertruck has me like this. https://t.co/cIHKDEFPjC","urls":[["https://t.co/cIHKDEFPjC","",""],["https://t.co/cIHKDEFPjC","",""]],"media":{"type":"photo","thumb":"https://pbs.twimg.com/media/HW2VLXoWYAAW1zp.jpg?name=small","count":2,"w":1842,"h":2304},"metrics":{"like":7,"rt":1,"reply":3,"quote":0,"view":190}},{"id":"2120512777374879982","created_at":"2026-11-11T13:43:38.000Z","kind":"reply","text":"@Gunblaze1969 idk, @grok based off my posting what am I losing intrest in","metrics":{"like":1,"rt":0,"reply":1,"quote":0,"view":37}},{"id":"2120503727438086520","created_at":"2026-11-11T13:07:40.000Z","kind":"quote","quote":{"id":"2120495650252935288","text":"To all who have served and to my husband—Happy Veterans Day 🇺🇸 https://t.co/4L1thxarGt"},"text":"Thanks dear. https://t.co/hwrjtaJW8w","urls":[["https://t.co/hwrjtaJW8w","https://twitter.com/AshleySavvie/status/2120495650252935288","x.com/AshleySavvie/s…"]],"metrics":{"like":2,"rt":0,"reply":0,"quote":0,"view":64}},{"id":"2120503651303333928","created_at":"2026-11-11T13:07:22.000Z","kind":"repost","rt_handle":"SIchatban","orig_id":"2120400451598454981","text":"Leviticus 19:11: “‘Do not steal. Do not lie. Do not deceive one another.’”","metrics":{"like":42,"rt":7,"reply":9,"quote":0,"view":720}},{"id":"2120502063431905593","created_at":"2026-11-11T13:01:03.000Z","kind":"reply","text":"@CCdabz710 @ToastyCoty Yeah it was good, gonna try to make it my 2am routine","metrics":{"like":1,"rt":0,"reply":1,"quote":0,"view":15}},{"id":"2120501987456241667","created_at":"2026-11-11T13:00:45.000Z","kind":"reply","text":"@BuntCutler @ToastyCoty Yeah and sauna lol","metrics":{"like":1,"rt":0,"reply":1,"quote":0,"view":18}},{"id":"2120501910578806841","created_at":"2026-11-11T13:00:27.000Z","kind":"reply","text":"@skulrzworld I'm motivated now.","metrics":{"like":1,"rt":0,"reply":1,"quote":0,"view":5}},{"id":"2120501686275805321","created_at":"2026-11-11T12:59:33.000Z","kind":"post","text":"Pillow to what I need https://t.co/8somFB4Qzr","urls":[["https://t.co/8somFB4Qzr","",""],["https://t.co/8somFB4Qzr","",""]],"media":{"type":"photo","thumb":"https://pbs.twimg.com/media/HW2JCMCXUAAHqjc.jpg?name=small","count":2,"w":3000,"h":4000},"metrics":{"like":5,"rt":1,"reply":0,"quote":0,"view":94}},{"id":"2120496603945484770","created_at":"2026-11-11T12:39:21.000Z","kind":"post","text":"Happy Veterans day everyone. \n\nThen and Now \n\nArmy and Civilian https://t.co/ckhl5KQgbo","urls":[["https://t.co/ckhl5KQgbo","",""],["https://t.co/ckhl5KQgbo","",""]],"media":{"type":"photo","thumb":"https://pbs.twimg.com/media/HW2EacJXMAAhEP0.jpg?name=small","count":2,"w":1008,"h":1065},"metrics":{"like":28,"rt":2,"reply":2,"quote":0,"view":445}},{"id":"2120489889888075881","created_at":"2026-11-11T12:12:41.000Z","kind":"post","text":"I love Escape from Tarkov sometimes. https://t.co/fJnL4GfQ7e","urls":[["https://t.co/fJnL4GfQ7e","",""]],"media":{"type":"photo","thumb":"https://pbs.twimg.com/media/HW1-Tu_XoAAJS7L.jpg?name=small","count":1,"w":3000,"h":4000},"metrics":{"like":6,"rt":1,"reply":0,"quote":0,"view":149}},{"id":"2120437230179131725","created_at":"2026-11-11T08:43:26.000Z","kind":"post","text":"Gonna try to make this a 2am habit. https://t.co/Z62SwoZoPb","urls":[["https://t.co/Z62SwoZoPb","",""]],"media":{"type":"photo","thumb":"https://pbs.twimg.com/media/HW1OagDXsAA1Xpl.jpg?name=small","count":1,"w":3000,"h":4000},"metrics":{"like":9,"rt":0,"reply":1,"quote":0,"view":146}},{"id":"2120436267905114364","created_at":"2026-11-11T08:39:36.000Z","kind":"reply","text":"@SIchatban 🤣🤣🤣","metrics":{"like":1,"rt":0,"reply":0,"quote":0,"view":23}},{"id":"2120432509808738813","created_at":"2026-11-11T08:24:40.000Z","kind":"post","text":"Day one down. Who knows if day 2 will ever happen... https://t.co/PgZ0v0HAOS","urls":[["https://t.co/PgZ0v0HAOS","",""]],"media":{"type":"photo","thumb":"https://pbs.twimg.com/media/HW1KH3mXIAAqzZs.jpg?name=small","count":1,"w":3000,"h":4000},"metrics":{"like":21,"rt":1,"reply":5,"quote":0,"view":405}},{"id":"2120430353668014238","created_at":"2026-11-11T08:16:06.000Z","kind":"repost","rt_handle":"AlexFtoulis","orig_id":"2120419505377566943","text":"GM 🖤 Heaven Is Rotting Behind the Wallpaper\n\n/ in TSONTA collection https://t.co/6sLEmuedyk","urls":[["https://t.co/6sLEmuedyk","",""]],"media":{"type":"animated_gif","thumb":"https://pbs.twimg.com/tweet_video_thumb/HWyi-WQWsAAyWDQ.jpg","count":1,"w":1280,"h":1706},"metrics":{"like":41,"rt":10,"reply":27,"quote":0,"view":464}},{"id":"2120430182511112691","created_at":"2026-11-11T08:15:25.000Z","kind":"post","text":"Well I'm gonna die in here. https://t.co/Y76MULO4Ae","urls":[["https://t.co/Y76MULO4Ae","",""]],"media":{"type":"photo","thumb":"https://pbs.twimg.com/media/HW1IAlAXEAEGh_Y.jpg?name=small","count":1,"w":3000,"h":4000},"metrics":{"like":14,"rt":1,"reply":6,"quote":0,"view":334}},{"id":"2120413989410603040","created_at":"2026-11-11T07:11:05.000Z","kind":"reply","text":"@grok @hanginout55 @AshleySavvie @hanginout55 lol","metrics":{"like":0,"rt":0,"reply":0,"quote":0,"view":3}},{"id":"2120413318863106365","created_at":"2026-11-11T07:08:25.000Z","kind":"quote","quote":{"id":"2120393024060657973","text":"Play https://t.co/0htcB5jbyZ https://t.co/gGnEF5Fmoc"},"text":"Go check out my friends new game he just released. https://t.co/HpMDjDPlHe","urls":[["https://t.co/HpMDjDPlHe","https://twitter.com/TheSickGimp/status/2120393024060657973","x.com/TheSickGimp/st…"]],"metrics":{"like":2,"rt":0,"reply":0,"quote":0,"view":85}},{"id":"2120413148813389978","created_at":"2026-11-11T07:07:44.000Z","kind":"reply","text":"@LeviHoliday4 That's really cool honestly","metrics":{"like":1,"rt":0,"reply":1,"quote":0,"view":14}},{"id":"2120412899931828608","created_at":"2026-11-11T07:06:45.000Z","kind":"post","text":"About to hit the gym. https://t.co/yI92vKhWn7","urls":[["https://t.co/yI92vKhWn7","",""]],"media":{"type":"photo","thumb":"https://pbs.twimg.com/media/HW04SXsWwAACfmN.jpg?name=small","count":1,"w":2544,"h":3392},"metrics":{"like":16,"rt":1,"reply":2,"quote":0,"view":196}},{"id":"2120407966251892952","created_at":"2026-11-11T06:47:09.000Z","kind":"reply","text":"@AshleySavvie @hanginout55 JA is just ashamed","metrics":{"like":0,"rt":0,"reply":0,"quote":0,"view":13}},{"id":"2120407793241124991","created_at":"2026-11-11T06:46:27.000Z","kind":"reply","text":"@hanginout55 @AshleySavvie ohh I like this. @grok what would mine look like","metrics":{"like":1,"rt":0,"reply":1,"quote":0,"view":17}},{"id":"2120407669643301207","created_at":"2026-11-11T06:45:58.000Z","kind":"reply","text":"@TruthTom https://t.co/2JU2NVjjZV","urls":[["https://t.co/2JU2NVjjZV","",""]],"media":{"type":"animated_gif","thumb":"https://pbs.twimg.com/tweet_video_thumb/HW0ziNEWQAABt8Q.jpg","count":1,"w":400,"h":400},"metrics":{"like":0,"rt":0,"reply":0,"quote":0,"view":16}},{"id":"2120407345956110525","created_at":"2026-11-11T06:44:41.000Z","kind":"reply","text":"@LeviHoliday4 😅🫡","metrics":{"like":1,"rt":0,"reply":0,"quote":0,"view":17}},{"id":"2120406416674709577","created_at":"2026-11-11T06:40:59.000Z","kind":"reply","text":"@LeviHoliday4 I was going through some stuff when I was dealing with my TBI from that accident. I had to get my thoughts out and needed different timelines for those different thoughts.","metrics":{"like":1,"rt":0,"reply":1,"quote":0,"view":10}},{"id":"2120406251482104004","created_at":"2026-11-11T06:40:20.000Z","kind":"reply","text":"@LeviHoliday4 there you go.","metrics":{"like":1,"rt":0,"reply":1,"quote":0,"view":14}},{"id":"2120405711960396209","created_at":"2026-11-11T06:38:11.000Z","kind":"reply","text":"@LeviHoliday4 hold up. ill give you a follow with my 5 alts","metrics":{"like":1,"rt":0,"reply":1,"quote":0,"view":24}},{"id":"2120405393889505721","created_at":"2026-11-11T06:36:55.000Z","kind":"reply","text":"@BlackPilledFed I join his spaces just so he ruggs them.","metrics":{"like":1,"rt":0,"reply":1,"quote":0,"view":13}},{"id":"2120389899056554310","created_at":"2026-11-11T05:35:21.000Z","kind":"reply","text":"@BlackPilledFed I agree, I think it flows better. gonna rock this for the next 2hrs probably until I decide I need to change it to we are in this together logo","metrics":{"like":1,"rt":0,"reply":1,"quote":0,"view":15}},{"id":"2120374116054372536","created_at":"2026-11-11T04:32:38.000Z","kind":"reply","text":"@grok so @grok, do the account @BlackPilledFed now","metrics":{"like":2,"rt":0,"reply":1,"quote":0,"view":17}},{"id":"2120312195682865641","created_at":"2026-11-11T00:26:35.000Z","kind":"reply","text":"@BlackPilledFed lmfao. The Future ladies and gentalmen.","metrics":{"like":2,"rt":0,"reply":1,"quote":0,"view":31}},{"id":"2120311442100703271","created_at":"2026-11-11T00:23:35.000Z","kind":"reply","text":"@BlackPilledFed 🫡","metrics":{"like":1,"rt":0,"reply":0,"quote":0,"view":15}},{"id":"2120311265541361824","created_at":"2026-11-11T00:22:53.000Z","kind":"post","text":"Hello xTwitter. https://t.co/gP9FFnNBJ7","urls":[["https://t.co/gP9FFnNBJ7","",""],["https://t.co/gP9FFnNBJ7","",""]],"media":{"type":"photo","thumb":"https://pbs.twimg.com/media/HWzb2FBWoAAKNgd.jpg?name=small","count":2,"w":3000,"h":4000},"metrics":{"like":13,"rt":0,"reply":4,"quote":0,"view":279}},{"id":"2120259693427724411","created_at":"2026-11-10T20:57:58.000Z","kind":"repost","rt_handle":"ACIDstronaut","orig_id":"2120174505909965174","text":"Congratulations @TherapyToaster you minted an ACID CULT NFT with a reaper symbol. That means you get a wax pack of trading cards from me! There is a 1 in 3 chance of getting a hand-drawn 1/1 sketch card in those wax packs! There are still lots that haven't been minted 🔗⬇️ https://t.co/zIlQkdwtyG","urls":[["https://t.co/zIlQkdwtyG","",""],["https://t.co/zIlQkdwtyG","",""]],"metrics":{"like":30,"rt":7,"reply":4,"quote":0,"view":315}},{"id":"2120254823870484664","created_at":"2026-11-10T20:38:37.000Z","kind":"reply","text":"@CCdabz710 @BlackPilledFed Not there","metrics":{"like":2,"rt":0,"reply":1,"quote":0,"view":20}},{"id":"2120254661815054563","created_at":"2026-11-10T20:37:58.000Z","kind":"quote","quote":{"id":"2120222646021533758","text":"Congratulations @TherapyToaster you minted another ACID CULT NFT with a physical reward attached. This brain skull symbol gets you a sticker pack exclusive to this collection. There are only 10 of these and they will not be reprinted! ✊ https://t.co/J86SkJM9Qc"},"text":"Hell yeah! https://t.co/mEWQPf2PFv","urls":[["https://t.co/mEWQPf2PFv","https://twitter.com/ACIDstronaut/status/2120222646021533758","x.com/ACIDstronaut/s…"]],"metrics":{"like":9,"rt":2,"reply":0,"quote":0,"view":102}},{"id":"2120254515484213741","created_at":"2026-11-10T20:37:23.000Z","kind":"post","text":"Good afternoon. I just woke up and my cat is suspicious of me right now. https://t.co/69mc89FTD6","urls":[["https://t.co/69mc89FTD6","",""]],"media":{"type":"photo","thumb":"https://pbs.twimg.com/media/HWyoOt_XUAIJXdl.jpg?name=small","count":1,"w":3000,"h":4000},"metrics":{"like":31,"rt":2,"reply":4,"quote":0,"view":376}},{"id":"2120254245244977324","created_at":"2026-11-10T20:36:19.000Z","kind":"quote","quote":{"id":"2120229381192773824","text":"@TherapyToaster you are on a roll man!\nYou got another reaper symbol so that means I'm sending you another wax pack of trading cards! https://t.co/m9XpKMkkfo"},"text":"Hell yeah, thanks homie. https://t.co/QOegP6cqVe","urls":[["https://t.co/QOegP6cqVe","https://twitter.com/ACIDstronaut/status/2120229381192773824","x.com/ACIDstronaut/s…"]],"metrics":{"like":5,"rt":0,"reply":1,"quote":0,"view":113}},{"id":"2120254121802359214","created_at":"2026-11-10T20:35:49.000Z","kind":"reply","text":"@fugazinft @TheresaWeik @MeowMetaX @MeltingMoons_ @100GrandVan @Eddie_ShoBiz @TrinaVerse @CreatorXGang @KpHood5 Rolling up","metrics":{"like":2,"rt":0,"reply":0,"quote":0,"view":34}},{"id":"2120149716314779868","created_at":"2026-11-10T13:40:57.000Z","kind":"post","text":"Finally, I'm getting driven. https://t.co/9xu7i9NjtV","urls":[["https://t.co/9xu7i9NjtV","",""]],"media":{"type":"photo","thumb":"https://pbs.twimg.com/media/HWxI7GEXoAA3NGV.jpg?name=small","count":1,"w":3000,"h":4000},"metrics":{"like":19,"rt":0,"reply":2,"quote":0,"view":311}},{"id":"2120142065547780407","created_at":"2026-11-10T13:10:33.000Z","kind":"post","text":"At the pain clinic and they have Leave it to Beaver on. Anyone remember that show? https://t.co/zsevq6NiGS","urls":[["https://t.co/zsevq6NiGS","",""]],"media":{"type":"photo","thumb":"https://pbs.twimg.com/media/HWxB8KWWMAATOcQ.jpg?name=small","count":1,"w":3000,"h":4000},"metrics":{"like":10,"rt":1,"reply":2,"quote":0,"view":169}}]}</script><script>(function(){var R=document.getElementById('tt48');if(!R||R.dataset.on)return;R.dataset.on=1;
+var D;try{D=JSON.parse(document.getElementById('tt48-data').textContent)}catch(e){return}
+var H=D.user&&D.user.username||'TherapyToaster',NM=D.user&&D.user.name||H,PF=D.user&&D.user.pfp||'',L=R.querySelector('.t4l'),S=R.querySelector('.t4s'),F='all';
+function st(id){return 'https://x.com/'+H+'/'+'status/'+id}
+function es(s){return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function ago(t){var s=(Date.now()-t)/1e3;if(s<60)return 'now';if(s<3600)return Math.floor(s/60)+'m';if(s<86400)return Math.floor(s/3600)+'h';if(s<604800)return Math.floor(s/86400)+'d';return new Date(t).toLocaleDateString(undefined,{month:'short',day:'numeric'})}
+function nf(n){return n>=1e6?(n/1e6).toFixed(1).replace(/\.0$/,'')+'M':n>=1e3?(n/1e3).toFixed(1).replace(/\.0$/,'')+'K':String(n)}
+function tx(t,u){var m={};(u||[]).forEach(function(x){m[x[0]]=x});var s=es(t);
+s=s.replace(/https?:\/\/t\.co\/[A-Za-z0-9]+/g,function(k){var x=m[k];if(x&&!x[1])return '';var h=x&&x[1]||k,d=x&&x[2]||k.replace(/^https?:\/\//,'');return '<a href="'+es(h)+'" target="_blank" rel="noopener noreferrer nofollow">'+es(d)+'</a>'});
+s=s.replace(/(^|[^\w&\/])@(\w{1,15})/g,function(a,p,h){return p+'<a href="https://x.com/'+h+'" target="_blank" rel="noopener noreferrer">@'+h+'</a>'});
+s=s.replace(/(^|\s)#(\w+)/g,function(a,p,h){return p+'<a href="https://x.com/hashtag/'+encodeURIComponent(h)+'" target="_blank" rel="noopener noreferrer">#'+h+'</a>'});return s.replace(/\s+$/,'')}
+var now=Date.now(),win=(D.hours||48)*36e5,all=D.posts.map(function(p){p.t=Date.parse(p.created_at);return p}),P=all.filter(function(p){return now-p.t<=win});if(P.length<3)P=all.slice(0,10);
+var K={reply:['Reply','r'],repost:['Repost','p'],quote:['Quote','']};
+function card(p){var k=K[p.kind],m=p.media,x=p.metrics||{},h='<article class="t4c" data-k="'+p.kind+'"><img class="t4p" src="'+es(PF)+'" alt="" width="44" height="44" loading="lazy" decoding="async"><div class="t4b"><div class="t4n"><b>'+es(NM)+'</b><span>@'+es(H)+' · <time datetime="'+p.created_at+'" title="'+es(new Date(p.t).toLocaleString())+'">'+ago(p.t)+'</time></span></div>';
+if(k)h+='<span class="t4k '+k[1]+'">'+(p.kind=='repost'&&p.rt_handle?'🔁 Reposted @'+es(p.rt_handle):k[0])+'</span>';
+if(p.text)h+='<div class="t4t">'+tx(p.text,p.urls)+'</div>';
+if(p.quote&&p.quote.text)h+='<a class="t4q" href="https://x.com/i/status/'+p.quote.id+'" target="_blank" rel="noopener noreferrer">'+es(p.quote.text)+'</a>';
+if(m&&m.thumb){var r=m.w&&m.h?' width="'+m.w+'" height="'+m.h+'"':'';h+='<a class="t4m" href="'+st(p.id)+'" target="_blank" rel="noopener noreferrer"><img src="'+es(m.thumb)+'" alt="'+es(m.alt||'')+'"'+r+' loading="lazy" decoding="async">'+(m.type=='photo'?'':'<i>▶</i>')+(m.count>1?'<em>+'+(m.count-1)+'</em>':'')+'</a>'}
+h+='<div class="t4x">';if(x.reply!=null)h+='<span title="Replies">💬 '+nf(x.reply)+'</span>';if(x.rt!=null)h+='<span title="Reposts">🔁 '+nf(x.rt)+'</span>';if(x.like!=null)h+='<span title="Likes">♥ '+nf(x.like)+'</span>';if(x.view!=null)h+='<span title="Views">👁 '+nf(x.view)+'</span>';
+return h+'<a href="'+st(p.id)+'" target="_blank" rel="noopener noreferrer">View on Twitter ↗</a></div></div></article>'}
+function draw(){var Q=P.filter(function(p){return F=='all'||(F=='post'?(p.kind=='post'||p.kind=='quote'):p.kind==F)});L.innerHTML=Q.length?Q.map(card).join(''):'<p class="t4e">Nothing here in the last 48 hours.</p>';L.scrollTop=0}
+var c={all:P.length,post:0,reply:0,repost:0};P.forEach(function(p){c[p.kind=='quote'?'post':p.kind]++});
+R.querySelectorAll('.t4f button').forEach(function(b){var f=b.getAttribute('data-f');b.textContent+=' ('+c[f]+')';b.onclick=function(){F=f;R.querySelectorAll('.t4f button').forEach(function(o){o.setAttribute('aria-pressed',o===b)});draw()}});
+if(P.length){var a=ago(P[0].t);S.textContent=P.length+' posts · last '+(D.hours||48)+' hours · newest '+(a=='now'?'just now':a+' ago')}
+draw()})();</script></section><!-- TT48 END --><!-- TTPS TAIL START --></div><div class="ttps-pane" id="ttps-ig" role="tabpanel" aria-labelledby="ttps-big" hidden><div class="ps-ig"><h2 class="ps-igh">Latest from Instagram</h2><p class="ps-igs"><a href="https://www.instagram.com/mr.toastysoriginal/" target="_blank" rel="noopener noreferrer">@mr.toastysoriginal</a> · newest posts, straight from the gram</p><div class="ps-frame" data-src="https://www.instagram.com/mr.toastysoriginal/embed/"><div class="ps-load">Tuning in the Instagram signal…</div></div><a class="ps-open" href="https://www.instagram.com/mr.toastysoriginal/" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.6" cy="6.4" r="1" fill="currentColor" stroke="none"/></svg><span>Open Instagram ↗</span></a></div></div><div class="ttps-pane" id="ttps-tt" role="tabpanel" aria-labelledby="ttps-btt" hidden><div class="ps-ig"><h2 class="ps-igh">Latest from TikTok</h2><p class="ps-igs"><a href="https://www.tiktok.com/@therapytoaster" target="_blank" rel="noopener noreferrer">@TherapyToaster</a> · Mr. Toasty, now with sound</p><div class="ps-tk"><div class="ps-load">Tuning in the TikTok signal…</div></div><a class="ps-open" href="https://www.tiktok.com/@therapytoaster" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><g transform="translate(1.6 1.5) scale(.86)"><path fill="#25F4EE" transform="translate(-1.4 -1.2)" d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/><path fill="#FE2C55" transform="translate(1.4 1.2)" d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/><path fill="currentColor" d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></g></svg><span>Follow Mr. Toasty on TikTok ↗</span></a></div></div><script>(function(){
+var R=document.getElementById('ttps');if(!R||R.getAttribute('data-ok'))return;R.setAttribute('data-ok','1');
+var K='ttPath',B=R.querySelectorAll('.ps-b'),P={tw:document.getElementById('ttps-tw'),ig:document.getElementById('ttps-ig'),tt:document.getElementById('ttps-tt')};
+if(!P.tw||!P.ig)return;
+var RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function size(){var f=P.ig.querySelector('.ps-frame iframe');if(!f)return;var w=f.parentNode.clientWidth||600;f.style.height=Math.round(w*2/3+(w<420?150:140))+'px'}
+function loadIG(){var w=P.ig.querySelector('.ps-frame');if(!w||w.querySelector('iframe'))return;var f=document.createElement('iframe');
+f.src=w.getAttribute('data-src');f.title='Instagram: @mr.toastysoriginal';f.loading='lazy';f.setAttribute('scrolling','no');f.setAttribute('allowtransparency','true');
+f.onload=function(){w.className+=' ps-ok'};w.appendChild(f);size()}
+function loadTT(){var w=P.tt&&P.tt.querySelector('.ps-tk');if(!w||w.getAttribute('data-l'))return;w.setAttribute('data-l','1');w.innerHTML='<blockquote class="tiktok-embed" cite="https://www.tiktok.com/@therapytoaster" data-unique-id="therapytoaster" data-embed-type="creator" style="max-width:780px;min-width:288px"><section><a target="_blank" rel="noopener noreferrer" href="https://www.tiktok.com/@therapytoaster">@therapytoaster</a></section></blockquote>';var s=document.createElement('script');s.async=true;s.src='https://www.tiktok.com/embed.js';w.appendChild(s)}
+function show(k,anim){if(!P[k])k='ig';
+B.forEach(function(b){var on=b.getAttribute('data-p')==k;b.setAttribute('aria-selected',on);b.tabIndex=on?0:-1});
+for(var n in P){if(!P[n])continue;P[n].hidden=n!=k;P[n].classList.remove('ps-in')}
+var p=P[k];if(anim&&!RM){void p.offsetWidth;p.classList.add('ps-in');setTimeout(function(){p.classList.remove('ps-in')},500)}
+if(k=='ig')loadIG();else if(k=='tt')loadTT();else if(window.twttr&&twttr.widgets&&twttr.widgets.load)try{twttr.widgets.load(p)}catch(e){}
+try{localStorage.setItem(K,k)}catch(e){}}
+var AU=null/*ttbgm: Twitter sfx removed*/,AB=document.getElementById('ttps-sfx'),AP=0;
+function sfxOff(){if(!AU)return;try{AU.pause();AU.currentTime=0}catch(e){}AB&&AB.classList.remove('on')}
+function sfx(k){if(!AU)return;if(k!='tw'){sfxOff();return}if(AP)return;AP=1;AU.volume=.5;var p=AU.play();AB&&AB.classList.add('on');if(p&&p.catch)p.catch(function(){AB&&AB.classList.remove('on')})}
+if(AU){AU.addEventListener('ended',sfxOff);AB&&(AB.onclick=sfxOff)}
+B.forEach(function(b,i){b.onclick=function(){var k=b.getAttribute('data-p');show(k,1);sfx(k)};
+b.onkeydown=function(e){if(e.key=='ArrowRight'||e.key=='ArrowLeft'){e.preventDefault();var o=B[(i+(e.key=='ArrowLeft'?B.length-1:1))%B.length];o.focus();show(o.getAttribute('data-p'),1);sfx(o.getAttribute('data-p'))}}});
+window.addEventListener('resize',size);
+window.ttpsShow=function(k){show(k,1)};
+var s='';try{s=localStorage.getItem(K)||''}catch(e){}
+if(s!='ig'&&s!='tt')s=Math.random()<.5?'ig':'tt';if(!document.documentElement.classList.contains('ps-gl'))show(s,0)})();</script><!-- TTPS TAIL END --><!-- TTPS GATE JS --><script>(function(){var G=document.getElementById('ttps-gate'),U=document.getElementById('ttps-unlock');if(!G||!U||G.getAttribute('data-ok'))return;G.setAttribute('data-ok','1');
+var H=document.documentElement,RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches,F=G.querySelector('.pg-fill'),S=document.getElementById('ttps-gmsg');
+var L=['Coin accepted. 3…','2… warming up the toaster…','1… bypassing the algorithm…','Buttering the bandwidth…','Feeds unlocked. Choose wisely.'];
+function done(){try{sessionStorage.setItem('ttGate','1')}catch(e){}H.classList.remove('ps-gl');if(!RM){H.classList.add('ps-rv');setTimeout(function(){H.classList.remove('ps-rv')},900)}
+var k='tw';if(window.ttpsShow)window.ttpsShow(k);var b=document.getElementById('ttps-btw');b&&b.focus({preventScroll:true});try{window.dispatchEvent(new Event('resize'))}catch(e){}}
+U.onclick=function(){if(U.disabled)return;U.disabled=true;G.classList.add('go');if(RM){F.style.width='100%';S.textContent=L[L.length-1];done();return}
+var i=0;(function step(){S.textContent=L[i];F.style.width=Math.round((i+1)/L.length*100)+'%';i++;if(i<L.length)setTimeout(step,520);else setTimeout(done,420)})()}})();</script><!-- TTCS START --><style>
+#ttps .cs-door{position:relative;width:170px;height:200px;margin:4px auto 22px;border-radius:12px;background:linear-gradient(145deg,#4a4f55,#1c1f23 45%,#3a3e44 70%,#15171a);border:3px solid #FFD400;box-shadow:-4px 0 0 rgba(255,40,80,.7),4px 0 0 rgba(0,240,255,.7),inset 0 2px 0 rgba(255,255,255,.18),inset 0 -6px 14px rgba(0,0,0,.6)}
+#ttps .cs-bolt{position:absolute;width:10px;height:10px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ddd,#666 60%,#222)}
+#ttps .b1{top:9px;left:9px}#ttps .b2{top:9px;right:9px}#ttps .b3{bottom:9px;left:9px}#ttps .b4{bottom:9px;right:9px}
+#ttps .cs-price{position:absolute;top:22px;left:0;right:0;font:900 44px/1 Impact,"Arial Black",sans-serif;color:#FFD400;text-shadow:-2px 0 #FF2850,2px 0 #00F0FF,0 0 14px rgba(255,212,0,.55)}
+#ttps .cs-slot{position:absolute;left:50%;top:92px;width:16px;height:66px;margin-left:-8px;border-radius:8px;background:#000;border:2px solid #FFD400;box-shadow:0 0 10px 2px rgba(255,212,0,.65),inset 0 0 8px rgba(255,212,0,.9);overflow:visible}
+#ttps .cs-coin{position:absolute;left:50%;top:-74px;width:44px;height:44px;margin-left:-22px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff6b0,#FFD400 45%,#b89300);border:2px solid #7a6200;color:#5a4700;font:900 15px/40px Impact,"Arial Black",sans-serif;text-align:center;opacity:0;pointer-events:none}
+#ttps .cs-lbl{position:absolute;bottom:14px;left:0;right:0;color:#FFD400;font-weight:900;font-size:11px;letter-spacing:.3em;text-transform:uppercase}
+#ttps .cs-door.in .cs-coin{animation:csDrop .9s cubic-bezier(.5,0,.8,.4) forwards}
+#ttps .cs-door.in .cs-slot{animation:csGlow .9s ease-out .55s both}
+#ttps .cs-door.done .cs-slot{background:#FFD400;box-shadow:0 0 22px 6px rgba(255,212,0,.9),-3px 0 0 rgba(255,40,80,.8),3px 0 0 rgba(0,240,255,.8)}
+#ttps .cs-door.done .cs-lbl::after{content:" ✓"}
+@keyframes csDrop{0%{opacity:1;transform:translateY(0) scaleX(1)}45%{opacity:1;transform:translateY(80px) scaleX(1)}60%{transform:translateY(96px) scaleX(.35)}100%{opacity:0;transform:translateY(120px) scaleX(.18)}}
+@keyframes csGlow{0%{box-shadow:0 0 10px 2px rgba(255,212,0,.65)}50%{background:#FFD400;box-shadow:0 0 30px 10px rgba(255,212,0,1),-4px 0 0 rgba(255,40,80,.9),4px 0 0 rgba(0,240,255,.9)}100%{background:#FFD400}}
+html.cs-op #ttps .ps-btns,html.cs-op .ttps-pane:not([hidden]){animation:csOpen .8s cubic-bezier(.2,.7,.2,1) both}
+@keyframes csOpen{0%{clip-path:inset(0 50% 0 50%);opacity:.3}100%{clip-path:inset(0 0 0 0);opacity:1}}
+@media (prefers-reduced-motion:reduce){#ttps .cs-door.in .cs-coin,#ttps .cs-door.in .cs-slot,html.cs-op #ttps .ps-btns,html.cs-op .ttps-pane{animation:none!important}}
+</style><script>(function(){if(window.ttcsOk)return;window.ttcsOk=1;var H=document.documentElement;
+function mv(){try{if(window.ttcsNoMove)return;var T=document.getElementById('ttpw-root'),S=document.getElementById('ttps');if(!T||!S||S.getAttribute('data-mv'))return;S.setAttribute('data-mv','1');var a=T;['ttps','ttps-tw','ttps-ig','ttps-tt'].forEach(function(id){var e=document.getElementById(id);if(e){a.parentNode.insertBefore(e,a.nextSibling);a=e}});S.style.marginTop='28px'}catch(e){}}
+if(document.readyState=='loading')document.addEventListener('DOMContentLoaded',mv);else mv();
+function clink(){try{if(localStorage.getItem('ttCoinSfx')!='1')return;var C=new(window.AudioContext||window.webkitAudioContext)();[1800,2600].forEach(function(f,i){var o=C.createOscillator(),g=C.createGain();o.frequency.value=f;g.gain.setValueAtTime(.18,C.currentTime+i*.06);g.gain.exponentialRampToValueAtTime(.001,C.currentTime+i*.06+.25);o.connect(g);g.connect(C.destination);o.start(C.currentTime+i*.06);o.stop(C.currentTime+i*.06+.3)})}catch(e){}}
+document.addEventListener('click',function(e){try{var b=e.target&&e.target.closest&&e.target.closest('#ttps-unlock');if(!b||b.disabled)return;var d=document.getElementById('ttcs-door');if(!d||d.classList.contains('in'))return;var rm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;d.classList.add('in');if(rm){d.classList.add('done');return}setTimeout(clink,500);setTimeout(function(){d.classList.add('done')},950);
+var mo=new MutationObserver(function(){if(!H.classList.contains('ps-gl')){mo.disconnect();H.classList.add('cs-op');setTimeout(function(){H.classList.remove('cs-op')},900)}});mo.observe(H,{attributes:true,attributeFilter:['class']})}catch(x){}},true)})();</script><!-- TTCS END --><style>.crew{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;text-align:center;font-family:inherit}.crew a.card{display:block;background:#111;border:2px solid #FFD400;border-radius:14px;padding:20px;color:#dee3de;text-decoration:none}.crew img{width:120px;height:120px;border-radius:50%;object-fit:cover}.crew h3{margin:12px 0 6px;color:#FFD400}.crew span.f{display:inline-block;margin-top:10px;padding:6px 16px;background:#FFD400;color:#05070d;border-radius:20px;font-weight:700}</style><!-- TT ARCADE BANNER v3 -->
+<style>section[data-section-id="6ad272443554817f437b2a60"]{display:none!important}@media (min-width:768px){section[data-section-id="6ad2c44e641cab5b82f50782"] .fluid-engine{grid-template-rows:repeat(2,minmax(24px,auto))!important}section[data-section-id="6ad2c44e641cab5b82f50782"] .fe-block-yui_3_17_2_1_1792197474870_2498{grid-area:1/2/3/10!important}}#ttarcb{display:flex;align-items:center;gap:18px;max-width:760px;margin:0 auto 50px;padding:16px 20px;box-sizing:border-box;border:2px solid #FFD400;border-radius:16px;background:#FFD400;color:#05070d!important;text-decoration:none!important;font-family:inherit;text-align:left;box-shadow:4px 4px 0 #ff2b4a,-4px -4px 0 #00e5ff;transition:transform .18s ease}#ttarcb:hover,#ttarcb:focus-visible{transform:translateY(-3px)}#ttarcb,#ttarcb *{box-sizing:border-box}#ttarcb span{margin:0}#ttarcb .ab-i{flex:none;font-size:40px;line-height:1}#ttarcb .ab-tx{flex:1;min-width:0}#ttarcb .ab-t{display:block;font:900 clamp(24px,4vw,34px)/1 Impact,"Arial Black",sans-serif;text-transform:uppercase;letter-spacing:.02em;text-shadow:2px 0 0 rgba(255,43,74,.75),-2px 0 0 rgba(0,229,255,.75)}#ttarcb .ab-d{display:block;margin-top:5px;font-size:14px;font-weight:700;line-height:1.35}#ttarcb .ab-go{flex:none;padding:11px 18px;border-radius:999px;background:#05070d;color:#FFD400;font-weight:900;font-size:15px;letter-spacing:.06em;white-space:nowrap}@media (max-width:600px){#ttarcb{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:10px 12px;width:auto;max-width:none;margin:0 12px 40px;padding:14px 16px}#ttarcb .ab-tx{display:contents}#ttarcb .ab-i{font-size:30px;grid-column:1;grid-row:1}#ttarcb .ab-t{grid-column:2;grid-row:1;font-size:clamp(18px,5.3vw,26px);overflow-wrap:anywhere}#ttarcb .ab-d{grid-column:1/-1;margin-top:0}#ttarcb .ab-go{grid-column:1/-1;width:100%;max-width:100%;text-align:center}}@media (prefers-reduced-motion:reduce){#ttarcb{transition:none}#ttarcb:hover{transform:none}}</style><a id="ttarcb" href="/arcade"><span class="ab-i" aria-hidden="true">&#128377;&#65039;</span><span class="ab-tx"><span class="ab-t">Toasty's Arcade</span><span class="ab-d">Toaster Tanks, Stickdeath, my 3 Grok games and the Toaster Chat. All in one place.</span></span><span class="ab-go">PLAY &amp; CHAT &#9654;</span></a>
+<!-- /TT ARCADE BANNER v3 --><!-- TT MY BOOK START --><style id="ttmb-css">.ttmb-card{position:relative;display:flex;align-items:center;gap:22px;max-width:760px;margin:0 auto 28px;padding:20px 22px;box-sizing:border-box;background:#000;border:2px solid #FFD400;border-radius:16px;color:#dee3de;font-family:inherit;text-align:left;box-shadow:4px 4px 0 #ff2b4a,-4px -4px 0 #00e5ff}.ttmb-card *{box-sizing:border-box;margin:0}.ttmb-cv{flex:none;display:block;width:120px;line-height:0}.ttmb-cv img{display:block;width:120px;height:auto;border-radius:4px;border:2px solid #FFD400;box-shadow:3px 0 0 #ff2b4a,-3px 0 0 #00e5ff}.ttmb-tx{flex:1;min-width:0}.ttmb-k{display:block;font:900 clamp(24px,3.6vw,32px)/1 Impact,"Arial Black",sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#FFD400;text-shadow:2px 0 0 rgba(255,43,74,.8),-2px 0 0 rgba(0,229,255,.8)}.ttmb-b{display:inline-block;margin-top:10px;padding:5px 12px;border-radius:6px;background:#FFD400;color:#000;font-weight:900;font-size:14px;letter-spacing:.06em;text-transform:uppercase;box-shadow:2px 2px 0 #ff2b4a,-2px -2px 0 #00e5ff}.ttmb-t{display:block;margin-top:10px;font:900 clamp(18px,2.6vw,22px)/1.15 Impact,"Arial Black",sans-serif;text-transform:uppercase;color:#fff;overflow-wrap:anywhere}.ttmb-s{display:block;margin-top:3px;font-size:14px;font-weight:700;color:#dee3de}.ttmb-a{display:block;margin-top:4px;font-size:13px;color:#FFD400;font-weight:700}a.ttmb-go{display:inline-block;margin-top:14px;padding:12px 20px;border-radius:999px;background:#FFD400;color:#000!important;font-weight:900;font-size:15px;letter-spacing:.04em;text-decoration:none!important;border:2px solid #FFD400}a.ttmb-go:hover,a.ttmb-go:focus-visible{background:#000;color:#FFD400!important;outline:none}@media (max-width:600px){.ttmb-card{flex-direction:column;align-items:center;text-align:center;gap:14px;margin:0 12px 24px;padding:18px 16px}.ttmb-cv,.ttmb-cv img{width:150px}a.ttmb-go{display:block;width:100%;text-align:center}}</style><div class="ttmb-card" id="ttmb-book"><a class="ttmb-cv" href="https://www.amazon.com/dp/B0HPKJ11NC" target="_blank" rel="noopener" aria-hidden="true" tabindex="-1"><img src="https://therapytoaster.github.io/tt-live/book/my-book-cover.jpg?v=1" alt="Therapy Toaster book cover" width="120" loading="lazy" decoding="async"></a><div class="ttmb-tx"><span class="ttmb-k">My Book</span><span class="ttmb-b">FREE on Kindle &#8212; limited time</span><span class="ttmb-t">Therapy Toaster</span><span class="ttmb-s">A Memoir in Posts After the Crash</span><span class="ttmb-a">by Coty Lake</span><a class="ttmb-go" href="https://www.amazon.com/dp/B0HPKJ11NC" target="_blank" rel="noopener">Get it free on Amazon &#8599;</a></div></div><script>(function(){try{if(Date.now()>=Date.parse("2026-11-03T04:00:00Z")){var r=document.getElementById("ttmb-book");if(!r)return;var b=r.querySelector(".ttmb-b"),g=r.querySelector(".ttmb-go");if(b)b.textContent="Available on Kindle";if(g)g.innerHTML="Get it on Amazon &#8599;";}}catch(e){}})();</script><!-- TT MY BOOK END --><!-- ttbk-book START --><style id="ttbk-css">.ttbk-card{display:flex;align-items:center;gap:18px;max-width:760px;margin:0 auto 50px;padding:16px 20px;box-sizing:border-box;background:#05070d;border:2px solid #FFD400;border-radius:16px;color:#dee3de;font-family:inherit;text-align:left;box-shadow:4px 4px 0 #ff2b4a,-4px -4px 0 #00e5ff}.ttbk-card *{box-sizing:border-box;margin:0}.ttbk-cv{flex:none;display:block;width:78px;line-height:0}.ttbk-cv img{display:block;width:78px;height:auto;border-radius:4px;border:2px solid #FFD400;box-shadow:2px 0 0 #ff2b4a,-2px 0 0 #00e5ff}.ttbk-tx{flex:1;min-width:0}.ttbk-k{display:block;font-size:12px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:#FFD400}.ttbk-t{display:block;margin-top:4px;font:900 clamp(20px,3vw,26px)/1.1 Impact,"Arial Black",sans-serif;text-transform:uppercase;color:#fff;text-shadow:2px 0 0 rgba(255,43,74,.75),-2px 0 0 rgba(0,229,255,.75);overflow-wrap:anywhere}.ttbk-a{display:block;margin-top:5px;font-size:14px;font-weight:700;color:#dee3de}a.ttbk-go{flex:none;display:inline-block;padding:11px 18px;border-radius:999px;background:#FFD400;color:#05070d!important;font-weight:900;font-size:15px;letter-spacing:.04em;white-space:nowrap;text-decoration:none!important;border:2px solid #FFD400}a.ttbk-go:hover,a.ttbk-go:focus-visible{background:#05070d;color:#FFD400!important;outline:none}@media (max-width:600px){.ttbk-card{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px 14px;margin:0 12px 40px;padding:14px 16px}.ttbk-cv,.ttbk-cv img{width:64px}a.ttbk-go{grid-column:1/-1;width:100%;text-align:center}}</style><div class="ttbk-card" id="ttbk-book"><a class="ttbk-cv" href="https://a.co/d/00cUBUch" target="_blank" rel="noopener" aria-hidden="true" tabindex="-1"><img src="https://m.media-amazon.com/images/I/71zXiph-SZL._SL400_.jpg" alt="" width="78" loading="lazy" decoding="async"></a><div class="ttbk-tx"><span class="ttbk-k">Coty&#39;s Favorite Book</span><span class="ttbk-t">The Doors of Perception &amp; Heaven and Hell</span><span class="ttbk-a">by Aldous Huxley</span></div><a class="ttbk-go" href="https://a.co/d/00cUBUch" target="_blank" rel="noopener">Get the book &#8599;</a></div><!-- ttbk-book END --><h2 style="text-align:center">Meet the Crew</h2><div class="crew"><a class="card" href="https://x.com/TherapyToaster" target="_blank" rel="noopener"><img src="https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@5e6211ee6b30c22ae11a66e761ec18dbc4799e4e/crew/pfp-20261111/therapytoaster.jpg" alt="TherapyToaster"><h3>@TherapyToaster</h3><p>The main Toaster. Art, faith &amp; electric speed.</p><span class="f"><svg class="tti" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>Follow</span></a><a class="card" href="https://x.com/ToastyCoty" target="_blank" rel="noopener"><img src="https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@5e6211ee6b30c22ae11a66e761ec18dbc4799e4e/crew/pfp-20261111/toastycoty.jpg" alt="ToastyCoty"><h3>@ToastyCoty</h3><p>The Original Mr. Toasty. Memories and the record.</p><span class="f"><svg class="tti" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>Follow</span></a><a class="card" href="https://x.com/FatCoty" target="_blank" rel="noopener"><img src="https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@5e6211ee6b30c22ae11a66e761ec18dbc4799e4e/crew/pfp-20261111/fatcoty.jpg" alt="FatCoty"><h3>@FatCoty</h3><p>Food, Cybertrucks &amp; big glizzys.</p><span class="f"><svg class="tti" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>Follow</span></a><a class="card" href="https://x.com/TriggeredCoty" target="_blank" rel="noopener"><img src="https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@5e6211ee6b30c22ae11a66e761ec18dbc4799e4e/crew/pfp-20261111/triggeredcoty.jpg" alt="TriggeredCoty"><h3>@TriggeredCoty</h3><p>Hot takes, AI showdowns &amp; things that trigger me.</p><span class="f"><svg class="tti" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>Follow</span></a><a class="card" href="https://x.com/YellowBlankey" target="_blank" rel="noopener"><img src="https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@5e6211ee6b30c22ae11a66e761ec18dbc4799e4e/crew/pfp-20261111/yellowblankey.jpg" alt="YellowBlankey"><h3>@YellowBlankey</h3><p>Keeps Coty &amp; the Toaster warm, cozy &amp; toasty. #Cyber_Boy</p><span class="f"><svg class="tti" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>Follow</span></a><a class="card" href="https://x.com/InsiderNoThreat" target="_blank" rel="noopener"><img src="https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@939f0e1519f3ed1ab9a76e0ed2dd0f133095ea16/crew/pfp-20261111/insidernothreat.jpg" alt="InsiderNoThreat"><h3>@InsiderNoThreat</h3><p>No insider threat.</p><span class="f"><svg class="tti" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>Follow</span></a></div><style>.tti{display:inline-block;width:1em;height:1em;vertical-align:middle;margin-right:.4em;flex:none;position:relative;top:-.06em}.tti-e{width:auto;height:auto;line-height:1;font-style:normal;top:0}.ttx-follow .tti{width:18px;height:18px;margin:0;top:0}.tl{text-align:center;margin-top:40px}.tl .g{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;max-width:900px;margin:0 auto}.tl a{display:inline-block;padding:12px 22px;background:#FFD400;color:#05070d;border-radius:30px;font-weight:700;text-decoration:none}.tl a:hover{background:#dee3de}</style><style id="ttfme-pop">/* ttfme-pop v1: Find me everywhere icon pop (static, no looping animation) */.tl .g a{display:inline-flex;align-items:center;padding:8px 20px 8px 8px;line-height:1.2}.tl .g a .tti{--c:#FFD400;box-sizing:content-box;width:18px;height:18px;padding:5px;margin:0 .55em 0 0;top:0;background:#05070d;border-radius:50%;color:var(--c);box-shadow:0 0 0 1.5px #05070d,0 0 8px -1px var(--c);filter:drop-shadow(0 0 2px var(--c));transition:filter .18s ease,box-shadow .18s ease}.tl .g a svg.tti:not(.tti-tk) path[fill]{fill:var(--c)}.tl .g a .tti-e{font-size:16px;line-height:18px;text-align:center;filter:none}.tl .g a:hover .tti,.tl .g a:focus-visible .tti{filter:drop-shadow(0 0 4px var(--c)) brightness(1.25) saturate(1.2);box-shadow:0 0 0 2px var(--c),0 0 14px 1px var(--c)}.tl .g a[href*="x.com/"] .tti{--c:#FFFFFF}.tl .g a[href*="instagram.com"] .tti{--c:#FF0069}.tl .g a[href*="twitch.tv"] .tti{--c:#9146FF}.tl .g a[href*="kick.com"] .tti{--c:#53FC18}.tl .g a[href*="tiktok.com"] .tti{--c:#25F4EE;box-shadow:0 0 0 1.5px #05070d,-2px -1px 7px -1px #25F4EE,2px 1px 7px -1px #FE2C55;filter:none}.tl .g a[href*="tiktok.com"]:hover .tti,.tl .g a[href*="tiktok.com"]:focus-visible .tti{box-shadow:0 0 0 2px #FE2C55,-3px -2px 12px 0 #25F4EE,3px 2px 12px 0 #FE2C55;filter:brightness(1.15)}.tl .g a[href*="youtube.com"] .tti{--c:#FF0000}.tl .g a[href*="facebook.com"] .tti{--c:#0866FF}.tl .g a[href*="sns.id"] .tti{--c:#9945FF}.tl .g a[href*="cherry.fun"] .tti{--c:#FF2D55}.tl .g a[href*="area54.fm"] .tti{--c:#FFD400}.tl .g a[href*="ts.la"] .tti{--c:#E82127}.tl .g a[href*="starlink.com"] .tti{--c:#FFFFFF}.tl .g a[href*="monarch.com"] .tti{--c:#FF692D}@media (prefers-reduced-motion:reduce){.tl .g a .tti{transition:none}}.tl .g a[href*="pinterest.com"] .tti{--c:#E60023}.tl .g a[href*="bankr.bot"] .tti{--c:#FFD400}.tl .g a[href*="pump.fun"] .tti{--c:#86EFAC}</style><div class="tl"><h2>Find me everywhere</h2><div class="g"><a href="https://x.com/TherapyToaster" target="_blank" rel="noopener"><svg class="tti" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>@TherapyToaster</a><a href="https://x.com/FatCoty" target="_blank" rel="noopener"><svg class="tti" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>@FatCoty</a><a href="https://x.com/ToastyCoty" target="_blank" rel="noopener"><svg class="tti" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>@ToastyCoty</a><a href="https://x.com/TriggeredCoty" target="_blank" rel="noopener"><svg class="tti" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>@TriggeredCoty</a><a href="https://x.com/YellowBlankey" target="_blank" rel="noopener"><svg class="tti" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>@YellowBlankey</a><a href="https://x.com/InsiderNoThreat" target="_blank" rel="noopener"><svg class="tti" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>@InsiderNoThreat</a><a href="https://www.instagram.com/mr.toastysoriginal/" target="_blank" rel="noopener"><svg class="tti" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="#FF0069" d="M7.0301.084c-1.2768.0602-2.1487.264-2.911.5634-.7888.3075-1.4575.72-2.1228 1.3877-.6652.6677-1.075 1.3368-1.3802 2.127-.2954.7638-.4956 1.6365-.552 2.914-.0564 1.2775-.0689 1.6882-.0626 4.947.0062 3.2586.0206 3.6671.0825 4.9473.061 1.2765.264 2.1482.5635 2.9107.308.7889.72 1.4573 1.388 2.1228.6679.6655 1.3365 1.0743 2.1285 1.38.7632.295 1.6361.4961 2.9134.552 1.2773.056 1.6884.069 4.9462.0627 3.2578-.0062 3.668-.0207 4.9478-.0814 1.28-.0607 2.147-.2652 2.9098-.5633.7889-.3086 1.4578-.72 2.1228-1.3881.665-.6682 1.0745-1.3378 1.3795-2.1284.2957-.7632.4966-1.636.552-2.9124.056-1.2809.0692-1.6898.063-4.948-.0063-3.2583-.021-3.6668-.0817-4.9465-.0607-1.2797-.264-2.1487-.5633-2.9117-.3084-.7889-.72-1.4568-1.3876-2.1228C21.2982 1.33 20.628.9208 19.8378.6165 19.074.321 18.2017.1197 16.9244.0645 15.6471.0093 15.236-.005 11.977.0014 8.718.0076 8.31.0215 7.0301.0839m.1402 21.6932c-1.17-.0509-1.8053-.2453-2.2287-.408-.5606-.216-.96-.4771-1.3819-.895-.422-.4178-.6811-.8186-.9-1.378-.1644-.4234-.3624-1.058-.4171-2.228-.0595-1.2645-.072-1.6442-.079-4.848-.007-3.2037.0053-3.583.0607-4.848.05-1.169.2456-1.805.408-2.2282.216-.5613.4762-.96.895-1.3816.4188-.4217.8184-.6814 1.3783-.9003.423-.1651 1.0575-.3614 2.227-.4171 1.2655-.06 1.6447-.072 4.848-.079 3.2033-.007 3.5835.005 4.8495.0608 1.169.0508 1.8053.2445 2.228.408.5608.216.96.4754 1.3816.895.4217.4194.6816.8176.9005 1.3787.1653.4217.3617 1.056.4169 2.2263.0602 1.2655.0739 1.645.0796 4.848.0058 3.203-.0055 3.5834-.061 4.848-.051 1.17-.245 1.8055-.408 2.2294-.216.5604-.4763.96-.8954 1.3814-.419.4215-.8181.6811-1.3783.9-.4224.1649-1.0577.3617-2.2262.4174-1.2656.0595-1.6448.072-4.8493.079-3.2045.007-3.5825-.006-4.848-.0608M16.953 5.5864A1.44 1.44 0 1 0 18.39 4.144a1.44 1.44 0 0 0-1.437 1.4424M5.8385 12.012c.0067 3.4032 2.7706 6.1557 6.173 6.1493 3.4026-.0065 6.157-2.7701 6.1506-6.1733-.0065-3.4032-2.771-6.1565-6.174-6.1498-3.403.0067-6.156 2.771-6.1496 6.1738M8 12.0077a4 4 0 1 1 4.008 3.9921A3.9996 3.9996 0 0 1 8 12.0077"/></svg>Instagram</a><a href="https://www.twitch.tv/therapytoaster" target="_blank" rel="noopener"><svg class="tti" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="#9146FF" d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/></svg>Twitch</a><a href="https://kick.com/therapytoaster" target="_blank" rel="noopener"><svg class="tti" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="#53FC18" d="M2 2h6v6h2V6h2V4h2V2h8v6h-2v2h-2v4h2v2h2v6h-8v-2h-2v-2h-2v-2H8v6H2z"/></svg>Kick</a><a href="https://www.tiktok.com/@therapytoaster" target="_blank" rel="noopener" title="Mr. Toasty (@TherapyToaster) on TikTok"><svg class="tti tti-tk" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><g transform="translate(1.6 1.5) scale(.86)"><path fill="#25F4EE" transform="translate(-1.4 -1.2)" d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/><path fill="#FE2C55" transform="translate(1.4 1.2)" d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/><path fill="#FFFFFF" d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></g></svg>TikTok</a><a href="https://www.pinterest.com/therapytoaster/" target="_blank" rel="noopener" title="therapytoaster on Pinterest"><svg class="tti" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="#E60023" d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.39 18.592.026 11.985.026L12.017 0z"/></svg>Pinterest</a>
+<a href="https://www.youtube.com/@therapytoaster" target="_blank" rel="noopener"><svg class="tti" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="#FF0000" d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>YouTube</a><a href="https://www.facebook.com/Mr.Toasty" target="_blank" rel="noopener"><svg class="tti" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="#0866FF" d="M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103a8.68 8.68 0 0 1 1.141.195v3.325a8.623 8.623 0 0 0-.653-.036 26.805 26.805 0 0 0-.733-.009c-.707 0-1.259.096-1.675.309a1.686 1.686 0 0 0-.679.622c-.258.42-.374.995-.374 1.752v1.297h3.919l-.386 2.103-.287 1.564h-3.246v8.245C19.396 23.238 24 18.179 24 12.044c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.628 3.874 10.35 9.101 11.647Z"/></svg>Facebook</a><a href="https://www.sns.id/domain/therapytoaster" target="_blank" rel="noopener"><svg class="tti" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="#9945FF" d="m23.8764 18.0313-3.962 4.1393a.9201.9201 0 0 1-.306.2106.9407.9407 0 0 1-.367.0742H.4599a.4689.4689 0 0 1-.2522-.0733.4513.4513 0 0 1-.1696-.1962.4375.4375 0 0 1-.0314-.2545.4438.4438 0 0 1 .117-.2298l3.9649-4.1393a.92.92 0 0 1 .3052-.2102.9407.9407 0 0 1 .3658-.0746H23.54a.4692.4692 0 0 1 .2523.0734.4531.4531 0 0 1 .1697.196.438.438 0 0 1 .0313.2547.4442.4442 0 0 1-.1169.2297zm-3.962-8.3355a.9202.9202 0 0 0-.306-.2106.941.941 0 0 0-.367-.0742H.4599a.4687.4687 0 0 0-.2522.0734.4513.4513 0 0 0-.1696.1961.4376.4376 0 0 0-.0314.2546.444.444 0 0 0 .117.2297l3.9649 4.1394a.9204.9204 0 0 0 .3052.2102c.1154.049.24.0744.3658.0746H23.54a.469.469 0 0 0 .2523-.0734.453.453 0 0 0 .1697-.1961.4382.4382 0 0 0 .0313-.2546.4444.4444 0 0 0-.1169-.2297zM.46 6.7225h18.7815a.9411.9411 0 0 0 .367-.0742.9202.9202 0 0 0 .306-.2106l3.962-4.1394a.4442.4442 0 0 0 .117-.2297.4378.4378 0 0 0-.0314-.2546.453.453 0 0 0-.1697-.196.469.469 0 0 0-.2523-.0734H4.7596a.941.941 0 0 0-.3658.0745.9203.9203 0 0 0-.3052.2102L.1246 5.9687a.4438.4438 0 0 0-.1169.2295.4375.4375 0 0 0 .0312.2544.4512.4512 0 0 0 .1692.196.4689.4689 0 0 0 .2518.0739z"/></svg>therapytoaster.sns</a><a href="https://chat.cherry.fun/profile/therapytoaster.sns" target="_blank" rel="noopener"><span class="tti tti-e" aria-hidden="true">🍒</span>Cherry</a><a href="https://area54.fm/" target="_blank" rel="noopener"><svg class="tti" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.247 7.761a6 6 0 0 1 0 8.478"/><path d="M19.075 4.933a10 10 0 0 1 0 14.134"/><path d="M4.925 19.067a10 10 0 0 1 0-14.134"/><path d="M7.753 16.239a6 6 0 0 1 0-8.478"/><circle cx="12" cy="12" r="2"/></svg>Area54.fm</a><a href="http://ts.la/coty826361" target="_blank" rel="noopener"><svg class="tti" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="#CC0000" d="M12 5.362l2.475-3.026s4.245.09 8.471 2.054c-1.082 1.636-3.231 2.438-3.231 2.438-.146-1.439-1.154-1.79-4.354-1.79L12 24 8.619 5.034c-3.18 0-4.188.354-4.335 1.792 0 0-2.146-.795-3.229-2.43C5.28 2.431 9.525 2.34 9.525 2.34L12 5.362l-.004.002H12v-.002zm0-3.899c3.415-.03 7.326.528 11.328 2.28.535-.968.672-1.395.672-1.395C19.625.612 15.528.015 12 0 8.472.015 4.375.61 0 2.349c0 0 .195.525.672 1.396C4.674 1.989 8.585 1.435 12 1.46v.003z"/></svg>Tesla Referral</a><a href="https://starlink.com/?referral=RC-DF-14898892-23545-14" target="_blank" rel="noopener"><svg class="tti" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m13.5 6.5-3.148-3.148a1.205 1.205 0 0 0-1.704 0L6.352 5.648a1.205 1.205 0 0 0 0 1.704L9.5 10.5"/><path d="M16.5 7.5 19 5"/><path d="m17.5 10.5 3.148 3.148a1.205 1.205 0 0 1 0 1.704l-2.296 2.296a1.205 1.205 0 0 1-1.704 0L13.5 14.5"/><path d="M9 21a6 6 0 0 0-6-6"/><path d="M9.352 10.648a1.205 1.205 0 0 0 0 1.704l2.296 2.296a1.205 1.205 0 0 0 1.704 0l4.296-4.296a1.205 1.205 0 0 0 0-1.704l-2.296-2.296a1.205 1.205 0 0 0-1.704 0z"/></svg>Starlink Referral</a><a href="https://monarch.com/referral/rls7q45w8i?r_source=copy" target="_blank" rel="noopener"><svg class="tti" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 7 13.5 15.5 8.5 10.5 2 17"/><path d="M16 7h6v6"/></svg>Monarch Referral</a><a href="https://bankr.bot/?refCode=8796XLHY-BNKR" target="_blank" rel="noopener"><svg class="tti" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V10"/><path d="M19 21V10"/><path d="M9 21v-7"/><path d="M15 21v-7"/><path d="M2 10 12 3l10 7z"/></svg>Bankr</a><a href="https://pump.fun/u/TherapyToaster" target="_blank" rel="noopener"><svg class="tti" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg>pump.fun</a></div></div>
+<!-- ttfme-place v2: keep Find me everywhere directly under the Meet the Crew grid. Two later Home Code blocks move themselves at runtime: Wear the Signal (#ttmerch) inserts just above Find me everywhere, and #Cyber_Boy of the Day (#ttcb) inserts right after the crew tiles. This script places Find me everywhere immediately after the crew (styles/scripts in between are fine), then puts Cyber_Boy and the merch strip after it, in that order. -->
+<script id="ttfme-place">(function(){function place(){var c=document.querySelector("div.crew"),t=document.querySelector("div.tl"),m=document.getElementById("ttmerch"),b=document.getElementById("ttcb");if(!c||!t||!c.parentNode||!t.parentNode)return;function vis(a,z){for(var n=a.nextElementSibling;n&&n!==z;n=n.nextElementSibling){if(n.tagName!=="STYLE"&&n.tagName!=="SCRIPT"&&n.tagName!=="LINK")return n;}return null;}var mid=vis(c,t);if(mid)c.parentNode.insertBefore(t,mid);if(b&&t.nextElementSibling!==b)t.parentNode.insertBefore(b,t.nextSibling);if(m){var ref=(b&&b.parentNode===t.parentNode)?b:t;if(ref.nextElementSibling!==m)ref.parentNode.insertBefore(m,ref.nextSibling);}}place();if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",place);window.addEventListener("load",place);[0,50,250,500,1000].forEach(function(ms){setTimeout(place,ms);});})();</script>
+<!-- TT Chipotle finder v1 (HOME Code block, appended after the Find-me-everywhere links). Nearest Chipotle for @fatcoty.
+     Data: OpenStreetMap via Nominatim (primary, widening box) -> Photon -> Overpass; fallback = Google Maps "Chipotle near me".
+     Location is requested ONLY when the visitor taps the button. Nothing is stored except a 30-min sessionStorage cache. -->
+<style>
+#ttcl{position:fixed;right:16px;bottom:18px;z-index:9990;width:272px;max-width:calc(100vw - 24px);box-sizing:border-box;font-family:inherit;font-size:14px;line-height:1.4;color:#dee3de;text-align:left}
+#ttcl *{box-sizing:border-box}
+#ttcl a{color:#FFD400;text-decoration:underline;text-underline-offset:2px}
+#ttcl .ttcl-pill{display:none;margin-left:auto;align-items:center;gap:6px;height:40px;padding:0 14px;border:2px solid #FFD400;border-radius:999px;background:#05070d;color:#FFD400;font-family:inherit;font-weight:700;font-size:13px;letter-spacing:.04em;cursor:pointer;box-shadow:-2px 0 0 rgba(0,229,255,.75),2px 0 0 rgba(176,0,0,.85),0 4px 14px rgba(0,0,0,.6);-webkit-tap-highlight-color:transparent}
+#ttcl .ttcl-pill:hover,#ttcl .ttcl-pill:focus-visible{background:#FFD400;color:#05070d}
+#ttcl .ttcl-card{position:relative;overflow:hidden;padding:14px 14px 12px;background:#05070d;border:2px solid #FFD400;border-radius:14px;box-shadow:-3px 0 0 rgba(0,229,255,.55),3px 0 0 rgba(176,0,0,.7),0 0 18px rgba(255,212,0,.25),0 8px 22px rgba(0,0,0,.7)}
+#ttcl .ttcl-card::before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 3px)}
+#ttcl.ttcl-closed .ttcl-card{display:none}
+#ttcl.ttcl-closed .ttcl-pill{display:inline-flex}
+#ttcl .ttcl-wrap{display:flex;flex-direction:column;align-items:flex-end}
+#ttcl .ttcl-hd{display:flex;align-items:flex-start;gap:8px;margin:0 0 10px}
+#ttcl .ttcl-ttl{flex:1;min-width:0}
+#ttcl .ttcl-k{display:block;margin:0;color:#FFD400;font-weight:900;font-size:15px;letter-spacing:.08em;text-transform:uppercase;text-shadow:-2px 0 rgba(0,229,255,.8),2px 0 rgba(176,0,0,.9)}
+#ttcl .ttcl-for{display:block;font-size:12px;opacity:.9}
+#ttcl .ttcl-x{flex:none;width:28px;height:28px;padding:0;border:1px solid rgba(255,212,0,.5);border-radius:8px;background:transparent;color:#FFD400;font-family:inherit;font-weight:700;font-size:18px;line-height:1;cursor:pointer}
+#ttcl .ttcl-x:hover,#ttcl .ttcl-x:focus-visible{background:#FFD400;color:#05070d}
+#ttcl .ttcl-go{display:block;width:100%;padding:10px 12px;border:2px solid #FFD400;border-radius:999px;background:#FFD400;color:#05070d;font-family:inherit;font-weight:800;font-size:15px;cursor:pointer;transition:background .15s,color .15s}
+#ttcl .ttcl-go:hover,#ttcl .ttcl-go:focus-visible{background:#000;color:#FFD400;animation:ttcl-gl .3s steps(2,end) 1}
+#ttcl .ttcl-go[disabled]{opacity:.7;cursor:progress;animation:none}
+@keyframes ttcl-gl{0%{transform:translate(0)}33%{transform:translate(-2px,0) skewX(-6deg);box-shadow:-3px 0 rgba(0,229,255,.8),3px 0 rgba(176,0,0,.9)}66%{transform:translate(2px,0)}100%{transform:translate(0)}}
+#ttcl .ttcl-out{margin:10px 0 0}
+#ttcl .ttcl-out:empty{display:none}
+#ttcl .ttcl-st{margin:0;font-size:13px;color:#dee3de}
+#ttcl .ttcl-st b{color:#FFD400}
+#ttcl .ttcl-res{padding:10px;border:1px dashed rgba(255,212,0,.55);border-radius:10px;background:rgba(255,212,0,.06)}
+#ttcl .ttcl-nm{margin:0;color:#FFD400;font-weight:800;font-size:15px}
+#ttcl .ttcl-ad{margin:2px 0 6px;font-size:13px;overflow-wrap:anywhere}
+#ttcl .ttcl-di{margin:0 0 8px;font-size:13px}
+#ttcl .ttcl-di b{font-size:20px;color:#fff;text-shadow:-1px 0 rgba(0,229,255,.8),1px 0 rgba(176,0,0,.9)}
+#ttcl .ttcl-ln{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+#ttcl .ttcl-ln a.ttcl-btn{display:inline-block;padding:6px 12px;border-radius:999px;background:#FFD400;color:#05070d!important;font-weight:800;text-decoration:none}
+#ttcl .ttcl-ln a.ttcl-btn:hover,#ttcl .ttcl-ln a.ttcl-btn:focus-visible{background:#dee3de}
+#ttcl .ttcl-fun{margin:10px 0 0;font-size:12px}
+#ttcl .ttcl-fine{margin:6px 0 0;font-size:10.5px;opacity:.65}
+body.header--menu-open #ttcl{display:none}
+@media (max-width:799px){
+#ttcl{right:12px;bottom:12px;width:auto}
+#ttcl .ttcl-card{width:min(340px,calc(100vw - 24px))}
+#ttcl .ttcl-pl{display:none}
+#ttcl .ttcl-pill{height:38px;padding:0 12px}
+}
+@media (prefers-reduced-motion:reduce){#ttcl .ttcl-go:hover,#ttcl .ttcl-go:focus-visible{animation:none}}
+</style>
+<div id="ttcl" class="ttcl-closed" data-nosnippet>
+<div class="ttcl-wrap">
+<section class="ttcl-card" id="ttcl-card" aria-label="Nearest Chipotle for @fatcoty">
+<div class="ttcl-hd"><div class="ttcl-ttl"><span class="ttcl-k">🌯 Nearest Chipotle</span><span class="ttcl-for">for <a href="https://x.com/fatcoty" target="_blank" rel="noopener">@fatcoty</a></span></div><button type="button" class="ttcl-x" aria-label="Minimize Chipotle finder" title="Minimize">–</button></div>
+<button type="button" class="ttcl-go">Find my Chipotle 🌯</button>
+<div class="ttcl-out" aria-live="polite"></div>
+<p class="ttcl-fun">Burrito radar calibrated by <a href="https://x.com/fatcoty" target="_blank" rel="noopener">@fatcoty</a>, certified bowl inspector. Guac is extra, the vibes are free 🥑</p>
+<p class="ttcl-fine">Your location is used once, only when you tap, to search OpenStreetMap. Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>.</p>
+</section>
+<button type="button" class="ttcl-pill" aria-controls="ttcl-card" aria-expanded="false">🌯 <span class="ttcl-pl">Nearest </span><span>Chipotle</span></button>
+</div>
+</div>
+<script>
+(function(){
+  var root=document.getElementById('ttcl');
+  if(!root||root.getAttribute('data-ready'))return;
+  root.setAttribute('data-ready','1');
+  /* move to <body> so position:fixed is never trapped by a transformed Squarespace wrapper (the glitch shake uses transforms) */
+  if(document.body&&root.parentNode!==document.body)document.body.appendChild(root);
+
+  var GMAPS_NEAR='https://www.google.com/maps/search/Chipotle+near+me';
+  var WD='Q465751'; /* Wikidata id for Chipotle Mexican Grill */
+  var MILES=[1,4,12,35,100,250]; /* Nominatim search box half-widths, widened until something is found */
+  var pill=root.querySelector('.ttcl-pill'),card=root.querySelector('.ttcl-card'),xb=root.querySelector('.ttcl-x'),
+      go=root.querySelector('.ttcl-go'),out=root.querySelector('.ttcl-out'),busy=false;
+
+  /* ---- open / minimize (desktop >=1200px starts open, smaller screens start as a pill) ---- */
+  var KEY='ttcl-min',pref=null;try{pref=localStorage.getItem(KEY);}catch(e){}
+  function setOpen(o,save){root.classList.toggle('ttcl-closed',!o);pill.setAttribute('aria-expanded',o?'true':'false');
+    if(save){try{localStorage.setItem(KEY,o?'0':'1');}catch(e){}}}
+  setOpen(pref===null?window.innerWidth>=1200:pref==='0',false);
+  pill.addEventListener('click',function(){setOpen(true,true);go.focus();});
+  xb.addEventListener('click',function(){setOpen(false,true);pill.focus();});
+  document.addEventListener('keydown',function(e){if((e.key==='Escape'||e.key==='Esc')&&!root.classList.contains('ttcl-closed')&&window.innerWidth<800)setOpen(false,true);});
+
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function status(h){out.innerHTML='<p class="ttcl-st">'+h+'</p>';}
+  function miles(a,b,c,d){var R=3958.8,r=Math.PI/180,x=(c-a)*r,y=(d-b)*r,
+      h=Math.sin(x/2)*Math.sin(x/2)+Math.cos(a*r)*Math.cos(c*r)*Math.sin(y/2)*Math.sin(y/2);return 2*R*Math.asin(Math.min(1,Math.sqrt(h)));}
+  function wait(ms){return new Promise(function(r){setTimeout(r,ms);});}
+  function getJSON(url,opt,ms){
+    var ctl=window.AbortController?new AbortController():null,t=setTimeout(function(){if(ctl)ctl.abort();},ms||9000);
+    opt=opt||{};opt.credentials='omit';opt.mode='cors';if(ctl)opt.signal=ctl.signal;
+    return fetch(url,opt).then(function(r){clearTimeout(t);if(!r.ok)throw new Error('HTTP '+r.status);return r.json();},function(e){clearTimeout(t);throw e;});
+  }
+  function isChip(name,brandWd,cat){return brandWd===WD||(/chipotle/i.test(name||'')&&(!cat||cat==='amenity'));}
+  function nearest(list,lat,lon){var best=null;for(var i=0;i<list.length;i++){var p=list[i];if(!isFinite(p.lat)||!isFinite(p.lon))continue;
+      p.mi=miles(lat,lon,p.lat,p.lon);if(!best||p.mi<best.mi)best=p;}return best;}
+
+  /* ---- source 1: Nominatim (OSM), bounded box around the visitor, widened step by step (<=1 req/sec per OSM policy) ---- */
+  function nominatim(lat,lon){
+    var i=0;
+    function step(){
+      if(i>=MILES.length)return null;
+      var m=MILES[i],dLat=m/69,dLon=m/(69*Math.max(0.2,Math.cos(lat*Math.PI/180)));
+      var url='https://nominatim.openstreetmap.org/search?format=jsonv2&q=chipotle&limit=40&addressdetails=1&extratags=1&bounded=1&accept-language=en'+
+        '&viewbox='+(lon-dLon).toFixed(5)+','+(lat+dLat).toFixed(5)+','+(lon+dLon).toFixed(5)+','+(lat-dLat).toFixed(5);
+      return getJSON(url,{},9000).then(function(a){
+        var list=[];(a||[]).forEach(function(r){var x=r.extratags||{},ad=r.address||{};
+          if(!isChip(r.name,x['brand:wikidata'],r.category))return;
+          var st=(ad['ISO3166-2-lvl4']||'').split('-')[1]||ad.state||'';
+          list.push({lat:+r.lat,lon:+r.lon,name:r.name||'Chipotle',
+            street:[ad.house_number,ad.road].filter(Boolean).join(' '),
+            city:ad.city||ad.town||ad.village||ad.hamlet||ad.suburb||ad.county||'',state:st,zip:ad.postcode||''});});
+        var b=nearest(list,lat,lon);
+        if(b&&(b.mi<=m*1.05||i===MILES.length-1))return b;      /* inside the searched radius: done */
+        i++;return wait(1100).then(step);
+      });
+    }
+    return step();
+  }
+  /* ---- source 2: Photon (komoot, OSM data), location-biased search ---- */
+  function photon(lat,lon){
+    return getJSON('https://photon.komoot.io/api/?q=chipotle&limit=20&lat='+lat.toFixed(5)+'&lon='+lon.toFixed(5),{},9000).then(function(j){
+      var list=[];((j&&j.features)||[]).forEach(function(f){var p=f.properties||{},c=(f.geometry||{}).coordinates||[];
+        if(!isChip(p.name,null,p.osm_key))return;
+        list.push({lat:+c[1],lon:+c[0],name:p.name||'Chipotle',street:[p.housenumber,p.street].filter(Boolean).join(' '),city:p.city||p.district||'',state:p.state||'',zip:p.postcode||''});});
+      return nearest(list,lat,lon);
+    });
+  }
+  /* ---- source 3: Overpass API (brand:wikidata=Q465751 or name Chipotle, 40 km radius). Last resort: the public server is often busy
+          (busy replies carry no CORS header, so they just fail fast) and a successful query can take 20-60 s ---- */
+  function overpass(lat,lon){
+    var a='(around:40000,'+lat.toFixed(5)+','+lon.toFixed(5)+')';
+    var q='[out:json][timeout:20];(nwr["brand:wikidata"="'+WD+'"]'+a+';nwr["name"="Chipotle"]'+a+';nwr["name"="Chipotle Mexican Grill"]'+a+';);out center tags 60;';
+    return getJSON('https://overpass-api.de/api/interpreter',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+encodeURIComponent(q)},20000).then(function(j){
+      var list=[];((j&&j.elements)||[]).forEach(function(e){var t=e.tags||{},c=e.center||e;
+        list.push({lat:+c.lat,lon:+c.lon,name:t.name||'Chipotle',street:[t['addr:housenumber'],t['addr:street']].filter(Boolean).join(' '),city:t['addr:city']||'',state:t['addr:state']||'',zip:t['addr:postcode']||''});});
+      return nearest(list,lat,lon);
+    });
+  }
+  function find(lat,lon){
+    var srcs=[nominatim,photon,overpass],k=0,errs=0;
+    function next(){if(k>=srcs.length)return errs===srcs.length?Promise.reject(new Error('all sources failed')):Promise.resolve(null);
+      var f=srcs[k++];if(k>1)status('🌯 Still sniffing… trying backup burrito map '+(k-1)+'…');
+      return f(lat,lon).then(function(r){return r||next();},function(){errs++;return next();});}
+    return next();
+  }
+  function fallback(msg){
+    status(msg+'<br><a class="ttcl-gm" href="'+GMAPS_NEAR+'" target="_blank" rel="noopener">Search “Chipotle near me” on Google Maps ↗</a>');
+  }
+  function show(p){
+    var city=[p.city,[p.state,p.zip].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+    var addr=[p.street,city].filter(Boolean).join(', ');
+    var q=addr?('Chipotle Mexican Grill, '+addr):(p.lat.toFixed(6)+','+p.lon.toFixed(6));
+    var maps='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q);
+    var dir='https://www.google.com/maps/dir/?api=1&destination='+p.lat.toFixed(6)+','+p.lon.toFixed(6);
+    var d=p.mi<0.1?'&lt;0.1':(p.mi<10?p.mi.toFixed(1):Math.round(p.mi));
+    out.innerHTML='<div class="ttcl-res"><p class="ttcl-nm">'+esc(p.name)+'</p>'+
+      '<p class="ttcl-ad">'+(addr?esc(addr):'Address not listed (pin is accurate)')+'</p>'+
+      '<p class="ttcl-di"><b>'+d+'</b> mi away'+(p.mi>60?' (road trip!)':'')+'</p>'+
+      '<div class="ttcl-ln"><a class="ttcl-btn" href="'+maps+'" target="_blank" rel="noopener">Open in Maps ↗</a><a href="'+dir+'" target="_blank" rel="noopener">Directions</a></div></div>';
+  }
+
+  go.addEventListener('click',function(){
+    if(busy)return;
+    if(!navigator.geolocation||!window.fetch||!window.Promise){fallback('This browser can’t share location.');return;}
+    busy=true;go.disabled=true;status('📡 Locating you… <b>(allow location)</b>');
+    function done(){busy=false;go.disabled=false;go.textContent='Find again 🌯';}
+    navigator.geolocation.getCurrentPosition(function(pos){
+      var lat=pos.coords.latitude,lon=pos.coords.longitude,ck='ttcl:'+lat.toFixed(2)+','+lon.toFixed(2),c=null;
+      try{c=JSON.parse(sessionStorage.getItem(ck)||'null');}catch(e){}
+      if(c&&c.t>Date.now()-18e5&&c.p){c.p.mi=miles(lat,lon,c.p.lat,c.p.lon);show(c.p);done();return;}
+      status('🌯 Sniffing out burritos near you…');
+      find(lat,lon).then(function(p){
+        if(p){show(p);try{sessionStorage.setItem(ck,JSON.stringify({t:Date.now(),p:p}));}catch(e){}}
+        else fallback('No Chipotle found nearby in OpenStreetMap. Burrito desert? 🏜️');
+        done();
+      },function(){fallback('The burrito map is napping right now.');done();});
+    },function(err){
+      fallback(err&&err.code===1?'No location, no burrito radar 😢 (permission denied).':'Couldn’t get a GPS fix.');
+      done();
+    },{enableHighAccuracy:false,timeout:15000,maximumAge:300000});
+  });
+})();
+</script>
+<!-- /TT Chipotle finder v1 -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- TT INTRO FLASH START -->
+<!-- TherapyToaster intro v6: Coty badge -> 404 portrait 6s / contain / mobile-safe (commit-pinned CDN, load wait, tap-to-play) -->
+<style>
+#ttflash-ov{position:fixed;inset:0;z-index:2147483647;background:#000;color:#FFD400;overflow:hidden;opacity:1;transition:opacity .22s ease;font-family:monospace}
+#ttflash-ov.ttflash-out{opacity:0;pointer-events:none}
+#ttflash-ov canvas.ttflash-rain{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none}
+#ttflash-ov.ttflash-raining{background:transparent}
+#ttflash-ov.ttflash-rainfx .ttflash-controls{opacity:0;pointer-events:none;transition:opacity .2s}
+#ttflash-ov video,#ttflash-ov .ttflash-still{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
+#ttflash-ov video{opacity:1;object-fit:contain}
+#ttflash-ov .ttflash-tap{position:absolute;z-index:2;left:50%;top:50%;transform:translate(-50%,-50%);display:none;font-size:18px;padding:20px 28px;background:rgba(0,0,0,.88);box-shadow:0 0 0 3px rgba(255,212,0,.35),6px 6px 0 rgba(255,212,0,.25);white-space:nowrap}
+#ttflash-ov.ttflash-needtap .ttflash-tap{display:block}
+#ttflash-ov .ttflash-tap,#ttflash-ov .ttflash-tap:focus{color:#FFD400;background:rgba(0,0,0,.88)}
+#ttflash-ov .ttflash-tap:hover,#ttflash-ov .ttflash-tap:focus-visible{color:#000;background:#FFD400}
+#ttflash-ov.ttflash-playing .ttflash-tap{display:none}
+#ttflash-ov .ttflash-load{position:absolute;z-index:2;left:0;right:0;top:max(18px,env(safe-area-inset-top));text-align:center;font:700 11px/1 monospace;letter-spacing:.2em;text-transform:uppercase;opacity:.75;animation:ttflash-blink 1s steps(2,end) infinite}
+#ttflash-ov.ttflash-playing .ttflash-load,#ttflash-ov.ttflash-needtap .ttflash-load{display:none}
+@keyframes ttflash-blink{50%{opacity:.2}}
+#ttflash-ov.ttflash-playing video{opacity:1}
+#ttflash-ov.ttflash-playing .ttflash-still{visibility:hidden}
+#ttflash-ov .ttflash-still{animation:ttflash-static .32s steps(1,end) both}
+#ttflash-ov .ttflash-controls{position:absolute;z-index:2;bottom:max(22px,env(safe-area-inset-bottom));left:0;right:0;display:flex;justify-content:center;gap:14px;padding:0 12px}
+#ttflash-ov button{appearance:none;border:1px solid #FFD400;background:rgba(0,0,0,.82);color:#FFD400;font:700 12px/1.2 monospace;letter-spacing:.05em;text-transform:uppercase;padding:12px 15px;min-height:44px;cursor:pointer;box-shadow:3px 3px 0 rgba(255,212,0,.2)}
+#ttflash-ov button:hover,#ttflash-ov button:focus-visible{background:#FFD400;color:#000;outline:2px solid #FFD400;outline-offset:3px}
+@media(max-width:767px){#ttflash-ov video{object-fit:contain}}
+@keyframes ttflash-static{0%{transform:translateX(-5px);filter:drop-shadow(5px 0 #f03) drop-shadow(-5px 0 #0ff)}25%{transform:translateX(4px);clip-path:inset(7% 0 5%)}50%{transform:none;clip-path:inset(0);filter:none}75%{transform:translateX(-3px);filter:drop-shadow(3px 0 #f03)}100%{transform:none;filter:none}}
+@media(prefers-reduced-motion:reduce){#ttflash-ov{display:none}}
+</style>
+<script>
+(function(){
+  'use strict';
+  if(!/^\/(?:home\/?)?$/.test(location.pathname))return;
+  if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  var K='ttflash-seen',FORCE=/[?&]intro=1(?:&|$)/.test(location.search);
+  function seen(){try{sessionStorage.setItem(K,'1')}catch(e){}}
+  try{if(sessionStorage.getItem(K)&&!FORCE)return}catch(e){}
+  if(document.getElementById('ttflash-ov'))return;
+  // pinned to the commit that holds the portrait clip + poster: immutable URL, so no stale @main edge copy or phone cache
+  var BASE='https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@4e7f08e33f818820e170c8aa31a3988d0712d527/site-intro/',
+      ALT='https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@main/site-intro/home-intro-v2.mp4?v=3';
+  var ov=document.createElement('div');ov.id='ttflash-ov';
+  ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');ov.setAttribute('aria-label','M®ToaSty site intro');
+  ov.innerHTML='<video autoplay muted playsinline webkit-playsinline preload="auto" disablepictureinpicture poster="'+BASE+'home-intro-v2-poster.jpg?v=3" aria-label="M®ToaSty intro video"><source src="'+BASE+'home-intro-v2.mp4?v=3" type="video/mp4"><source src="'+ALT+'" type="video/mp4"></video>'+
+    '<div class="ttflash-load" aria-hidden="true">Loading…</div><button type="button" class="ttflash-tap">▶ Tap to play intro</button>'+
+    '<div class="ttflash-controls"><button type="button" class="ttflash-sound" aria-pressed="false">Tap for sound</button><button type="button" class="ttflash-skip">Skip</button></div>';
+  var v=ov.querySelector('video'),sound=ov.querySelector('.ttflash-sound'),skip=ov.querySelector('.ttflash-skip'),tap=ov.querySelector('.ttflash-tap'),srcs=ov.querySelectorAll('source');
+  var done=false,started=false,needTap=false,tFlash,tBlocked,tHard,tStall,prevFocus,oldOverflow;
+  v.muted=true;v.defaultMuted=true;v.playsInline=true;
+  var RM=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches,raining=false,raf=0,cv=null;
+  function finish(){
+    if(done)return;done=true;cancelAnimationFrame(raf);
+    clearTimeout(tFlash);clearTimeout(tBlocked);clearTimeout(tHard);clearTimeout(tStall);
+    try{v.pause()}catch(e){}v.muted=true;
+    ov.classList.add('ttflash-out');document.removeEventListener('keydown',keys,true);
+    if(document.body)document.body.style.overflow=oldOverflow;
+    setTimeout(function(){if(cv){cv.width=cv.height=0;cv=null}ov.remove();if(prevFocus&&prevFocus.isConnected&&prevFocus.focus)prevFocus.focus({preventScroll:true})},240);
+  }
+  function end(fast){
+    if(done)return;
+    if(raining){if(fast===true)finish();return}
+    if(RM||!started||fast===true&&!started){finish();return}
+    raining=true;clearTimeout(tHard);tHard=setTimeout(finish,2300);
+    try{v.pause()}catch(e){}v.muted=true;rain(fast===true);
+  }
+  function rain(quick){
+    var c=document.createElement('canvas');c.className='ttflash-rain';cv=c;
+    var ctx=c.getContext('2d');if(!ctx){finish();return}
+    var dpr=Math.min(window.devicePixelRatio||1,2),W=ov.clientWidth||innerWidth,H=ov.clientHeight||innerHeight;
+    c.width=Math.round(W*dpr);c.height=Math.round(H*dpr);ctx.scale(dpr,dpr);
+    var fs=W<768?14:18,cols=Math.ceil(W/fs),rows=Math.ceil(H/fs)+1,T=quick?700:1600,IN=quick?.15:.42,i;
+    var y=[],sp=[],clr=[];
+    for(i=0;i<cols;i++){y[i]=-Math.random()*rows*.6;sp[i]=(rows*1.15)/(T*.55)*(0.7+Math.random()*.6);clr[i]=IN+Math.random()*.22}
+    var hold=document.createElement('canvas');hold.width=c.width;hold.height=c.height;var hx=hold.getContext('2d');hx.scale(dpr,dpr);
+    ov.appendChild(c);ov.classList.add('ttflash-rainfx');var bare=false;
+    var t0=performance.now(),last=t0;
+    ctx.font='700 '+fs+'px monospace';ctx.textBaseline='top';
+    function frame(now){
+      if(done)return;var t=(now-t0)/T,dt=now-last;last=now;
+      if(t>=1){finish();return}
+      if(!bare&&t>=IN){bare=true;ov.classList.add('ttflash-raining');v.style.visibility='hidden'}
+      // video dissolves under the code
+      v.style.opacity=String(Math.max(0,1-t/IN));v.style.filter='sepia(1) saturate(4) hue-rotate(-8deg) brightness('+(1-t*.6)+')';
+      // trail fade on offscreen buffer
+      hx.globalCompositeOperation='destination-out';hx.fillStyle='rgba(0,0,0,'+Math.min(1,.12*dt/16)+')';hx.fillRect(0,0,W,H);
+      hx.globalCompositeOperation='source-over';hx.font=ctx.font;hx.textBaseline='top';
+      for(var k=0;k<cols;k++){
+        y[k]+=sp[k]*dt;var r=Math.floor(y[k]);if(r<0)continue;
+        var g=Math.random()<.5?'0':'1',x=k*fs;
+        hx.fillStyle='rgba(255,212,0,.55)';hx.fillText(Math.random()<.5?'0':'1',x,(r-1)*fs);
+        hx.fillStyle='#FFF6B0';hx.shadowColor='#FFD400';hx.shadowBlur=8;hx.fillText(g,x,r*fs);hx.shadowBlur=0;
+        if(r>rows&&t<IN+.1)y[k]=-Math.random()*6;
+      }
+      ctx.clearRect(0,0,W,H);
+      // black backdrop that wipes away top-down per column after IN, revealing Home
+      ctx.fillStyle='#000';
+      for(k=0;k<cols;k++){
+        var p=Math.max(0,(t-clr[k])/(1-clr[k])),top=H*Math.min(1,p*1.25),a=t<IN?t/IN:1;
+        ctx.globalAlpha=a;ctx.fillRect(k*fs,top,fs+1,H-top);
+        ctx.globalAlpha=1;ctx.save();ctx.beginPath();ctx.rect(k*fs,top-fs*4,fs+1,H);ctx.clip();
+        ctx.globalAlpha=Math.max(0,1-p*1.1);ctx.drawImage(hold,0,0,W,H);ctx.restore();
+      }
+      ctx.globalAlpha=1;
+      raf=requestAnimationFrame(frame);
+    }
+    raf=requestAnimationFrame(frame);
+  }
+  function keys(e){
+    if(e.key==='Escape'){e.preventDefault();end(true)}
+    if(e.key==='Tab'){e.preventDefault();var f=needTap?[tap,sound,skip]:[sound,skip],i=f.indexOf(document.activeElement);f[(i+(e.shiftKey?f.length-1:1))%f.length].focus({preventScroll:true})}
+  }
+  // mobile-safe start: keep the poster up while the clip buffers (slow cellular), retry play when data arrives,
+  // and if autoplay is refused (iOS Low Power Mode / data saver) show a tap-to-play prompt instead of vanishing.
+  function askTap(){if(done||started)return;needTap=true;ov.classList.add('ttflash-needtap');clearTimeout(tBlocked);tBlocked=setTimeout(function(){if(!started)finish()},12000);try{tap.focus({preventScroll:true})}catch(e){}}
+  function tryPlay(fromTap){
+    if(done||started||raining)return;
+    if(fromTap){needTap=false;ov.classList.remove('ttflash-needtap');clearTimeout(tBlocked);tBlocked=setTimeout(function(){if(!started)finish()},9000)}
+    var p;try{p=v.play()}catch(e){askTap();return}
+    if(p&&p.catch)p.catch(function(err){if(done||started)return;if(err&&err.name==='AbortError')return;askTap()});
+  }
+  v.addEventListener('playing',function(){
+    if(done)return;clearTimeout(tStall);if(started)return;started=true;seen();clearTimeout(tBlocked);
+    ov.classList.remove('ttflash-needtap');ov.classList.add('ttflash-playing');
+    // hard cap counts from the real start of playback, not from mount, so slow loads still get the full clip
+    clearTimeout(tHard);tHard=setTimeout(function(){end(true)},Math.round(((isFinite(v.duration)&&v.duration>0?v.duration:6.04)+1.2)*1000));
+  });
+  v.addEventListener('waiting',function(){if(!started||done)return;clearTimeout(tStall);tStall=setTimeout(function(){end()},4000)});
+  ['loadeddata','canplay'].forEach(function(n){v.addEventListener(n,function(){if(!needTap)tryPlay()})});
+  v.addEventListener('ended',function(){end()});v.addEventListener('error',function(){finish()});
+  if(srcs.length)srcs[srcs.length-1].addEventListener('error',function(){finish()});
+  tap.addEventListener('click',function(e){e.stopPropagation();seen();tryPlay(true)});
+  skip.addEventListener('click',function(e){e.stopPropagation();seen();end(true)});
+  ov.addEventListener('click',function(e){if(e.target.closest('button'))return;if(!started){seen();tryPlay(true);return}end(true)});
+  sound.addEventListener('click',function(){
+    if(done)return;v.muted=!v.muted;sound.textContent=v.muted?'Tap for sound':'Mute';sound.setAttribute('aria-pressed',String(!v.muted));
+    if(!started){tryPlay(true);return}
+    var p=v.play();if(p&&p.catch)p.catch(function(){v.muted=true;sound.textContent='Tap for sound';sound.setAttribute('aria-pressed','false');var q=v.play();if(q&&q.catch)q.catch(function(){})});
+  });
+  function mount(){
+    if(done)return;prevFocus=document.activeElement;oldOverflow=document.body.style.overflow;
+    document.body.appendChild(ov);document.body.style.overflow='hidden';skip.focus({preventScroll:true});
+    document.addEventListener('keydown',keys,true);
+    // give slow phones up to 9s to buffer before giving up (poster + Loading… shows meanwhile)
+    tBlocked=setTimeout(function(){if(!started&&!needTap)finish()},9000);
+    tFlash=setTimeout(function(){tryPlay()},0);
+  }
+  if(document.body)mount();else document.addEventListener('DOMContentLoaded',mount,{once:true});
+})();
+</script>
+<!-- TT INTRO FLASH END -->
+
+
+
+
+
+
+
+
+<!-- ttus-unlock-sound START --><script id="ttus-sound">(function(){if(window.ttusOk)return;window.ttusOk=1;
+function play(){try{var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;var c=new AC(),t=c.currentTime+.02,m=c.createGain();m.gain.value=.18;m.connect(c.destination);
+function n(f,f2,s,d,ty,v){var o=c.createOscillator(),g=c.createGain();o.type=ty;o.frequency.setValueAtTime(f,s);if(f2)o.frequency.setValueAtTime(f2,s+d*.35);g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(v,s+.005);g.gain.exponentialRampToValueAtTime(.001,s+d);o.connect(g);g.connect(m);o.start(s);o.stop(s+d+.02)}
+n(988,1319,t,.18,'square',.5);n(1319,1760,t+.09,.22,'square',.4);
+n(2093,0,t+.3,.7,'sine',.7);n(4186,0,t+.3,.45,'sine',.25);n(2637,0,t+.3,.6,'triangle',.2);
+setTimeout(function(){try{c.close()}catch(e){}},1400)}catch(e){}}
+document.addEventListener('click',function(e){try{var b=e.target&&e.target.closest&&e.target.closest('#ttps-unlock');if(!b||b.disabled)return;if(!document.documentElement.classList.contains('ps-gl'))return;play()}catch(x){}},true)})();</script><!-- ttus-unlock-sound END -->
+<!-- ttbgm-home-music START --><style id="ttbgm-css">
+#ttbgm{position:fixed;left:14px;top:50%;bottom:auto;transform:translateY(-50%);z-index:9999;display:inline-flex;align-items:center;gap:8px;
+background:#000;color:#FFD400;border:2px solid #FFD400;border-radius:999px;padding:7px 14px;
+font:700 13px/1 system-ui,-apple-system,Segoe UI,sans-serif;letter-spacing:.04em;cursor:pointer;
+box-shadow:-2px 0 0 #FF2D55,2px 0 0 #00E5FF;text-shadow:-1px 0 #FF2D55,1px 0 #00E5FF}
+#ttbgm:hover,#ttbgm:focus-visible{background:#FFD400;color:#000;text-shadow:none;outline:none}
+#ttbgm .b{display:inline-flex;gap:2px;align-items:flex-end;height:12px}
+#ttbgm .b i{width:3px;background:currentColor;height:4px}
+#ttbgm.on .b i{height:12px}#ttbgm.on .b i:nth-child(2){height:7px}#ttbgm.on .b i:nth-child(3){height:10px}
+#ttbgm.dead{opacity:.55}
+@media (prefers-reduced-motion:no-preference){#ttbgm.on .b i{transition:height .2s}}
+</style>
+<button type="button" id="ttbgm" aria-pressed="false" aria-label="Play background music"><span class="b" aria-hidden="true"><i></i><i></i><i></i></span><span class="t">&#9654; Vibes</span></button>
+<script id="ttbgm-js">(function(){if(window.ttbgmOk)return;window.ttbgmOk=1;
+var P=location.pathname.replace(/\/+$/,'');if(P!==''&&P!=='/home'&&!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)){var x=document.getElementById('ttbgm');x&&x.remove();return}
+var B=document.getElementById('ttbgm'),T=B.querySelector('.t'),C=null,M=null,on=0,dead=0,tm=null,step=0,nt=0,KEY='ttBgmOff';
+var BPM=84,S16=60/BPM/4;
+var CH=[[57,60,64,67],[53,57,60,64],[50,53,57,60],[52,55,59,62]];
+function hz(n){return 440*Math.pow(2,(n-69)/12)}
+function nz(d){var b=C.createBuffer(1,C.sampleRate*d,C.sampleRate),a=b.getChannelData(0);for(var i=0;i<a.length;i++)a[i]=Math.random()*2-1;return b}
+var NB=null,CR=null;
+function kick(t){var o=C.createOscillator(),g=C.createGain();o.frequency.setValueAtTime(120,t);o.frequency.exponentialRampToValueAtTime(42,t+.18);g.gain.setValueAtTime(.9,t);g.gain.exponentialRampToValueAtTime(.001,t+.35);o.connect(g);g.connect(M);o.start(t);o.stop(t+.4)}
+function snare(t){var s=C.createBufferSource(),f=C.createBiquadFilter(),g=C.createGain();s.buffer=NB;f.type='bandpass';f.frequency.value=1800;g.gain.setValueAtTime(.45,t);g.gain.exponentialRampToValueAtTime(.001,t+.2);s.connect(f);f.connect(g);g.connect(M);s.start(t);s.stop(t+.25)}
+function hat(t,v){var s=C.createBufferSource(),f=C.createBiquadFilter(),g=C.createGain();s.buffer=NB;f.type='highpass';f.frequency.value=7000;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+.05);s.connect(f);f.connect(g);g.connect(M);s.start(t);s.stop(t+.06)}
+function keys(t,ch){ch.forEach(function(n,i){var o=C.createOscillator(),o2=C.createOscillator(),g=C.createGain(),f=C.createBiquadFilter();o.type='triangle';o2.type='sine';o.frequency.value=hz(n);o2.frequency.value=hz(n)*1.003;f.type='lowpass';f.frequency.value=1400;var s=t+i*.012,d=S16*15;g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(.07,s+.02);g.gain.exponentialRampToValueAtTime(.001,s+d);o.connect(f);o2.connect(f);f.connect(g);g.connect(M);o.start(s);o2.start(s);o.stop(s+d);o2.stop(s+d)})}
+function bass(t,n){var o=C.createOscillator(),g=C.createGain();o.type='sine';o.frequency.value=hz(n-24);g.gain.setValueAtTime(.35,t);g.gain.exponentialRampToValueAtTime(.001,t+S16*6);o.connect(g);g.connect(M);o.start(t);o.stop(t+S16*6)}
+function crackle(){CR=C.createBufferSource();var b=C.createBuffer(1,C.sampleRate*4,C.sampleRate),a=b.getChannelData(0);for(var i=0;i<a.length;i++)a[i]=Math.random()<.0006?(Math.random()*2-1)*.6:(Math.random()*2-1)*.012;CR.buffer=b;CR.loop=true;var g=C.createGain();g.gain.value=.5;CR.connect(g);g.connect(M);CR.start()}
+function sched(){while(nt<C.currentTime+.15){var s=step%16,bar=Math.floor(step/16)%4,sw=(s%2)?S16*.18:0,t=nt+sw;
+if(s===0||s===10||(s===7&&bar%2))kick(t);if(s===4||s===12)snare(t);if(s%2===0||s===15)hat(t,s%4?.05:.09);
+if(s===0){keys(t,CH[bar]);bass(t,CH[bar][0])}if(s===8)bass(t,CH[bar][0]+(bar%2?7:0));
+nt+=S16;step++}}
+function start(){if(dead||on)return;try{if(!C){var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;C=new AC();M=C.createGain();M.gain.value=0;var lp=C.createBiquadFilter();lp.type='lowpass';lp.frequency.value=5200;M.connect(lp);lp.connect(C.destination);NB=nz(1);crackle()}
+C.resume&&C.resume();M.gain.cancelScheduledValues(C.currentTime);M.gain.setTargetAtTime(.32,C.currentTime,.4);nt=C.currentTime+.05;tm=setInterval(sched,40);on=1;ui()}catch(e){}}
+function stop(){if(!on)return;on=0;clearInterval(tm);try{M.gain.setTargetAtTime(0,C.currentTime,.08);setTimeout(function(){if(!on&&C&&C.suspend)C.suspend()},400)}catch(e){}ui()}
+function kill(){dead=1;stop();try{sessionStorage.setItem(KEY,'1')}catch(e){}ui()}
+function ui(){B.classList.toggle('on',!!on);B.classList.toggle('dead',!!dead);B.setAttribute('aria-pressed',on?'true':'false');B.setAttribute('aria-label',on?'Stop background music':'Play background music');T.innerHTML=on?'&#9632; Stop vibes':'&#9654; Vibes'}
+try{if(sessionStorage.getItem(KEY)==='1')dead=1}catch(e){}ui();
+B.addEventListener('click',function(e){e.stopPropagation();if(on){kill()}else{dead=0;try{sessionStorage.removeItem(KEY)}catch(e){}start()}});
+function isOther(el){if(!el||!el.closest)return 0;var a=el.closest('a[href],iframe,audio,video,[data-ttbgm-stop]');if(!a)return 0;var h=(a.getAttribute('href')||a.getAttribute('src')||'').toLowerCase();
+if(a.tagName==='AUDIO'||a.tagName==='VIDEO')return 1;return /area54\.fm|suno\.(com|ai)/.test(h)||a.hasAttribute('data-ttbgm-stop')}
+// first interaction autostarts (unless visitor stopped it, or the gesture is aimed at another player)
+function first(e){document.removeEventListener('pointerdown',first,true);document.removeEventListener('keydown',first,true);if(e.target===B||(B.contains&&B.contains(e.target)))return;if(isOther(e.target))return;start()}
+document.addEventListener('pointerdown',first,true);document.addEventListener('keydown',first,true);document.addEventListener('touchstart',first,true);setTimeout(function(){var st=null;try{st=sessionStorage.getItem(KEY)}catch(e){}if(st)return;start();setTimeout(function(){if(on&&C&&C.state!=='running'){clearInterval(tm);on=0;ui()}},700)},400);
+document.addEventListener('click',function(e){if(isOther(e.target))kill()},true);
+document.addEventListener('play',function(e){var t=e.target;if(t&&(t.tagName==='AUDIO'||t.tagName==='VIDEO'))kill()},true);
+window.addEventListener('blur',function(){setTimeout(function(){var a=document.activeElement;if(a&&a.tagName==='IFRAME'){var s=(a.getAttribute('src')||'').toLowerCase();if(/area54|suno/.test(s)||a.hasAttribute('data-ttbgm-stop'))kill()}},0)});
+})();</script><!-- ttbgm-home-music END -->
+<!-- TT TOP WALL v1 START: Coty's Mr. Toasty graffiti wall behind the top of Home (page top -> bottom of Mr. Toasty's Daily Glitch). Images commit-pinned on jsDelivr. Also hides the old home-wall-tall.jpg section image (the flashing kid photo). -->
+<style id="tt-topwall-css">
+#page .page-section[data-section-id="6a988533c6d1d146aaea1e2a"] .section-background img{display:none!important}
+#tt-topwall{position:absolute;top:0;left:0;width:100%;height:0;z-index:-1;pointer-events:none;overflow:hidden;-webkit-mask-image:linear-gradient(180deg,#000 0,#000 calc(100% - 70px),transparent 100%);mask-image:linear-gradient(180deg,#000 0,#000 calc(100% - 70px),transparent 100%)}
+#tt-topwall .tw-img{position:absolute;inset:0;background-color:#000;background-repeat:no-repeat;background-size:cover;background-position:50% 40%;
+ background-image:url("https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@e2d52be7710e12f398f1d72d8ada86cb8147f131/assets/home-graffiti/mr-toasty-wall-3200.jpg")}
+@supports (background-image:image-set(url("a.webp") type("image/webp"))){#tt-topwall .tw-img{background-image:image-set(url("https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@e2d52be7710e12f398f1d72d8ada86cb8147f131/assets/home-graffiti/mr-toasty-wall-3200.webp") type("image/webp"),url("https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@e2d52be7710e12f398f1d72d8ada86cb8147f131/assets/home-graffiti/mr-toasty-wall-3200.jpg") type("image/jpeg"))}}
+#tt-topwall .tw-shade{position:absolute;inset:0;background:
+ repeating-linear-gradient(0deg,rgba(0,0,0,.16) 0 1px,transparent 1px 3px),
+ linear-gradient(180deg,rgba(0,0,0,.62) 0,rgba(0,0,0,.38) 22%,rgba(0,0,0,.30) 55%,rgba(0,0,0,.5) 88%,rgba(0,0,0,.7) 100%)}
+html.tt-topwall #siteWrapper{position:relative;z-index:0}
+html.tt-topwall #header,html.tt-topwall body.tt-glitch #header,html.tt-topwall body.tt-glitch header.header{background:transparent!important}
+html.tt-topwall #header .header-announcement-bar-wrapper{background:rgba(0,0,0,.18)!important}
+html.tt-topwall #tt-vc,html.tt-topwall #tt-notice,html.tt-topwall #tt-notice.ttdg-moved{background:transparent!important}
+html.tt-topwall #tt-notice .ttdg-box{box-shadow:-4px 0 0 rgba(0,255,255,.6),4px 0 0 rgba(255,40,60,.75),0 0 24px rgba(255,212,0,.3),0 14px 40px rgba(0,0,0,.65)}
+@media (max-width:767px){
+ #tt-topwall .tw-img{background-position:50% 30%;background-image:url("https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@e2d52be7710e12f398f1d72d8ada86cb8147f131/assets/home-graffiti/mr-toasty-wall-mobile.jpg")}
+ @supports (background-image:image-set(url("a.webp") type("image/webp"))){#tt-topwall .tw-img{background-image:image-set(url("https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@e2d52be7710e12f398f1d72d8ada86cb8147f131/assets/home-graffiti/mr-toasty-wall-mobile.webp") type("image/webp"),url("https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@e2d52be7710e12f398f1d72d8ada86cb8147f131/assets/home-graffiti/mr-toasty-wall-mobile.jpg") type("image/jpeg"))}}
+ #tt-topwall .tw-shade{background:repeating-linear-gradient(0deg,rgba(0,0,0,.16) 0 1px,transparent 1px 3px),linear-gradient(180deg,rgba(0,0,0,.52) 0,rgba(0,0,0,.28) 25%,rgba(0,0,0,.22) 60%,rgba(0,0,0,.45) 88%,rgba(0,0,0,.65) 100%)}
+}
+</style>
+<script>
+(function(){
+'use strict';
+if(window.__ttTopWall)return;window.__ttTopWall=1;
+var W=null,ro=null,obs=[];
+function isHome(){return /^\/(?:home\/?)?$/.test(location.pathname);}
+function off(){document.documentElement.classList.remove('tt-topwall');if(W&&W.parentNode)W.parentNode.removeChild(W);}
+function place(){
+ var sw=document.getElementById('siteWrapper'),n=document.getElementById('tt-notice');
+ if(!isHome()||!sw||!n||!n.isConnected){off();return;}
+ if(!n.classList.contains('ttdg-moved'))return;
+ if(!W){W=document.createElement('div');W.id='tt-topwall';W.setAttribute('aria-hidden','true');W.innerHTML='<div class="tw-img"></div><div class="tw-shade"></div>';}
+ if(W.parentNode!==sw)sw.insertBefore(W,sw.firstChild);
+ document.documentElement.classList.add('tt-topwall');
+ var h=Math.round(n.getBoundingClientRect().bottom-sw.getBoundingClientRect().top);
+ if(h>0&&W.style.height!==h+'px')W.style.height=h+'px';
+ if(window.ResizeObserver&&obs.indexOf(n)<0){if(!ro)ro=new ResizeObserver(place);ro.observe(n);obs.push(n);var hd=document.getElementById('header');if(hd&&obs.indexOf(hd)<0){ro.observe(hd);obs.push(hd);}}
+}
+function boot(){place();addEventListener('resize',place);addEventListener('load',place);setInterval(place,1000);}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})();
+</script>
+<!-- TT TOP WALL v1 END -->
