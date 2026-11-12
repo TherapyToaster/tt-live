@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.13.0"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.14.0"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <link rel="icon" href="data:,"><title>MR. TOASTY'S NO SIGNAL SKULLZ — Therapy Toaster</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Anton&family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
@@ -1019,15 +1019,17 @@ function drawSky(t,rdt){const K=CUR.sky,S=K.S,fx=K.fx;let off=(P.a/6.28318)*SW;o
  if(fx.static)for(let i=0;i<60*fx.static;i++){const v=(Math.random()*200)|0;buf[((Math.random()*SH)|0)*W+((Math.random()*W)|0)]=(0xff000000|(v<<16)|(v<<8)|v)>>>0}
  if(fx.lightning){if(CUR.flashT>0){CUR.flashT-=rdt;for(let i=0;i<SH*W;i++){const c=buf[i];buf[i]=(((c>>>1)&0x7f7f7f7f)+0x7f7f7f7f|0xff000000)>>>0}const b=CUR.bolt;for(let k=0;k<b.length-1;k++){const[x0,y0]=b[k],[x1,y1]=b[k+1];for(let q=0;q<=8;q++){const x=(x0+(x1-x0)*q/8)|0,y=(y0+(y1-y0)*q/8)|0;if(x>=0&&x<W-1&&y>=0&&y<SH){buf[y*W+x]=0xffffffff;buf[y*W+x+1]=fx.lightning==2?0xffd84fff:0xffd0ffd0}}}}
   else if(Math.random()<rdt*.28){CUR.flashT=.09+Math.random()*.08;let x=Math.random()*W,y=0;CUR.bolt=[[x,y]];while(y<SH){x+=(Math.random()-.5)*26;y+=8+Math.random()*10;CUR.bolt.push([x,y])}if(fl.t<=0)flash(fx.lightning==2?'#ffc0f0':'#d8ffd0',.12);try{noise(.5,.05,300)}catch(e){}}}}
+const BAY16=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+function fogLv(fg,bias,x,y){const raw=fg*bias*(FLV-1)/256,lo=Math.max(0,Math.min(FLV-2,raw|0)),bay=BAY16[(y&3)*4+(x&3)]/16;return((raw-lo)>bay?lo+1:lo)*4096}
+function floorTi(fx,fy){let u=(fx*64)|0,v=(fy*64)|0;const h=(Math.imul(fx|0,374761393)+Math.imul(fy|0,668265263));if(h&1)u=63-(u&63);else u&=63;if(h&2)v=63-(v&63);else v&=63;return(v<<6)|u}
 function castWorld(t,rdt,dX,dY,pX,pY,flick){const C=CUR;if(!C){buf.set(bg);return}const mode=C.mode;if(mode)drawSky(t,rdt);
  const F=C.floor,fq=(t/F.ms)|0,FT=F.fr[F.seq?F.seq[fq%F.seq.length]:fq%F.fr.length],CT=C.ceil?C.ceil.fr[0]:null,SM=C.SM,mw=MW,mh=MH;
  const r0x=dX-pX,r0y=dY-pY,r1x=dX+pX,r1y=dY+pY,h2=H/2,fb=(C.L.fb||.9)*flick,cb=(C.L.cb||.75)*flick;
  for(let y=h2;y<H;y++){const rd=h2/(y-h2+.5),fg=FL.fog?Math.max(0,256*(1-rd/FL.fog)):Math.max(50,Math.min(256,280-rd*20));
-  const lf=Math.min(FLV-1,(fg*fb*(FLV-1)/256+.5)|0)*4096,lc=Math.min(FLV-1,(fg*cb*(FLV-1)/256+.5)|0)*4096;
   const sx=rd*(r1x-r0x)/W,sy=rd*(r1y-r0y)/W;let fx=P.x+rd*r0x,fy=P.y+rd*r0y;const yi=y*W,yc=(H-1-y)*W;
-  if(mode==2||!CT){for(let x=0;x<W;x++,fx+=sx,fy+=sy)buf[yi+x]=FT[lf+((((fy*64)|0)&63)<<6|(((fx*64)|0)&63))];if(!CT&&!mode)buf.fill(0xff000000,yc,yc+W);continue}
-  if(mode==1){for(let x=0;x<W;x++,fx+=sx,fy+=sy){const ti=(((fy*64)|0)&63)<<6|(((fx*64)|0)&63);buf[yi+x]=FT[lf+ti];const cx=fx|0,cy=fy|0;if(!(cx>=0&&cy>=0&&cx<mw&&cy<mh&&SM[cy*mw+cx]))buf[yc+x]=CT[lc+ti]}}
-  else for(let x=0;x<W;x++,fx+=sx,fy+=sy){const ti=(((fy*64)|0)&63)<<6|(((fx*64)|0)&63);buf[yi+x]=FT[lf+ti];buf[yc+x]=CT[lc+ti]}}}
+  if(mode==2||!CT){for(let x=0;x<W;x++,fx+=sx,fy+=sy)buf[yi+x]=FT[fogLv(fg,fb,x,y)+floorTi(fx,fy)];if(!CT&&!mode)buf.fill(0xff000000,yc,yc+W);continue}
+  if(mode==1){for(let x=0;x<W;x++,fx+=sx,fy+=sy){const ti=floorTi(fx,fy);buf[yi+x]=FT[fogLv(fg,fb,x,y)+ti];const cx=fx|0,cy=fy|0;if(!(cx>=0&&cy>=0&&cx<mw&&cy<mh&&SM[cy*mw+cx]))buf[yc+x]=CT[fogLv(fg,cb,x,H-1-y)+ti]}}
+  else for(let x=0;x<W;x++,fx+=sx,fy+=sy){const ti=floorTi(fx,fy);buf[yi+x]=FT[fogLv(fg,fb,x,y)+ti];buf[yc+x]=CT[fogLv(fg,cb,x,H-1-y)+ti]}}}
 // rain (in front of everything on open-sky floors) — 50% blended streaks + floor splashes
 function skyOverlay(t){const C=CUR;if(!C||C.mode!=2||!C.sky)return;const rc=C.sky.fx.rain;if(!rc)return;const off=(P.a/6.28318)*W*5.4;
  for(let i=0;i<90;i++){const sp=.12+(i%4)*.05,x0=((i*97.3-off+t*.02)%W+W)%W,y0=((i*37.7+t*sp)%(H+20))-10;for(let k=0;k<7;k++){const x=(x0-k*.5)|0,y=(y0+k)|0;if(x<0||x>=W||y<0||y>=H)continue;const j=y*W+x,c=buf[j];buf[j]=(((c>>>1)&0x7f7f7f7f)+((rc>>>1)&0x7f7f7f7f)|0xff000000)>>>0}}
@@ -1519,6 +1521,8 @@ function updateWorld(dt){
 function openVendor(q){if(state!='play')return;q.cool=true;SFX.vendor();openShop(q)}
 
 // ---------- render ----------
+const BAY4=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+function fogDither(f,x,y){return Math.max(0,Math.min(256,f+((BAY4[(y&3)*4+(x&3)]-8)<<1)))}
 function shade(c,f){return(0xff000000|((((c>>>16)&255)*f>>8)<<16)|((((c>>>8)&255)*f>>8)<<8)|(((c&255)*f)>>8))>>>0}
 function proj3(x,y,dX,dY,pX,pY,inv){const ox=x-P.x,oy=y-P.y;return[inv*(dY*ox-dX*oy),inv*(-pY*ox+pX*oy)]}
 // v0.4 lighting: braziers, CRTs, vendor lamps, muzzle flashes and explosions light walls, floor and sprites (colored, flickering)
@@ -1540,9 +1544,9 @@ function wallCol(x,tile,ci,pd,side,rx,ry,sx,sy,op,t,flick){let wx=side?P.x+pd*rx
   if((tile==8||tile==10)&&Math.random()<.03)tx=(tx+((Math.random()*20)|0))&(ts-1);
   if(secretSet.has(ci))f=(f*(.93+.07*Math.sin(t*.0047+ci)+(Math.sin(t*.0131+ci*3)>.985?.12:0)))|0; // v0.7 secret tell: faint warm flicker
   if(S){let u=(wx*128)|0;if((!side&&rx<0)||(side&&ry>0))u=127-u;const B=S.Ts.length>1?S.Ts[(((t/S.ms)|0)+(S.ph||0))%S.Ts.length]:S.Ts[0],stp2=128/lh;let v=(y0-st)*stp2;
-   if(S.lit){const fe=Math.max(f,S.lit);if(hasL)for(let y=y0;y<y1;y++){buf[y*W+x]=lit(B[((v|0)&127)*128+u],fe,lr,lg,lb);v+=stp2}else for(let y=y0;y<y1;y++){buf[y*W+x]=shade(B[((v|0)&127)*128+u],fe);v+=stp2}return}
-   const fe=Math.max(f,S.art?200:215);for(let y=y0;y<y1;y++){buf[y*W+x]=shade(B[((v|0)&127)*128+u],fe);v+=stp2}return}
-  let tp=(y0-st)*stp;if(hasL)for(let y=y0;y<y1;y++){buf[y*W+x]=lit(T[((tp|0)&(ts-1))*ts+tx],f,lr,lg,lb);tp+=stp}else for(let y=y0;y<y1;y++){buf[y*W+x]=shade(T[((tp|0)&(ts-1))*ts+tx],f);tp+=stp}}
+   if(S.lit){const fe=Math.max(f,S.lit);if(hasL)for(let y=y0;y<y1;y++){buf[y*W+x]=lit(B[((v|0)&127)*128+u],fogDither(fe,x,y),lr,lg,lb);v+=stp2}else for(let y=y0;y<y1;y++){buf[y*W+x]=shade(B[((v|0)&127)*128+u],fogDither(fe,x,y));v+=stp2}return}
+   const fe=Math.max(f,S.art?200:215);for(let y=y0;y<y1;y++){buf[y*W+x]=shade(B[((v|0)&127)*128+u],fogDither(fe,x,y));v+=stp2}return}
+  let tp=(y0-st)*stp;if(hasL)for(let y=y0;y<y1;y++){buf[y*W+x]=lit(T[((tp|0)&(ts-1))*ts+tx],fogDither(f,x,y),lr,lg,lb);tp+=stp}else for(let y=y0;y<y1;y++){buf[y*W+x]=shade(T[((tp|0)&(ts-1))*ts+tx],fogDither(f,x,y));tp+=stp}}
 function render(t,rdt){
  activeLights(t);animTick(t);
  const dX=Math.cos(P.a),dY=Math.sin(P.a),pX=-dY*PL,pY=dX*PL;
@@ -1575,7 +1579,7 @@ function render(t,rdt){
  for(const q of fx)sp.push(Object.assign({},q));
  const inv=1/(pX*dY-dX*pY);for(const s of sp){[s.tx,s.ty]=proj3(s.x,s.y,dX,dY,pX,pY,inv)}sp.sort((a,b)=>b.ty-a.ty);
  for(const s of sp){if(s.ty<.15)continue;const scx=(W/2)*(1+s.tx/s.ty),lh=H/s.ty,sh=lh*s.s,bot=H/2+lh/2-s.z*lh,top=bot-sh,x0=scx-sh/2;const f=s.glow?256:fog(s.ty),tts=s.T.ts||0;if(f<=0)continue;const sl=!s.glow&&AL.length&&lightAt(s.x,s.y),slr=LT[0],slg=LT[1],slb=LT[2];
-  for(let x=Math.max(0,x0|0);x<Math.min(W,(x0+sh)|0);x++){if(s.ty>=zbuf[x])continue;let tx=s.T.ts?Math.min(s.T.ts-1,((x-x0)*s.T.ts/sh)|0):(((x-x0)*TS/sh)|0)&63;if(s.flip)tx=(s.T.ts||TS)-1-tx;const yb=s.ty>ZN[x]?Math.min(bot,ZNY[x]):bot;for(let y=Math.max(0,top|0);y<Math.min(H,yb|0);y++){const c=tts?s.T[Math.min(tts-1,((y-top)*tts/sh)|0)*tts+tx]:s.T[(((y-top)*TS/sh)|0&63)*TS+tx];if(c)buf[y*W+x]=s.hit?0xffffffff:sl?lit(c,f,slr,slg,slb):shade(c,f)}}}
+  for(let x=Math.max(0,x0|0);x<Math.min(W,(x0+sh)|0);x++){if(s.ty>=zbuf[x])continue;let tx=s.T.ts?Math.min(s.T.ts-1,((x-x0)*s.T.ts/sh)|0):(((x-x0)*TS/sh)|0)&63;if(s.flip)tx=(s.T.ts||TS)-1-tx;const yb=s.ty>ZN[x]?Math.min(bot,ZNY[x]):bot;for(let y=Math.max(0,top|0);y<Math.min(H,yb|0);y++){const c=tts?s.T[Math.min(tts-1,((y-top)*tts/sh)|0)*tts+tx]:s.T[(((y-top)*TS/sh)|0&63)*TS+tx];if(c){const ff=s.glow?256:fogDither(f,x,y);buf[y*W+x]=s.hit?0xffffffff:sl?lit(c,ff,slr,slg,slb):shade(c,ff)}}}}
  // particles (gibs, bone shards, sparks) — z-buffered pixel squares
  for(const q of parts){const[tx,ty]=proj3(q.x,q.y,dX,dY,pX,pY,inv);if(ty<.2)continue;const sx=((W/2)*(1+tx/ty))|0;if(sx<0||sx>=W||ty>=zbuf[sx])continue;const lh=H/ty,sy=(H/2+lh/2-q.z*lh)|0,sz=Math.max(1,Math.min(4,(q.sz*2.2/ty)|0)),c=q.dim?shade(q.c,Math.min(150,q.l*90)|0):q.l<.25?shade(q.c,180):q.c;
   for(let y=sy;y<sy+sz;y++)if(y>=0&&y<H)for(let x=sx;x<sx+sz&&x<W;x++)if(ty<zbuf[x]&&!(ty>ZN[x]&&y>=ZNY[x]))buf[y*W+x]=c}
@@ -1585,7 +1589,7 @@ function render(t,rdt){
  if(bsod)for(let i=0;i<buf.length;i++){const c=buf[i],l=((c&255)+((c>>>8)&255)+((c>>>16)&255))/3;buf[i]=(0xff000000|(Math.min(255,90+l)<<16)|((l*.6)<<8)|(l*.5))>>>0}
  // screen shake: offset the whole frame
  P.shake=Math.max(0,P.shake-rdt*14);const ox=P.shake>.2?Math.round((Math.random()-.5)*2*P.shake):0,oy=P.shake>.2?Math.round((Math.random()-.5)*2*P.shake):0;
- if(ox||oy){ctx.fillStyle='#000';ctx.fillRect(0,0,W,H)}ctx.putImageData(img,ox,oy);
+ if(typeof gfxWorldPass==='function')gfxWorldPass(t,rdt);if(ox||oy){ctx.fillStyle='#000';ctx.fillRect(0,0,W,H)}ctx.putImageData(img,ox,oy);
  // world text pops
  ctx.font='7px monospace';ctx.textAlign='center';for(const q of pops){const[tx,ty]=proj3(q.x,q.y,dX,dY,pX,pY,inv);if(ty<.3)continue;const sx=(W/2)*(1+tx/ty);if(sx<0||sx>=W||ty>=zbuf[sx|0]+.3)continue;const lh=H/ty;
   ctx.globalAlpha=Math.min(1,q.l*2);ctx.fillStyle='#000';ctx.fillText(q.s,sx+1+ox,H/2+lh/2-q.z*lh+1+oy);ctx.fillStyle=q.c;ctx.fillText(q.s,sx+ox,H/2+lh/2-q.z*lh+oy)}ctx.globalAlpha=1;ctx.textAlign='left';
@@ -6786,6 +6790,192 @@ TT.setToaster=function(o){
   return info();
 };
 
+})();
+
+// v0.14.0 — visual-quality pass, still crisp pixel art (nearest-neighbor,
+// Toasty glitch palette). Dithered fog, richer floor/wall grime, pixel bloom
+// on High, chunkier particles and decals, sharper HUD frames, a bit more
+// viewmodel shade. No blur, no smoothing, CLOSE and gunVer unchanged.
+(function(){
+const VER='0.14.0';
+const BAY=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+
+// ----- richer floor / ceiling wear (keeps 64px LUT, no smoothing) -----
+(function dressFloors(){
+  function wear(fn){return function(g,k,n){fn(g,k,n);
+    const d=g.getImageData(0,0,64,64),u=new Uint32Array(d.data.buffer);
+    for(let y=0;y<64;y++)for(let x=0;x<64;x++){
+      const i=y*64+x,c=u[i],r=c&255,gg=(c>>>8)&255,b=(c>>>16)&255,h=(x*19+y*47+((k||0)*13))&255;
+      let dr=r,dg=gg,db=b;
+      // scuffs and toast-crumb grit, not a new style — just more edge/grime
+      if(h<10){dr=(dr*.78)|0;dg=(dg*.78)|0;db=(db*.82)|0}
+      else if(h>248){dr=Math.min(255,dr+18);dg=Math.min(255,dg+10);db=Math.min(255,db+4)}
+      if(((x*29+y*11)&127)===3){dr=Math.min(255,dr+22);dg=Math.min(255,dg+14);db=Math.min(255,(db+6))} // crumb
+      if(((x+y*3)&63)===17){dr=(dr*.62)|0;dg=(dg*.62)|0;db=Math.min(255,db+18)} // hairline glitch nick
+      // slightly darker tile edges already exist; add a 1px inner bevel on 32px
+      if((x&31)===0||(y&31)===0){dr=(dr*.88)|0;dg=(dg*.88)|0;db=(db*.90)|0}
+      u[i]=(0xff000000|(db<<16)|(dg<<8)|dr)>>>0;
+    }
+    g.putImageData(d,0,0);
+  }}
+  for(const pack of[typeof FLOOR_ART!=='undefined'?FLOOR_ART:null,typeof CEIL_ART!=='undefined'?CEIL_ART:null]){
+    if(!pack)continue;
+    for(const k in pack){if(pack[k]&&pack[k].fn)pack[k].fn=wear(pack[k].fn)}
+  }
+  if(typeof LUTC!=='undefined')for(const k in LUTC)delete LUTC[k];
+})();
+
+// extra wall grime / nicks on already-128 textures (no second EPX)
+let _wallsDressed=0;
+function dressWalls(){
+  if(typeof TEX==='undefined'||!TEX||!TEX.length)return;
+  if(_wallsDressed&&TEX[0]&&TEX[0]._v14)return;
+  function nick(src){
+    if(!src||!src.ts)return src;
+    const ts=src.ts,u=new Uint32Array(src);
+    for(let i=0,n=ts===128?18:8;i<n;i++){
+      const x=(i*53+11)%(ts-6),y=(i*37+19)%(ts-6),len=5+((i*9)%12);
+      for(let k=0;k<len;k++){
+        const xx=x+k,yy=y+((k*5)&1);if(xx>=ts||yy>=ts)continue;
+        const j=yy*ts+xx,c=u[j];if(!c)continue;
+        const r=((c&255)*.62)|0,g=(((c>>>8)&255)*.62)|0,b=(((c>>>16)&255)*.66)|0;
+        u[j]=(0xff000000|(b<<16)|(g<<8)|r)>>>0;
+      }
+      if(i&1){const j=((i*41)%ts)*ts+((i*17)%ts);if(u[j])u[j]=i&2?0xff00f0ff:0xffc800ff}
+    }
+    u.ts=ts;return u;
+  }
+  for(let i=0;i<TEX.length;i++)if(TEX[i]){TEX[i]=nick(TEX[i]);TEX[i]._v14=1}
+  if(typeof TEX0!=='undefined'&&TEX0)TEX0=TEX.slice();
+  if(typeof TINTC!=='undefined')for(const k in TINTC)delete TINTC[k];
+  _wallsDressed=1;
+}
+dressWalls();
+if(typeof stylizeWalls==='function'){const _sw=stylizeWalls;stylizeWalls=function(){_wallsDressed=0;_sw();dressWalls()}}
+
+
+// ----- pixel bloom on emissive parts (High only, 1px neighbor splat, no blur) -----
+let bloomTmp=null;
+function gfxWorldPass(/*t,rdt*/){
+  if(typeof fxHigh==='function'&&!fxHigh())return;
+  const n=W*H;if(!bloomTmp||bloomTmp.length!==n)bloomTmp=new Uint32Array(n);
+  bloomTmp.set(buf);
+  const src=bloomTmp,add=70;
+  // visit a subset of bright pixels; 4-neighbor splat into darker cells
+  for(let y=1;y<H-1;y++){
+    let i=y*W+1;
+    for(let x=1;x<W-1;x++,i++){
+      const c=src[i],r=c&255,g=(c>>>8)&255,b=(c>>>16)&255;
+      const mx=r>g?(r>b?r:b):(g>b?g:b);
+      const neon=(r>180&&b>180&&g<140)||(g>200&&b>200&&r<140)||(r>210&&g>170&&b<90)||mx>235;
+      if(!neon&&mx<230)continue;
+      const ar=(r*add)>>8,ag=(g*add)>>8,ab=(b*add)>>8;
+      // cross only (plus-shape) — stays pixel-sharp
+      const nbs=[i-1,i+1,i-W,i+W];
+      for(let k=0;k<4;k++){
+        const j=nbs[k],d=buf[j],dr=d&255,dg=(d>>>8)&255,db=(d>>>16)&255;
+        if(dr+dg+db>mx+40)continue;
+        buf[j]=(0xff000000|(Math.min(255,db+ab)<<16)|(Math.min(255,dg+ag)<<8)|Math.min(255,dr+ar))>>>0;
+      }
+    }
+  }
+}
+// expose before render hook is first used
+if(typeof globalThis!=='undefined')globalThis.gfxWorldPass=gfxWorldPass;
+
+
+// ----- slightly stronger colored dynamic lights on High -----
+if(typeof activeLights==='function'){
+  const _al=activeLights;
+  activeLights=function(t){
+    _al(t);
+    if(!(typeof fxHigh==='function'&&fxHigh())||!AL||!AL.length)return;
+    for(const L of AL){L.k=Math.min(1.35,L.k*1.12);L.R=L.R*1.06;L.R2=L.R*L.R}
+  };
+}
+
+// ----- chunkier pixel particles + a few palette sparks -----
+if(typeof gib==='function'){
+  const _gib=gib;
+  gib=function(x,y,cols,n,z0,sp){
+    _gib(x,y,cols,n,z0,sp);
+    const hi=typeof fxHigh==='function'&&fxHigh();
+    const extra=hi?5:2,sparks=['#FFD400','#00f0ff','#ff00c8','#fff7e0'];
+    for(let i=0;i<extra;i++){
+      const a=Math.random()*6.283,v=.8+Math.random()*((sp||2.2)*.6);
+      parts.push({x,y,z:(z0||.35)+Math.random()*.25,vx:Math.cos(a)*v,vy:Math.sin(a)*v,vz:1.2+Math.random()*2.4,
+        c:(typeof hexABGR==='function'?hexABGR(sparks[i&3]):0xff00d4ff),l:.35+Math.random()*.4,sz:hi?2:1});
+    }
+  };
+}
+if(typeof addDecal==='function'){
+  const _ad=addDecal;
+  addDecal=function(R,a){
+    _ad(R,a);
+    if(!R||R.i<0)return;
+    const hi=typeof fxHigh==='function'&&fxHigh();
+    if(!hi)return;
+    // a second slightly offset scorch so hits read as a chip cluster
+    let wx=R.side?P.x+R.d*Math.cos(a):P.y+R.d*Math.sin(a);wx-=Math.floor(wx);
+    decals.push({i:R.i,side:R.side,u:Math.max(0,Math.min(1,wx+(Math.random()-.5)*.06)),v:.28+Math.random()*.4,sz:2+(Math.random()*3)|0,burn:30+((Math.random()*40)|0)});
+    const cap=48;if(decals.length>cap)decals.splice(0,decals.length-cap);
+  };
+}
+
+// ----- viewmodel shade/highlight, same canvases / pose / CLOSE -----
+function detailGun(c){
+  if(!c||!c.getContext)return c;
+  const g=c.getContext('2d',{willReadFrequently:true});
+  g.imageSmoothingEnabled=false;
+  const w=c.width,h=c.height,d=g.getImageData(0,0,w,h),u=d.data,src=new Uint8ClampedArray(u);
+  const A=(x,y)=>{if(x<0||y<0||x>=w||y>=h)return 0;return src[((y*w+x)<<2)+3]>110?1:0};
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+    const i=(y*w+x)<<2;if(src[i+3]<110)continue;
+    const empty=(!A(x-1,y))+(!A(x+1,y))+(!A(x,y-1))+(!A(x,y+1));
+    if(empty){ // tight dark outline
+      u[i]=(src[i]*0.45)|0;u[i+1]=(src[i+1]*0.45)|0;u[i+2]=(src[i+2]*0.5)|0;u[i+3]=255;
+    }else if(A(x,y-1)&&src[i]+src[i+1]+src[i+2]>240){
+      // 1px top-left highlight on mid/bright metal
+      u[i]=Math.min(255,src[i]+28);u[i+1]=Math.min(255,src[i+1]+18);u[i+2]=Math.min(255,src[i+2]+8);
+    }
+  }
+  g.putImageData(d,0,0);
+  return c;
+}
+function dressGuns(){
+  const packs=(typeof TT==='object'&&TT.GUN)||null;
+  if(packs)for(const id in packs){
+    const p=packs[id];if(!p)continue;
+    for(const k of['body','bodyExt','bodyPump','bodyMag'])if(p[k])detailGun(p[k]);
+  }
+  if(typeof WC!=='undefined'&&WC)for(let i=0;i<WC.length;i++)if(WC[i])detailGun(WC[i]);
+}
+// 91 already installed viewmodels by the time this file runs
+try{dressGuns()}catch(e){}
+// if 91 bakes later (joke guns), wrap bakeGunView
+if(typeof TT==='object'&&typeof TT.bakeGunView==='function'){
+  const _bg=TT.bakeGunView;
+  TT.bakeGunView=function(id,anim){const c=_bg(id,anim);try{detailGun(c)}catch(e){}return c};
+}
+
+// ----- sharper HUD frames (hard pixel offsets, no soft blur) -----
+(function hudChrome(){
+  const s=document.createElement('style');
+  s.id='gfx-v0140';
+  s.textContent=
+    '#c,#hud,#face,#hearts{image-rendering:pixelated;image-rendering:crisp-edges}'+
+    '#hud{box-shadow:inset 0 2px 0 #e3b303,inset 0 4px 0 #00f0ff,0 -2px 0 #0a0a0f,0 -4px 0 #ff00c8!important;'+
+    'background:rgba(0,0,0,.88)!important;text-shadow:1px 0 #ff00c8,-1px 0 #00f0ff!important}'+
+    'body.touch #hud{box-shadow:inset 0 1px 0 #e3b303,2px 2px 0 #0a0a0f!important;'+
+    'background:rgba(0,0,0,.75)!important;border:2px solid #e3b303;border-radius:0!important}'+
+    '#face{box-shadow:3px 3px 0 #ff00c8,0 0 0 1px #0a0a0f!important}';
+  (document.head||document.documentElement).appendChild(s);
+})();
+
+if(typeof TT==='object'){
+  TT.gfxVer=VER;
+  TT.gfxWorldPass=gfxWorldPass;
+}
 })();
 </script>
 </body></html>
