@@ -1,0 +1,119 @@
+/* TT NAV CLEAR v1 START */
+/* Append-only desktop override for nav v2.
+   Transparent tab boxes so the graffiti shows through; yellow labels stay
+   solid and readable via a crisp black letter stroke (not a box fill).
+   Yellow borders and the active underline are unchanged. Dropdown panels
+   keep their dark fill. Mobile (.header-menu) is untouched.
+
+   Scope matches v2: @media screen and (min-width: 800px) and
+   .header-display-desktop only.
+*/
+
+@keyframes ttNavGlitchClear {
+  0%, 100% {
+    transform: translate(0, 0);
+    text-shadow:
+      -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000,
+      -3px 0 0 #000, 3px 0 0 #000, 0 -3px 0 #000, 0 3px 0 #000,
+      0 0 6px #000,
+      -3px 0 rgba(255, 40, 60, 0.85), 3px 0 rgba(0, 240, 255, 0.75);
+    clip-path: none;
+  }
+  25% {
+    transform: translate(-4px, 2px);
+    text-shadow:
+      -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000,
+      -3px 0 0 #000, 3px 0 0 #000, 0 -3px 0 #000, 0 3px 0 #000,
+      0 0 6px #000,
+      6px 0 rgba(255, 40, 60, 0.95), -5px 0 rgba(0, 240, 255, 0.85);
+    clip-path: inset(12% 0 40% 0);
+  }
+  50% {
+    transform: translate(4px, -2px);
+    text-shadow:
+      -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000,
+      -3px 0 0 #000, 3px 0 0 #000, 0 -3px 0 #000, 0 3px 0 #000,
+      0 0 6px #000,
+      -6px 0 rgba(255, 40, 60, 0.95), 6px 0 rgba(0, 240, 255, 0.85);
+    clip-path: inset(45% 0 8% 0);
+  }
+  75% {
+    transform: translate(-3px, 0);
+    text-shadow:
+      -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000,
+      -3px 0 0 #000, 3px 0 0 #000, 0 -3px 0 #000, 0 3px 0 #000,
+      0 0 6px #000,
+      5px 0 rgba(255, 40, 60, 0.9), -6px 0 rgba(0, 240, 255, 0.8);
+    clip-path: inset(20% 0 30% 0);
+  }
+}
+
+@media screen and (min-width: 800px) {
+  /* Clear the tab fill and the solid black offset shadow (that shadow
+     would still cover the graffiti). Keep the 3px yellow border. */
+  .header-display-desktop .header-nav-item > a,
+  .header-display-desktop .header-nav-item .header-nav-folder-title,
+  .header-display-desktop .header-nav-item--active > a,
+  .header-display-desktop .header-nav-item--active .header-nav-folder-title {
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    color: #ffd400 !important;
+    -webkit-text-fill-color: #ffd400 !important;
+    opacity: 1 !important;
+    -webkit-text-stroke: 0.06em #000;
+    paint-order: stroke fill;
+    text-shadow:
+      -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000,
+      -3px 0 0 #000, 3px 0 0 #000, 0 -3px 0 #000, 0 3px 0 #000,
+      0 0 6px #000,
+      -3px 0 rgba(255, 40, 60, 0.85), 3px 0 rgba(0, 240, 255, 0.75);
+    box-shadow:
+      -2px 0 0 rgba(255, 40, 60, 0.5),
+      2px 0 0 rgba(0, 240, 255, 0.4);
+    overflow: visible;
+  }
+
+  .header-display-desktop .header-nav-item--folder .header-nav-folder-title,
+  .header-display-desktop .header-nav-item--folder .header-nav-folder-title-text,
+  .header-display-desktop .header-nav-item--folder .header-nav-folder-title * {
+    background: transparent !important;
+    background-color: transparent !important;
+    color: #ffd400 !important;
+    -webkit-text-fill-color: #ffd400 !important;
+    opacity: 1 !important;
+  }
+
+  .header-display-desktop .header-nav-item--active > a,
+  .header-display-desktop .header-nav-item--active .header-nav-folder-title {
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow:
+      0 0 18px rgba(255, 212, 0, 0.3),
+      -2px 0 0 rgba(255, 40, 60, 0.55),
+      2px 0 0 rgba(0, 240, 255, 0.4);
+  }
+
+  /* Hover: still no fill. White border + red offset remain as feedback. */
+  .header-display-desktop .header-nav-item > a:hover,
+  .header-display-desktop .header-nav-item > a:focus-visible,
+  .header-display-desktop .header-nav-item .header-nav-folder-title:hover,
+  .header-display-desktop .header-nav-item .header-nav-folder-title:focus-visible,
+  .header-display-desktop .header-nav-item.preview-hover > a,
+  .header-display-desktop .header-nav-item.preview-hover .header-nav-folder-title {
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    color: #ffd400 !important;
+    -webkit-text-fill-color: #ffd400 !important;
+    animation-name: ttNavGlitchClear;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header-display-desktop .header-nav-item > a,
+  .header-display-desktop .header-nav-item .header-nav-folder-title {
+    animation: none !important;
+  }
+}
+/* TT NAV CLEAR v1 END */
