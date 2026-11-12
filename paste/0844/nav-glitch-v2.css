@@ -1,0 +1,360 @@
+/* TT NAV GLITCH v2 START */
+/* TT desktop nav glitch tabs v2 — full replacement for v1.
+   Desktop only: this site hides .header-display-desktop at max-width 799px
+   (and pointer:coarse up to 1024px). Mobile overlay (.header-menu) is untouched.
+
+   Layout: tabs are ~3× v1 (13px Anton → ~36-40px) with matching padding,
+   3px borders, and a stronger cyan/red glitch shadow. Ten tabs no longer
+   fit beside the logo / “Don’t click this” / video cluster, so on desktop
+   the nav becomes its own full-width row UNDER that cluster, as a centered
+   5+5 CSS grid (two tidy rows). Long labels may wrap to two lines inside a
+   tab so the grid stays even at 1280, 1440, and 1920. Dropdowns are
+   anchored to the whole nav list so they open below both rows.
+
+   Selectors:
+     .header-display-desktop .header-title-nav-wrapper
+     .header-display-desktop .header-title
+     .header-display-desktop .header-nav
+     .header-display-desktop .header-nav-list
+     .header-display-desktop .header-nav-item
+     .header-display-desktop .header-nav-item > a
+     .header-display-desktop .header-nav-item--folder .header-nav-folder-title
+     .header-display-desktop .header-nav-item--folder .header-nav-folder-title-text
+     .header-display-desktop .header-nav-item--active
+     .header-display-desktop .header-nav-folder-content
+     .header-display-desktop .header-nav-folder-item a
+
+   Overrides the v1 block and:
+     - Injected style making folders white (#fff !important)
+     - custom.css nav color / hover-active #fff / folder #ffd400
+     - Theme navRight layout (title and nav on one row, 1vw/2vw margins,
+       1rem Epilogue, underline via background-image)
+     - custom.css .header { border-bottom: 3px solid #ffd400 } is set
+       transparent while a desktop folder is open so the line doesn’t
+       slice the dropdown.
+*/
+
+@keyframes ttNavGlitch {
+  0% {
+    transform: translate(0, 0);
+    text-shadow: -3px 0 rgba(255, 40, 60, 0.85), 3px 0 rgba(0, 240, 255, 0.75);
+    clip-path: none;
+  }
+  25% {
+    transform: translate(-4px, 2px);
+    text-shadow: 6px 0 rgba(255, 40, 60, 0.95), -5px 0 rgba(0, 240, 255, 0.85);
+    clip-path: inset(12% 0 40% 0);
+  }
+  50% {
+    transform: translate(4px, -2px);
+    text-shadow: -6px 0 rgba(255, 40, 60, 0.95), 6px 0 rgba(0, 240, 255, 0.85);
+    clip-path: inset(45% 0 8% 0);
+  }
+  75% {
+    transform: translate(-3px, 0);
+    text-shadow: 5px 0 rgba(255, 40, 60, 0.9), -6px 0 rgba(0, 240, 255, 0.8);
+    clip-path: inset(20% 0 30% 0);
+  }
+  100% {
+    transform: translate(0, 0);
+    text-shadow: -3px 0 rgba(255, 40, 60, 0.85), 3px 0 rgba(0, 240, 255, 0.75);
+    clip-path: none;
+  }
+}
+
+@media screen and (min-width: 800px) {
+  /* ---- Layout: logo cluster on row 1, full-width nav on row 2 ---- */
+  .header-display-desktop {
+    align-items: stretch !important;
+    height: auto !important;
+  }
+
+  .header-display-desktop .header-title-nav-wrapper {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    flex-direction: row;
+    align-items: flex-start;
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 1 1 100% !important;
+  }
+
+  .header-display-desktop .header-title,
+  .header-layout-nav-right .header-display-desktop .header-title,
+  .header-display-desktop .header-layout-nav-right .header-title {
+    flex: 0 0 100% !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  .header-display-desktop .header-nav,
+  .header-layout-nav-right .header-display-desktop .header-nav,
+  .header-display-desktop .header-layout-nav-right .header-nav {
+    flex: 0 0 100% !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 12px 16px 18px !important;
+    text-align: center !important;
+    box-sizing: border-box;
+  }
+
+  .header-display-desktop .header-nav-wrapper {
+    width: 100%;
+  }
+
+  .header-display-desktop .header-nav-list {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    justify-content: center;
+    align-items: stretch;
+    gap: 10px 10px;
+    width: 100%;
+    max-width: 1680px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 5;
+  }
+
+  .header-display-desktop .header-nav-item,
+  .header-layout-nav-right .header-display-desktop .header-nav-item:not(:first-child):not(.header-actions-action--cart),
+  .header-display-desktop .header-nav-item {
+    margin: 0 !important;
+    position: static;
+    min-width: 0;
+    width: auto;
+    display: flex;
+  }
+
+  /* Keep an open dropdown above the header’s 3px yellow bottom border */
+  .header:has(.header-display-desktop .header-nav-folder-title[aria-expanded="true"]) {
+    z-index: 40;
+    border-bottom-color: transparent !important;
+  }
+
+  /* ---- Tab chrome, ~3× v1 ---- */
+  .header-display-desktop .header-nav-item > a,
+  .header-display-desktop .header-nav-item .header-nav-folder-title {
+    position: relative;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3em;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: #05070d !important;
+    background-image: none !important;
+    color: #ffd400 !important;
+    -webkit-text-fill-color: #ffd400 !important;
+    border: 3px solid #ffd400 !important;
+    border-radius: 3px;
+    padding: 0.42em 0.45em 0.55em !important;
+    margin: 0 !important;
+    font-family: "Anton", Impact, sans-serif !important;
+    font-weight: 400 !important;
+    font-style: normal !important;
+    font-size: clamp(34px, 1.3vw + 17px, 40px) !important;
+    line-height: 0.95 !important;
+    letter-spacing: 0.015em !important;
+    text-transform: uppercase !important;
+    text-decoration: none !important;
+    text-align: center !important;
+    text-shadow: -3px 0 rgba(255, 40, 60, 0.8), 3px 0 rgba(0, 240, 255, 0.7);
+    box-shadow:
+      4px 4px 0 #000,
+      -2px 0 0 rgba(255, 40, 60, 0.5),
+      2px 0 0 rgba(0, 240, 255, 0.4);
+    white-space: normal;
+    text-wrap: balance;
+    hyphens: manual;
+    cursor: pointer;
+    overflow: hidden;
+    transition: box-shadow 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
+  }
+
+  /* Beat the injected “folders are white” rule and theme underlines */
+  .header-display-desktop .header-nav-item--folder .header-nav-folder-title,
+  .header-display-desktop .header-nav-item--folder .header-nav-folder-title-text,
+  .header-display-desktop .header-nav-item--folder .header-nav-folder-title * {
+    color: #ffd400 !important;
+    -webkit-text-fill-color: #ffd400 !important;
+    background-image: none !important;
+    text-decoration: none !important;
+    text-transform: uppercase !important;
+    opacity: 1 !important;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .header-display-desktop .header-nav-item--active .header-nav-folder-title-text,
+  .header-display-desktop .header-nav-item--active > a,
+  .header-display-desktop .header-nav-item > a,
+  .header-display-desktop .header-nav-folder-title-text {
+    background-image: none !important;
+    text-decoration: none !important;
+  }
+
+  .header-display-desktop .header-nav-item > a::after,
+  .header-display-desktop .header-nav-item--active:not(.header-nav-item--folder) a::after,
+  .header-display-desktop .header-nav-item--folder .header-nav-folder-title-text {
+    transform: none !important;
+    background-image: none !important;
+    text-decoration: none !important;
+  }
+
+  /* Active page: red ▶ + yellow underline, same language as the mobile menu */
+  .header-display-desktop .header-nav-item--active > a,
+  .header-display-desktop .header-nav-item--active .header-nav-folder-title {
+    color: #ffd400 !important;
+    -webkit-text-fill-color: #ffd400 !important;
+    padding-left: 0.7em !important;
+    box-shadow:
+      4px 4px 0 #000,
+      0 0 18px rgba(255, 212, 0, 0.3),
+      -2px 0 0 rgba(255, 40, 60, 0.55),
+      2px 0 0 rgba(0, 240, 255, 0.4);
+  }
+
+  .header-display-desktop .header-nav-item--active > a::before,
+  .header-display-desktop .header-nav-item--active .header-nav-folder-title::before {
+    content: "▶";
+    position: absolute;
+    left: 0.28em;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.5em;
+    line-height: 1;
+    color: #c8142a !important;
+    -webkit-text-fill-color: #c8142a !important;
+    text-shadow: none;
+    pointer-events: none;
+  }
+
+  .header-display-desktop .header-nav-item--active > a::after,
+  .header-display-desktop .header-nav-item--active .header-nav-folder-title::after {
+    content: "";
+    position: absolute !important;
+    left: 50%;
+    right: auto;
+    bottom: 0.32em;
+    width: 2.6em !important;
+    height: 5px !important;
+    background: #ffd400 !important;
+    background-color: #ffd400 !important;
+    box-shadow: 0 0 10px rgba(255, 212, 0, 0.7);
+    transform: translateX(-50%) !important;
+    pointer-events: none;
+  }
+
+  /* Hover / keyboard / preview-forced glitch */
+  .header-display-desktop .header-nav-item > a:hover,
+  .header-display-desktop .header-nav-item > a:focus-visible,
+  .header-display-desktop .header-nav-item .header-nav-folder-title:hover,
+  .header-display-desktop .header-nav-item .header-nav-folder-title:focus-visible,
+  .header-display-desktop .header-nav-item.preview-hover > a,
+  .header-display-desktop .header-nav-item.preview-hover .header-nav-folder-title {
+    color: #ffd400 !important;
+    -webkit-text-fill-color: #ffd400 !important;
+    background-color: #000 !important;
+    border-color: #fff !important;
+    box-shadow:
+      6px 6px 0 #c8142a,
+      -4px 0 0 rgba(255, 40, 60, 0.85),
+      4px 0 0 rgba(0, 240, 255, 0.75),
+      0 0 20px rgba(255, 212, 0, 0.35);
+    animation: ttNavGlitch 0.38s steps(2, end) 2;
+    outline: none;
+  }
+
+  .header-display-desktop .header-nav-item--folder:hover .header-nav-folder-title,
+  .header-display-desktop .header-nav-item--folder:hover .header-nav-folder-title-text,
+  .header-display-desktop .header-nav-item--folder:hover .header-nav-folder-title *,
+  .header-display-desktop .header-nav-item.preview-hover .header-nav-folder-title-text {
+    color: #ffd400 !important;
+    -webkit-text-fill-color: #ffd400 !important;
+  }
+
+  /* Dropdown panel — opens below the full 2-row grid */
+  .header-display-desktop .header-nav-folder-content,
+  .header-display-desktop .header-nav-item--folder .header-nav-folder-title[aria-expanded="true"] + .header-nav-folder-content {
+    background: #05070d !important;
+    background-color: #05070d !important;
+    border: 3px solid #ffd400;
+    border-radius: 3px;
+    box-shadow:
+      6px 6px 0 #000,
+      -3px 0 0 rgba(255, 40, 60, 0.65),
+      3px 0 0 rgba(0, 240, 255, 0.5);
+    padding: 0.35em 0;
+    min-width: 280px;
+    width: max-content;
+    max-width: min(420px, 90vw);
+    top: calc(100% + 10px);
+    left: auto;
+    right: auto;
+    z-index: 130;
+    text-align: left !important;
+  }
+
+  .header-display-desktop .header-nav-folder-item {
+    line-height: 1.15;
+  }
+
+  .header-display-desktop .header-nav-folder-item a,
+  .header-display-desktop .header-nav-folder-item a .header-nav-folder-item-content {
+    display: block !important;
+    width: 100%;
+    box-sizing: border-box;
+    color: #ffd400 !important;
+    -webkit-text-fill-color: #ffd400 !important;
+    font-family: "Anton", Impact, sans-serif !important;
+    font-weight: 400 !important;
+    font-size: 22px !important;
+    line-height: 1.15 !important;
+    letter-spacing: 0.03em !important;
+    text-transform: uppercase !important;
+    text-decoration: none !important;
+    background-image: none !important;
+    text-shadow: -2px 0 rgba(255, 40, 60, 0.7), 2px 0 rgba(0, 240, 255, 0.6);
+    padding: 0.45em 0.95em !important;
+    white-space: normal;
+  }
+
+  .header-display-desktop .header-nav-folder-item a::after {
+    content: none !important;
+    display: none !important;
+  }
+
+  .header-display-desktop .header-nav-folder-item a:hover,
+  .header-display-desktop .header-nav-folder-item a:focus-visible,
+  .header-display-desktop .header-nav-folder-item.preview-hover a {
+    color: #ffd400 !important;
+    -webkit-text-fill-color: #ffd400 !important;
+    background-color: #14110a !important;
+    animation: ttNavGlitch 0.38s steps(2, end) 2;
+  }
+
+  .header-display-desktop .header-nav-folder-item--active .header-nav-folder-item-content,
+  .header-display-desktop .header-nav-folder-item--active a {
+    background-image: none !important;
+    text-decoration: none !important;
+    box-shadow: inset 5px 0 0 #ffd400;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header-display-desktop .header-nav-item > a,
+  .header-display-desktop .header-nav-item .header-nav-folder-title,
+  .header-display-desktop .header-nav-folder-item a {
+    animation: none !important;
+    transition: none !important;
+    clip-path: none !important;
+    transform: none !important;
+  }
+}
+/* TT NAV GLITCH v2 END */
