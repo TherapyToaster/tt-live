@@ -1,0 +1,76 @@
+/* TT DONT MOVE v1 START */
+/* TherapyToaster Home — move the "DON'T CLICK THIS" button and the
+   9:16 header video out of the desktop/mobile header title cluster
+   and into #tt-dont-row, a flex row the footer script places right
+   after Mr. Toasty's Daily Glitch (#tt-notice). These widgets are
+   HOME ONLY (the footer script bails on every other page), so this
+   block is scoped to body.homepage.
+
+   Hide the old 240px CSS PFP (a::after) from first paint so the
+   header is just the 3-line logo + nav and shrinks immediately.
+   Widget behavior (click-problem, sound toggle, v2 fullscreen) is
+   unchanged; only the host node changes, in the existing footer
+   injection, so hourly Home rebuilds keep the move.
+
+   Do not recrop #tt-topwall or move #tt-vc: Daily Glitch Drop v2
+   already locks the mural, and Visits is a top-right chip. */
+
+body.homepage .header .header-title-text a::after {
+  display: none !important;
+}
+
+#tt-dont-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 980px;
+  margin: 20px auto 48px;
+  padding: 0 4vw;
+  position: relative;
+  z-index: 3;
+}
+
+body.homepage #tt-dont-row .tt-dont,
+body.homepage #tt-dont-row .tt-hv {
+  margin: 0 !important;
+  vertical-align: middle;
+}
+
+/* They no longer live in the header, so don't collapse the row when
+   the mobile menu overlay is open (the overlay already covers them). */
+body.homepage.header--menu-open #tt-dont-row .tt-dont,
+body.homepage.header--menu-open #tt-dont-row .tt-hv {
+  display: inline-block !important;
+}
+
+/* Content-row sizes: keep the desktop 240 / 135x240 pair, but stop
+   shrinking them to the cramped header-cluster sizes on phones. */
+@media screen and (max-width: 799px) {
+  body.homepage #tt-dont-row .tt-dont {
+    width: 160px !important;
+    height: 160px !important;
+    border-width: 2px !important;
+  }
+  body.homepage #tt-dont-row .tt-hv {
+    width: 90px !important;
+    height: 160px !important;
+    border-width: 2px !important;
+  }
+}
+
+@media screen and (max-width: 559px) {
+  body.homepage #tt-dont-row .tt-dont {
+    width: 140px !important;
+    height: 140px !important;
+  }
+  body.homepage #tt-dont-row .tt-hv {
+    width: 79px !important;
+    height: 140px !important;
+  }
+}
+
+/* TT DONT MOVE v1 END */
