@@ -1,0 +1,481 @@
+/* TT NAV GLITCH v1 START */
+/* TT desktop nav glitch tabs v1
+   Preview/custom-css only — do not ship until Coty approves.
+   Desktop only: this site hides .header-display-desktop at max-width 799px
+   (and pointer:coarse up to 1024px). Mobile overlay (.header-menu) is untouched.
+
+   Selectors:
+     .header-display-desktop .header-nav-list
+     .header-display-desktop .header-nav-item
+     .header-display-desktop .header-nav-item > a
+     .header-display-desktop .header-nav-item--folder .header-nav-folder-title
+     .header-display-desktop .header-nav-item--folder .header-nav-folder-title-text
+     .header-display-desktop .header-nav-item--active
+     .header-display-desktop .header-nav-folder-content
+     .header-display-desktop .header-nav-folder-item a
+
+   Overrides (all scoped under .header-display-desktop + !important):
+     - Inline style making folders white:
+         .header-nav-folder-title, .header-nav-folder-title-text, ... { color:#fff !important }
+       and their hover { color:#FFD400 }
+     - custom.css:
+         .header .header-nav-item a { color:#ffd400 !important }
+         .header .header-nav-item a:hover,
+         .header .header-nav-item--active a { color:#fff !important; text-shadow: 1px 0 red, -1px 0 #ffd400 }
+         .header .header-nav-item--folder .header-nav-folder-title(-text| *) { color:#ffd400 !important }
+     - Theme: 1vw/2vw item margins; 1rem Epilogue nav font (no caps);
+       active/folder underline via background-image + text-decoration:underline;
+       folder dropdown uses --solidHeaderBackgroundColor / --siteBackgroundColor.
+     - custom.css .header { border-bottom: 3px solid #ffd400 } is set transparent
+       while a desktop folder is open, so the line doesn't slice a wrapped dropdown.
+*/
+
+@keyframes ttNavGlitch {
+  0% {
+    transform: translate(0, 0);
+    text-shadow: -1px 0 rgba(255, 40, 60, 0.85), 1px 0 rgba(0, 240, 255, 0.75);
+    clip-path: none;
+  }
+  25% {
+    transform: translate(-2px, 1px);
+    text-shadow: 3px 0 rgba(255, 40, 60, 0.95), -2px 0 rgba(0, 240, 255, 0.85);
+    clip-path: inset(12% 0 40% 0);
+  }
+  50% {
+    transform: translate(2px, -1px);
+    text-shadow: -3px 0 rgba(255, 40, 60, 0.95), 3px 0 rgba(0, 240, 255, 0.85);
+    clip-path: inset(45% 0 8% 0);
+  }
+  75% {
+    transform: translate(-1px, 0);
+    text-shadow: 2px 0 rgba(255, 40, 60, 0.9), -3px 0 rgba(0, 240, 255, 0.8);
+    clip-path: inset(20% 0 30% 0);
+  }
+  100% {
+    transform: translate(0, 0);
+    text-shadow: -1px 0 rgba(255, 40, 60, 0.85), 1px 0 rgba(0, 240, 255, 0.75);
+    clip-path: none;
+  }
+}
+
+@media screen and (min-width: 800px) {
+  .header-display-desktop .header-layout-nav-right .header-nav,
+  .header-display-desktop .header-nav {
+    padding-left: 0.6vw;
+  }
+
+  .header-display-desktop .header-nav-list {
+    display: flex !important;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 7px 6px;
+    max-width: 100%;
+    position: relative;
+    z-index: 5;
+  }
+
+  .header-display-desktop .header-nav-item,
+  .header-layout-nav-right .header-display-desktop .header-nav-item:not(:first-child):not(.header-actions-action--cart),
+  .header-display-desktop .header-nav-item {
+    margin: 0 !important;
+    position: static;
+  }
+
+  /* Keep an open dropdown above the header's 3px yellow bottom border.
+     On mid-width desktops the wrapped nav leaves too little room under row 2,
+     so hide that border while a folder is open so the line doesn't slice the panel. */
+  .header:has(.header-display-desktop .header-nav-folder-title[aria-expanded="true"]) {
+    z-index: 40;
+    border-bottom-color: transparent !important;
+  }
+
+  .header-display-desktop .header-nav-item > a,
+  .header-display-desktop .header-nav-item .header-nav-folder-title {
+    position: relative;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35em;
+    box-sizing: border-box;
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: #05070d !important;
+    background-image: none !important;
+    color: #ffd400 !important;
+    -webkit-text-fill-color: #ffd400 !important;
+    border: 2px solid #ffd400 !important;
+    border-radius: 2px;
+    padding: 0.62em 0.55em 0.72em !important;
+    margin: 0 !important;
+    font-family: "Anton", Impact, sans-serif !important;
+    font-weight: 400 !important;
+    font-style: normal !important;
+    font-size: clamp(11px, 0.5vw + 6.4px, 13px) !important;
+    line-height: 1 !important;
+    letter-spacing: 0.025em !important;
+    text-transform: uppercase !important;
+    text-decoration: none !important;
+    text-shadow: -1px 0 rgba(255, 40, 60, 0.8), 1px 0 rgba(0, 240, 255, 0.7);
+    box-shadow:
+      2px 2px 0 #000,
+      -1px 0 0 rgba(255, 40, 60, 0.5),
+      1px 0 0 rgba(0, 240, 255, 0.4);
+    white-space: nowrap;
+    cursor: pointer;
+    overflow: hidden;
+    transition: box-shadow 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
+  }
+
+  /* Beat the injected "folders are white" rule and theme underlines */
+  .header-display-desktop .header-nav-item--folder .header-nav-folder-title,
+  .header-display-desktop .header-nav-item--folder .header-nav-folder-title-text,
+  .header-display-desktop .header-nav-item--folder .header-nav-folder-title * {
+    color: #ffd400 !important;
+    -webkit-text-fill-color: #ffd400 !important;
+    background-image: none !important;
+    text-decoration: none !important;
+    text-transform: uppercase !important;
+    opacity: 1 !important;
+  }
+
+  .header-display-desktop .header-nav-item--active .header-nav-folder-title-text,
+  .header-display-desktop .header-nav-item--active > a,
+  .header-display-desktop .header-nav-item > a,
+  .header-display-desktop .header-nav-folder-title-text {
+    background-image: none !important;
+    text-decoration: none !important;
+  }
+
+  /* Kill theme hover/active underline bars on ::after so we can reuse it */
+  .header-display-desktop .header-nav-item > a::after,
+  .header-display-desktop .header-nav-item--active:not(.header-nav-item--folder) a::after,
+  .header-display-desktop .header-nav-item--folder .header-nav-folder-title-text {
+    transform: none !important;
+    background-image: none !important;
+    text-decoration: none !important;
+  }
+
+  /* Active page: red ▶ + yellow underline, same language as the mobile menu */
+  .header-display-desktop .header-nav-item--active > a,
+  .header-display-desktop .header-nav-item--active .header-nav-folder-title {
+    color: #ffd400 !important;
+    -webkit-text-fill-color: #ffd400 !important;
+    padding-left: 1.15em !important;
+    box-shadow:
+      2px 2px 0 #000,
+      0 0 10px rgba(255, 212, 0, 0.28),
+      -1px 0 0 rgba(255, 40, 60, 0.55),
+      1px 0 0 rgba(0, 240, 255, 0.4);
+  }
+
+  .header-display-desktop .header-nav-item--active > a::before,
+  .header-display-desktop .header-nav-item--active .header-nav-folder-title::before {
+    content: "▶";
+    position: absolute;
+    left: 0.4em;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.62em;
+    line-height: 1;
+    color: #c8142a !important;
+    -webkit-text-fill-color: #c8142a !important;
+    text-shadow: none;
+    pointer-events: none;
+  }
+
+  .header-display-desktop .header-nav-item--active > a::after,
+  .header-display-desktop .header-nav-item--active .header-nav-folder-title::after {
+    content: "";
+    position: absolute !important;
+    left: 1.2em;
+    right: 0.45em;
+    bottom: 0.28em;
+    width: auto !important;
+    height: 3px !important;
+    background: #ffd400 !important;
+    background-color: #ffd400 !important;
+    box-shadow: 0 0 8px rgba(255, 212, 0, 0.7);
+    transform: none !important;
+    pointer-events: none;
+  }
+
+  /* Hover / keyboard / preview-forced glitch */
+  .header-display-desktop .header-nav-item > a:hover,
+  .header-display-desktop .header-nav-item > a:focus-visible,
+  .header-display-desktop .header-nav-item .header-nav-folder-title:hover,
+  .header-display-desktop .header-nav-item .header-nav-folder-title:focus-visible,
+  .header-display-desktop .header-nav-item.preview-hover > a,
+  .header-display-desktop .header-nav-item.preview-hover .header-nav-folder-title {
+    color: #ffd400 !important;
+    -webkit-text-fill-color: #ffd400 !important;
+    background-color: #000 !important;
+    border-color: #fff !important;
+    box-shadow:
+      3px 3px 0 #c8142a,
+      -2px 0 0 rgba(255, 40, 60, 0.85),
+      2px 0 0 rgba(0, 240, 255, 0.75),
+      0 0 12px rgba(255, 212, 0, 0.35);
+    animation: ttNavGlitch 0.38s steps(2, end) 2;
+    outline: none;
+  }
+
+  .header-display-desktop .header-nav-item--folder:hover .header-nav-folder-title,
+  .header-display-desktop .header-nav-item--folder:hover .header-nav-folder-title-text,
+  .header-display-desktop .header-nav-item--folder:hover .header-nav-folder-title *,
+  .header-display-desktop .header-nav-item.preview-hover .header-nav-folder-title-text {
+    color: #ffd400 !important;
+    -webkit-text-fill-color: #ffd400 !important;
+  }
+
+  /* Dropdown panel */
+  .header-display-desktop .header-nav-folder-content,
+  .header-display-desktop .header-nav-item--folder .header-nav-folder-title[aria-expanded="true"] + .header-nav-folder-content {
+    background: #05070d !important;
+    background-color: #05070d !important;
+    border: 1px solid #ffd400;
+    border-radius: 2px;
+    box-shadow:
+      4px 4px 0 #000,
+      -2px 0 0 rgba(255, 40, 60, 0.65),
+      2px 0 0 rgba(0, 240, 255, 0.5);
+    padding: 0.25em 0;
+    min-width: 260px;
+    width: max-content;
+    max-width: min(360px, 80vw);
+    top: calc(100% + 8px);
+    left: auto;
+    right: auto;
+    z-index: 130;
+    text-align: left !important;
+  }
+
+  .header-display-desktop .header-nav-folder-item {
+    line-height: 1.2;
+  }
+
+  .header-display-desktop .header-nav-folder-item a,
+  .header-display-desktop .header-nav-folder-item a .header-nav-folder-item-content {
+    display: block !important;
+    width: 100%;
+    box-sizing: border-box;
+    color: #ffd400 !important;
+    -webkit-text-fill-color: #ffd400 !important;
+    font-family: "Anton", Impact, sans-serif !important;
+    font-weight: 400 !important;
+    font-size: 12px !important;
+    line-height: 1.15 !important;
+    letter-spacing: 0.04em !important;
+    text-transform: uppercase !important;
+    text-decoration: none !important;
+    background-image: none !important;
+    text-shadow: -1px 0 rgba(255, 40, 60, 0.7), 1px 0 rgba(0, 240, 255, 0.6);
+    padding: 0.38em 0.95em !important;
+    white-space: normal;
+  }
+
+  .header-display-desktop .header-nav-folder-item a::after {
+    content: none !important;
+    display: none !important;
+  }
+
+  .header-display-desktop .header-nav-folder-item a:hover,
+  .header-display-desktop .header-nav-folder-item a:focus-visible,
+  .header-display-desktop .header-nav-folder-item.preview-hover a {
+    color: #ffd400 !important;
+    -webkit-text-fill-color: #ffd400 !important;
+    background-color: #14110a !important;
+    animation: ttNavGlitch 0.38s steps(2, end) 2;
+  }
+
+  .header-display-desktop .header-nav-folder-item--active .header-nav-folder-item-content,
+  .header-display-desktop .header-nav-folder-item--active a {
+    background-image: none !important;
+    text-decoration: none !important;
+    box-shadow: inset 3px 0 0 #ffd400;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header-display-desktop .header-nav-item > a,
+  .header-display-desktop .header-nav-item .header-nav-folder-title,
+  .header-display-desktop .header-nav-folder-item a {
+    animation: none !important;
+    transition: none !important;
+    clip-path: none !important;
+    transform: none !important;
+  }
+}
+/* TT NAV GLITCH v1 END */
+/* TT HOME TIGHT v1 START */
+/* TherapyToaster Home — desktop spacing tighten v1
+   PREVIEW / not live. Paste into Squarespace Custom CSS after Coty approves.
+   Scoped to Home only (body.homepage). Desktop only (min-width: 768px),
+   matching the site's own mobile breakpoint. Mobile is unchanged.
+   Does not edit the Home main code block (routines can keep rebuilding it).
+*/
+
+@media screen and (min-width: 768px) {
+
+  /* -------------------------------------------------------------------------
+     1) First (hero) section — data-section-id 6a988533c6d1d146aaea1e2a
+     Squarespace adds padding-top = header height (~401px at 1920, ~379px at
+     1366) so content clears the absolute header. The Daily Glitch (#tt-notice)
+     and #tt-vc were lifted above this section, so that padding is now a
+     large empty band under the notice. Leave a small gap only.
+     Do not touch #tt-vc, #tt-notice, or #tt-topwall.
+     ------------------------------------------------------------------------- */
+  body.homepage section[data-section-id="6a988533c6d1d146aaea1e2a"] {
+    padding-top: 32px !important;
+  }
+
+  /* -------------------------------------------------------------------------
+     2) Main Home code-block section — data-section-id 6ad2c19d6ec9816f0fc57a29
+     section-height--medium (min-height 66vh) plus content-wrapper padding of
+     6.6vw (~127px at 1920, ~90px at 1366) on top and bottom.
+     Fluid Engine still lays out 79 fixed rows (~38px each) sized for when
+     #ttwall (Toaster Wall) lived inside this code block. The wall is now
+     moved out to a .tw-host between sections, so ~450px of empty grid is
+     left under #ttmerch, plus the section's bottom padding — the big black
+     gap before Toaster Wall.
+     Collapse rows to auto and tighten section padding. Self-positioned
+     #ttmerch / #ttcb stay in normal flow inside this block.
+     ------------------------------------------------------------------------- */
+  body.homepage section[data-section-id="6ad2c19d6ec9816f0fc57a29"] {
+    min-height: 0 !important;
+  }
+  body.homepage section[data-section-id="6ad2c19d6ec9816f0fc57a29"] .content-wrapper {
+    padding-top: 40px !important;
+    padding-bottom: 24px !important;
+    min-height: 0 !important;
+  }
+  body.homepage section[data-section-id="6ad2c19d6ec9816f0fc57a29"] .fluid-engine {
+    grid-template-rows: auto !important;
+    grid-auto-rows: auto !important;
+    min-height: 0 !important;
+  }
+  body.homepage section[data-section-id="6ad2c19d6ec9816f0fc57a29"] .fe-block.fe-block-yui_3_17_2_1_1792196864022_6140,
+  body.homepage section[data-section-id="6ad2c19d6ec9816f0fc57a29"] .fe-block:has(#ttlive-css) {
+    grid-row-start: 1 !important;
+    grid-row-end: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+  body.homepage section[data-section-id="6ad2c19d6ec9816f0fc57a29"] .fe-block.fe-block-yui_3_17_2_1_1792196864022_6140 .sqs-block,
+  body.homepage section[data-section-id="6ad2c19d6ec9816f0fc57a29"] .fe-block.fe-block-yui_3_17_2_1_1792196864022_6140 .sqs-block-content,
+  body.homepage section[data-section-id="6ad2c19d6ec9816f0fc57a29"] .fe-block.fe-block-yui_3_17_2_1_1792196864022_6140 .sqs-code-container,
+  body.homepage section[data-section-id="6ad2c19d6ec9816f0fc57a29"] .fe-block:has(#ttlive-css) .sqs-block,
+  body.homepage section[data-section-id="6ad2c19d6ec9816f0fc57a29"] .fe-block:has(#ttlive-css) .sqs-block-content,
+  body.homepage section[data-section-id="6ad2c19d6ec9816f0fc57a29"] .fe-block:has(#ttlive-css) .sqs-code-container {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  /* -------------------------------------------------------------------------
+     3) Glitch Art teaser — data-section-id 6ad3c161641cab5b820666d8
+     Already collapsed to one auto row (existing custom CSS) with a modest
+     56px wrapper padding. Leave that padding alone so #tt-art is not clipped.
+     Only drop the unused 66vh min-height (content is already taller).
+     ------------------------------------------------------------------------- */
+  body.homepage section[data-section-id="6ad3c161641cab5b820666d8"] {
+    min-height: 0 !important;
+  }
+
+  /* -------------------------------------------------------------------------
+     4) Tag Wall section — data-section-id 6adc833ba83bfe1099491707
+     Medium section padding (~127px) above and below #ttpw-root, plus leftover
+     Fluid Engine rows under the wall. Tighten padding; collapse empty rows.
+     Do not change #ttpw-root's own height / padding.
+     ------------------------------------------------------------------------- */
+  body.homepage section[data-section-id="6adc833ba83bfe1099491707"] {
+    min-height: 0 !important;
+  }
+  body.homepage section[data-section-id="6adc833ba83bfe1099491707"] .content-wrapper {
+    padding-top: 40px !important;
+    padding-bottom: 40px !important;
+    min-height: 0 !important;
+  }
+  body.homepage section[data-section-id="6adc833ba83bfe1099491707"] .fluid-engine {
+    grid-template-rows: auto !important;
+    grid-auto-rows: auto !important;
+    min-height: 0 !important;
+  }
+
+  /* -------------------------------------------------------------------------
+     5) Footer contact row — data-section-id 6a988533c6d1d146aaea1e55
+     Fluid Engine uses 7 fixed rows; the 3 text/link blocks only occupy the
+     middle, leaving ~98px unused above and ~147px below (1920). Collapse
+     empty rows. Leave the block layout (columns) alone.
+     ------------------------------------------------------------------------- */
+  body.homepage #footer-sections section[data-section-id="6a988533c6d1d146aaea1e55"] .fluid-engine {
+    grid-template-rows: auto !important;
+    grid-auto-rows: auto !important;
+  }
+  body.homepage #footer-sections section[data-section-id="6a988533c6d1d146aaea1e55"] .fe-block {
+    height: auto !important;
+  }
+
+  /* -------------------------------------------------------------------------
+     6) Footer copyright — data-section-id 6ade641ba1c4f9285a3277d6
+     section-height--medium forces min-height: 66vh (~713px at 1080 tall,
+     ~507px at 768 tall) around a single 87px line, plus 6.6vw padding and
+     leftover FE rows. The obvious empty band under the copyright.
+     ------------------------------------------------------------------------- */
+  body.homepage #footer-sections section[data-section-id="6ade641ba1c4f9285a3277d6"] {
+    min-height: 0 !important;
+  }
+  body.homepage #footer-sections section[data-section-id="6ade641ba1c4f9285a3277d6"] .content-wrapper {
+    padding-top: 24px !important;
+    padding-bottom: 32px !important;
+    min-height: 0 !important;
+  }
+  body.homepage #footer-sections section[data-section-id="6ade641ba1c4f9285a3277d6"] .fluid-engine {
+    grid-template-rows: auto !important;
+    grid-auto-rows: auto !important;
+    min-height: 0 !important;
+  }
+  body.homepage #footer-sections section[data-section-id="6ade641ba1c4f9285a3277d6"] .fe-block {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+}
+/* TT HOME TIGHT v1 END */
+/* TT SPACE FOOTER TIGHT v1 START */
+/* Coty's Space — desktop footer tighten v1 (optional companion to home-tight-v1)
+   PREVIEW / not live. The Coty's Space main column is already reasonably tight;
+   the only obviously large gap is the site footer (same two sections as Home):
+   leftover Fluid Engine rows in the contact bar, and section-height--medium
+   (66vh) around the copyright line. Mobile unchanged.
+   Scoped to collection-6ad2d49a5ed1b35236cc54b2 so Home/other pages are untouched
+   if this is pasted on its own. If Home's CSS is already in Custom CSS (sitewide
+   but body.homepage-scoped), also add this block for Coty's Space.
+*/
+
+@media screen and (min-width: 768px) {
+  body.collection-6ad2d49a5ed1b35236cc54b2 #footer-sections section[data-section-id="6a988533c6d1d146aaea1e55"] .fluid-engine {
+    grid-template-rows: auto !important;
+    grid-auto-rows: auto !important;
+  }
+  body.collection-6ad2d49a5ed1b35236cc54b2 #footer-sections section[data-section-id="6a988533c6d1d146aaea1e55"] .fe-block {
+    height: auto !important;
+  }
+
+  body.collection-6ad2d49a5ed1b35236cc54b2 #footer-sections section[data-section-id="6ade641ba1c4f9285a3277d6"] {
+    min-height: 0 !important;
+  }
+  body.collection-6ad2d49a5ed1b35236cc54b2 #footer-sections section[data-section-id="6ade641ba1c4f9285a3277d6"] .content-wrapper {
+    padding-top: 24px !important;
+    padding-bottom: 32px !important;
+    min-height: 0 !important;
+  }
+  body.collection-6ad2d49a5ed1b35236cc54b2 #footer-sections section[data-section-id="6ade641ba1c4f9285a3277d6"] .fluid-engine {
+    grid-template-rows: auto !important;
+    grid-auto-rows: auto !important;
+    min-height: 0 !important;
+  }
+  body.collection-6ad2d49a5ed1b35236cc54b2 #footer-sections section[data-section-id="6ade641ba1c4f9285a3277d6"] .fe-block {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+}
+/* TT SPACE FOOTER TIGHT v1 END */
