@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.16.0"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.16.1"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <link rel="icon" href="data:,"><title>MR. TOASTY'S NO SIGNAL SKULLZ — Therapy Toaster</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Anton&family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
@@ -106,7 +106,7 @@ body.attract #msg{display:none}
 #secban{position:fixed;left:0;right:0;top:7%;text-align:center;pointer-events:none;font-family:Anton,Impact,sans-serif;font-size:clamp(22px,5vw,54px);color:#FFD400;letter-spacing:3px;text-shadow:3px 0 #ff00c8,-3px 0 #00f0ff,0 0 14px #000;opacity:0;z-index:5}
 #secban small{display:block;font-family:'Press Start 2P',monospace;font-size:clamp(7px,1.1vw,11px);letter-spacing:1px;color:#fff;text-shadow:0 0 6px #000,1px 1px #000;margin-top:8px}
 #secban.on{animation:secb 3.2s ease-out}@keyframes secb{0%{opacity:0;transform:scale(1.6)}8%{opacity:1;transform:scale(1)}12%{transform:translateX(-4px)}14%{transform:translateX(3px)}16%{transform:none}80%{opacity:1}100%{opacity:0}}
-#galg{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;max-width:620px;margin:8px auto}.gth{width:min(96px,17vw);height:min(96px,17vw);cursor:pointer;image-rendering:auto;border:1px solid #2a2010}.gth.lock{cursor:default;opacity:.85}
+#gal{padding-bottom:calc(16px + env(safe-area-inset-bottom))}#galf{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;max-width:min(720px,96vw);margin:4px auto;padding:0 8px}#galf button{font:inherit;font-size:clamp(7px,2.1vw,9px);background:#111;color:#FFD400;border:1px solid #e3b303;padding:8px 10px;min-height:36px;cursor:pointer;letter-spacing:0}#galf button.on{background:#FFD400;color:#000}#galpg,#galpg2,.galpg{display:flex;align-items:center;justify-content:center;gap:8px;margin:8px auto 4px;flex-wrap:wrap}#galpg button,#galpg2 button,.galpg button{font:inherit;font-size:clamp(8px,2vw,10px);background:#FFD400;color:#000;border:0;padding:8px 14px;min-height:36px;cursor:pointer}#galpg button:disabled,#galpg2 button:disabled,.galpg button:disabled{opacity:.35;cursor:default}#galpg span,#galpg2 span,.galpg span{font-size:clamp(7px,2vw,9px);color:#00f0ff}#galg{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;max-width:min(720px,96vw);margin:8px auto;padding:0 6px}.gth{width:min(96px,17vw);height:min(96px,17vw);cursor:pointer;image-rendering:pixelated;border:1px solid #2a2010;flex:0 0 auto}.gth.lock{cursor:default;opacity:.85}
 #galv{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:#000e;z-index:9;cursor:pointer}#galv img{max-width:92vw;max-height:80vh;border:4px solid #e3b303;box-shadow:6px 6px 0 #ff00c8}
 #galn{color:#00f0ff!important}
 #egg{position:fixed;inset:0;z-index:50;background:#000;display:none;align-items:center;justify-content:center;flex-direction:column;cursor:pointer}
@@ -152,7 +152,7 @@ body.lefty #bParry{right:auto;left:calc(var(--sl) + 14px)}
 <div id="ttut"><div class="tl">LEFT THUMB<br>MOVE<br><br>(STICK APPEARS<br>WHERE YOU TOUCH)</div><div class="tr">RIGHT THUMB<br>DRAG ANYWHERE<br>TO LOOK</div><div class="tf">SWAP WEAPON<br>BUTTON SWITCHES GUNS</div><div class="tm">MAP · PAUSE ▲</div><p>TAP TO PLAY</p></div>
 <div id="rot">↻ ROTATE FOR THE BEST VIEW <span id="rotx">✕</span></div>
 <div class="ov" id="pause"><h1>PAUSED<small>THE GLITCH WAITS</small></h1><div class="drip"></div><div><button class="btn" id="presume">RESUME</button><button class="btn" id="pset">SETTINGS</button><button class="btn" id="pgal">GALLERY</button><button class="btn" data-menu>MAIN MENU</button></div></div>
-<div class="ov" id="gal"><h1>GALLERY<small>COTY LAKE · SECRET ART</small></h1><div class="drip"></div><p id="galn"></p><div id="galg"></div><button class="btn" id="gback">BACK</button><div id="galv"></div></div>
+<div class="ov" id="gal"><h1>GALLERY<small>COTY LAKE · SECRET ART</small></h1><div class="drip"></div><p id="galn"></p><div id="galf" role="tablist" aria-label="Filter by collection"></div><div id="galpg"></div><div id="galg"></div><div id="galpg2" class="galpg"></div><button class="btn" id="gback">BACK</button><div id="galv"></div></div>
 <div class="ov" id="set"><h1>SETTINGS<small>SAVED ON THIS DEVICE</small></h1><div class="drip"></div><div id="setrows"></div><button class="btn" id="sback">BACK</button></div>
 <div class="ov" id="title" style="display:flex">
 <h1 class="tth"><canvas id="tlogo" width="240" height="160" role="img" aria-label="Mr. Toasty's No Signal Skullz"></canvas><span class="sr">MR. TOASTY'S NO SIGNAL SKULLZ</span><small>A 404 DUNGEON CRAWLER · STARRING MR. TOASTY</small></h1>
@@ -2130,9 +2130,9 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden&&isTouch&&s
 // a screen costs nothing unless it is drawn).
 const ART_META=window.ARTMETA||[];let ART_N=ART_META.length;const ART_ANIM=ART_META.map((m,i)=>m.n>1?i:-1).filter(i=>i>=0);
 const OPENING=new Map(),WSPEC=new Map();let GAL=null;const V07HOOKS=[];let HIDDEN=null,ARTC=null,ART_POCKET=-1,ART_PIECE=-1,ART_GOT=false,MAIN_SEC=-1;
-function galLoad(){const g=load('skullz_gallery',{});g.ids=(g.ids||[]).filter(id=>ART_META.some(m=>m.id==id));return g}
+function galLoad(){const g=load('skullz_gallery',{});g.ids=g.ids||[];g.seen=g.seen||[];if(typeof TT!=='undefined'&&TT.artReady&&ART_META&&ART_META.length){const ok=new Set(ART_META.map(m=>m.id));g.ids=g.ids.filter(id=>ok.has(id));g.seen=g.seen.filter(id=>ok.has(id))}return g}
 function galHas(i){return galLoad().ids.includes(ART_META[i].id)}
-function galFound(i){const g=galLoad(),id=ART_META[i].id;if(!g.ids.includes(id)){g.ids.push(id);save('skullz_gallery',g);return true}return false}
+function galFound(i){const g=galLoad(),id=ART_META[i].id;if(!g.seen.includes(id))g.seen.push(id);if(!g.ids.includes(id)){g.ids.push(id);save('skullz_gallery',g);return true}save('skullz_gallery',g);return false}
 (function(){if(!window.ARTATLAS)return;const im=new Image();im.onload=()=>{ARTC=mk(im.width,im.height);ARTC.getContext('2d').drawImage(im,0,0);if(typeof map!='undefined'&&map&&state=='play')v07Specials()};im.src=window.ARTATLAS})();
 function texCanvas(T){const c=mk(64,64),g=c.getContext('2d'),d=g.createImageData(64,64);new Uint32Array(d.data.buffer).set(T);g.putImageData(d,0,0);return c}
 function canvasU32(c,w,h){const u=new Uint32Array(c.getContext('2d').getImageData(0,0,w,h).data.buffer.slice(0));for(let i=0;i<u.length;i++)u[i]=(u[i]|0xff000000)>>>0;return u}
@@ -2163,7 +2163,7 @@ function onWall(wallTile,blk,key){if(TEXCACHE.has(key))return TEXCACHE.get(key);
 function paintingTexs(wallTile,piece){return onWall(wallTile,paintBlock(piece),'p'+wallTile+'/'+piece)}
 function screenTexs(wallTile,piece){return onWall(wallTile,screenBlock(piece),'s'+wallTile+'/'+piece)}
 // warm the per-piece blocks in idle time after load so the first floors/attract scenes don't pay for them
-function warmBlocks(){if(!ARTC){setTimeout(warmBlocks,300);return}const jobs=[];for(let i=0;i<ART_N;i++){jobs.push(()=>paintBlock(i));if(ART_META[i].n>1)jobs.push(()=>screenBlock(i))}
+function warmBlocks(){if(!ARTC){setTimeout(warmBlocks,300);return}const jobs=[];for(let i=0;i<ART_N;i++){if(ART_META[i]&&(ART_META[i].atlas!=null||ART_META[i].ext))continue;jobs.push(()=>paintBlock(i));if(ART_META[i]&&ART_META[i].n>1)jobs.push(()=>screenBlock(i))}
  const step=()=>{const j=jobs.shift();if(!j)return;j();(window.requestIdleCallback||setTimeout)(step,{timeout:200})};setTimeout(step,600)}
 warmBlocks();
 // reachability from the player with closed walls solid; HIDDEN = open cells you can't reach yet (secret pockets/vaults)
@@ -2360,7 +2360,7 @@ function galTick(dt){const G=GAL;if(REV){REV.t+=dt;if(REV.nudge&&G&&REV.t<REV.du
 const _uw72=updateWorld;updateWorld=function(dt){_uw72(dt);galTick(dt)};
 const _rd72=render;render=function(t,rdt){_rd72(t,rdt);if(REV){const k=Math.max(0,Math.min(1,REV.t/.18,(REV.dur-REV.t)/.25)),b=Math.round(24*k*k*(3-2*k));if(b>0){ctx.fillStyle='#000';ctx.fillRect(0,0,W,b);ctx.fillRect(0,H-b,W,b);ctx.fillStyle='rgba(227,179,3,'+(.6*k).toFixed(2)+')';ctx.fillRect(0,b,W,1);ctx.fillRect(0,H-b-1,W,1)}}};
 // warm the gallery wall blocks in idle time too
-(function warmGal(){if(!ARTC){setTimeout(warmGal,400);return}let i=0;const step=()=>{if(i>=ART_N)return;galBlock(i++);(window.requestIdleCallback||setTimeout)(step,{timeout:300})};setTimeout(step,1500)})();
+(function warmGal(){if(!ARTC){setTimeout(warmGal,400);return}let i=0;const step=()=>{while(i<ART_N&&ART_META[i]&&ART_META[i].atlas!=null)i++;if(i>=ART_N)return;galBlock(i++);(window.requestIdleCallback||setTimeout)(step,{timeout:300})};setTimeout(step,1500)})();
 
 // =====================================================================
 // v0.7.7 BOSS ART — 96x96 multi-frame boss sprites (idle x2, move x2, attack, hurt, death; rage set; extra sets)
@@ -9200,6 +9200,445 @@ if(typeof loadAtlas==='function'){
   const _la=loadAtlas;
   loadAtlas=function(){const r=_la.apply(this,arguments);whenTex16(boot160);return r};
 }
+})();
+
+// v0.16.1 — all 338 of Coty's NFT pieces in the Gallery, on the walls, and as cosmetic skull skins.
+// Atlases are lazy-loaded. Stable ids live in tools/art_pieces.json. No wallet logic.
+(function(){
+const VER='0.16.1';
+const MEDIA=(typeof window!=='undefined'&&window.MEDIA_BASE)||'media/';
+const BASE=MEDIA+(MEDIA.slice(-1)==='/'?'':'/')+'static/nft/';
+const ATLAS_IM=[];
+let ATLAS_N=0, ATLAS_READY=0, META_ON=0;
+const COLS=[
+  {k:'all',n:'ALL'},
+  {k:'original',n:'COTY'},
+  {k:'SkulRz PFP',n:'SKULRZ PFP'},
+  {k:'Messed and Mixed',n:'MESSED + MIXED'},
+  {k:"Mr.Toasty's skullz",n:"MR. TOASTY'S"}
+];
+let galFilter='all', galPage=0;
+
+function nftIdx(){
+  const o=[];
+  if(typeof ART_META==='undefined')return o;
+  for(let i=0;i<ART_META.length;i++)if(ART_META[i]&&ART_META[i].atlas!=null)o.push(i);
+  return o;
+}
+function colOf(M){return (M&&M.col)||(M&&M.collection)||(M&&M.atlas==null?'original':'');}
+
+function applyManifest(man){
+  if(!man||!man.pieces||typeof ART_META==='undefined')return;
+  ATLAS_N=(man.atlases&&man.atlases.length)||0;
+  const have=new Map(ART_META.map((m,i)=>[m.id,i]));
+  for(const m of man.pieces){
+    const rec={id:m.id,name:m.name,w:m.w||96,h:m.h||96,n:1,ms:0,row:-1,ox:0,oy:0,
+      atlas:m.atlas,ax:m.x,ay:m.y,col:m.collection};
+    if(have.has(m.id)){
+      const i=have.get(m.id);
+      const old=ART_META[i];
+      ART_META[i]=Object.assign({},old,rec);
+      delete ART_META[i].ext;
+    }else{
+      ART_META.push(rec);
+    }
+  }
+  ART_N=ART_META.length;
+  META_ON=1;
+  if(typeof TT!=='undefined'){TT.artReady=1;TT.galleryVer=VER;TT.artN=ART_N}
+  hookArtDraw();
+  loadAtlases();
+  if(typeof titleUI==='function')try{titleUI()}catch(e){}
+}
+
+function loadAtlases(){
+  if(!ATLAS_N)return;
+  for(let i=0;i<ATLAS_N;i++){
+    if(ATLAS_IM[i])continue;
+    const im=new Image();
+    im.decoding='async';
+    im.onload=()=>{
+      ATLAS_IM[i]=im;ATLAS_READY++;
+      if(ATLAS_READY>=ATLAS_N){
+        if(typeof TT!=='undefined')TT.nftAtlas=ATLAS_N;
+        refreshNftWalls();
+        installSkullSkins161();
+        if(state==='gallery')renderGallery();
+        if(typeof titleUI==='function')try{titleUI()}catch(e){}
+      }
+    };
+    im.onerror=()=>{ATLAS_READY++;};
+    im.src=BASE+'atlas-'+i+'.webp';
+  }
+}
+
+function hookArtDraw(){
+  if(typeof artDraw!=='function'||artDraw._v161)return;
+  const _ad=artDraw;
+  artDraw=function(g,i,f,x,y,w,h){
+    const M=ART_META[i];
+    if(M&&M.atlas!=null){
+      const im=ATLAS_IM[M.atlas];
+      if(!im||!im.complete||!im.naturalWidth){
+        g.fillStyle='#111118';g.fillRect(x,y,w,h);
+        g.strokeStyle='#e3b303';g.strokeRect(x+.5,y+.5,w-1,h-1);
+        return false;
+      }
+      g.imageSmoothingEnabled=false;
+      g.drawImage(im,M.ax,M.ay,M.w,M.h,x,y,w,h);
+      return true;
+    }
+    return _ad(g,i,f,x,y,w,h);
+  };
+  artDraw._v161=1;
+}
+
+function galSeen(i){
+  if(i==null||i<0||!ART_META[i])return;
+  const g=galLoad(),id=ART_META[i].id;
+  if(g.seen.includes(id))return;
+  g.seen.push(id);
+  save('skullz_gallery',g);
+}
+
+function pageSize(){return (typeof window!=='undefined'&&window.innerWidth&&window.innerWidth<700)?24:36}
+
+function filteredIdx(){
+  const out=[];
+  for(let i=0;i<ART_N;i++){
+    const M=ART_META[i]; if(!M)continue;
+    const c=colOf(M);
+    if(galFilter==='all'||c===galFilter)out.push(i);
+  }
+  return out;
+}
+
+function thumbCanvas161(i,found,seen){
+  const M=ART_META[i],c=document.createElement('canvas');
+  c.width=c.height=96;c.className='gth'+(found?'':' lock');
+  const g=c.getContext('2d');g.imageSmoothingEnabled=false;
+  g.fillStyle='#0a0010';g.fillRect(0,0,96,96);
+  if(found||seen){
+    if(!artDraw(g,i,0,5,4,86,82)){g.fillStyle='#120018';g.fillRect(5,4,86,82)}
+    g.strokeStyle=found?'#e3b303':'#5a7a80';g.lineWidth=2;g.strokeRect(4,3,88,84);
+    if(!found&&seen){
+      g.fillStyle='#000a';g.fillRect(5,4,86,82);
+      g.fillStyle='#00f0ff';g.font='bold 8px monospace';g.textAlign='center';
+      g.fillText('SEEN',48,48);
+    }
+  }else{
+    g.fillStyle='#160820';g.fillRect(8,8,80,72);
+    g.fillStyle='#5a3a80';g.font='bold 22px monospace';g.textAlign='center';
+    g.fillText('?',48,52);
+  }
+  g.fillStyle=found?'#FFD400':(seen?'#00f0ff':'#5a3a80');
+  g.font='bold 7px monospace';g.textAlign='center';
+  const label=found?String(M.name||'').slice(0,16):(seen?'SEEN':'#'+(i+1)+' LOCKED');
+  g.fillText(label,48,93);
+  return c;
+}
+
+function renderPager(el, list, pages, pg){
+  if(!el)return;
+  el.innerHTML='';
+  if(pages<=1)return;
+  const prev=document.createElement('button');prev.textContent='◀ PREV';prev.disabled=pg<=0;
+  prev.onclick=()=>{galPage=Math.max(0,galPage-1);renderGallery();const G=$('gal');if(G)G.scrollTop=0};
+  const next=document.createElement('button');next.textContent='NEXT ▶';next.disabled=pg>=pages-1;
+  next.onclick=()=>{galPage=Math.min(pages-1,galPage+1);renderGallery();const G=$('gal');if(G)G.scrollTop=0};
+  const sp=document.createElement('span');sp.textContent='PAGE '+(pg+1)+' / '+pages+' · '+list.length+' PIECES';
+  el.append(prev,sp,next);
+}
+
+function renderGallery(){
+  const G=galLoad(),el=$('galg'),filt=$('galf');
+  if(!el)return;
+  const foundN=G.ids.length, seenN=(G.seen||[]).length;
+  if($('galn'))$('galn').textContent=foundN+'/'+ART_N+' FOUND  ·  '+seenN+' SEEN  ·  WALK UP TO A FRAME OR SECRET TO COLLECT';
+  if(filt&&!filt._on){
+    filt.innerHTML='';
+    COLS.forEach(C=>{
+      const b=document.createElement('button');
+      b.type='button';b.dataset.k=C.k;b.textContent=C.n;
+      b.setAttribute('role','tab');
+      b.onclick=()=>{galFilter=C.k;galPage=0;renderGallery()};
+      filt.appendChild(b);
+    });
+    filt._on=1;
+  }
+  if(filt)[...filt.querySelectorAll('button')].forEach(b=>b.classList.toggle('on',b.dataset.k===galFilter));
+  const list=filteredIdx();
+  const ps=pageSize();
+  const pages=Math.max(1,Math.ceil(list.length/ps));
+  if(galPage>=pages)galPage=pages-1;
+  renderPager($('galpg'),list,pages,galPage);
+  renderPager($('galpg2'),list,pages,galPage);
+  el.innerHTML='';
+  const slice=list.slice(galPage*ps,galPage*ps+ps);
+  slice.forEach(i=>{
+    const f=G.ids.includes(ART_META[i].id), se=(G.seen||[]).includes(ART_META[i].id);
+    const c=thumbCanvas161(i,f,se);
+    if(f||se)c.addEventListener('click',()=>galView161(i));
+    el.appendChild(c);
+  });
+  if(galFilter==='all'&&galPage===pages-1&&G.egg&&typeof eggThumb==='function'){
+    const c=eggThumb();c.addEventListener('click',()=>{if(typeof playEgg==='function')playEgg()});el.appendChild(c);
+  }
+}
+
+function galView161(i){
+  const v=$('galv'),M=ART_META[i]; if(!v||!M)return;
+  v.innerHTML='';
+  const c=document.createElement('canvas');c.width=c.height=384;
+  const g=c.getContext('2d');g.imageSmoothingEnabled=false;
+  g.fillStyle='#0a0010';g.fillRect(0,0,384,384);
+  artDraw(g,i,0,16,16,352,352);
+  c.style.maxWidth='92vw';c.style.maxHeight='80vh';c.style.border='4px solid #e3b303';
+  c.style.boxShadow='6px 6px 0 #ff00c8';c.style.imageRendering='pixelated';
+  const cap=document.createElement('p');
+  const col=colOf(M);
+  cap.textContent=M.name+(col&&col!=='original'?' · '+col.toUpperCase():'')+'  ·  ART #'+(i+1)+' / '+ART_N+'  ·  BY COTY LAKE  ·  TAP TO CLOSE';
+  v.append(c,cap);v.style.display='flex';v.onclick=()=>{v.style.display='none'};
+}
+
+function hookGallery(){
+  if(typeof openGallery==='function'){
+    const _og=openGallery;
+    openGallery=function(from){
+      galBack=from;state='gallery';
+      renderGallery();
+      show('gal');
+    };
+  }
+  if(typeof titleUI==='function'){
+    const _t=titleUI;
+    titleUI=function(){
+      _t();
+      const b=$('lgal');const G=typeof galLoad==='function'?galLoad():{ids:[],seen:[]};
+      if(b)b.textContent='🖼 GALLERY '+(G.ids||[]).length+'/'+(ART_N||0);
+    };
+  }
+}
+
+function lcg(s){s=(s>>>0)||1;return function(){s=(Math.imul(s,1664525)+1013904223)>>>0;return s/4294967296}}
+
+function floorBag(){
+  const idx=nftIdx();
+  const seed=((run&&run.seed)||1)*131+(run&&run.floor||1)*977+((run&&run.mode||'x').length*19)+13;
+  const R=lcg(seed);
+  const a=idx.slice();
+  for(let i=a.length-1;i>0;i--){const j=(R()*(i+1))|0;const t=a[i];a[i]=a[j];a[j]=t}
+  return a;
+}
+
+function openFaces(){
+  const out=[];
+  if(typeof map==='undefined'||!map)return out;
+  const blocked=new Set();
+  if(typeof exitAt==='number'&&exitAt>=0)blocked.add(exitAt);
+  if(typeof cursedAt==='number'&&cursedAt>=0)blocked.add(cursedAt);
+  if(typeof secretSet!=='undefined'&&secretSet)secretSet.forEach(i=>blocked.add(i));
+  if(typeof WSPEC!=='undefined'&&WSPEC)WSPEC.forEach((_,i)=>blocked.add(i));
+  for(let y=1;y<MH-1;y++)for(let x=1;x<MW-1;x++){
+    const i=y*MW+x; if(!map[i]||blocked.has(i))continue;
+    for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
+      const n=x+dx,m=y+dy,j=m*MW+n;
+      if(n<1||m<1||n>=MW-1||m>=MH-1)continue;
+      if(!map[j]){out.push({c:i,face:j,x,y});break}
+    }
+  }
+  return out;
+}
+
+function bakeCollage(ids){
+  const c=document.createElement('canvas');c.width=c.height=128;
+  const g=c.getContext('2d');g.imageSmoothingEnabled=false;
+  g.fillStyle='#030304';g.fillRect(0,0,128,128);
+  const cols=3,rows=3,pad=2,x0=8,y0=8,bw=112,bh=112;
+  const cw=((bw-pad*(cols+1))/cols)|0, ch=((bh-pad*(rows+1))/rows)|0;
+  for(let r=0;r<rows;r++)for(let c0=0;c0<cols;c0++){
+    const i=ids[(r*cols+c0)%ids.length];
+    const x=x0+pad+c0*(cw+pad), y=y0+pad+r*(ch+pad);
+    g.fillStyle='#e3b303';g.fillRect(x-1,y-1,cw+2,ch+2);
+    if(i!=null)artDraw(g,i,0,x,y,cw,ch);
+  }
+  const id=g.getImageData(0,0,128,128);
+  const t=new Uint32Array(id.data.buffer.slice(0));t.ts=128;return t;
+}
+
+function placeNftAround(){
+  if(typeof map==='undefined'||!map||typeof WSPEC==='undefined')return;
+  const bag=floorBag(); if(!bag.length)return;
+  const want=Math.min(16,Math.max(8,bag.length?12:0));
+  const faces=openFaces();
+  const R=lcg((((run&&run.seed)||1)^((run&&run.floor||1)*4099))>>>0);
+  const picks=[];
+  const used=new Set();
+  const n=Math.min(want,faces.length,bag.length);
+  let guard=0;
+  while(picks.length<n&&guard++<faces.length*3){
+    const f=faces[(R()*faces.length)|0];
+    if(used.has(f.c)||(WSPEC&&WSPEC.has(f.c)))continue;
+    used.add(f.c);picks.push(f);
+  }
+  const floorPieces=[];
+  picks.forEach((f,k)=>{
+    const piece=bag[k];
+    floorPieces.push(piece);
+    try{
+      const Ts=typeof paintingTexs==='function'?paintingTexs(map[f.c],piece):null;
+      if(Ts)WSPEC.set(f.c,{Ts,ms:1e9,face:f.face,art:1,piece,nft:1});
+    }catch(e){}
+  });
+  // secret-room / hollow collages: up to two hollow walls get a 3x3 batch
+  const hollows=[];
+  const names=['fo_hollow','ba_hollow','se_hollow','of_hollow','ga_hollow','th_hollow','fa_hollow','ac_hollow','gen_hollow'];
+  const H=new Set(names.map(n=>typeof TILE!=='undefined'&&TILE[n]).filter(Boolean));
+  if(typeof hollowTile==='function'){const h=hollowTile();if(h)H.add(h)}
+  for(let i=0;i<map.length;i++)if(H.has(map[i]))hollows.push(i);
+  const batch=bag.slice(want,want+18);
+  hollows.slice(0,2).forEach((c,n)=>{
+    const ids=batch.slice(n*9,n*9+9);
+    if(!ids.length)return;
+    const t=bakeCollage(ids);
+    const Ts=[t];
+    const face=openFaces().find(f=>f.c===c);
+    WSPEC.set(c,{Ts,ms:1e9,face:face?face.face:c,art:1,collage:1,pieces:ids,nft:1});
+  });
+  if(typeof TT!=='undefined')TT.nftFloor=floorPieces.length;
+  // bake a modest WALL_VAR set for ws_frame on this floor (static biomes)
+  bakeFloorFrames(floorPieces);
+}
+
+function bakeFloorFrames(pieces){
+  if(!pieces||!pieces.length||typeof TILE==='undefined'||!TILE.ws_frame)return;
+  const framed=[];
+  pieces.slice(0,16).forEach(i=>{
+    const c=document.createElement('canvas');c.width=c.height=128;
+    const g=c.getContext('2d');g.imageSmoothingEnabled=false;
+    g.fillStyle='#0b0a0f';g.fillRect(0,0,128,128);
+    g.fillStyle='#8a7a40';g.fillRect(4,4,120,120);
+    g.fillStyle='#e3b303';g.fillRect(6,6,116,4);g.fillRect(6,118,116,4);g.fillRect(6,6,4,116);g.fillRect(118,6,4,116);
+    g.fillStyle='#111118';g.fillRect(14,14,100,100);
+    artDraw(g,i,0,16,16,96,96);
+    const id=g.getImageData(0,0,128,128);
+    const t=new Uint32Array(id.data.buffer.slice(0));t.ts=128;framed.push(t);
+  });
+  if(!framed.length)return;
+  const idx=TILE.ws_frame-1;
+  TEX[idx]=framed[0];
+  if(typeof TEX0!=='undefined')TEX0[idx]=framed[0];
+  const WV=(typeof WALL_VAR!=='undefined'&&WALL_VAR)||(typeof TT!=='undefined'&&TT.wallVar);
+  if(WV)WV[idx]=framed;
+  if(typeof TT!=='undefined')TT.wsNft=framed.length;
+}
+
+function refreshNftWalls(){
+  if(typeof state!=='undefined'&&state==='play'&&typeof map!=='undefined'&&map){
+    // re-paint WSPEC nft entries now that atlases are in
+    if(typeof WSPEC!=='undefined'){
+      WSPEC.forEach((S,c)=>{
+        if(!S||!S.nft)return;
+        try{
+          if(S.collage&&S.pieces){S.Ts=[bakeCollage(S.pieces)];return}
+          if(S.piece!=null&&typeof paintingTexs==='function'&&map[c])S.Ts=paintingTexs(map[c],S.piece);
+        }catch(e){}
+      });
+    }
+  }
+}
+
+function hookWorld161(){
+  if(typeof buildFloor==='function'){
+    const _bf=buildFloor;
+    buildFloor=function(){
+      _bf.apply(this,arguments);
+      placeNftAround();
+    };
+  }
+  if(typeof update==='function'){
+    const _upd161=update;
+    update=function(dt){
+      _upd161(dt);
+      if(state!=='play'||typeof WSPEC==='undefined'||!WSPEC.size)return;
+      hookWorld161._seenT=(hookWorld161._seenT||0)+dt;
+      if(hookWorld161._seenT<0.35)return;
+      hookWorld161._seenT=0;
+      const px=P.x,py=P.y;
+      WSPEC.forEach((S,c)=>{
+        if(!S||S.piece==null&&!(S.pieces&&S.pieces.length))return;
+        const x=(c%MW)+.5,y=((c/MW)|0)+.5;
+        if(Math.hypot(px-x,py-y)>3.2)return;
+        if(S.piece!=null)galSeen(S.piece);
+        if(S.pieces)S.pieces.forEach(galSeen);
+      });
+    };
+  }
+}
+
+// more SkulRz PFP cosmetic skins, all modes, no wallet
+const SKIN_N=24;
+function installSkullSkins161(){
+  const ids=[];
+  if(typeof ART_META!=='undefined')ART_META.forEach(M=>{if(M&&M.col==='SkulRz PFP')ids.push(M.id)});
+  if(!ids.length)return;
+  const pick=[];
+  const prefer=['skulrz-2237','skulrz-4214','skulrz-4348','skulrz-4555','skulrz-4051','skulrz-4103','skulrz-4176','skulrz-4292'];
+  prefer.forEach(id=>{if(ids.includes(id)&&!pick.includes(id))pick.push(id)});
+  const step=Math.max(1,(ids.length/SKIN_N)|0);
+  for(let i=0;i<ids.length&&pick.length<SKIN_N;i+=step)if(!pick.includes(ids[i]))pick.push(ids[i]);
+  pick.forEach((id,n)=>{
+    const M=ART_META.find(m=>m.id===id); if(!M)return;
+    const im=ATLAS_IM[M.atlas]; if(!im)return;
+    const c=document.createElement('canvas');c.width=c.height=256;
+    const g=c.getContext('2d');g.imageSmoothingEnabled=false;
+    g.clearRect(0,0,256,256);
+    g.drawImage(im,M.ax,M.ay,M.w,M.h,48,36,160,160);
+    const idat=g.getImageData(0,0,256,256);
+    const t=new Uint32Array(idat.data.buffer.slice(0));t.ts=256;
+    const key='wsskin'+n;
+    SPR[key]=t;
+    if(typeof ANIM!=='undefined')ANIM[key]={idle:[t,t,t,t],walk:[t,t,t,t],atk:[t,t],hurt:[t,t],dead:[t,t,t]};
+    if(typeof TT!=='undefined'&&TT.enCache){
+      const pack=ANIM[key];
+      TT.enCache.hi[key]=pack;
+      const dn=T=>{
+        if(!T)return T;const to=128,fr=T.ts||256,Q=new Uint32Array(to*to);Q.ts=to;const sc=fr/to;
+        for(let y=0;y<to;y++)for(let x=0;x<to;x++)Q[y*to+x]=T[((y*sc)|0)*fr+((x*sc)|0)];
+        return Q;
+      };
+      TT.enCache.lo[key]={idle:pack.idle.map(dn),walk:pack.walk.map(dn),atk:pack.atk.map(dn),hurt:pack.hurt.map(dn),dead:pack.dead.map(dn)};
+    }
+  });
+  if(typeof TT!=='undefined')TT.wsSkins=pick.length;
+  if(typeof spawnEnemy==='function'&&!spawnEnemy._v161){
+    const _sp=spawnEnemy;
+    spawnEnemy=function(type,x,y,o){
+      const e=_sp(type,x,y,o);
+      const kinds={skull:1,clone:1,minion:1,fakecrew:1};
+      if(e&&kinds[type]&&SPR.wsskin0){
+        const h=(((Math.imul(((x*64)|0)^((y*64)|0)^((run&&run.seed)||1),2654435761))>>>0)%100);
+        if(h<38){
+          const k='wsskin'+(h%pick.length);
+          if(SPR[k]){e.spr=k;e.D=Object.assign({},e.D,{spr:k})}
+        }
+      }
+      return e;
+    };
+    spawnEnemy._v161=1;
+  }
+}
+
+function boot161(){
+  try{
+    hookArtDraw();
+    hookGallery();
+    hookWorld161();
+    if(typeof TT!=='undefined'){TT.galleryVer=VER;TT.galFilter=(k,p)=>{if(k!=null)galFilter=k;if(p!=null)galPage=p;renderGallery()};TT.galState=()=>({filter:galFilter,page:galPage})}
+    fetch(BASE+'manifest.json').then(r=>r.json()).then(applyManifest).catch(err=>console.error('v0161 nft manifest',err));
+  }catch(err){console.error('v0161 gallery',err)}
+}
+boot161();
 })();
 </script>
 </body></html>
