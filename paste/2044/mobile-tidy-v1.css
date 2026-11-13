@@ -1,0 +1,67 @@
+/* TT MOBILE TIDY v1 */
+/* Home: close the leftover header-offset gap under Don't Click
+   and put "Mr. Toasty's Therapy Space" + the intro in a Daily
+   Glitch-style caution box. Desktop is unchanged.
+   PASTE at the end of Squarespace Custom CSS (LESS 1.3.3). */
+
+@media screen and (max-width: 767px) {
+  /* #tt-notice is lifted above this first section, but Squarespace
+     still adds ~220px padding-top to clear the (absolute) header.
+     That padding is now just an empty hole under the Don't Click row. */
+  body.homepage section[data-section-id="6a988533c6d1d146aaea1e2a"] {
+    padding-top: 12px !important;
+  }
+
+  /* Stretch the title fluid block across the intro's rows so one
+     element owns the card (border, tapes, shadow). Avoids a seam. */
+  body.homepage .fe-block-ce8c64bf8e02f0133163 {
+    grid-area: 1 / 2 / 8 / 10 !important;
+    position: relative;
+    z-index: 1;
+    box-sizing: border-box;
+    /* 102px bottom reserves intro text + tape so the h1 cannot
+       collapse into the intro when the block starts spanning 7 rows. */
+    padding: 22px 14px 102px;
+    background-color: #000;
+    background-image: repeating-linear-gradient(-45deg, #FFD400 0 12px, #000 12px 24px),
+                      repeating-linear-gradient(-45deg, #FFD400 0 12px, #000 12px 24px),
+                      repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 3px);
+    background-size: 100% 12px, 100% 12px, 100% 3px;
+    background-position: 0 0, 0 100%, 0 0;
+    background-repeat: no-repeat, no-repeat, repeat;
+    border: 3px solid #FFD400;
+    border-radius: 12px;
+    box-shadow: -4px 0 0 rgba(0,255,255,.6), 4px 0 0 rgba(255,40,60,.75), 0 0 24px rgba(255,212,0,.3);
+    overflow: hidden;
+  }
+
+  /* Intro sits on top of the stretched card, no second chrome. */
+  body.homepage .fe-block-cd2fb63da5b23cffa143 {
+    position: relative;
+    z-index: 2;
+    box-sizing: border-box;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    margin: 0 3px 3px;
+    padding: 0 14px 22px;
+    overflow: visible;
+  }
+
+  body.homepage .fe-block-ce8c64bf8e02f0133163 .sqs-block,
+  body.homepage .fe-block-cd2fb63da5b23cffa143 .sqs-block {
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Vibes is position:fixed at mid-viewport, so once the 220px hole
+     is gone it sits on top of this new card. Park it just above the
+     Toaster Radio mini player (#ttmp, bottom:12px, ~60px tall on phones)
+     and clear of the bottom-right Chipotle pill. */
+  body.homepage #ttbgm {
+    top: auto !important;
+    bottom: 88px !important;
+    left: 14px !important;
+    transform: none !important;
+  }
+}
