@@ -6951,34 +6951,38 @@ three/build/three.module.js:
     var woodMat = mat({ map: wood.map, normalMap: wood.normalMap, roughness: 0.72, metalness: 0.04, color: 0xffffff, normalScale: 0.55 });
     var paintMat = mat({ map: paint.map, roughness: 0.9, color: 0xb0a090 });
 
-    // back wall: wainscot + upper paint
-    addBox(room, 10, 1.35, 0.1, woodMat, 0, 0.67, -3.15);
-    addBox(room, 10, 1.85, 0.08, paintMat, 0, 2.2, -3.16);
+    // back wall: wainscot + upper paint (wider so corners hold the pulled-back camera)
+    addBox(room, 12, 1.35, 0.1, woodMat, 0, 0.67, -3.15);
+    addBox(room, 12, 1.85, 0.08, paintMat, 0, 2.2, -3.16);
     // chair rail
-    addBox(room, 10, 0.06, 0.12, mat({ color: 0x2a1a10, roughness: 0.6, metalness: 0.05 }), 0, 1.36, -3.08);
-    // side walls
-    var left = addBox(room, 0.1, 3.2, 8, woodMat, -3.4, 1.6, -0.4);
+    addBox(room, 12, 0.06, 0.12, mat({ color: 0x2a1a10, roughness: 0.6, metalness: 0.05 }), 0, 1.36, -3.08);
+    // side walls — extend past the camera (+z) and a little further back
+    var left = addBox(room, 0.1, 3.2, 11, woodMat, -3.4, 1.6, 0.2);
     left.material = woodMat;
-    var leftUp = addBox(room, 0.08, 1.85, 8, paintMat, -3.42, 2.2, -0.4);
-    addBox(room, 0.1, 3.2, 8, woodMat, 3.4, 1.6, -0.4);
-    addBox(room, 0.08, 1.85, 8, paintMat, 3.42, 2.2, -0.4);
-    addBox(room, 0.12, 0.06, 8, mat({ color: 0x2a1a10, roughness: 0.6 }), -3.34, 1.36, -0.4);
-    addBox(room, 0.12, 0.06, 8, mat({ color: 0x2a1a10, roughness: 0.6 }), 3.34, 1.36, -0.4);
+    var leftUp = addBox(room, 0.08, 1.85, 11, paintMat, -3.42, 2.2, 0.2);
+    addBox(room, 0.1, 3.2, 11, woodMat, 3.4, 1.6, 0.2);
+    addBox(room, 0.08, 1.85, 11, paintMat, 3.42, 2.2, 0.2);
+    addBox(room, 0.12, 0.06, 11, mat({ color: 0x2a1a10, roughness: 0.6 }), -3.34, 1.36, 0.2);
+    addBox(room, 0.12, 0.06, 11, mat({ color: 0x2a1a10, roughness: 0.6 }), 3.34, 1.36, 0.2);
+    // front wall behind the camera so a wide FOV never falls into the void
+    addBox(room, 12, 1.35, 0.1, woodMat, 0, 0.67, 5.15);
+    addBox(room, 12, 1.85, 0.08, paintMat, 0, 2.2, 5.16);
+    addBox(room, 12, 0.06, 0.12, mat({ color: 0x2a1a10, roughness: 0.6 }), 0, 1.36, 5.08);
 
     var ceilT = texCeiling();
-    var ceil = new THREE.Mesh(track(new THREE.PlaneGeometry(12, 10)), mat({ map: ceilT.map, roughness: 0.95, metalness: 0, color: 0xffffff, side: THREE.DoubleSide }));
+    var ceil = new THREE.Mesh(track(new THREE.PlaneGeometry(12, 12)), mat({ map: ceilT.map, roughness: 0.95, metalness: 0, color: 0xffffff, side: THREE.DoubleSide }));
     ceil.rotation.x = Math.PI / 2;
     ceil.position.y = 3.12;
-    ceil.position.z = -0.6;
+    ceil.position.z = 0.2;
     ceil.receiveShadow = !!quality.shadows;
     room.add(ceil);
     // drop-ceiling grid beams (thicker so they read)
     var beam = mat({ color: 0x6a6458, roughness: 0.8, metalness: 0.05 });
-    for (var i = -3; i <= 3; i++) {
-      addBox(room, 9, 0.04, 0.05, beam, 0, 3.09, i * 1.05);
+    for (var i = -4; i <= 4; i++) {
+      addBox(room, 10, 0.04, 0.05, beam, 0, 3.09, i * 1.05);
     }
-    for (i = -4; i <= 4; i++) {
-      addBox(room, 0.05, 0.04, 8, beam, i * 1.05, 3.09, -0.6);
+    for (i = -5; i <= 5; i++) {
+      addBox(room, 0.05, 0.04, 11, beam, i * 1.05, 3.09, 0.2);
     }
     // a couple of vents
     var vent = mat({ color: 0x3a3a36, metalness: 0.6, roughness: 0.4 });
@@ -6989,10 +6993,12 @@ three/build/three.module.js:
     var vinylT = texVinyl();
     var vyn = mat({ map: vinylT.map, normalMap: vinylT.normalMap, roughness: 0.55, metalness: 0.04, color: 0xffffff, normalScale: 1.1 });
     var vynDark = mat({ color: 0x2a0e10, roughness: 0.6, metalness: 0.04 });
-    // player-side booth (behind camera, we see the near edge / backrest top)
-    var nearSeat = addBox(room, 2.9, 0.14, 0.62, vyn, 0, 0.45, 1.28);
+    // player-side booth: low vinyl seat + short lip so it frames the shot
+    // without becoming a dark wall across the lower third of the lens.
+    var nearSeat = addBox(room, 2.95, 0.14, 0.72, vyn, 0, 0.45, 1.32);
     nearSeat.receiveShadow = true;
-    addBox(room, 2.9, 0.55, 0.12, vyn, 0, 0.78, 1.55);
+    addBox(room, 2.95, 0.20, 0.10, vyn, 0, 0.58, 1.64);
+    addBox(room, 2.95, 0.025, 0.025, chrome(0xd0d0c8), 0, 0.69, 1.60);
     // opponent booth
     addBox(room, 2.85, 0.14, 0.7, vyn, 0, 0.48, -1.42);
     addBox(room, 2.85, 0.85, 0.14, vyn, 0, 0.95, -1.72);
@@ -7138,7 +7144,7 @@ three/build/three.module.js:
   }
 
   function buildLights() {
-    lights.hemi = new THREE.HemisphereLight(0x2a3648, 0x1a1008, 0.22);
+    lights.hemi = new THREE.HemisphereLight(0x2a3648, 0x1a1008, 0.34);
     scene.add(lights.hemi);
     lights.amb = new THREE.AmbientLight(0x1a1612, 0.08);
     scene.add(lights.amb);
@@ -7299,7 +7305,215 @@ three/build/three.module.js:
     addBox(g, 0.16, 0.12, 0.04, mat({ color: 0xffd400, emissive: 0xffd400, emissiveIntensity: 0.3 }), -0.16, 0.38, 0.29);
   }
 
+  function buildDressing() {
+    /* Extra set dressing for the pulled-back camera: fills the newly visible
+       corners and aisle without crowding the table or the Repairman. */
+    var g = new THREE.Group();
+    groups.dressing = g;
+    scene.add(g);
+
+    var brass = mat({ color: 0xb8944a, metalness: 0.85, roughness: 0.32, envMapIntensity: 1.0 });
+    var black = mat({ color: 0x1a1612, roughness: 0.7, metalness: 0.08 });
+    var steel = mat({ color: 0x7a7e82, metalness: 0.75, roughness: 0.35 });
+    var cream = mat({ color: 0xb0a090, roughness: 0.9 });
+    var vinylT = texVinyl();
+    var vyn = mat({ map: vinylT.map, normalMap: vinylT.normalMap, roughness: 0.55, metalness: 0.04, color: 0xffffff, normalScale: 1.1 });
+    var wood = texWood();
+    var woodMat = mat({ map: wood.map, normalMap: wood.normalMap, roughness: 0.72, metalness: 0.04, color: 0xffffff, normalScale: 0.55 });
+
+    // Night window on the left wall — blinds + outside neon bleed
+    var win = new THREE.Group();
+    win.position.set(-3.28, 1.85, 0.55);
+    win.rotation.y = Math.PI / 2;
+    g.add(win);
+    addBox(win, 1.55, 1.25, 0.06, woodMat, 0, 0, 0);
+    var glass = mat({
+      color: 0x0a1018, emissive: 0x3a1840, emissiveIntensity: 0.45,
+      roughness: 0.18, metalness: 0.35, transparent: true, opacity: 0.92
+    });
+    neonMats.push(glass);
+    addBox(win, 1.38, 1.08, 0.02, glass, 0, 0, 0.03);
+    // outside neon smear
+    var smear = mat({ color: 0xff37cf, emissive: 0xff37cf, emissiveIntensity: 0.55, transparent: true, opacity: 0.22, depthWrite: false });
+    neonMats.push(smear);
+    addBox(win, 0.55, 0.7, 0.01, smear, -0.28, 0.05, 0.025);
+    var smear2 = mat({ color: 0x00edff, emissive: 0x00edff, emissiveIntensity: 0.4, transparent: true, opacity: 0.18, depthWrite: false });
+    neonMats.push(smear2);
+    addBox(win, 0.4, 0.55, 0.01, smear2, 0.35, -0.15, 0.025);
+    var slat = mat({ color: 0x2a2418, roughness: 0.7, metalness: 0.05 });
+    for (var i = 0; i < 8; i++) {
+      addBox(win, 1.36, 0.05, 0.018, slat, 0, 0.46 - i * 0.125, 0.055);
+    }
+    addBox(win, 0.03, 1.08, 0.03, brass, 0, 0, 0.07);
+    // warm bounce so the window reads at a distance
+    var winLite = new THREE.PointLight(0xff6a9a, 0.85, 4.2, 2);
+    winLite.position.set(-2.9, 1.85, 0.55);
+    g.add(winLite);
+    lights.win = winLite;
+
+    // Neighbor booth down the left aisle (gives the diner a row, not a void)
+    addBox(g, 1.35, 0.14, 0.7, vyn, -2.55, 0.45, 0.15);
+    addBox(g, 1.35, 0.78, 0.12, vyn, -2.55, 0.90, -0.18);
+    addBox(g, 0.12, 0.78, 0.7, vyn, -1.92, 0.90, 0.15);
+    addBox(g, 0.12, 0.78, 0.7, vyn, -3.18, 0.90, 0.15);
+    addBox(g, 1.35, 0.03, 0.03, chrome(0xd0d0c8), -2.55, 1.30, -0.12);
+    // a little table in that booth
+    addBox(g, 0.85, 0.06, 0.55, woodMat, -2.55, 0.88, 0.28);
+    addCyl(g, 0.04, 0.05, 0.42, 8, chrome(0xb0b0a8), -2.55, 0.65, 0.28);
+
+    // Coat rack by the left wall, nearer the camera
+    var rack = new THREE.Group();
+    rack.position.set(-3.05, 0, 1.85);
+    g.add(rack);
+    addCyl(rack, 0.03, 0.05, 1.85, 8, black, 0, 0.92, 0);
+    addCyl(rack, 0.16, 0.16, 0.03, 12, black, 0, 0.04, 0);
+    addCyl(rack, 0.018, 0.018, 0.55, 8, black, 0, 1.78, 0, 0, Math.PI / 2);
+    // hanging jacket (left)
+    var coat = mat({ color: 0x1a2030, roughness: 0.7, metalness: 0.04 });
+    addBox(rack, 0.32, 0.62, 0.14, coat, -0.16, 1.38, 0.02, 0, 0.15, 0.08);
+    addBox(rack, 0.12, 0.38, 0.12, coat, -0.34, 1.48, 0.04, 0, 0, 0.55);
+    addBox(rack, 0.12, 0.38, 0.12, coat, 0.02, 1.48, 0.04, 0, 0, -0.45);
+    // cap on the other hook
+    addCyl(rack, 0.09, 0.1, 0.05, 10, mat({ color: 0x3a2010, roughness: 0.65 }), 0.2, 1.72, 0.02);
+    addCyl(rack, 0.1, 0.1, 0.02, 10, mat({ color: 0x2a180c, roughness: 0.7 }), 0.2, 1.69, 0.02);
+
+    // Health-dept certificate + "NO REFUNDS" on the right wall
+    var cert = cvs(256, 320, function (ctx, W, H) {
+      ctx.fillStyle = "#d8cbb0";
+      ctx.fillRect(0, 0, W, H);
+      ctx.strokeStyle = "#5a3a14";
+      ctx.lineWidth = 14;
+      ctx.strokeRect(8, 8, W - 16, H - 16);
+      ctx.fillStyle = "#3a2a12";
+      ctx.font = "700 22px Anton, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("HEALTH DEPT", W / 2, 58);
+      ctx.font = "600 16px Epilogue, sans-serif";
+      ctx.fillText("THIS ESTABLISHMENT", W / 2, 92);
+      ctx.fillStyle = "#c8142a";
+      ctx.font = "700 110px Anton, sans-serif";
+      ctx.fillText("D+", W / 2, 210);
+      ctx.fillStyle = "#3a2a12";
+      ctx.font = "600 18px Epilogue, sans-serif";
+      ctx.fillText("SEE KITCHEN", W / 2, 268);
+    });
+    var certM = new THREE.Mesh(
+      track(new THREE.PlaneGeometry(0.38, 0.48)),
+      mat({ map: toTex(cert), roughness: 0.55, metalness: 0.05, emissive: 0x221800, emissiveIntensity: 0.08 })
+    );
+    certM.position.set(3.32, 1.95, -0.35);
+    certM.rotation.y = -Math.PI / 2;
+    g.add(certM);
+    addBox(g, 0.02, 0.52, 0.42, brass, 3.33, 1.95, -0.35);
+
+    var nr = neonText("NO REFUNDS", 512, 128, "#ffd400", "#ffd400");
+    var nrM = new THREE.Mesh(
+      track(new THREE.PlaneGeometry(0.62, 0.14)),
+      mat({ map: nr, emissive: 0xffd400, emissiveMap: nr, emissiveIntensity: 0.55, color: 0x221800, roughness: 0.5 })
+    );
+    nrM.position.set(3.32, 1.55, -0.35);
+    nrM.rotation.y = -Math.PI / 2;
+    g.add(nrM);
+
+    // Wall clock above the back counter
+    var clockFace = cvs(256, 256, function (ctx, W, H) {
+      ctx.fillStyle = "#1a140c";
+      ctx.beginPath(); ctx.arc(W / 2, H / 2, 120, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = "#ffd400";
+      ctx.lineWidth = 8;
+      ctx.beginPath(); ctx.arc(W / 2, H / 2, 116, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = "#f2ecd6";
+      ctx.font = "700 28px Anton, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      for (var n = 1; n <= 12; n++) {
+        var a = (n / 12) * Math.PI * 2 - Math.PI / 2;
+        ctx.fillText(String(n), W / 2 + Math.cos(a) * 88, H / 2 + Math.sin(a) * 88);
+      }
+      ctx.strokeStyle = "#ffd400";
+      ctx.lineWidth = 6;
+      ctx.beginPath(); ctx.moveTo(W / 2, H / 2); ctx.lineTo(W / 2 + 20, H / 2 - 50); ctx.stroke();
+      ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(W / 2, H / 2); ctx.lineTo(W / 2 + 62, H / 2 + 10); ctx.stroke();
+      ctx.fillStyle = "#ffd400";
+      ctx.beginPath(); ctx.arc(W / 2, H / 2, 7, 0, Math.PI * 2); ctx.fill();
+    });
+    var clock = new THREE.Mesh(
+      track(new THREE.CircleGeometry(0.18, 24)),
+      mat({ map: toTex(clockFace), roughness: 0.45, metalness: 0.1, emissive: 0x221800, emissiveIntensity: 0.15 })
+    );
+    clock.position.set(-0.85, 2.35, -3.04);
+    g.add(clock);
+    addCyl(g, 0.19, 0.19, 0.04, 20, brass, -0.85, 2.35, -3.07, Math.PI / 2);
+
+    // EXIT sign, back-left corner
+    var ex = neonText("EXIT", 256, 96, "#7cff6a", "#7cff6a");
+    var exM = new THREE.Mesh(
+      track(new THREE.PlaneGeometry(0.42, 0.14)),
+      mat({ map: ex, emissive: 0x7cff6a, emissiveMap: ex, emissiveIntensity: 0.9, color: 0x041008 })
+    );
+    exM.position.set(-2.85, 2.55, -3.04);
+    g.add(exM);
+    neonMats.push(exM.material);
+    addBox(g, 0.46, 0.18, 0.05, mat({ color: 0x0a120c, roughness: 0.6, metalness: 0.1 }), -2.85, 2.55, -3.08);
+
+    // Fluorescent troffer over the back counter — second light for depth
+    var fluo = mat({ color: 0xe8f0e8, emissive: 0xc8e0d0, emissiveIntensity: 0.7, roughness: 0.4, metalness: 0.05 });
+    addBox(g, 1.45, 0.04, 0.22, mat({ color: 0x3a3a36, metalness: 0.5, roughness: 0.4 }), 1.15, 3.06, -2.15);
+    addBox(g, 1.35, 0.03, 0.14, fluo, 1.15, 3.03, -2.15);
+    var fluoLite = new THREE.PointLight(0xc8e8d8, 0.45, 4.5, 2);
+    fluoLite.position.set(1.15, 2.85, -2.15);
+    g.add(fluoLite);
+
+    // Exposed conduit along the ceiling
+    addBox(g, 0.05, 0.05, 4.4, steel, -2.15, 3.02, -0.4);
+    addCyl(g, 0.06, 0.06, 0.08, 10, steel, -2.15, 3.02, 1.4, Math.PI / 2);
+    addCyl(g, 0.06, 0.06, 0.08, 10, steel, -2.15, 3.02, -2.2, Math.PI / 2);
+
+    // Chrome stools at the back counter
+    function stool(x, z) {
+      var s = new THREE.Group();
+      s.position.set(x, 0, z);
+      g.add(s);
+      addCyl(s, 0.16, 0.16, 0.04, 14, chrome(0xc8c8c0), 0, 0.72, 0);
+      addCyl(s, 0.15, 0.15, 0.03, 14, mat({ color: 0x3a1014, roughness: 0.55 }), 0, 0.75, 0);
+      addCyl(s, 0.025, 0.025, 0.68, 8, chrome(0xb0b0a8), 0, 0.36, 0);
+      addCyl(s, 0.14, 0.14, 0.03, 10, chrome(0xb0b0a8), 0, 0.04, 0);
+      addCyl(s, 0.012, 0.012, 0.22, 6, chrome(0xb0b0a8), 0.1, 0.48, 0, 0, Math.PI / 2);
+    }
+    stool(-1.15, -2.15);
+    stool(0.35, -2.18);
+    stool(1.55, -2.12);
+
+    // Payphone on the right wall, toward the camera
+    var phone = new THREE.Group();
+    phone.position.set(3.28, 1.35, 1.15);
+    phone.rotation.y = -Math.PI / 2;
+    g.add(phone);
+    addBox(phone, 0.32, 0.72, 0.16, mat({ color: 0x1a2a28, roughness: 0.55, metalness: 0.15 }), 0, 0, 0);
+    addBox(phone, 0.22, 0.16, 0.04, mat({ color: 0x0a1010, emissive: 0x00edff, emissiveIntensity: 0.25, roughness: 0.35 }), 0, 0.18, 0.09);
+    addCyl(phone, 0.05, 0.05, 0.12, 10, black, 0, -0.08, 0.14, Math.PI / 2);
+    addBox(phone, 0.08, 0.16, 0.04, black, 0, -0.08, 0.2);
+    addBox(phone, 0.18, 0.05, 0.05, chrome(0xb8944a), 0, -0.28, 0.1);
+
+    // Floor crumbs / a dropped napkin near the aisle (tiny depth cues)
+    addBox(g, 0.08, 0.004, 0.06, mat({ color: 0xe8dcc0, roughness: 0.85 }), 1.85, 0.01, 0.55, 0, 0.4, 0.1);
+    addBox(g, 0.05, 0.003, 0.04, mat({ color: 0xd8c8a0, roughness: 0.9 }), -1.7, 0.01, 0.72, 0, -0.6, 0);
+    addCyl(g, 0.018, 0.018, 0.006, 8, mat({ color: 0xffd400, metalness: 0.8, roughness: 0.3, emissive: 0x3a2e00, emissiveIntensity: 0.2 }), 0.85, 0.01, 1.05);
+
+    // Mop bucket in the back-right corner
+    addCyl(g, 0.16, 0.13, 0.28, 12, mat({ color: 0xffd400, roughness: 0.55, metalness: 0.1 }), 2.95, 0.16, -2.85);
+    addCyl(g, 0.15, 0.12, 0.04, 12, mat({ color: 0x3a6a8a, roughness: 0.4, metalness: 0.05, transparent: true, opacity: 0.7 }), 2.95, 0.22, -2.85);
+    addCyl(g, 0.012, 0.012, 1.15, 6, black, 2.85, 0.75, -2.75, 0.15, 0.1);
+    addBox(g, 0.16, 0.04, 0.05, mat({ color: 0x6a6050, roughness: 0.8 }), 2.82, 1.32, -2.7, 0.2);
+
+    // Trash can by the vending machine
+    addCyl(g, 0.16, 0.14, 0.42, 12, mat({ color: 0x2a2a28, metalness: 0.45, roughness: 0.45 }), 2.85, 0.22, -1.15);
+    addCyl(g, 0.17, 0.17, 0.03, 12, steel, 2.85, 0.44, -1.15);
+  }
+
   function buildToaster() {
+
     var g = new THREE.Group();
     groups.toaster = g;
     scene.add(g);
@@ -7842,11 +8056,11 @@ three/build/three.module.js:
   function handWorld(i, n) {
     n = Math.max(1, n || 5);
     var mid = (n - 1) / 2;
-    var x = (i - mid) * 0.34;
-    var z = 0.98 + Math.abs(i - mid) * 0.03;
-    var ry = (i - mid) * -0.08;
-    var rx = -Math.PI / 2 + 0.78;
-    return { x: x, y: TABLE_Y + 0.12, z: z, rx: rx, ry: ry, rz: 0 };
+    var x = (i - mid) * 0.36;
+    var z = 1.12 + Math.abs(i - mid) * 0.028;
+    var ry = (i - mid) * -0.07;
+    var rx = -Math.PI / 2 + 0.95;
+    return { x: x, y: TABLE_Y + 0.16, z: z, rx: rx, ry: ry, rz: 0 };
   }
   function makeCardMesh(card) {
     var grp = new THREE.Group();
@@ -8435,7 +8649,7 @@ three/build/three.module.js:
     renderer.setPixelRatio(pr);
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
-    camera.updateProjectionMatrix();
+    applyFov();
     if (quality.ps1) {
       var rw = Math.max(240, Math.floor(w / (quality.pixel || PIXEL)));
       var rh = Math.max(160, Math.floor(h / (quality.pixel || PIXEL)));
@@ -8517,13 +8731,13 @@ three/build/three.module.js:
 
     applyHoverPose();
 
-    // camera
+    // camera — slow seated sway (breathing, not drunk) + light mouse parallax
     var ox = 0, oy = 0, oz = 0;
-    ox += Math.sin(tAcc * 0.32) * 0.018;
-    oy += Math.sin(tAcc * 0.24) * 0.012;
-    // mouse parallax
-    ox += pointer.x * 0.09;
-    oy += pointer.y * 0.05;
+    ox += Math.sin(tAcc * 0.27) * 0.036 + Math.sin(tAcc * 0.11) * 0.014;
+    oy += Math.sin(tAcc * 0.21) * 0.024 + Math.cos(tAcc * 0.09) * 0.010;
+    oz += Math.cos(tAcc * 0.23) * 0.020;
+    ox += pointer.x * 0.12;
+    oy += pointer.y * 0.07;
     if (shakeAmp > 0.0005) {
       shakeT += dt;
       ox += (Math.random() - 0.5) * shakeAmp;
@@ -8533,8 +8747,10 @@ three/build/three.module.js:
     }
     var base = camMode === "closeup" ? camClose : camPlay;
     var look = camMode === "closeup" ? camLookClose : camLookPlay;
+    var lx = Math.sin(tAcc * 0.19) * 0.028;
+    var ly = Math.cos(tAcc * 0.15) * 0.014;
     camera.position.set(base.x + ox, base.y + oy, base.z + oz);
-    camera.lookAt(look.x + pointer.x * 0.04, look.y, look.z);
+    camera.lookAt(look.x + pointer.x * 0.05 + lx, look.y + ly, look.z);
 
     if (compositePass) {
       compositePass.uniforms.uTime.value = tAcc;
@@ -8602,17 +8818,21 @@ three/build/three.module.js:
 
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x05070d);
-    scene.fog = quality.ps1 ? new THREE.FogExp2(0x090705, 0.16) : new THREE.FogExp2(0x05070d, 0.085);
+    scene.fog = quality.ps1 ? new THREE.FogExp2(0x090705, 0.13) : new THREE.FogExp2(0x05070d, 0.058);
 
-    camera = new THREE.PerspectiveCamera(52, 16 / 9, 0.08, 30);
-    camPlay = new THREE.Vector3(0, 1.62, 2.22);
-    camLookPlay = new THREE.Vector3(0, 0.88, -0.22);
+    camera = new THREE.PerspectiveCamera(62, 16 / 9, 0.08, 40);
+    /* Pulled back and a little higher so the booth, walls, jukebox, CRUMB-O-MAT,
+       neon, pendant, and the Repairman's full upper body all sit in frame.
+       Cards stay in the foreground; hover-zoom is unchanged. */
+    camPlay = new THREE.Vector3(0, 1.98, 3.22);
+    camLookPlay = new THREE.Vector3(0, 1.08, -0.38);
     camClose = new THREE.Vector3(0.05, 1.70, 0.08);
     camLookClose = new THREE.Vector3(-0.18, 1.60, -1.02);
     camBase = camPlay; camLook = camLookPlay;
     camera.position.copy(camPlay);
     camera.lookAt(camLookPlay);
     camMode = "play";
+    applyFov();
 
     raycaster = new THREE.Raycaster();
     raycaster.params.Points = { threshold: 0.05 };
@@ -8636,6 +8856,7 @@ three/build/three.module.js:
     buildNeon();
     buildJukebox();
     buildVending();
+    buildDressing();
     buildToaster();
     buildAshtray();
     buildMeter();
@@ -8741,8 +8962,21 @@ three/build/three.module.js:
     return qualityName;
   }
 
+  function playFov(aspect) {
+    if (aspect < 0.65) return 68;   /* phone portrait: ceiling + floor, not fish-eye */
+    if (aspect < 1.05) return 65;
+    if (aspect <= 1.85) return 62;  /* 16:9 / 16:10 / 4:3 — designed framing */
+    return 58;                      /* phone landscape / ultrawide: keep lamp + hand */
+  }
+  function applyFov() {
+    if (!camera) return;
+    var aspect = camera.aspect || (16 / 9);
+    camera.fov = camMode === "closeup" ? 48 : playFov(aspect);
+    camera.updateProjectionMatrix();
+  }
   function setCameraMode(mode) {
     camMode = mode === "closeup" ? "closeup" : "play";
+    applyFov();
   }
 
   api.init = init;
