@@ -1,4 +1,4 @@
-# CyberToaster Kart v0.2.0
+# CyberToaster Kart v0.2.1
 
 A free, just-for-fun comic kart racer. Drive Mr. Toasty's Cybertruck on Monday Errands or Skullz Graveyard, drift, fire items, smash the Monday Motors dealership, and jump Toasty Lake.
 
@@ -19,6 +19,11 @@ Open `index.html` in a desktop browser (no server required). The game is a singl
 
 ## Changelog
 
+### v0.2.1
+
+- Mario Kart-style higher, pulled-back chase camera
+- Camera ducks under the graffiti underpass, pulls in when a wall sits between camera and truck, and adds a modest boost FOV kick
+
 ### v0.2.0
 
 - Ink and glitch art-direction overhaul (comic poster style, more polished)
@@ -29,7 +34,7 @@ Open `index.html` in a desktop browser (no server required). The game is a singl
 
 - First ARTcade release: two tracks, items, dealership shortcut, and the Toasty Lake jump
 
-A dated snapshot of this build lives in `v0.2.0/`. The previous snapshot is kept in `v0.1.0/`. To put the card on the ARTcade page, add:
+A dated snapshot of this build lives in `v0.2.1/`. Previous snapshots are kept in `v0.2.0/` and `v0.1.0/`. To put the card on the ARTcade page, add:
 
 ```html
 <script src="https://therapytoaster.github.io/tt-live/kart/arcade-card.js"></script>

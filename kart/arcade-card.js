@@ -11,7 +11,7 @@
 if(window.__ttKartCard)return;window.__ttKartCard=1;
 var NAME="CyberToaster Kart",NAME_UP="CYBERTOASTER KART";
 var LIVE="https://therapytoaster.github.io/tt-live/kart/";
-var ART_V="020";
+var ART_V="021";
 var U=(function(){
   var s=document.currentScript&&document.currentScript.src;
   if(s){var u=s.replace(/arcade-card\.js(?:\?.*)?$/i,"");if(u)return u}

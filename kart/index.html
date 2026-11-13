@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- CyberToaster Kart v0.2.0 · 538fc65 -->
-
+<!-- CyberToaster Kart v0.2.1 · e36b94a -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -5886,6 +5885,15 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     slab.receiveShadow = true;
     if (G.applyInk) G.applyInk(slab, 0.08);
     root.add(slab);
+    /* Chase-cam collider: duck under this slab. */
+    if (G.track) {
+      G.track.roofs = G.track.roofs || [];
+      G.track.roofs.push({
+        x: mid.x, y: mid.y, ang: ang,
+        hl: (length || 0) * 0.5, hw: (span || 0) * 0.5,
+        yBot: 15.2 - 0.7, yTop: 15.2 + 0.7,
+      });
+    }
     /* Warm under-lights so the ceiling never reads as a black hole. */
     const lamp = new (T.MeshBasicMaterial)({ color: 0xffe2b0, toneMapped: false });
     [-0.28, 0, 0.28].forEach(function (off) {
@@ -6001,6 +6009,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       G._grafRoot = null;
     }
     T.walls = [];
+    T.roofs = [];
     const graf = new (THREE().Group)();
     graf.name = "graffiti";
     G._grafRoot = graf;
@@ -8708,29 +8717,133 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
   function _chaseCam(field, dt, hard) {
     const p = field.player;
-    /* Stage 3: a bit closer so the truck is larger in frame, still wide. */
-    const back = 30, height = 9.4, look = 7;
-    const tx = p.x - Math.cos(p.ang) * back;
-    const tz = p.y - Math.sin(p.ang) * back;
-    const ty = height + (p.alt || 0) * 0.6;
+    /* Arcade kart framing (Mario Kart-style): further back and higher so
+       the whole truck sits small in the lower third, looking down the road.
+       Was Stage 3: back=30, height=9.4, look=7, lookY=5.5, fov=52. */
+    const BACK = 52, HEIGHT = 21, LOOK = 22, LOOK_Y = 4.6;
+    const FOV_BASE = 54, FOV_BOOST = 5, MIN_BACK = 24;
+    const alt = p.alt || 0;
+    const fx = Math.cos(p.ang), fz = Math.sin(p.ang);
+    let back = BACK, height = HEIGHT + alt * 0.65;
+
+    const T = G.track;
+    const roofs = (T && T.roofs) || [];
+    const walls = (T && T.walls) || [];
+
+    function inBox(x, z, ox, oz, ang, hl, hw) {
+      const ca = Math.cos(ang), sa = Math.sin(ang);
+      const dx = x - ox, dy = z - oz;
+      return Math.abs(dx * ca + dy * sa) <= hl && Math.abs(-dx * sa + dy * ca) <= hw;
+    }
+    function roofAt(x, z, pad) {
+      pad = pad || 0;
+      for (let i = 0; i < roofs.length; i++) {
+        const r = roofs[i];
+        if (inBox(x, z, r.x, r.y, r.ang, r.hl + pad, r.hw + pad)) return r;
+      }
+      return null;
+    }
+    function wallHitsSeg(x0, z0, x1, z1, yCam) {
+      for (let i = 0; i < walls.length; i++) {
+        const w = walls[i];
+        if (yCam > (w.h || 14) + 1.5) continue;
+        const ca = Math.cos(w.ang), sa = Math.sin(w.ang);
+        const hl = w.hl + 1.4, hd = w.hd + 1.4;
+        const ax = (x0 - w.x) * ca + (z0 - w.y) * sa;
+        const ay = -(x0 - w.x) * sa + (z0 - w.y) * ca;
+        const bx = (x1 - w.x) * ca + (z1 - w.y) * sa;
+        const by = -(x1 - w.x) * sa + (z1 - w.y) * ca;
+        for (let t = 0; t <= 1.001; t += 0.07) {
+          const lx = ax + (bx - ax) * t, ly = ay + (by - ay) * t;
+          if (Math.abs(lx) <= hl && Math.abs(ly) <= hd) return w;
+        }
+      }
+      return null;
+    }
+    function propHitsSeg(x0, z0, x1, z1) {
+      const props = (T && T.props) || [];
+      for (let i = 0; i < props.length; i++) {
+        const pr = props[i];
+        if (!pr || (pr.kind !== "tombstone" && pr.kind !== "crypt")) continue;
+        const rad = (pr.kind === "crypt" ? 8 : 4.2) * (pr.scale || 1) * 0.55;
+        const ax = x1 - x0, ay = z1 - z0;
+        const den = ax * ax + ay * ay || 1;
+        const tt = Math.max(0, Math.min(1, ((pr.x - x0) * ax + (pr.y - z0) * ay) / den));
+        const qx = x0 + ax * tt, qy = z0 + ay * tt;
+        const dx = pr.x - qx, dy = pr.y - qy;
+        if (dx * dx + dy * dy < rad * rad) return pr;
+      }
+      return null;
+    }
+    function roofClearance(x, z, h) {
+      const r = roofAt(x, z, 10);
+      if (!r) return h;
+      const bot = r.yBot != null ? r.yBot : 14.5;
+      return Math.min(h, bot - 2.2);
+    }
+
+    /* Pull in if a graffiti/underpass wall sits between camera and truck;
+       duck if the camera path is under a roof slab. */
+    let picked = false;
+    for (let t = 1; t >= MIN_BACK / BACK - 0.001; t -= 0.07) {
+      const b = BACK * t;
+      const cx = p.x - fx * b, cz = p.y - fz * b;
+      let h = height;
+      for (let i = 0; i <= 6; i++) {
+        const u = i / 6;
+        h = roofClearance(p.x - fx * b * u, p.y - fz * b * u, h);
+      }
+      /* Look a little behind the desired cam so we duck before hitting the lip. */
+      h = roofClearance(cx - fx * 14, cz - fz * 14, h);
+      if (wallHitsSeg(cx, cz, p.x, p.y, h) || propHitsSeg(cx, cz, p.x, p.y)) continue;
+      back = b;
+      height = h;
+      picked = true;
+      break;
+    }
+    if (!picked) {
+      back = MIN_BACK;
+      height = roofClearance(p.x - fx * back, p.y - fz * back, height);
+    }
+
+    const tx = p.x - fx * back;
+    const tz = p.y - fz * back;
+    let ty = height;
+    const rHere = roofAt(tx, tz, 2);
+    if (rHere && ty > rHere.yBot - 1.6) ty = rHere.yBot - 1.8;
+
     if (hard || !chaseCam.userData.ready) {
       chaseCam.position.set(tx, ty, tz);
       chaseCam.userData.ready = true;
     } else {
-      const k = 1 - Math.pow(0.012, dt || 0.016);
+      const lowering = ty < chaseCam.position.y - 0.4;
+      const k = 1 - Math.pow(lowering ? 1e-7 : 0.012, dt || 0.016);
       chaseCam.position.x = G.lerp(chaseCam.position.x, tx, k);
       chaseCam.position.y = G.lerp(chaseCam.position.y, ty, k);
       chaseCam.position.z = G.lerp(chaseCam.position.z, tz, k);
+      const rNow = roofAt(chaseCam.position.x, chaseCam.position.z, 1);
+      if (rNow && chaseCam.position.y > rNow.yBot - 1.4) {
+        chaseCam.position.y = rNow.yBot - 1.6;
+      }
     }
-    const lx = p.x + Math.cos(p.ang) * look;
-    const lz = p.y + Math.sin(p.ang) * look;
+
+    const lx = p.x + fx * LOOK;
+    const lz = p.y + fz * LOOK;
     let sx = 0, sy = 0, sz = 0;
     if (G.shakeT > 0) {
       sx = G.rand(-1, 1) * G.shakeT * 1.4;
       sy = G.rand(-0.5, 0.5) * G.shakeT;
       sz = G.rand(-1, 1) * G.shakeT * 1.4;
     }
-    chaseCam.lookAt(lx + sx, 5.5 + (p.alt || 0) * 0.5 + sy, lz + sz);
+    chaseCam.lookAt(lx + sx, LOOK_Y + alt * 0.5 + sy, lz + sz);
+
+    /* Sane boost FOV kick — widen a little, then ease back. */
+    const boost = G.clamp((p.boostT || 0) / 0.35, 0, 1);
+    const wantFov = FOV_BASE + FOV_BOOST * boost;
+    const fk = 1 - Math.pow(0.02, dt || 0.016);
+    chaseCam.fov += (wantFov - chaseCam.fov) * fk;
+    chaseCam.updateProjectionMatrix();
+
     if (G._sun) {
       G._sun.position.set(p.x + 30, 120, p.y + 20);
       G._sun.target.position.set(p.x, 0, p.y);
@@ -8738,11 +8851,10 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       if (!G._sun.target.parent) scene.add(G._sun.target);
     }
     if (G._fill) {
-      /* Rim/fill from just behind the chase camera, toward the truck. */
       G._fill.position.set(
-        p.x - Math.cos(p.ang) * (back + 6),
-        height + 5,
-        p.y - Math.sin(p.ang) * (back + 6)
+        p.x - fx * (back + 6),
+        Math.max(height, 12) + 5,
+        p.y - fz * (back + 6)
       );
       if (G._fill.target) {
         G._fill.target.position.set(p.x, 5, p.y);
@@ -8750,7 +8862,16 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         if (!G._fill.target.parent) scene.add(G._fill.target);
       }
     }
+    G._chaseInfo = {
+      back: back, height: height, camY: chaseCam.position.y,
+      camX: chaseCam.position.x, camZ: chaseCam.position.z,
+      fov: chaseCam.fov, look: LOOK, lookY: LOOK_Y,
+      ducked: !!(rHere || height < HEIGHT + alt * 0.65 - 0.5),
+      pulled: back < BACK - 0.5,
+      alt: alt,
+    };
   }
+  G.getChaseInfo = function () { return G._chaseInfo || null; };
 
   function _studioCam(field, t, close) {
     const p = field.player;
