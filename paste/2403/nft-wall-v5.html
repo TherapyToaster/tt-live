@@ -1,0 +1,181 @@
+<!-- TT NFT WALL v5 START -->
+<style>
+#ttwall{--y:#FFD400;--k:#05070d;--r:#ff2a2a;--c:#00e5ff;box-sizing:border-box;position:relative;width:100%;max-width:1100px;margin:40px auto;padding:0 0 6px;color:#fff;font-family:Epilogue,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;text-align:center}
+#ttwall *{box-sizing:border-box}
+#ttwall .tw-kick{margin:0 0 6px;font:700 12px/1.2 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.28em;text-transform:uppercase;color:var(--c)}
+#ttwall .tw-h{margin:0;font-family:Anton,Impact,'Arial Narrow Bold',sans-serif;font-weight:400;text-transform:uppercase;font-size:clamp(28px,5.2vw,58px);line-height:1;color:var(--y);text-shadow:2px 2px 0 var(--r),-2px -2px 0 var(--c)}
+#ttwall .tw-sub{margin:10px auto 18px;max-width:640px;font-size:15px;line-height:1.45;color:#dee3de}
+#ttwall .tw-vp{position:relative;height:540px;overflow:hidden;background:#000;border:2px solid var(--y);border-radius:14px;box-shadow:4px 4px 0 var(--r),-4px -4px 0 var(--c);cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;overscroll-behavior:contain;
+  background-image:linear-gradient(rgba(255,212,0,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,212,0,.06) 1px,transparent 1px);background-size:19px 19px}
+#ttwall .tw-vp.tw-drag{cursor:grabbing}
+#ttwall .tw-world{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
+#ttwall .tw-t{position:absolute;display:block;overflow:hidden;border-radius:3px;background:#0b0d14;outline:1px solid rgba(255,212,0,.18);text-decoration:none;color:#fff;-webkit-user-drag:none}
+#ttwall .tw-t img{display:block;width:100%;height:100%;object-fit:cover;pointer-events:none;-webkit-user-drag:none}
+#ttwall .tw-t::after{content:"";position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(0,0,0,.22) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.22) 1px,transparent 1px);background-size:6px 6px;mix-blend-mode:multiply;opacity:.55}
+#ttwall .tw-t:hover,#ttwall .tw-t:focus-visible{outline:2px solid var(--y);z-index:2;box-shadow:3px 3px 0 var(--r),-3px -3px 0 var(--c)}
+#ttwall .tw-t:focus-visible{outline-offset:1px}
+#ttwall .tw-cap{position:absolute;left:0;right:0;bottom:0;z-index:1;padding:3px 5px;background:linear-gradient(transparent,rgba(0,0,0,.85));font:700 9px/1.2 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.06em;text-transform:uppercase;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#ttwall .tw-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:0}
+#ttwall .tw-badge{position:absolute;top:3px;right:3px;z-index:1;padding:1px 4px;border:1px solid var(--y);border-radius:3px;background:#000;color:var(--y);font:700 8px/1.2 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.04em;text-transform:uppercase}
+#ttwall .tw-ui{position:absolute;right:10px;top:10px;z-index:5;display:flex;gap:6px}
+#ttwall .tw-ui button,#ttwall .tw-go{display:grid;place-items:center;min-width:36px;height:36px;padding:0 10px;margin:0;border:2px solid var(--y);border-radius:10px;background:#000;color:var(--y);font:800 16px/1 system-ui,sans-serif;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#ttwall .tw-ui button:hover,#ttwall .tw-ui button:focus-visible{background:var(--y);color:#000;outline:none}
+#ttwall .tw-ui .tw-done{display:none;font-size:12px;letter-spacing:.06em}
+#ttwall .tw-hint{transition:opacity .4s ease;position:absolute;left:10px;bottom:10px;z-index:5;padding:5px 9px;border-radius:8px;background:rgba(0,0,0,.75);border:1px solid rgba(255,212,0,.4);color:#dee3de;font:600 11px/1.2 ui-monospace,Menlo,Consolas,monospace;pointer-events:none}
+#ttwall.tw-used .tw-hint{opacity:0}
+#ttwall .tw-gate{position:absolute;inset:0;z-index:6;display:none;place-items:center;background:rgba(0,0,0,.35)}
+#ttwall .tw-go{height:auto;padding:12px 20px;border-radius:999px;background:var(--y);color:#000;font-size:15px;box-shadow:3px 3px 0 var(--r),-3px -3px 0 var(--c)}
+#ttwall .tw-legend{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:16px 0 0}
+#ttwall .tw-legend button{display:inline-flex;align-items:center;margin:0;padding:7px 12px;border:1.5px solid rgba(255,212,0,.55);border-radius:999px;background:#0b0d14;color:#fff;font:700 12px/1 system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+#ttwall .tw-legend button:hover,#ttwall .tw-legend button:focus-visible{border-color:var(--y);background:#000;outline:none}
+#ttwall .tw-legend em{font-style:normal;opacity:.6;margin-left:5px}
+#ttwall .tw-note{margin:12px 0 0;font-size:12px;color:#9aa0a6}
+#ttwall .tw-note a{color:var(--y)}
+@media (pointer:coarse){#ttwall .tw-vp{touch-action:pan-y}#ttwall.tw-used .tw-hint{opacity:0}
+#ttwall .tw-gate{display:grid}#ttwall.tw-live .tw-vp{touch-action:none}#ttwall.tw-live .tw-gate{display:none}#ttwall.tw-live .tw-ui .tw-done{display:grid}}
+@media (max-width:600px){#ttwall .tw-vp{height:420px}#ttwall .tw-sub{font-size:14px}#ttwall .tw-legend{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;padding:0 2px 8px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}#ttwall .tw-legend button{font-size:11px;padding:6px 10px;flex:0 0 auto}}
+@media (prefers-reduced-motion:reduce){#ttwall .tw-world{transition:none!important}}
+#ttwall.tw-bo{max-width:none;margin-left:0;margin-right:0}
+.tw-host{display:block;width:100%;padding:8px 4vw;background:#05070d;box-sizing:border-box;clear:both}
+.tw-gone{display:none!important}
+</style>
+<section id="ttwall" aria-labelledby="ttwall-h">
+  <p class="tw-kick">// mr. toasty's nft wall</p>
+  <h2 class="tw-h" id="ttwall-h">Mr. Toasty's NFT Wall</h2>
+  <p class="tw-sub">Every NFT he owns, on one wall. Drag to look around, scroll or pinch to zoom, tap a tile to see where it came from.</p>
+  <div class="tw-vp" role="region" aria-label="Mr. Toasty's NFT Wall: zoomable wall of Coty's NFTs">
+    <div class="tw-world"></div>
+    <div class="tw-ui"><button type="button" class="tw-zi" aria-label="Zoom in">+</button><button type="button" class="tw-zo" aria-label="Zoom out">&minus;</button><button type="button" class="tw-rs" aria-label="Reset view">&#8634;</button><button type="button" class="tw-done" aria-label="Done exploring">Done</button></div>
+    <div class="tw-hint">drag &middot; scroll / pinch to zoom &middot; tap a tile</div>
+    <div class="tw-gate"><button type="button" class="tw-go">&#128128; Tap to explore the wall</button></div>
+  </div>
+  <div class="tw-legend" aria-label="Jump to a collection"></div>
+  <p class="tw-note">Holdings as of Nov 13, 2026</p>
+</section>
+<script>
+(function(){
+var R=document.getElementById('ttwall');if(!R||R.getAttribute('data-ok'))return;R.setAttribute('data-ok','1');
+/* ===== PLACEMENT (v2): leave the narrow Fluid Engine Code block and sit full width in the page flow,
+   just before the "GLITCH ART" section. If that section isn't found, break out of the block to full content width. ===== */
+var SRC=R.parentNode,BLK=R.closest('.fe-block'),SEC=R.closest('section.page-section'),HOST=null;
+function after(x){return !!(R.compareDocumentPosition(x)&4);}
+function artSec(){var a=null;{var k=document.querySelectorAll('section.page-section h1,section.page-section h2,section.page-section h3,section.page-section p');for(var i=0;i<k.length;i++){var x=k[i].textContent.trim();if(x.length<60&&/glitch art\s*$/i.test(x)&&after(k[i])){a=k[i];break;}}}if(!a){a=document.getElementById('tt-art');if(a&&!after(a))a=null;}
+  var s=a&&a.closest('section.page-section');return s&&s!==SEC&&!s.contains(R)&&after(s)?s:null;}
+function bo(){if(HOST||!R.isConnected)return;var de=document.documentElement,W=de.clientWidth,g=W<768?Math.round(W*.06):Math.round(W*.04),w=Math.min(1100,W-2*g);
+  R.classList.add('tw-bo');R.style.width=w+'px';R.style.marginLeft='0px';var l=R.getBoundingClientRect().left;R.style.marginLeft=Math.round((W-w)/2-l)+'px';}
+function unbo(){R.classList.remove('tw-bo');R.style.width='';R.style.marginLeft='';}
+function tidy(){if(!BLK||BLK.contains(R))return;BLK.classList.add('tw-gone');
+  var fe=BLK.parentNode,vis=0;if(fe)[].forEach.call(fe.children,function(c){if(c!==BLK&&/fe-block/.test(c.className)&&c.getClientRects().length&&c.textContent.trim()+c.querySelectorAll('img,iframe,video,canvas,svg').length)vis++;});
+  if(SEC&&!vis&&!SEC.querySelector('#tt-art'))SEC.classList.add('tw-gone');}
+function move(){if(HOST)return true;var t=artSec();if(!t||!t.parentNode)return false;
+  HOST=document.createElement('div');HOST.className='tw-host';t.parentNode.insertBefore(HOST,t);unbo();HOST.appendChild(R);R.classList.add('tw-moved');if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',tidy);else tidy();return true;}
+if(!move()){bo();if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){if(move()&&typeof fit==='function')fit(false);});}
+window.addEventListener('resize',function(){if(!HOST)bo();});
+/* ===== DATA =====
+   Live thumbs + holdings are at tt-live a/5/ (commit ef6b54eb040287b760944a01df2217ea1ee4947b).
+   Preview pages may set window.TTWALL_BASE before this script to override. */
+var BASE=window.TTWALL_BASE||'https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@ef6b54eb040287b760944a01df2217ea1ee4947b/a/5/';
+if(BASE.slice(-1)!=='/')BASE+='/';
+var G={};
+var CS=72,GAP=4,PI=CS+GAP,COLS=36;
+var W=COLS*PI-GAP,H=12*PI-GAP;
+var world=R.querySelector('.tw-world'),vp=R.querySelector('.tw-vp');
+world.style.width=W+'px';world.style.height=H+'px';
+function el(t,c,h){var e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;}
+function pos(e,c,r,w,h){e.style.left=c*PI+'px';e.style.top=r*PI+'px';e.style.width=(w*PI-GAP)+'px';e.style.height=(h*PI-GAP)+'px';}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function link(href,cls){var a=el('a','tw-t'+(cls?' '+cls:''));a.href=href;if(!/^\//.test(href)){a.target='_blank';a.rel='noopener';}a.draggable=false;return a;}
+function thumbOf(it){return it.e?BASE+'eth-'+String(it.e).toLowerCase()+'-'+it.i+'.webp':BASE+'sol-'+it.m+'.webp';}
+function urlOf(it){return it.e?'https://opensea.io/assets/ethereum/'+it.e+'/'+it.i:'https://magiceden.io/item-details/'+it.m;}
+var groups={};
+function mark(g,c,r,w,h,n){if(!groups[g])groups[g]={c:c,r:r,c2:c,r2:r,n:0};var o=groups[g];o.c=Math.min(o.c,c);o.r=Math.min(o.r,r);o.c2=Math.max(o.c2,c+(w||1));o.r2=Math.max(o.r2,r+(h||1));if(typeof n==='number')o.n+=n;else o.n++;}
+/* lazy image tiles */
+var lazy=[];
+function addImg(a,src,alt){lazy.push({el:a,src:src,alt:alt,on:false});}
+function visBox(){var pad=Math.max(vp.clientWidth,vp.clientHeight)*0.85;return {x0:(-S.x-pad)/S.s,y0:(-S.y-pad)/S.s,x1:(vp.clientWidth-S.x+pad)/S.s,y1:(vp.clientHeight-S.y+pad)/S.s};}
+function loadVis(){if(!lazy.length)return;var b=visBox(),i,t,L,T,Rgt,B,show,im;
+  for(i=0;i<lazy.length;i++){t=lazy[i];L=parseFloat(t.el.style.left)||0;T=parseFloat(t.el.style.top)||0;Rgt=L+(parseFloat(t.el.style.width)||0);B=T+(parseFloat(t.el.style.height)||0);
+    show=Rgt>=b.x0&&L<=b.x1&&B>=b.y0&&T<=b.y1;
+    if(show&&!t.on){im=new Image();im.decoding='async';im.alt=t.alt;im.draggable=false;im.src=t.src;t.el.appendChild(im);t.on=true;}
+    else if(!show&&t.on){im=t.el.querySelector('img');if(im)im.remove();t.on=false;}}}
+var loadTO;
+function scheduleLoad(){cancelAnimationFrame(loadTO);loadTO=requestAnimationFrame(loadVis);}
+/* ===== holdings packer: continuous rectangular mosaic =====
+   Collections stay in order and stay contiguous, but they flow row by row
+   like text (no new row per collection). Column count is chosen to match
+   the viewport aspect ratio, so the wall is a solid rectangle that fills
+   the frame when fitted and centered. */
+var cursor={c:0,r:0},packedData=null,chipOrder=[];
+function chooseCols(n){n=Math.max(1,n);var vw=Math.max(1,vp.clientWidth),vh=Math.max(1,vp.clientHeight),aspect=vw/vh,target=Math.sqrt(n*aspect);
+  var lo=Math.max(8,Math.floor(target-8)),hi=Math.min(n,Math.ceil(target+8)),best=Math.max(8,Math.round(target)),bestScore=1e9,c,rows,last,a,score;
+  for(c=lo;c<=hi;c++){rows=Math.ceil(n/c);last=n%c||c;a=(c*PI-GAP)/(rows*PI-GAP);score=Math.abs(Math.log(a/aspect))+((c-last)/c)*0.2;if(score<bestScore){bestScore=score;best=c;}}
+  return best;}
+function bump(w){if(cursor.c+w>COLS){cursor.c=0;cursor.r+=1;}}
+function placeItem(id,color,it,label){bump(1);var title=(label?label+': ':'')+(it.title||it.n||'NFT');var a=link(urlOf(it));a.title=title+(it.l?' · listed on Magic Eden':'');
+  addImg(a,thumbOf(it),title);a.appendChild(el('span','tw-cap','<i class="tw-dot" style="background:'+color+'"></i>'+esc(it.n||'')));
+  if(it.l)a.appendChild(el('span','tw-badge','listed'));else if(it.a)a.appendChild(el('span','tw-badge','\u25b6'));
+  pos(a,cursor.c,cursor.r,1,1);world.appendChild(a);mark(id,cursor.c,cursor.r,1,1,1);cursor.c+=1;}
+function packColl(col){for(var i=0;i<col.items.length;i++)placeItem(col.id,col.color,col.items[i],col.name);}
+function packHoldings(data){
+  if(data)packedData=data;data=packedData||{count:0,collections:[]};
+  var kick=R.querySelector('.tw-kick');if(kick&&data.count)kick.textContent="// mr. toasty's nft wall  ·  "+data.count+" nfts";
+  G={};var tz=null,big=[],small=[],singles={id:'sg',name:'Singles',color:'#9aa0a6',n:0,items:[]};
+  (data.collections||[]).forEach(function(c){G[c.id]=[c.name,c.color];
+    if(c.id==='tz')tz=c;
+    else if(c.n>=2){if(c.n>=20)big.push(c);else small.push(c);}
+    else{var it=Object.assign({},c.items[0]);it.n=c.name;singles.items.push(it);singles.n++;}});
+  var order=[],n=0,i;if(tz){G.tz=[tz.name,tz.color];order.push(tz);}
+  for(i=0;i<big.length;i++)order.push(big[i]);for(i=0;i<small.length;i++)order.push(small[i]);
+  if(singles.n){G.sg=['Singles',singles.color];order.push(singles);}
+  for(i=0;i<order.length;i++)n+=order[i].items.length;
+  COLS=chooseCols(n);world.innerHTML='';lazy=[];groups={};cursor={c:0,r:0};
+  for(i=0;i<order.length;i++)packColl(order[i]);
+  chipOrder=order.map(function(c){return c.id;});
+  var maxR=1;Object.keys(groups).forEach(function(g){maxR=Math.max(maxR,groups[g].r2);});
+  H=maxR*PI-GAP;W=COLS*PI-GAP;world.style.width=W+'px';world.style.height=H+'px';
+  legend();
+}
+/* ===== view: pan + zoom ===== */
+var S={x:0,y:0,s:1},MIN=.2,MAX=4,fitS=1;
+function apply(anim){world.style.transition=anim?'transform .35s ease':'none';world.style.transform='translate3d('+S.x+'px,'+S.y+'px,0) scale('+S.s+')';scheduleLoad();}
+function clamp(){var vw=vp.clientWidth,vh=vp.clientHeight,ww=W*S.s,wh=H*S.s,m=60;
+  S.x=ww<vw?(vw-ww)/2:Math.min(m,Math.max(vw-ww-m,S.x));S.y=wh<vh?(vh-wh)/2:Math.min(m,Math.max(vh-wh-m,S.y));}
+function fit(anim,whole){var vw=vp.clientWidth,vh=vp.clientHeight,cs=Math.min(vw/W,vh/H)*.94;MIN=Math.max(.08,cs*.85);
+  S.s=cs;S.x=(vw-W*S.s)/2;S.y=(vh-H*S.s)/2;clamp();apply(anim);}
+function zoomAt(f,px,py,anim){var ns=Math.min(MAX,Math.max(MIN,S.s*f));f=ns/S.s;S.x=px-(px-S.x)*f;S.y=py-(py-S.y)*f;S.s=ns;clamp();apply(anim);}
+function flyTo(g){var o=groups[g];if(!o)return;var vw=vp.clientWidth,vh=vp.clientHeight,gw=(o.c2-o.c)*PI,gh=(o.r2-o.r)*PI;
+  S.s=Math.min(MAX,Math.max(MIN,Math.min(vw/gw,vh/gh)*.9));S.x=vw/2-(o.c*PI+gw/2)*S.s;S.y=vh/2-(o.r*PI+gh/2)*S.s;clamp();apply(true);}
+function center(){return [vp.clientWidth/2,vp.clientHeight/2];}
+R.querySelector('.tw-zi').onclick=function(){var c=center();zoomAt(1.4,c[0],c[1],true);};
+R.querySelector('.tw-zo').onclick=function(){var c=center();zoomAt(1/1.4,c[0],c[1],true);};
+R.querySelector('.tw-rs').onclick=function(){fit(true);};
+var coarse=window.matchMedia&&matchMedia('(pointer:coarse)').matches;
+function live(on){R.classList.toggle('tw-live',on);}
+R.querySelector('.tw-go').onclick=function(){live(true);};
+R.querySelector('.tw-done').onclick=function(){live(false);};
+function active(e){return !(e.pointerType==='touch'&&coarse&&!R.classList.contains('tw-live'));}
+vp.addEventListener('wheel',function(e){if(e.target.closest('.tw-ui'))return;e.preventDefault();var b=vp.getBoundingClientRect(),d=e.deltaMode===1?e.deltaY*16:e.deltaY;zoomAt(Math.exp(-d*.0015),e.clientX-b.left,e.clientY-b.top,false);},{passive:false});
+var pts={},moved=0,last=null,pinch=null;
+function used(){R.classList.add('tw-used');}vp.addEventListener('pointerdown',used);vp.addEventListener('wheel',used,{passive:true});
+function mid(){var k=Object.keys(pts),a=pts[k[0]],b=pts[k[1]];return {x:(a.x+b.x)/2,y:(a.y+b.y)/2,d:Math.hypot(a.x-b.x,a.y-b.y)};}
+vp.addEventListener('pointerdown',function(e){if(e.button>0||e.target.closest('.tw-ui,.tw-gate')||!active(e))return;
+  pts[e.pointerId]={x:e.clientX,y:e.clientY};if(Object.keys(pts).length===1){moved=0;last={x:e.clientX,y:e.clientY};}
+  if(Object.keys(pts).length===2)pinch=mid();vp.classList.add('tw-drag');});
+window.addEventListener('pointermove',function(e){var p=pts[e.pointerId];if(!p)return;p.x=e.clientX;p.y=e.clientY;var n=Object.keys(pts).length,b=vp.getBoundingClientRect();
+  if(n>=2&&pinch){var m=mid();S.x+=m.x-pinch.x;S.y+=m.y-pinch.y;if(pinch.d>0)zoomAt(m.d/pinch.d,m.x-b.left,m.y-b.top,false);else{clamp();apply(false);}moved+=99;pinch=m;}
+  else if(n===1&&last){var dx=e.clientX-last.x,dy=e.clientY-last.y;moved+=Math.abs(dx)+Math.abs(dy);S.x+=dx;S.y+=dy;last={x:e.clientX,y:e.clientY};clamp();apply(false);}
+  if(moved>6)e.preventDefault();},{passive:false});
+function up(e){if(!pts[e.pointerId])return;delete pts[e.pointerId];var k=Object.keys(pts);pinch=null;if(k.length===1){last={x:pts[k[0]].x,y:pts[k[0]].y};}if(!k.length){last=null;vp.classList.remove('tw-drag');}}
+window.addEventListener('pointerup',up);window.addEventListener('pointercancel',up);
+vp.addEventListener('click',function(e){if(moved>6){e.preventDefault();e.stopPropagation();moved=0;}},true);
+vp.addEventListener('dragstart',function(e){e.preventDefault();});
+/* legend */
+function legend(){var L=R.querySelector('.tw-legend');L.innerHTML='';
+  chipOrder.forEach(function(g){var o=groups[g];if(!o||!G[g])return;var b=el('button','','<i class="tw-dot" style="background:'+G[g][1]+'"></i>'+esc(G[g][0])+'<em>'+o.n+'</em>');b.type='button';b.onclick=function(){flyTo(g);};L.appendChild(b);});
+  var a=el('button','','&#10227; Whole wall');a.type='button';a.onclick=function(){fit(true,true);};L.appendChild(a);}
+function boot(data){packHoldings(data||{count:0,collections:[]});fit(false);R.setAttribute('data-ready','1');
+  var rz;window.addEventListener('resize',function(){clearTimeout(rz);rz=setTimeout(function(){packHoldings();fit(false);},150);});}
+fetch(BASE+'holdings.json').then(function(r){if(!r.ok)throw 0;return r.json();}).then(boot).catch(function(){boot(null);});
+})();
+</script>
+<!-- TT NFT WALL v5 END -->
