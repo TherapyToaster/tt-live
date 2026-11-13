@@ -11,7 +11,7 @@
 if(window.__ttPitCard)return;window.__ttPitCard=1;
 var NAME="Toaster Pit",NAME_UP="TOASTER PIT";
 var LIVE="https://therapytoaster.github.io/tt-live/toaster-pit/";
-var ART_V="040";
+var ART_V="050";
 var U=(function(){
   var s=document.currentScript&&document.currentScript.src;
   if(s){var u=s.replace(/arcade-card\.js(?:\?.*)?$/i,"");if(u)return u}

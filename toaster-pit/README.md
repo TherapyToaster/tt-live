@@ -1,4 +1,4 @@
-# Toaster Pit v0.4.0
+# Toaster Pit v0.5.0
 
 A Mr. Toasty slot-machine roguelike. You're in the basement for a therapy session, and you owe crumbs to the Breadlord. Pull the cursed 3×5 Toaster Slot, buy charms from the vending fridge, and pay each deadline — or get burnt.
 
@@ -18,7 +18,7 @@ CloverPit is a gameplay-loop reference only. Every name, symbol, charm, and line
 - **Confirm / bank / pay / continue:** Enter or Space
 - **CRT scanlines:** C
 - **Quality:** Q (high / low)
-- **Mute:** M
+- **Mute / volume:** M, or the AUDIO / MUTED button
 
 ## The loop
 
@@ -43,6 +43,12 @@ Three Burnt Toast in a line is a Burn: that pull's winnings are wiped, unless a 
 Crumb Tray, Butter Knife, Rubber Skull, Smoke Detector, Pop-Up Timer, Therapy Couch, Glitch Filter, Crust Collector, Extension Cord, World's Okayest Mug, Fork in the Outlet, Sourdough Starter, Triggered Button, Jam Session, Golden Crumbs.
 
 Crossover charms from Kart, Crypt, and Skullz are waiting on Coty's picks and are not in this prototype.
+
+## Graphics (v0.5)
+
+An original looping soundtrack is generated in the WebAudio API — a creepy lo-fi basement synth in the Mr. Toasty vibe, with no third-party audio files. Music starts after the first click or key and swells on the final pulls before a deadline. M or the AUDIO button mutes it. SFX are also procedural: lever clunk, reel whir and per-reel stop thunks, small/medium/big win jingles, a coin-counter tick, a Burnt Toast curse (sizzle, low drone, glitch), shop buy, charm blips, a debt-paid fanfare, and a game-over sigh.
+
+Wins shake the HUD and the post-process (the camera never moves), with crumb, butter-spark, and coin bursts, glow pulses and an animated tracer on paying lines, payout number pops, and a vertical smear on spinning reels. A Burn brings smoke, an RGB-split glitch, a red vignette, and charred-edge flicker. A jackpot is a full-screen flash plus a crumb-and-confetti rain. Dust motes and flickering lights stay as idle ambience. Q still drops particles and post-processing.
 
 ## Graphics (v0.4)
 

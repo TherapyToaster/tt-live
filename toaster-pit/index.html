@@ -1557,7 +1557,7 @@ class RoundedBoxGeometry extends BoxGeometry {
 // Palette is the shared Mr. Toasty universe set, all on black.
 var PIT = PIT || {};
 
-PIT.VERSION = "0.4.0";
+PIT.VERSION = "0.5.0";
 
 PIT.PAL = {
   black:    "#000000",
@@ -2423,9 +2423,18 @@ PIT.colorMat = function (hex, opts) {
 
 
 /* ==== 15-audio.js ==== */
-// Toaster Pit — synthesized sound. Toaster pop and ding on wins, smoke-alarm on Burns.
+// Toaster Pit v0.5 — original procedural soundtrack and SFX, WebAudio only.
+// Creepy lo-fi basement synth in the Mr. Toasty vibe. No third-party audio files.
 (function () {
-  var ctx = null, master, humNode = null, humGain = null, muted = false;
+  var ctx = null, master, musicBus, sfxBus, crunch;
+  var muted = false, volume = 1, started = false;
+  var tension = 0, targetTension = 0;
+  var music = { on: false, next: 0, step: 0, bar: 0, timer: 0 };
+  var whir = null, whirGain = null, whirFilter = null;
+  var drones = []; // long-lived music voices we fade on mute/stop
+
+  var ROOT = 73.42; // D2 — warm-dark basement tonic
+  var MINOR = [0, 2, 3, 5, 7, 8, 10, 12];
 
   function ac() {
     if (ctx) return ctx;
@@ -2433,178 +2442,585 @@ PIT.colorMat = function (hex, opts) {
     if (!AC) return null;
     ctx = new AC();
     master = ctx.createGain();
-    master.gain.value = 0.35;
+    master.gain.value = 0;
+    musicBus = ctx.createGain();
+    musicBus.gain.value = 0.22;
+    sfxBus = ctx.createGain();
+    sfxBus.gain.value = 0.85;
+    // Gentle glue so the basement mix doesn't clip
+    crunch = ctx.createDynamicsCompressor();
+    crunch.threshold.value = -16;
+    crunch.knee.value = 12;
+    crunch.ratio.value = 3;
+    crunch.attack.value = 0.01;
+    crunch.release.value = 0.22;
+    musicBus.connect(crunch);
+    crunch.connect(master);
+    sfxBus.connect(master);
     master.connect(ctx.destination);
+    applyGain(ctx.currentTime);
     return ctx;
+  }
+
+  function applyGain(t) {
+    if (!master) return;
+    var g = muted ? 0.0001 : 0.42 * volume;
+    master.gain.cancelScheduledValues(t);
+    master.gain.setValueAtTime(Math.max(0.0001, master.gain.value || 0.0001), t);
+    master.gain.exponentialRampToValueAtTime(g, t + 0.08);
   }
 
   function resume() {
     var c = ac();
-    if (c && c.state === "suspended") c.resume();
+    if (!c) return;
+    if (c.state === "suspended") c.resume();
+    if (!started) {
+      started = true;
+      if (!muted) startMusic();
+    }
   }
 
   function env(g, t, a, peak, d, s, r) {
     var p = g.gain;
     p.cancelScheduledValues(t);
     p.setValueAtTime(0.0001, t);
-    p.exponentialRampToValueAtTime(peak, t + a);
-    p.exponentialRampToValueAtTime(s, t + a + d);
+    p.exponentialRampToValueAtTime(Math.max(0.0002, peak), t + Math.max(0.004, a));
+    p.exponentialRampToValueAtTime(Math.max(0.0002, s), t + a + d);
     p.exponentialRampToValueAtTime(0.0001, t + a + d + r);
   }
 
-  function tone(type, freq, dur, peak, atk) {
-    var c = ac(); if (!c || muted) return;
-    var t = c.currentTime, o = c.createOscillator(), g = c.createGain();
+  function freqOf(deg, oct) {
+    return ROOT * Math.pow(2, (MINOR[(deg % 8 + 8) % 8] + 12 * (oct || 0)) / 12);
+  }
+
+  function osc(type, freq, t, dur, peak, atk, dest, slide) {
+    var c = ac(); if (!c) return null;
+    var o = c.createOscillator(), g = c.createGain();
     o.type = type;
-    o.frequency.setValueAtTime(freq, t);
-    env(g, t, atk || 0.01, peak || 0.2, dur * 0.3, (peak || 0.2) * 0.4, dur * 0.7);
-    o.connect(g); g.connect(master);
-    o.start(t); o.stop(t + dur + 0.05);
+    o.frequency.setValueAtTime(Math.max(20, freq), t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(20, slide), t + dur);
+    env(g, t, atk || 0.01, peak, dur * 0.25, peak * 0.45, dur * 0.7);
+    o.connect(g); g.connect(dest || sfxBus);
+    o.start(t); o.stop(t + dur + 0.08);
     return o;
   }
 
-  function noise(dur, peak, bpFreq, q) {
-    var c = ac(); if (!c || muted) return;
-    var n = (c.sampleRate * dur) | 0, buf = c.createBuffer(1, n, c.sampleRate);
-    var d = buf.getChannelData(0), i;
+  function noiseBuf(dur) {
+    var c = ac(), n = Math.max(1, (c.sampleRate * dur) | 0);
+    var buf = c.createBuffer(1, n, c.sampleRate), d = buf.getChannelData(0), i;
     for (i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
-    var src = c.createBufferSource(); src.buffer = buf;
-    var f = c.createBiquadFilter(); f.type = "bandpass";
-    f.frequency.value = bpFreq || 800; f.Q.value = q || 0.8;
+    return buf;
+  }
+
+  function brownBuf(dur) {
+    var c = ac(), n = Math.max(1, (c.sampleRate * dur) | 0);
+    var buf = c.createBuffer(1, n, c.sampleRate), d = buf.getChannelData(0);
+    var i, last = 0;
+    for (i = 0; i < n; i++) {
+      last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02;
+      d[i] = last * 3.5;
+    }
+    return buf;
+  }
+
+  function noise(dur, peak, bpFreq, q, t0, dest, type) {
+    var c = ac(); if (!c) return;
+    var t = t0 != null ? t0 : c.currentTime;
+    var src = c.createBufferSource();
+    src.buffer = type === "brown" ? brownBuf(dur) : noiseBuf(dur);
+    var f = c.createBiquadFilter();
+    f.type = bpFreq < 0 ? "lowpass" : "bandpass";
+    f.frequency.value = Math.abs(bpFreq) || 800;
+    f.Q.value = q || 0.8;
     var g = c.createGain();
-    var t = c.currentTime;
-    env(g, t, 0.005, peak || 0.3, dur * 0.2, (peak || 0.3) * 0.3, dur * 0.7);
-    src.connect(f); f.connect(g); g.connect(master);
+    env(g, t, 0.006, peak || 0.2, dur * 0.2, (peak || 0.2) * 0.35, dur * 0.7);
+    src.connect(f); f.connect(g); g.connect(dest || sfxBus);
     src.start(t); src.stop(t + dur + 0.05);
+  }
+
+  // ---------- soundtrack ----------
+  // 16-step bars at a lo-fi crawl; tension shortens the step and opens the filter.
+  function stepLen() {
+    var bpm = 68 + tension * 28; // 68 quiet, 96 on the last pulls
+    return 60 / bpm / 4; // 16th
+  }
+
+  function kick(t, amt) {
+    var c = ac();
+    var o = c.createOscillator(), g = c.createGain();
+    o.type = "sine";
+    o.frequency.setValueAtTime(92, t);
+    o.frequency.exponentialRampToValueAtTime(38, t + 0.16);
+    env(g, t, 0.004, 0.28 * amt, 0.05, 0.1 * amt, 0.18);
+    o.connect(g); g.connect(musicBus);
+    o.start(t); o.stop(t + 0.28);
+    noise(0.05, 0.06 * amt, -180, 0.7, t, musicBus, "brown");
+  }
+
+  function hat(t, amt, open) {
+    noise(open ? 0.09 : 0.035, (open ? 0.045 : 0.028) * amt, open ? 7000 : 9000, open ? 0.5 : 1.2, t, musicBus);
+  }
+
+  function bass(t, freq, dur, amt) {
+    var c = ac();
+    var o = c.createOscillator(), o2 = c.createOscillator(), g = c.createGain();
+    var f = c.createBiquadFilter();
+    f.type = "lowpass";
+    f.frequency.setValueAtTime(280 + tension * 420, t);
+    o.type = "sine";
+    o2.type = "triangle";
+    o.frequency.setValueAtTime(freq, t);
+    o2.frequency.setValueAtTime(freq * 0.5, t);
+    env(g, t, 0.02, 0.32 * amt, dur * 0.3, 0.16 * amt, dur * 0.55);
+    o.connect(g); o2.connect(g); g.connect(f); f.connect(musicBus);
+    o.start(t); o2.start(t);
+    o.stop(t + dur + 0.05); o2.stop(t + dur + 0.05);
+  }
+
+  function pad(t, freqs, dur, amt) {
+    var c = ac(), i;
+    var f = c.createBiquadFilter();
+    f.type = "lowpass";
+    f.frequency.setValueAtTime(360 + tension * 500, t);
+    f.Q.value = 0.6;
+    var g = c.createGain();
+    env(g, t, 0.18, 0.07 * amt, dur * 0.3, 0.045 * amt, dur * 0.6);
+    for (i = 0; i < freqs.length; i++) {
+      var o = c.createOscillator(), o2 = c.createOscillator();
+      o.type = "sawtooth"; o2.type = "sawtooth";
+      o.frequency.setValueAtTime(freqs[i], t);
+      o2.frequency.setValueAtTime(freqs[i] * 1.003, t);
+      var gg = c.createGain(); gg.gain.value = 0.45;
+      o.connect(g); o2.connect(gg); gg.connect(g);
+      o.start(t); o2.start(t);
+      o.stop(t + dur + 0.1); o2.stop(t + dur + 0.1);
+    }
+    g.connect(f); f.connect(musicBus);
+  }
+
+  function lead(t, freq, dur, amt) {
+    var c = ac();
+    var o = c.createOscillator(), o2 = c.createOscillator(), g = c.createGain();
+    var f = c.createBiquadFilter();
+    f.type = "lowpass";
+    f.frequency.setValueAtTime(900 + tension * 1400, t);
+    o.type = "square";
+    o2.type = "triangle";
+    o.frequency.setValueAtTime(freq, t);
+    o2.frequency.setValueAtTime(freq * 2.005, t);
+    var g2 = c.createGain(); g2.gain.value = 0.22;
+    env(g, t, 0.012, 0.11 * amt, dur * 0.25, 0.05 * amt, dur * 0.65);
+    o.connect(g); o2.connect(g2); g2.connect(g);
+    g.connect(f); f.connect(musicBus);
+    o.start(t); o2.start(t);
+    o.stop(t + dur + 0.05); o2.stop(t + dur + 0.05);
+  }
+
+  // A quiet delayed "ghost" of the lead — basement echo, not a sample.
+  function ghost(t, freq, dur, amt) {
+    lead(t + 0.22, freq * 0.5, dur * 0.8, amt * 0.35);
+  }
+
+  // Lo-fi crackle bed (looping brown noise), started once.
+  function startCrackle() {
+    var c = ac(); if (!c) return;
+    var src = c.createBufferSource();
+    src.buffer = brownBuf(3.2);
+    src.loop = true;
+    var f = c.createBiquadFilter();
+    f.type = "bandpass"; f.frequency.value = 1800; f.Q.value = 0.5;
+    var g = c.createGain();
+    g.gain.value = 0.025;
+    src.connect(f); f.connect(g); g.connect(musicBus);
+    src.start();
+    drones.push(src, g);
+  }
+
+  // Slow sub drone that breathes; leans sharper when tension rises.
+  function startDrone() {
+    var c = ac(); if (!c) return;
+    var o = c.createOscillator(), o2 = c.createOscillator(), g = c.createGain();
+    var lfo = c.createOscillator(), lg = c.createGain();
+    o.type = "sine"; o2.type = "sine";
+    o.frequency.value = ROOT;
+    o2.frequency.value = ROOT * 1.498; // fifth, slightly detuned below
+    lfo.type = "sine"; lfo.frequency.value = 0.13;
+    lg.gain.value = 4;
+    lfo.connect(lg); lg.connect(o.frequency);
+    g.gain.value = 0.07;
+    o.connect(g); o2.connect(g); g.connect(musicBus);
+    o.start(); o2.start(); lfo.start();
+    drones.push(o, o2, lfo, g);
+    music._droneGain = g;
+  }
+
+  function scheduleStep(t, step, bar) {
+    var amt = 0.75 + tension * 0.55;
+    var s = step % 16;
+    var evenBar = (bar % 2) === 0;
+
+    // Kick
+    if (s === 0 || s === 8) kick(t, amt);
+    if (tension > 0.55 && (s === 6 || s === 14)) kick(t, amt * 0.55);
+
+    // Hats — denser when the deadline looms
+    if (s % 2 === 0) hat(t, amt, s % 8 === 6);
+    if (tension > 0.4 && s % 2 === 1) hat(t, amt * 0.55, false);
+    if (tension > 0.75 && s % 4 === 3) hat(t, amt * 0.7, true);
+
+    // Bass line (two-bar): D, A, F, C / D, G, A, A
+    var bassNotes = evenBar
+      ? { 0: freqOf(0, -1), 4: freqOf(4, -1), 8: freqOf(2, -1), 12: freqOf(6, -1) }
+      : { 0: freqOf(0, -1), 4: freqOf(5, -1), 8: freqOf(4, -1), 12: freqOf(4, -1) };
+    if (bassNotes[s]) bass(t, bassNotes[s], stepLen() * 3.4, amt);
+
+    // Pad stabs on bar starts
+    if (s === 0) {
+      var chords = evenBar
+        ? [freqOf(0, 1), freqOf(2, 1), freqOf(4, 1)]
+        : [freqOf(2, 1), freqOf(4, 1), freqOf(6, 1)];
+      pad(t, chords, stepLen() * 14, amt);
+    }
+
+    // Sparse lead — Toasty motif: D–F–A–G, then a descending sigh
+    var motifA = { 0: 0, 3: 2, 6: 4, 10: 5, 14: 3 };
+    var motifB = { 2: 4, 5: 3, 8: 2, 11: 0, 13: 6 };
+    var motif = (bar % 4 < 2) ? motifA : motifB;
+    if (motif[s] != null) {
+      var fq = freqOf(motif[s], 2);
+      lead(t, fq, stepLen() * 2.4, amt * (tension > 0.5 ? 1.15 : 0.9));
+      if (evenBar) ghost(t, fq, stepLen() * 2, amt);
+    }
+
+    // Tension color: a low tritone pulse (Ab against D) on the last pulls
+    if (tension > 0.65 && (s === 0 || s === 8)) {
+      osc("sawtooth", ROOT * Math.pow(2, 6 / 12), t, stepLen() * 2, 0.05 * tension, 0.03, musicBus, ROOT * Math.pow(2, 6 / 12) * 0.99);
+    }
+  }
+
+  function tickMusic() {
+    if (!ctx || !music.on || muted) return;
+    var now = ctx.currentTime;
+    // Look-ahead: schedule ~120ms ahead
+    while (music.next < now + 0.12) {
+      scheduleStep(music.next, music.step, music.bar);
+      music.step++;
+      if (music.step >= 16) { music.step = 0; music.bar++; }
+      // Smooth tension toward the target between steps
+      tension += (targetTension - tension) * 0.18;
+      if (music._droneGain) {
+        var dg = 0.07 + tension * 0.06;
+        music._droneGain.gain.setTargetAtTime(dg, music.next, 0.25);
+      }
+      music.next += stepLen();
+    }
+  }
+
+  function startMusic() {
+    var c = ac(); if (!c || music.on) return;
+    if (c.state === "suspended") c.resume();
+    startCrackle();
+    startDrone();
+    music.on = true;
+    music.step = 0;
+    music.bar = 0;
+    music.next = c.currentTime + 0.08;
+    if (!music.timer) music.timer = setInterval(tickMusic, 25);
+  }
+
+  function stopMusic() {
+    music.on = false;
+    var c = ctx, t = c ? c.currentTime : 0, i;
+    for (i = 0; i < drones.length; i++) {
+      try {
+        if (drones[i].gain) {
+          drones[i].gain.cancelScheduledValues(t);
+          drones[i].gain.setValueAtTime(drones[i].gain.value || 0.0001, t);
+          drones[i].gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+        } else if (drones[i].stop) drones[i].stop(t + 0.32);
+      } catch (e) {}
+    }
+    drones = [];
+    music._droneGain = null;
+  }
+
+  // ---------- SFX ----------
+  function lever() {
+    var c = ac(); if (!c || muted) return;
+    var t = c.currentTime;
+    // Pull whoosh
+    noise(0.14, 0.28, 420, 0.6, t, sfxBus);
+    osc("sawtooth", 180, t, 0.16, 0.16, 0.006, sfxBus, 62);
+    // Clunk a beat later
+    setTimeout(function () {
+      var c2 = ac(); if (!c2 || muted) return;
+      var t2 = c2.currentTime;
+      osc("sine", 86, t2, 0.12, 0.34, 0.002, sfxBus, 48);
+      noise(0.07, 0.28, 180, 0.8, t2, sfxBus, "brown");
+      osc("triangle", 140, t2 + 0.03, 0.06, 0.12, 0.002, sfxBus, 90);
+    }, 90);
+  }
+
+  function spinStart() {
+    var c = ac(); if (!c || muted) return;
+    stopWhir();
+    var src = c.createBufferSource();
+    src.buffer = brownBuf(1.4);
+    src.loop = true;
+    var f = c.createBiquadFilter();
+    f.type = "bandpass";
+    f.frequency.value = 520;
+    f.Q.value = 1.1;
+    var g = c.createGain();
+    g.gain.value = 0.0001;
+    src.connect(f); f.connect(g); g.connect(sfxBus);
+    var t = c.currentTime;
+    g.gain.exponentialRampToValueAtTime(0.12, t + 0.18);
+    src.start(t);
+    // A faint rising whir tone
+    var o = c.createOscillator();
+    o.type = "sawtooth";
+    o.frequency.setValueAtTime(90, t);
+    o.frequency.linearRampToValueAtTime(160, t + 1.4);
+    var og = c.createGain(); og.gain.value = 0.04;
+    o.connect(og); og.connect(sfxBus);
+    o.start(t);
+    whir = { src: src, osc: o, g: g, og: og, f: f };
+    whirGain = g;
+    whirFilter = f;
+  }
+
+  function stopWhir(quick) {
+    if (!whir || !ctx) return;
+    var t = ctx.currentTime, w = whir;
+    try {
+      w.g.gain.cancelScheduledValues(t);
+      w.g.gain.setValueAtTime(Math.max(0.0001, w.g.gain.value), t);
+      w.g.gain.exponentialRampToValueAtTime(0.0001, t + (quick ? 0.08 : 0.22));
+      if (w.og) {
+        w.og.gain.cancelScheduledValues(t);
+        w.og.gain.setValueAtTime(Math.max(0.0001, w.og.gain.value), t);
+        w.og.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+      }
+      if (w.src) w.src.stop(t + 0.28);
+      if (w.osc) w.osc.stop(t + 0.28);
+    } catch (e) {}
+    whir = whirGain = whirFilter = null;
+  }
+
+  function reelStop(col) {
+    var c = ac(); if (!c || muted) return;
+    var t = c.currentTime;
+    var p = 70 + (col || 0) * 9;
+    osc("sine", p + 40, t, 0.09, 0.28, 0.002, sfxBus, p);
+    noise(0.05, 0.2, 240 + (col || 0) * 30, 0.9, t, sfxBus, "brown");
+    osc("triangle", 220 + (col || 0) * 18, t, 0.04, 0.08, 0.001, sfxBus);
+    // Last reel: kill the whir
+    if (col >= 4) stopWhir(false);
+  }
+
+  function smallJingle(t) {
+    osc("sine", 740, t, 0.18, 0.2, 0.008, sfxBus);
+    osc("sine", 988, t + 0.09, 0.22, 0.16, 0.01, sfxBus);
+    osc("triangle", 1480, t + 0.16, 0.2, 0.08, 0.01, sfxBus);
+  }
+  function medJingle(t) {
+    var notes = [587, 740, 880, 1175]; // D–F#–A–D, buttery
+    var i;
+    for (i = 0; i < notes.length; i++) {
+      osc("triangle", notes[i], t + i * 0.09, 0.28, 0.16, 0.01, sfxBus);
+      osc("sine", notes[i] * 2, t + i * 0.09 + 0.02, 0.18, 0.06, 0.012, sfxBus);
+    }
+  }
+  function bigJingle(t) {
+    var notes = [392, 494, 587, 740, 880, 1175, 1480];
+    var i;
+    for (i = 0; i < notes.length; i++) {
+      osc("triangle", notes[i], t + i * 0.08, 0.4, 0.18, 0.01, sfxBus);
+      osc("sine", notes[i] * 2.005, t + i * 0.08 + 0.03, 0.22, 0.07, 0.012, sfxBus);
+    }
+    // Golden shimmer tail
+    osc("sine", 1760, t + 0.62, 0.5, 0.1, 0.02, sfxBus);
+    osc("sine", 2349, t + 0.72, 0.45, 0.07, 0.03, sfxBus);
+    noise(0.3, 0.06, 4000, 0.4, t + 0.1, sfxBus);
+  }
+
+  function win(pay) {
+    var c = ac(); if (!c || muted) return;
+    var t = c.currentTime;
+    // Toaster pop under every win
+    noise(0.12, 0.28, 560, 0.55, t, sfxBus);
+    osc("triangle", 140, t, 0.16, 0.22, 0.004, sfxBus, 50);
+    if (pay >= 80) bigJingle(t + 0.06);
+    else if (pay >= 40) medJingle(t + 0.05);
+    else smallJingle(t + 0.04);
+  }
+
+  function coin() {
+    var c = ac(); if (!c || muted) return;
+    var t = c.currentTime;
+    osc("sine", 1480, t, 0.05, 0.1, 0.002, sfxBus, 2100);
+    osc("triangle", 2200, t, 0.04, 0.05, 0.002, sfxBus);
+  }
+
+  function burn() {
+    var c = ac(); if (!c || muted) return;
+    var t = c.currentTime, i;
+    // Sizzle
+    noise(1.15, 0.28, 3200, 0.55, t, sfxBus);
+    noise(1.0, 0.18, 900, 0.5, t, sfxBus, "brown");
+    // Distorted low drone
+    osc("sawtooth", 48, t, 1.15, 0.22, 0.04, sfxBus, 36);
+    osc("square", 54, t, 1.0, 0.1, 0.05, sfxBus, 40);
+    // Glitch chirps
+    for (i = 0; i < 8; i++) {
+      (function (k) {
+        var tt = t + 0.07 + k * 0.12;
+        osc("square", 1400 + (k % 3) * 700, tt, 0.06, 0.1, 0.002, sfxBus, 280);
+        if (k % 2 === 0) noise(0.04, 0.1, 5000, 1.4, tt, sfxBus);
+      })(i);
+    }
+  }
+
+  function buy() {
+    var c = ac(); if (!c || muted) return;
+    var t = c.currentTime;
+    osc("square", 440, t, 0.07, 0.12, 0.004, sfxBus);
+    osc("square", 660, t + 0.06, 0.09, 0.1, 0.006, sfxBus);
+    osc("sine", 880, t + 0.12, 0.14, 0.1, 0.01, sfxBus);
+    noise(0.05, 0.08, 1800, 1, t, sfxBus);
+  }
+
+  function charm() {
+    var c = ac(); if (!c || muted) return;
+    var t = c.currentTime;
+    osc("sine", 990, t, 0.1, 0.12, 0.006, sfxBus);
+    osc("triangle", 1480, t + 0.05, 0.12, 0.1, 0.008, sfxBus);
+    osc("sine", 1980, t + 0.1, 0.14, 0.07, 0.01, sfxBus);
+  }
+
+  function paid() {
+    var c = ac(); if (!c || muted) return;
+    var t = c.currentTime;
+    var notes = [392, 494, 587, 784, 988, 1175];
+    var i;
+    noise(0.14, 0.2, 500, 0.5, t, sfxBus);
+    for (i = 0; i < notes.length; i++) {
+      osc("triangle", notes[i], t + i * 0.1, 0.42, 0.2, 0.012, sfxBus);
+      osc("sine", notes[i] * 2, t + i * 0.1 + 0.03, 0.28, 0.08, 0.014, sfxBus);
+    }
+  }
+
+  function gameOver() {
+    var c = ac(); if (!c || muted) return;
+    var t = c.currentTime;
+    // Descending gloomy sighs, not a shriek — the basement keeps the crumbs.
+    osc("sawtooth", 196, t, 0.7, 0.16, 0.04, sfxBus, 98);
+    osc("triangle", 147, t + 0.22, 0.8, 0.14, 0.05, sfxBus, 73);
+    osc("sine", 98, t + 0.45, 1.1, 0.18, 0.06, sfxBus, 49);
+    noise(1.1, 0.14, 700, 0.5, t, sfxBus, "brown");
+    osc("square", 220, t + 0.7, 0.35, 0.06, 0.02, sfxBus, 90);
+  }
+
+  function click() {
+    noise(0.035, 0.12, 1400, 1.1);
+    osc("square", 200, ac().currentTime, 0.05, 0.07, 0.002, sfxBus);
+  }
+
+  function deny() {
+    osc("square", 140, ac().currentTime, 0.16, 0.12, 0.005, sfxBus, 90);
+  }
+
+  function deadline() {
+    var c = ac(); if (!c || muted) return;
+    var t = c.currentTime;
+    osc("triangle", 196, t, 0.32, 0.16, 0.02, sfxBus);
+    osc("triangle", 247, t + 0.12, 0.38, 0.13, 0.03, sfxBus);
+    osc("sine", 147, t + 0.28, 0.5, 0.12, 0.04, sfxBus);
+  }
+
+  function bank() {
+    var c = ac(); if (!c || muted) return;
+    var t = c.currentTime;
+    osc("sine", 520, t, 0.12, 0.12, 0.006, sfxBus);
+    osc("sine", 780, t + 0.08, 0.16, 0.11, 0.01, sfxBus);
+  }
+
+  // Soft fridge hum, only while the shop is open.
+  var humNode = null, humGain = null;
+  function hum(on) {
+    var c = ac(); if (!c) return;
+    if (!on) {
+      if (humGain) {
+        var t = c.currentTime;
+        humGain.gain.cancelScheduledValues(t);
+        humGain.gain.setValueAtTime(Math.max(0.0001, humGain.gain.value), t);
+        humGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+        if (humNode) try { humNode.stop(t + 0.35); } catch (e) {}
+        humNode = humGain = null;
+      }
+      return;
+    }
+    if (muted || humNode) return;
+    humNode = c.createOscillator();
+    humNode.type = "sine";
+    humNode.frequency.value = 58;
+    var o2 = c.createOscillator();
+    o2.type = "triangle";
+    o2.frequency.value = 117;
+    humGain = c.createGain();
+    humGain.gain.value = 0.0001;
+    var t = c.currentTime;
+    humGain.gain.exponentialRampToValueAtTime(0.04, t + 0.4);
+    var g2 = c.createGain(); g2.gain.value = 0.015;
+    humNode.connect(humGain); humGain.connect(sfxBus);
+    o2.connect(g2); g2.connect(sfxBus);
+    humNode.start(t); o2.start(t);
+    humNode._buddy = o2;
   }
 
   PIT.audio = {
     resume: resume,
     muted: function () { return muted; },
-    toggleMute: function () { muted = !muted; if (muted) PIT.audio.hum(false); return muted; },
-
-    click: function () {
-      noise(0.04, 0.15, 1200, 1.2);
-      tone("square", 180, 0.06, 0.08, 0.002);
+    volume: function () { return muted ? 0 : volume; },
+    setVolume: function (v) {
+      volume = Math.max(0, Math.min(1, v));
+      if (volume <= 0.001) { muted = true; stopMusic(); stopWhir(true); hum(false); }
+      else if (muted && volume > 0) { muted = false; if (started) startMusic(); }
+      if (ctx) applyGain(ctx.currentTime);
+      return volume;
     },
-
-    lever: function () {
-      noise(0.08, 0.22, 400, 0.7);
-      var c = ac(); if (!c || muted) return;
-      var t = c.currentTime, o = c.createOscillator(), g = c.createGain();
-      o.type = "sawtooth";
-      o.frequency.setValueAtTime(140, t);
-      o.frequency.exponentialRampToValueAtTime(70, t + 0.12);
-      env(g, t, 0.005, 0.18, 0.05, 0.08, 0.1);
-      o.connect(g); g.connect(master);
-      o.start(t); o.stop(t + 0.2);
+    toggleMute: function () {
+      muted = !muted;
+      if (ctx) applyGain(ctx.currentTime);
+      if (muted) { stopMusic(); stopWhir(true); hum(false); }
+      else if (started) startMusic();
+      return muted;
     },
+    // 0 = calm, 1 = last pulls of a deadline. Swells the loop.
+    setTension: function (t) { targetTension = Math.max(0, Math.min(1, t)); },
+    tension: function () { return tension; },
+    started: function () { return started; },
 
-    // Toaster POP + ding for a win.
-    pop: function () {
-      noise(0.12, 0.35, 600, 0.6);
-      var c = ac(); if (!c || muted) return;
-      var t = c.currentTime, o = c.createOscillator(), g = c.createGain();
-      o.type = "triangle";
-      o.frequency.setValueAtTime(120, t);
-      o.frequency.exponentialRampToValueAtTime(40, t + 0.16);
-      env(g, t, 0.005, 0.3, 0.05, 0.1, 0.12);
-      o.connect(g); g.connect(master);
-      o.start(t); o.stop(t + 0.22);
-    },
-
-    ding: function (big) {
-      var c = ac(); if (!c || muted) return;
-      var t = c.currentTime;
-      function ping(freq, delay, peak) {
-        var o = c.createOscillator(), g = c.createGain();
-        o.type = "sine";
-        o.frequency.setValueAtTime(freq, t + delay);
-        env(g, t + delay, 0.01, peak, 0.08, peak * 0.4, 0.35);
-        o.connect(g); g.connect(master);
-        o.start(t + delay); o.stop(t + delay + 0.5);
-      }
-      ping(big ? 880 : 740, 0, 0.22);
-      ping(big ? 1320 : 1110, 0.09, 0.16);
-      if (big) ping(1760, 0.18, 0.12);
-    },
-
-    // Smoke-alarm shriek for a Burn. Harsh, not gory.
-    burn: function () {
-      var c = ac(); if (!c || muted) return;
-      var t = c.currentTime, i;
-      for (i = 0; i < 6; i++) {
-        (function (k) {
-          var o = c.createOscillator(), g = c.createGain();
-          o.type = "square";
-          var tt = t + k * 0.16;
-          o.frequency.setValueAtTime(3100, tt);
-          o.frequency.setValueAtTime(2450, tt + 0.07);
-          o.frequency.setValueAtTime(3100, tt + 0.14);
-          env(g, tt, 0.005, 0.12, 0.04, 0.08, 0.08);
-          o.connect(g); g.connect(master);
-          o.start(tt); o.stop(tt + 0.16);
-        })(i);
-      }
-      noise(0.8, 0.12, 1800, 0.5);
-    },
-
-    bank: function () {
-      tone("sine", 520, 0.1, 0.1, 0.005);
-      tone("sine", 780, 0.16, 0.1, 0.02);
-    },
-
-    buy: function () {
-      tone("square", 440, 0.07, 0.1, 0.005);
-      tone("square", 660, 0.1, 0.08, 0.02);
-    },
-
-    deny: function () {
-      tone("square", 140, 0.14, 0.1, 0.005);
-    },
-
-    deadline: function () {
-      tone("triangle", 220, 0.25, 0.15, 0.01);
-      tone("triangle", 330, 0.35, 0.12, 0.05);
-    },
-
-    paid: function () {
-      PIT.audio.pop();
-      setTimeout(function () { PIT.audio.ding(true); }, 120);
-    },
-
-    // Soft fridge hum, only while the shop is open.
-    hum: function (on) {
-      var c = ac(); if (!c) return;
-      if (!on) {
-        if (humGain) {
-          var t = c.currentTime;
-          humGain.gain.cancelScheduledValues(t);
-          humGain.gain.setValueAtTime(humGain.gain.value, t);
-          humGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
-          if (humNode) try { humNode.stop(t + 0.35); } catch (e) {}
-          humNode = humGain = null;
-        }
-        return;
-      }
-      if (muted) return;
-      if (humNode) return;
-      humNode = c.createOscillator();
-      humNode.type = "sine";
-      humNode.frequency.value = 58;
-      var o2 = c.createOscillator();
-      o2.type = "triangle";
-      o2.frequency.value = 117;
-      humGain = c.createGain();
-      humGain.gain.value = 0.0001;
-      var t = c.currentTime;
-      humGain.gain.exponentialRampToValueAtTime(0.04, t + 0.4);
-      var g2 = c.createGain(); g2.gain.value = 0.015;
-      humNode.connect(humGain); humGain.connect(master);
-      o2.connect(g2); g2.connect(master);
-      humNode.start(t); o2.start(t);
-      humNode._buddy = o2;
-    }
+    click: function () { if (!muted && ac()) click(); },
+    lever: function () { if (!muted && ac()) lever(); },
+    spinStart: function () { if (!muted && ac()) spinStart(); },
+    reelStop: function (col) { if (!muted && ac()) reelStop(col == null ? 0 : col); },
+    spinEnd: function () { stopWhir(false); },
+    win: function (pay) { if (!muted && ac()) win(pay || 0); },
+    // Back-compat with v0.4 call sites
+    pop: function () { if (!muted && ac()) { noise(0.12, 0.28, 560, 0.55); osc("triangle", 140, ac().currentTime, 0.16, 0.22, 0.004, sfxBus, 50); } },
+    ding: function (big) { if (!muted && ac()) { var t = ac().currentTime; if (big) medJingle(t); else smallJingle(t); } },
+    coin: function () { if (!muted && ac()) coin(); },
+    burn: function () { if (!muted && ac()) burn(); },
+    buy: function () { if (!muted && ac()) buy(); },
+    charm: function () { if (!muted && ac()) charm(); },
+    paid: function () { if (!muted && ac()) paid(); },
+    gameOver: function () { if (!muted && ac()) gameOver(); },
+    deny: function () { if (!muted && ac()) deny(); },
+    deadline: function () { if (!muted && ac()) deadline(); },
+    bank: function () { if (!muted && ac()) bank(); },
+    hum: hum
   };
 })();
 
@@ -3134,7 +3550,7 @@ PIT.colorMat = function (hex, opts) {
 
 
 /* ==== 30-scene.js ==== */
-// Toaster Pit v0.4 — locked front camera, high-res NFT slot icons, NFT gallery.
+// Toaster Pit v0.5 — locked camera, procedural audio-driven juice, richer VFX.
 (function () {
   var P = PIT.PAL;
   var scene, camera, renderer, canvas3;
@@ -3146,6 +3562,7 @@ PIT.colorMat = function (hex, opts) {
   var cellMesh = [];       // crisp 3x5 result faces (reliable land)
   var winGlows = [];
   var winBeams = [];
+  var winTracers = [];
   var symbolCanvases = {};
   var symbolTextures = {}; // shared CanvasTextures, linear+mips
   var winCells = {};       // "r,c" -> true while a line is paying
@@ -3588,14 +4005,16 @@ PIT.colorMat = function (hex, opts) {
         "void main(){",
         "  vec2 uv = vec2(vUv.y, fract(uvOff - vUv.x));",
         "  vec4 col = texture2D(map, uv);",
-        "  if(blurAmt > 0.008){",
+        "  if(blurAmt > 0.006){",
         "    vec4 acc = col;",
-        "    for(int i=1;i<=8;i++){",
-        "      float o = blurAmt * 0.018 * float(i);",
+        "    for(int i=1;i<=12;i++){",
+        "      float o = blurAmt * 0.042 * float(i);",
         "      acc += texture2D(map, uv + vec2(0.0, o));",
         "      acc += texture2D(map, uv - vec2(0.0, o));",
         "    }",
-        "    col = acc / 17.0;",
+        "    col = acc / 25.0;",
+        "    // vertical smear highlight so the spin reads as motion, not mush",
+        "    col.rgb *= 1.0 + blurAmt * 0.12;",
         "  }",
         "  // slight lift so gold and bone bloom",
         "  col.rgb *= 1.08;",
@@ -4102,6 +4521,7 @@ PIT.colorMat = function (hex, opts) {
   function spawnFx(kind, n, opts) {
     opts = opts || {};
     var i, m, col, geo, mat;
+    if (!quality) n = Math.max(1, Math.ceil(n * 0.4));
     for (i = 0; i < n; i++) {
       if (kind === "crumb" || kind === "butter" || kind === "coin") {
         col = kind === "butter" ? 0xFFD400 : kind === "coin" ? 0xe3b303 : (Math.random() < 0.5 ? 0xe3b303 : 0xd4a05a);
@@ -4120,13 +4540,33 @@ PIT.colorMat = function (hex, opts) {
         mat = std({ map: crispMap(PIT.nearestTex(symbolCanvases[opts.symbol || "golden"] || symbolCanvases.plain)), roughness: 0.55, emissive: 0xFFD400, emissiveIntensity: 0.25 });
         m = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.22, 0.05), mat);
         m.userData.toast = true;
+      } else if (kind === "spark") {
+        var scols = [0xFFD400, 0xe3b303, 0xff5a00, 0xfff0a0];
+        col = scols[(Math.random() * scols.length) | 0];
+        mat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+        m = new THREE.Mesh(new THREE.SphereGeometry(0.03 + Math.random() * 0.025, 6, 5), mat);
+        m.userData.spark = true;
+      } else if (kind === "confetti") {
+        var ccols = [0xFFD400, 0xff00c8, 0x00f0ff, 0xe3b303, 0xff5a00, 0xcbbcd9];
+        col = ccols[(Math.random() * ccols.length) | 0];
+        mat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.95, toneMapped: false, side: THREE.DoubleSide });
+        m = new THREE.Mesh(new THREE.PlaneGeometry(0.07, 0.11), mat);
+        m.userData.confetti = true;
+      } else if (kind === "rain") {
+        col = Math.random() < 0.5 ? 0xe3b303 : 0xd4a05a;
+        mat = std({ color: col, roughness: 0.4, metalness: 0.2, emissive: col, emissiveIntensity: 0.3 });
+        m = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.035, 0.04), mat);
+        m.userData.rain = true;
       } else {
         continue;
       }
       var ox = opts.x || 0, oy = opts.y || 1.4, oz = opts.z || 0.7;
+      if (m.userData.rain) oy = opts.y != null ? opts.y : 3.8;
       m.position.set(ox + (Math.random() - 0.5) * (opts.spread || 0.9), oy + Math.random() * 0.2, oz + (Math.random() - 0.5) * 0.4);
       var up = opts.up || 2.2;
+      if (m.userData.rain) up = opts.up != null ? opts.up : -0.4;
       m.userData.v = new THREE.Vector3((Math.random() - 0.5) * (opts.vx || 1.8), up + Math.random() * (opts.vy || 1.6), (Math.random() - 0.5) * 1.0);
+      if (m.userData.spark) m.userData.v.y = (opts.up || 2.6) + Math.random() * 1.8;
       m.userData.life = opts.life || (0.7 + Math.random() * 0.55);
       m.userData.age = 0;
       m.userData.spin = new THREE.Vector3(Math.random() * 8, Math.random() * 8, Math.random() * 8);
@@ -4150,8 +4590,14 @@ PIT.colorMat = function (hex, opts) {
     }
   };
   PIT.spawnJackpot = function () {
-    spawnFx("coin", 36, { y: 1.6, z: 0.8, up: 4.5, vy: 3.2, vx: 2.4, life: 1.5, spread: 0.7 });
-    spawnFx("crumb", 20, { y: 1.6, z: 0.8, up: 3.6, vy: 2.4, life: 1.3 });
+    spawnFx("coin", 42, { y: 1.6, z: 0.8, up: 4.5, vy: 3.2, vx: 2.4, life: 1.6, spread: 0.8 });
+    spawnFx("crumb", 24, { y: 1.6, z: 0.8, up: 3.6, vy: 2.4, life: 1.3 });
+    spawnFx("confetti", 48, { y: 3.6, z: 0.6, up: 0.4, vy: 1.2, vx: 2.2, life: 2.0, spread: 2.4 });
+    spawnFx("rain", 36, { y: 3.9, z: 0.5, up: -0.2, vy: 0.6, vx: 0.8, life: 1.8, spread: 2.6 });
+    spawnFx("spark", 28, { y: 1.7, z: 0.9, up: 3.4, vy: 2.2, life: 0.9, spread: 1.0 });
+  };
+  PIT.spawnSparks = function (n) {
+    spawnFx("spark", n || 14, { y: 1.55, z: 0.85, up: 2.8, vy: 1.8, life: 0.75, spread: 0.8 });
   };
 
   function tickFx(dt) {
@@ -4160,8 +4606,11 @@ PIT.colorMat = function (hex, opts) {
       m = fxPool[i];
       m.userData.age += dt;
       m.position.addScaledVector(m.userData.v, dt);
-      if (!m.userData.steam) m.userData.v.y -= (m.userData.smoke ? 0.4 : 6.4) * dt;
-      else { m.userData.v.y += 0.15 * dt; m.scale.multiplyScalar(1 + dt * 1.1); }
+      if (m.userData.steam) { m.userData.v.y += 0.15 * dt; m.scale.multiplyScalar(1 + dt * 1.1); }
+      else if (m.userData.spark) { m.userData.v.y -= 3.2 * dt; if (m.material) m.material.opacity = Math.max(0, 0.95 * (1 - m.userData.age / m.userData.life)); }
+      else if (m.userData.confetti) { m.userData.v.y -= 3.8 * dt; }
+      else if (m.userData.rain) { m.userData.v.y -= 7.2 * dt; }
+      else if (!m.userData.steam) m.userData.v.y -= (m.userData.smoke ? 0.4 : 6.4) * dt;
       if (m.userData.spin) {
         m.rotation.x += m.userData.spin.x * dt;
         m.rotation.y += m.userData.spin.y * dt;
@@ -4202,6 +4651,8 @@ PIT.colorMat = function (hex, opts) {
     }
     winBeams.forEach(function (b) { machine.remove(b); if (b.geometry) b.geometry.dispose(); });
     winBeams = [];
+    winTracers.forEach(function (b) { machine.remove(b); if (b.geometry) b.geometry.dispose(); });
+    winTracers = [];
   }
 
   function colorForSym(id) {
@@ -4247,8 +4698,22 @@ PIT.colorMat = function (hex, opts) {
         machine.add(beam);
         winBeams.push(beam);
         beam.userData.born = time;
+        // Animated tracer that runs along the winning tiles
+        var trMat = new THREE.MeshBasicMaterial({
+          color: col, transparent: true, opacity: 1,
+          blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false
+        });
+        var tr = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 8), trMat);
+        tr.position.copy(pts[0]);
+        tr.renderOrder = 6;
+        machine.add(tr);
+        winTracers.push(tr);
+        tr.userData.pts = pts;
+        tr.userData.born = time;
+        tr.userData.col = col;
       }
     });
+    if (PIT.Post && PIT.Post.pulseBloom) PIT.Post.pulseBloom(0.45);
   }
 
   function clearFx() {
@@ -4415,8 +4880,8 @@ PIT.colorMat = function (hex, opts) {
         // land on 0 mod 2π — to is exact turns so landing is the same as from%2π.
         // Force landing at a multiple of 2π from 0:
         reels[c].to = Math.PI * 2 * (6 + c * 0.5);
-        reels[c].delay = c * 0.13;
-        reels[c].dur = 1.05 + c * 0.12;
+        reels[c].delay = c * 0.16;
+        reels[c].dur = 1.25 + c * 0.16;
         reels[c].done = false;
       }
       setCellIcons(grid);
@@ -4425,6 +4890,7 @@ PIT.colorMat = function (hex, opts) {
       leverT = 1;
       PIT.spawnSteam(4, 0);
       PIT.spawnSteam(4, 1);
+      if (PIT.audio && PIT.audio.spinStart) PIT.audio.spinStart();
     },
 
     isSpinning: function () { return !!spin; },
@@ -4446,6 +4912,7 @@ PIT.colorMat = function (hex, opts) {
         reels[c].done = true;
       }
       showAllCells(true);
+      if (PIT.audio && PIT.audio.spinEnd) PIT.audio.spinEnd();
       var cb = spin.onDone;
       spin = null;
       if (cb) cb();
@@ -4458,9 +4925,10 @@ PIT.colorMat = function (hex, opts) {
     },
 
     shake: function (amt) {
-      // Camera is locked — punch comes from a screen flash, HUD shake, and particles.
+      // Camera is locked — punch is a post UV-shake, HUD shake, and a flash.
       var a = amt || 0.12;
-      PIT.Post.setFlash(0xFFD400, Math.min(0.5, 0.22 + a));
+      if (PIT.Post && PIT.Post.setShake) PIT.Post.setShake(a);
+      if (a >= 0.14 && PIT.Post && PIT.Post.setFlash) PIT.Post.setFlash(0xFFD400, Math.min(0.32, 0.1 + a * 0.45));
       if (PIT.HUD && PIT.HUD.shake) PIT.HUD.shake(a);
     },
 
@@ -4470,11 +4938,21 @@ PIT.colorMat = function (hex, opts) {
     flash: function (color, amt) { PIT.Post.setFlash(color || 0xFFD400, amt == null ? 0.4 : amt); },
     burnFx: function () {
       PIT.spawnSmoke();
+      spawnFx("smoke", quality ? 16 : 6, { y: 1.55, z: 0.85, up: 1.0, vy: 0.7, vx: 1.1, life: 1.5, spread: 1.3 });
       PIT.Post.setStrobe(true, 0xff0040);
-      strobeLights = 0.7;
-      if (PIT.HUD && PIT.HUD.shake) PIT.HUD.shake(0.22);
+      if (PIT.Post.setRgbSplit) PIT.Post.setRgbSplit(1.0);
+      if (PIT.Post.setRedVig) PIT.Post.setRedVig(1.0);
+      if (PIT.Post.setCharred) PIT.Post.setCharred(0.9);
+      if (PIT.Post.setShake) PIT.Post.setShake(0.28);
+      strobeLights = 1.05;
+      if (PIT.HUD && PIT.HUD.shake) PIT.HUD.shake(0.26);
     },
-    jackpot: function () { PIT.spawnJackpot(); PIT.Post.setFlash(0xFFD400, 0.55); },
+    jackpot: function () {
+      PIT.spawnJackpot();
+      PIT.Post.setFlash(0xFFD400, 0.48);
+      if (PIT.Post.pulseBloom) PIT.Post.pulseBloom(0.4);
+      if (PIT.Post.setShake) PIT.Post.setShake(0.34);
+    },
     popToast: function (n) { PIT.spawnToastPop(n); },
 
     render: function (dt) {
@@ -4523,7 +5001,7 @@ PIT.colorMat = function (hex, opts) {
             if (!reels[c].done) {
               reels[c].done = true;
               showCellCol(c, true);
-              PIT.audio && PIT.audio.click();
+              if (PIT.audio && PIT.audio.reelStop) PIT.audio.reelStop(c);
             }
           } else {
             all = false;
@@ -4533,10 +5011,11 @@ PIT.colorMat = function (hex, opts) {
             if (u > 0.85) eased = 1 + Math.sin((u - 0.85) / 0.15 * Math.PI) * 0.03 * (1 - u);
             ang = reels[c].to * eased;
             reels[c].pivot.rotation.x = ang;
-            reels[c].mat.uniforms.blurAmt.value = (1 - u) * (1 - u) * 1.15;
+            reels[c].mat.uniforms.blurAmt.value = (1 - u) * (1 - u) * 2.6;
           }
         }
         if (all) {
+          if (PIT.audio && PIT.audio.spinEnd) PIT.audio.spinEnd();
           var cb = spin.onDone;
           spin = null;
           if (cb) cb();
@@ -4594,6 +5073,23 @@ PIT.colorMat = function (hex, opts) {
         }
       }
 
+      // Winning-line tracers run along each paying line
+      var ti, tr, pts, u, seg, local, a, b, tw;
+      for (ti = 0; ti < winTracers.length; ti++) {
+        tr = winTracers[ti];
+        pts = tr.userData.pts;
+        if (!pts || pts.length < 2) continue;
+        tw = (time - (tr.userData.born || 0)) * 1.35;
+        u = tw - Math.floor(tw / (pts.length - 1)) * (pts.length - 1);
+        seg = Math.min(pts.length - 2, u | 0);
+        local = u - seg;
+        a = pts[seg]; b = pts[seg + 1];
+        tr.position.lerpVectors(a, b, local);
+        var pulse = 0.85 + 0.15 * Math.sin(time * 14);
+        tr.scale.setScalar(pulse * (quality ? 1 : 0.75));
+        if (tr.material) tr.material.opacity = 0.7 + 0.3 * pulse;
+      }
+
       tickFx(dt);
 
       // Locked camera — copy the exact pose every frame, no sway, bob, dolly, or shake.
@@ -4620,7 +5116,7 @@ PIT.colorMat = function (hex, opts) {
 
 
 /* ==== 32-post.js ==== */
-// Toaster Pit v0.2 — EffectComposer + UnrealBloomPass + CRT / grain / CA / vignette / flash.
+// Toaster Pit v0.5 — EffectComposer + UnrealBloomPass + CRT / shake / burn glitch / bloom pulse.
 // Official three r160.1 addons, vendored offline.
 (function () {
   var composer, renderPass, bloomPass, crtPass, rendererRef;
@@ -4628,6 +5124,9 @@ PIT.colorMat = function (hex, opts) {
   var time = 0;
   var flash = { r: 1, g: 0.83, b: 0, a: 0 };
   var strobe = { on: false, r: 1, g: 0, b: 0.25, amt: 0, t: 0 };
+  var shake = { amt: 0, x: 0, y: 0 };
+  var glitch = { rgb: 0, redVig: 0, charred: 0 };
+  var bloomPulse = 0, bloomBase = 0.58;
 
   var CRT_VERT = [
     "varying vec2 vUv;",
@@ -4644,10 +5143,12 @@ PIT.colorMat = function (hex, opts) {
     "uniform vec3 flashColor;",
     "uniform float flashAmt, strobeAmt;",
     "uniform vec3 strobeColor;",
+    "uniform vec2 shake;",
+    "uniform float rgbSplit, redVig, charred;",
     "varying vec2 vUv;",
     "float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }",
     "void main(){",
-    "  vec2 uv = vUv;",
+    "  vec2 uv = vUv + shake;",
     "  vec2 c = uv - 0.5;",
     "  // subtle barrel (stronger when CRT is on)",
     "  float barrel = 0.038 * enabled;",
@@ -4656,9 +5157,12 @@ PIT.colorMat = function (hex, opts) {
     "    gl_FragColor = vec4(0.0,0.0,0.0,1.0); return;",
     "  }",
     "  uv = clamp(uv, 0.0, 1.0);",
-    "  // chromatic aberration, a little extra on flashes",
-    "  float caAmt = (0.0007 + ca * 0.0024 + flashAmt * 0.002) * (0.45 + 0.55 * enabled);",
+    "  // chromatic aberration — extra RGB-split for Burns and big flashes",
+    "  float caAmt = (0.0007 + ca * 0.0024 + flashAmt * 0.002 + rgbSplit * 0.012) * (0.45 + 0.55 * enabled);",
     "  vec2 dir = c * caAmt;",
+    "  // burn glitch: occasional horizontal slice offset",
+    "  float slice = step(0.92, hash(vec2(floor(uv.y * 48.0), floor(time * 17.0)))) * rgbSplit;",
+    "  uv.x = clamp(uv.x + slice * 0.035, 0.0, 1.0);",
     "  float r = texture2D(tDiffuse, uv + dir).r;",
     "  float g = texture2D(tDiffuse, uv).g;",
     "  float b = texture2D(tDiffuse, uv - dir).b;",
@@ -4672,9 +5176,13 @@ PIT.colorMat = function (hex, opts) {
     "  // film grain",
     "  float n = hash(uv * resolution + vec2(time * 47.0, time * 19.0));",
     "  col += (n - 0.5) * grainAmt;",
-    "  // vignette",
+    "  // vignette + burn red edge + charred-edge flicker",
     "  float vig = 1.0 - dot(c,c) * vignette;",
     "  col *= clamp(vig, 0.25, 1.0);",
+    "  float edge = smoothstep(0.28, 0.85, dot(c,c));",
+    "  float flicker = 0.7 + 0.3 * hash(vec2(time * 22.0, 3.1));",
+    "  col = mix(col, col * vec3(1.15, 0.12, 0.14), edge * redVig * 0.85);",
+    "  col *= 1.0 - edge * charred * flicker * 0.65;",
     "  // screen flash (big wins) and burn strobe",
     "  col += flashColor * flashAmt;",
     "  col = mix(col, strobeColor, strobeAmt * (0.10 + 0.28 * step(0.5, fract(time * 8.0))));",
@@ -4698,7 +5206,11 @@ PIT.colorMat = function (hex, opts) {
         flashColor: { value: new THREE.Color(1, 0.83, 0) },
         flashAmt: { value: 0 },
         strobeAmt: { value: 0 },
-        strobeColor: { value: new THREE.Color(1, 0, 0.25) }
+        strobeColor: { value: new THREE.Color(1, 0, 0.25) },
+        shake: { value: new THREE.Vector2(0, 0) },
+        rgbSplit: { value: 0 },
+        redVig: { value: 0 },
+        charred: { value: 0 }
       },
       vertexShader: CRT_VERT,
       fragmentShader: CRT_FRAG,
@@ -4773,23 +5285,46 @@ PIT.colorMat = function (hex, opts) {
 
     setStrobe: function (on, color) {
       strobe.on = !!on;
-      strobe.t = on ? 0.7 : 0;
+      strobe.t = on ? 0.85 : 0;
       if (color != null && crtPass) crtPass.uniforms.strobeColor.value.set(color);
     },
+
+    // Screen shake via UV offset — never moves the camera.
+    setShake: function (amt) {
+      shake.amt = Math.max(shake.amt, amt == null ? 0.12 : amt);
+    },
+    setRgbSplit: function (amt) { glitch.rgb = Math.max(glitch.rgb, amt == null ? 0.8 : amt); },
+    setRedVig: function (amt) { glitch.redVig = Math.max(glitch.redVig, amt == null ? 0.85 : amt); },
+    setCharred: function (amt) { glitch.charred = Math.max(glitch.charred, amt == null ? 0.7 : amt); },
+    pulseBloom: function (amt) { bloomPulse = Math.max(bloomPulse, amt == null ? 0.4 : amt); },
 
     render: function (dt) {
       if (!composer) return;
       time += dt;
-      // decay flash
-      flash.a = Math.max(0, flash.a - dt * 1.6);
+      flash.a = Math.max(0, flash.a - dt * 2.4);
       if (strobe.on) {
         strobe.t -= dt;
         if (strobe.t <= 0) strobe.on = false;
       }
+      // Shake decays; a fresh random offset each frame.
+      shake.amt = Math.max(0, shake.amt - dt * 1.85);
+      if (shake.amt > 0.002) {
+        shake.x = (Math.random() - 0.5) * 2 * shake.amt * 0.028;
+        shake.y = (Math.random() - 0.5) * 2 * shake.amt * 0.022;
+      } else { shake.x = shake.y = 0; }
+      glitch.rgb = Math.max(0, glitch.rgb - dt * 1.1);
+      glitch.redVig = Math.max(0, glitch.redVig - dt * 0.55);
+      glitch.charred = Math.max(0, glitch.charred - dt * 0.7);
+      bloomPulse = Math.max(0, bloomPulse - dt * 1.6);
+      if (bloomPass) bloomPass.strength = bloomBase + bloomPulse * 0.85;
       if (crtPass) {
         crtPass.uniforms.time.value = time;
         crtPass.uniforms.flashAmt.value = flash.a;
         crtPass.uniforms.strobeAmt.value = strobe.on ? Math.min(1, strobe.t * 1.4) : 0;
+        crtPass.uniforms.shake.value.set(shake.x, shake.y);
+        crtPass.uniforms.rgbSplit.value = glitch.rgb;
+        crtPass.uniforms.redVig.value = glitch.redVig;
+        crtPass.uniforms.charred.value = glitch.charred;
       }
       composer.render();
     },
@@ -5545,7 +6080,7 @@ PIT.colorMat = function (hex, opts) {
 
 
 /* ==== 40-hud.js ==== */
-// Toaster Pit — 2D HUD. RGB-split headings, Toasty lines, and Burn alerts.
+// Toaster Pit v0.5 — 2D HUD. RGB-split, payout pops, mute button, crumb ticks.
 (function () {
   var hud, ctx, W, H, dpr = 1;
   var buttons = [];
@@ -5556,6 +6091,8 @@ PIT.colorMat = function (hex, opts) {
   var crumbAnim = 0, crumbShown = 0;
   var burnPulse = 0;
   var uiShake = 0;
+  var pops = [];
+  var lastCrumbTick = 0;
   var pointer = { x: 0, y: 0, down: false };
 
   function S() {
@@ -5799,6 +6336,24 @@ PIT.colorMat = function (hex, opts) {
     btn("retry", (W - bw) >> 1, y + boxH - bh - 12, bw, bh, "SIT DOWN AGAIN", "gold");
   }
 
+  function drawPops(s, dt) {
+    var i, p, a, y, sc, tw, x;
+    for (i = pops.length - 1; i >= 0; i--) {
+      p = pops[i];
+      p.t += dt;
+      if (p.t > p.life) { pops.splice(i, 1); continue; }
+      a = 1 - p.t / p.life;
+      sc = (s + 2) * (1 + Math.sin(Math.min(1, p.t * 10) * Math.PI) * 0.35);
+      y = (p.y0 != null ? p.y0 : H * 0.36) - p.t * (H * 0.16);
+      tw = PIT.textWidth(p.text, sc);
+      x = ((W - tw) >> 1) + (p.ox || 0);
+      ctx.globalAlpha = Math.max(0, a);
+      if (p.rgb) PIT.drawRgbText(ctx, p.text, x, y, sc, p.color, 2);
+      else PIT.drawText(ctx, p.text, x, y, sc, p.color);
+      ctx.globalAlpha = 1;
+    }
+  }
+
   function drawFlash(s) {
     if (!flash) return;
     flash.t += flash._dt || 0.016;
@@ -5874,8 +6429,19 @@ PIT.colorMat = function (hex, opts) {
       flash = { text: text, color: color || PIT.PAL.yellow, rgb: !!rgb, t: 0, life: life || 1.15 };
     },
 
-    burnPulse: function () { burnPulse = 1; },
+    burnPulse: function () { burnPulse = 1; pops = []; },
     shake: function (amt) { uiShake = Math.max(uiShake, (amt || 0.12) * 28); },
+    clearPops: function () { pops = []; },
+    popPay: function (n, big) {
+      pops.push({
+        text: (n >= 0 ? "+" : "") + n,
+        t: 0, life: big ? 1.55 : 1.15,
+        color: big ? PIT.PAL.yellow : PIT.PAL.gold,
+        rgb: !!big,
+        y0: H * 0.36,
+        ox: (pops.length % 3 - 1) * 24
+      });
+    },
 
     setCrumbs: function (n) { crumbAnim = n; },
 
@@ -5894,11 +6460,13 @@ PIT.colorMat = function (hex, opts) {
       if (flash) flash._dt = dt;
       if (burnPulse > 0) burnPulse = Math.max(0, burnPulse - dt * 1.2);
 
-      // Animate crumb counter
+      // Animate crumb counter and tick coins as it climbs
       if (state) {
+        var prev = crumbShown;
         if (crumbShown < state.loose) crumbShown += Math.max(1, Math.ceil((state.loose - crumbShown) * 0.25));
         else if (crumbShown > state.loose) crumbShown += Math.min(-1, Math.floor((state.loose - crumbShown) * 0.4));
         else crumbShown = state.loose;
+        if (crumbShown > prev && PIT.audio && PIT.audio.coin) PIT.audio.coin();
       }
 
       if (screen === "title") drawTitle(s);
@@ -5913,6 +6481,11 @@ PIT.colorMat = function (hex, opts) {
 
       drawBurnVeil();
       drawFlash(s);
+      drawPops(s, dt);
+
+      // Mute / volume toggle — always available after the title is up
+      var muted = PIT.audio && PIT.audio.muted();
+      btn("mute", 10, H - 42, 84, 24, muted ? "MUTED" : "AUDIO", muted ? "magenta" : "gold");
 
       // Buttons on top
       buttons.forEach(function (b) {
@@ -5940,7 +6513,7 @@ PIT.colorMat = function (hex, opts) {
 
 
 /* ==== 50-game.js ==== */
-// Toaster Pit — main loop, input, and screen flow.
+// Toaster Pit v0.5 — main loop, input, screen flow, and juice wiring.
 (function () {
   var state = null;
   var screen = "title"; // title | play | spin | shop | deadline | paid | burnt
@@ -6019,19 +6592,22 @@ PIT.colorMat = function (hex, opts) {
       } else if (gained > 0) {
         var big = gained >= 40;
         var jack = gained >= 80;
-        PIT.HUD.flash("+" + gained, big ? PIT.PAL.yellow : PIT.PAL.gold, true, 1.1);
-        PIT.audio && PIT.audio.pop();
-        PIT.audio && PIT.audio.ding(big);
-        PIT.spawnCrumbs && PIT.spawnCrumbs(big ? 18 : 8, big);
+        var shakeAmt = jack ? 0.36 : big ? 0.22 : gained >= 16 ? 0.12 : 0.07;
+        if (PIT.HUD.popPay) PIT.HUD.popPay(gained, big);
+        if (PIT.audio && PIT.audio.win) PIT.audio.win(gained);
+        else { PIT.audio && PIT.audio.pop(); PIT.audio && PIT.audio.ding(big); }
+        if (state.charms && Object.keys(state.charms).length && PIT.audio && PIT.audio.charm) PIT.audio.charm();
+        PIT.spawnCrumbs && PIT.spawnCrumbs(big ? 22 : 10, big);
         if (ev.wins && ev.wins.some(function (w) { return w.symbol === "butter"; })) {
           PIT.spawnButter && PIT.spawnButter(10);
+          PIT.spawnSparks && PIT.spawnSparks(16);
+        } else if (big) {
+          PIT.spawnSparks && PIT.spawnSparks(12);
         }
         PIT.Scene.showWins && PIT.Scene.showWins(ev);
         PIT.Scene.popToast && PIT.Scene.popToast(big ? 4 : 2);
-        if (big) {
-          PIT.Scene.shake(0.14);
-          PIT.Scene.flash && PIT.Scene.flash(0xFFD400, 0.38);
-        }
+        PIT.Scene.shake(shakeAmt);
+        if (big) PIT.Scene.flash && PIT.Scene.flash(0xFFD400, jack ? 0.7 : 0.4);
         if (jack) PIT.Scene.jackpot && PIT.Scene.jackpot();
       } else {
         PIT.audio && PIT.audio.click();
@@ -6078,6 +6654,10 @@ PIT.colorMat = function (hex, opts) {
 
   function onClick(id) {
     PIT.audio && PIT.audio.resume();
+    if (id === "mute") {
+      PIT.audio && PIT.audio.toggleMute();
+      return;
+    }
     if (id === "start" || id === "retry") {
       startRun();
       return;
@@ -6111,9 +6691,11 @@ PIT.colorMat = function (hex, opts) {
       } else {
         screen = "burnt";
         PIT.HUD.setLine(PIT.toastyLine(state, null));
-        PIT.audio && PIT.audio.burn();
+        if (PIT.audio && PIT.audio.gameOver) PIT.audio.gameOver();
+        else if (PIT.audio) PIT.audio.burn();
         PIT.HUD.burnPulse();
-        PIT.Scene && PIT.Scene.shake(0.25);
+        PIT.Scene && PIT.Scene.shake(0.28);
+        PIT.Scene && PIT.Scene.burnFx && PIT.Scene.burnFx();
       }
       return;
     }
@@ -6121,8 +6703,10 @@ PIT.colorMat = function (hex, opts) {
       PIT.payDeadline(state);
       screen = "burnt";
       PIT.HUD.setLine(PIT.toastyLine(state, null));
-      PIT.audio && PIT.audio.burn();
+      if (PIT.audio && PIT.audio.gameOver) PIT.audio.gameOver();
+      else if (PIT.audio) PIT.audio.burn();
       PIT.HUD.burnPulse();
+      PIT.Scene && PIT.Scene.burnFx && PIT.Scene.burnFx();
       return;
     }
     if (id === "next") {
@@ -6174,6 +6758,16 @@ PIT.colorMat = function (hex, opts) {
   function frame(t) {
     var dt = last ? Math.min(0.05, (t - last) / 1000) : 0.016;
     last = t;
+    if (state && PIT.audio && PIT.audio.setTension) {
+      var lastSess = state.session >= (PIT.SESSIONS_PER_DEADLINE || 3);
+      var maxP = PIT.pullsThisSession ? PIT.pullsThisSession(state) : (PIT.PULLS_PER_SESSION || 7);
+      var ten = 0;
+      if (screen === "paid" || screen === "title") ten = 0;
+      else if (screen === "burnt") ten = 0.7;
+      else if (lastSess) ten = 0.35 + 0.65 * (1 - (state.pullsLeft || 0) / Math.max(1, maxP));
+      else if (state.pullsLeft <= 2) ten = 0.25;
+      PIT.audio.setTension(ten);
+    }
     if (PIT.Scene) PIT.Scene.render(dt);
     if (PIT.HUD) PIT.HUD.draw(screen, state, dt);
     requestAnimationFrame(frame);
@@ -6217,13 +6811,21 @@ PIT.colorMat = function (hex, opts) {
       state.lastResult = ev;
       if (PIT.Scene) PIT.Scene.setGrid(grid);
       if (juice && PIT.Scene) {
-        if (ev.burned && !ev.blocked) PIT.Scene.burnFx && PIT.Scene.burnFx();
-        else if (ev.pay > 0) {
+        if (ev.burned && !ev.blocked) {
+          PIT.Scene.burnFx && PIT.Scene.burnFx();
+          if (PIT.audio && PIT.audio.burn) PIT.audio.burn();
+        } else if (ev.pay > 0) {
+          var big = ev.pay >= 40, jack = ev.pay >= 80;
+          var shakeAmt = jack ? 0.36 : big ? 0.22 : ev.pay >= 16 ? 0.12 : 0.07;
           PIT.Scene.showWins && PIT.Scene.showWins(ev);
-          PIT.Scene.popToast && PIT.Scene.popToast(ev.pay >= 40 ? 4 : 2);
-          if (ev.pay >= 40) { PIT.Scene.shake(0.14); PIT.Scene.flash(0xFFD400, 0.4); }
-          if (ev.pay >= 80) PIT.Scene.jackpot && PIT.Scene.jackpot();
-          PIT.spawnCrumbs && PIT.spawnCrumbs(ev.pay >= 40 ? 18 : 8, ev.pay >= 40);
+          PIT.Scene.popToast && PIT.Scene.popToast(big ? 4 : 2);
+          PIT.Scene.shake(shakeAmt);
+          if (big) PIT.Scene.flash(0xFFD400, jack ? 0.45 : 0.28);
+          if (jack) PIT.Scene.jackpot && PIT.Scene.jackpot();
+          PIT.spawnCrumbs && PIT.spawnCrumbs(big ? 22 : 10, big);
+          if (big && PIT.spawnSparks) PIT.spawnSparks(14);
+          if (PIT.HUD && PIT.HUD.popPay) PIT.HUD.popPay(ev.pay, big);
+          if (PIT.audio && PIT.audio.win) PIT.audio.win(ev.pay);
         }
       }
       return ev;
