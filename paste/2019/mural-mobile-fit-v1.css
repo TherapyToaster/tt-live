@@ -1,0 +1,40 @@
+/* TT MURAL MOBILE FIT v1 */
+/* Home #tt-topwall: on phones the mobile crop + background-size:cover
+   clips Coty's "MR. TOASTY" graffiti to "R.TOA". Switch to the full
+   3200x1500 wall, fit it by width under the header, and shrink the
+   locked wall height to match. Desktop (min-width:768px) is unchanged.
+   PASTE at the end of Squarespace Custom CSS (LESS 1.3.3). */
+
+@media screen and (max-width: 767px) {
+  html.tt-topwall #tt-topwall .tw-img {
+    background-color: #000 !important;
+    background-repeat: no-repeat !important;
+    background-attachment: scroll !important;
+    background-size: 100% auto !important;
+    /* 158px + 16vw tracks #header bottom with the caution bar present
+       (220px at 390-wide; close across 360–767). */
+    background-position: 50% ~"calc(158px + 16vw)" !important;
+    background-image: url("https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@e2d52be7710e12f398f1d72d8ada86cb8147f131/assets/home-graffiti/mr-toasty-wall-3200.jpg") !important;
+    background-image: ~'image-set(url("https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@e2d52be7710e12f398f1d72d8ada86cb8147f131/assets/home-graffiti/mr-toasty-wall-3200.webp") type("image/webp"), url("https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@e2d52be7710e12f398f1d72d8ada86cb8147f131/assets/home-graffiti/mr-toasty-wall-3200.jpg") type("image/jpeg"))' !important;
+  }
+  html.tt-topwall body.homepage #tt-topwall {
+    /* header offset + 46.875vw (art aspect) + 70px fade */
+    height: ~"calc(228px + 62.875vw)" !important;
+  }
+  html.tt-topwall body.homepage #tt-notice.ttdg-moved,
+  html.tt-topwall body.homepage #tt-vc.tt-vc-on ~ #tt-notice.ttdg-moved {
+    margin-top: ~"calc(212px + 62.875vw)" !important;
+  }
+
+  /* Caution bar dismissed: header is ~62px shorter */
+  html.tt-topwall body.homepage:not(:has(.sqs-announcement-bar)) #tt-topwall .tw-img {
+    background-position: 50% ~"calc(96px + 16vw)" !important;
+  }
+  html.tt-topwall body.homepage:not(:has(.sqs-announcement-bar)) #tt-topwall {
+    height: ~"calc(166px + 62.875vw)" !important;
+  }
+  html.tt-topwall body.homepage:not(:has(.sqs-announcement-bar)) #tt-notice.ttdg-moved,
+  html.tt-topwall body.homepage:not(:has(.sqs-announcement-bar)) #tt-vc.tt-vc-on ~ #tt-notice.ttdg-moved {
+    margin-top: ~"calc(150px + 62.875vw)" !important;
+  }
+}
