@@ -1,0 +1,142 @@
+{
+  "wall": [
+    {
+      "id": "skulrz4211",
+      "file": "assets/nfts/skulrz4211.jpg",
+      "collection": "SkulRz PFP",
+      "title": "SkulRz PFP #4211",
+      "source": "solana - SkulRz PFP - SkulRz PFP #4211.jpg",
+      "anim": "crt",
+      "note": "Wall replacement for Mr. Toasty's Skulls #75, which is now the top Toasty Skull symbol."
+    },
+    {
+      "id": "messed58",
+      "file": "assets/nfts/messed58.jpg",
+      "collection": "Messed and Mixed",
+      "title": "Messed and Mixed #58",
+      "source": "solana - Messed and Mixed - Messed and Mixed 58.png",
+      "anim": "scan"
+    },
+    {
+      "id": "messed74",
+      "file": "assets/nfts/messed74.jpg",
+      "collection": "Messed and Mixed",
+      "title": "Messed and Mixed #74",
+      "source": "solana - Messed and Mixed - Messed and Mixed 74.png",
+      "anim": "crt"
+    },
+    {
+      "id": "skulrz4289",
+      "file": "assets/nfts/skulrz4289.jpg",
+      "collection": "SkulRz PFP",
+      "title": "SkulRz PFP #4289",
+      "source": "solana - SkulRz PFP - SkulRz PFP #4289.jpg",
+      "anim": "glitch",
+      "note": "Wall replacement for Messed and Mixed #124, which is now the Golden Skull symbol."
+    },
+    {
+      "id": "messed186",
+      "file": "assets/nfts/messed186.jpg",
+      "collection": "Messed and Mixed",
+      "title": "Messed and Mixed #186",
+      "source": "solana - Messed and Mixed - Messed and Mixed 186.png",
+      "anim": "scan"
+    },
+    {
+      "id": "skulrz4076",
+      "file": "assets/nfts/skulrz4076.jpg",
+      "collection": "SkulRz PFP",
+      "title": "SkulRz PFP #4076",
+      "source": "solana - SkulRz PFP - SkulRz PFP #4076.jpg",
+      "anim": "crt"
+    },
+    {
+      "id": "skulrz4173",
+      "file": "assets/nfts/skulrz4173.jpg",
+      "collection": "SkulRz PFP",
+      "title": "SkulRz PFP #4173",
+      "source": "solana - SkulRz PFP - SkulRz PFP #4173.jpg",
+      "anim": "glitch"
+    },
+    {
+      "id": "skulrz4493",
+      "file": "assets/nfts/skulrz4493.jpg",
+      "collection": "SkulRz PFP",
+      "title": "SkulRz PFP #4493",
+      "source": "solana - SkulRz PFP - SkulRz PFP #4493.jpg",
+      "anim": "scan"
+    }
+  ],
+  "symbols": [
+    {
+      "id": "plain",
+      "file": "assets/nfts/symbols/plain.webp",
+      "collection": "SkulRz PFP",
+      "title": "SkulRz PFP #4049",
+      "name": "Plain Toast",
+      "tier": "common",
+      "src": "solana - SkulRz PFP - SkulRz PFP #4049.jpg",
+      "bytes": 18236
+    },
+    {
+      "id": "butter",
+      "file": "assets/nfts/symbols/butter.webp",
+      "collection": "SkulRz PFP",
+      "title": "SkulRz PFP #4356",
+      "name": "Butter Skull",
+      "tier": "mid",
+      "src": "solana - SkulRz PFP - SkulRz PFP #4356.jpg",
+      "bytes": 67942
+    },
+    {
+      "id": "jam",
+      "file": "assets/nfts/symbols/jam.webp",
+      "collection": "SkulRz PFP",
+      "title": "SkulRz PFP #4429",
+      "name": "Jam Skull",
+      "tier": "mid",
+      "src": "solana - SkulRz PFP - SkulRz PFP #4429.jpg",
+      "bytes": 11960
+    },
+    {
+      "id": "avocado",
+      "file": "assets/nfts/symbols/avocado.webp",
+      "collection": "SkulRz PFP",
+      "title": "SkulRz PFP #4553",
+      "name": "Avocado Toast",
+      "tier": "mid",
+      "src": "solana - SkulRz PFP - SkulRz PFP #4553.jpg",
+      "bytes": 16818
+    },
+    {
+      "id": "golden",
+      "file": "assets/nfts/symbols/golden.webp",
+      "collection": "Messed and Mixed",
+      "title": "Messed and Mixed #124",
+      "name": "Golden Skull",
+      "tier": "rare",
+      "src": "solana - Messed and Mixed - Messed and Mixed 124.png",
+      "bytes": 66298
+    },
+    {
+      "id": "skull",
+      "file": "assets/nfts/symbols/skull.webp",
+      "collection": "Mr. Toasty's Skullz",
+      "title": "Mr. Toasty's Skulls #75",
+      "name": "Toasty Skull",
+      "tier": "top",
+      "src": "solana - Mr.Toasty's skullz - Mr. Toasty's Skulls #75.jpg",
+      "bytes": 77676
+    },
+    {
+      "id": "burnt",
+      "file": "assets/nfts/symbols/burnt.webp",
+      "collection": "SkulRz PFP",
+      "title": "SkulRz PFP #4340",
+      "name": "Burnt Toast",
+      "tier": "cursed",
+      "src": "solana - SkulRz PFP - SkulRz PFP #4340.jpg",
+      "bytes": 27212
+    }
+  ]
+}

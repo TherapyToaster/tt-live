@@ -1,4 +1,4 @@
-# Toaster Pit v0.5.0
+# Toaster Pit v0.6.0
 
 A Mr. Toasty slot-machine roguelike. You're in the basement for a therapy session, and you owe crumbs to the Breadlord. Pull the cursed 3×5 Toaster Slot, buy charms from the vending fridge, and pay each deadline — or get burnt.
 
@@ -9,6 +9,18 @@ Rebuild after editing `src/` or `vendor/`:
     python3 build.py
 
 CloverPit is a gameplay-loop reference only. Every name, symbol, charm, and line is original. This is not real-money gambling.
+
+## v0.6 — gritty graffiti look
+
+The basement got tagged, using the @skulrzworld (SkulRz World) X account as the style reference: London street walls, puff throw-ups, drips, stencils, sticker bombs, wheatpaste, and grime. Every piece of art is procedural canvas art with our own words. No photos, logos, or lettering from the account are copied or shipped, and the reference notes stay out of the build.
+
+- **Walls:** tagged brick with a raw concrete band and buffed roller patches, all on one unique 2048px canvas per wall. The canvases carry wet-paint throw-ups (TOASTY, PIT, CRUMBS, BREADLORD), handstyle tags with crowns and arrows, stencils of our toast-crowned X-eye skull and toast, wheatpaste posters ("FEED THE BREADLORD", "ITS ART THERAPY"), sticker-bomb clusters, spray scribbles, drips, damp stains, soot, and cracks. The brick has relief and a little emissive so the paint reads in the dark. The floor has spray splats and a faded stencil.
+- **Cabinet:** a spray-painted, scuffed, stickered skin sits over the gold bezels: overspray fades, a drippy magenta/cyan outline around the pay window, tags on the bottom bezel, die-cut and holo stickers on the sides, and scratches. The pay window stays clear. The marquee is now a wet-paint throw-up.
+- **Symbol frames:** each NFT card gets a rough spray-paint outline in its tier color, drips into the frame band, grit and scratches, and a tiny tag. The portraits themselves are untouched.
+- **HUD:** all lettering uses a stencil face. Big headings use a dripping wet-paint face. Panels get rough spray borders, drips, and tape. Buttons look like die-cut stickers. The layout is the same as v0.5.
+- **Unchanged:** the locked camera, v0.5 music, SFX and VFX, the Q low-quality toggle, NFT icons, payouts, and odds.
+
+Fonts are embedded in `index.html` as ASCII subsets, both under the SIL Open Font License 1.1: **Saira Stencil One** (© 2019 The Saira Stencil Project Authors) and **Rubik Wet Paint** (© 2020 The Rubik Filtered Project Authors). License texts are in `vendor/fonts/` and in the zip under `licenses/`.
 
 ## Controls
 
