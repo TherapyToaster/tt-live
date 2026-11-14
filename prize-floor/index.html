@@ -136,21 +136,25 @@ const isTouch=matchMedia('(pointer: coarse)').matches&&!QS.has('desktop');
 
 // ================= SAVE =================
 const SAVE_KEY='tpf_v02',OLD_KEY='tpf_v01';
-const DEFAULT_STATE={v:2,tokens:80,stubs:0,counted:0,owned:[],cards:{},fortuneUntil:0,crusted:0,changeAt:0,signal:[0,0,0,0,0,0],pitCurseUntil:0,since:{},stats:{drops:0,paid:0,toasts:0,golden:0,plays:{}},tables:{},quality:isTouch?'low':'high'};
+const START_TOKENS=1000;
+const DEFAULT_STATE={v:2,tokens:START_TOKENS,starter1k:1,stubs:0,counted:0,owned:[],cards:{},fortuneUntil:0,crusted:0,changeAt:0,signal:[0,0,0,0,0,0],pitCurseUntil:0,since:{},stats:{drops:0,paid:0,toasts:0,golden:0,plays:{}},tables:{},quality:isTouch?'low':'high'};
 let S;
 function loadSave(){
  let raw=null;try{raw=JSON.parse(localStorage.getItem(SAVE_KEY)||'null')}catch(e){}
  if(!raw){try{const o=JSON.parse(localStorage.getItem(OLD_KEY)||'null');if(o){raw={tokens:o.tokens,stubs:o.stubs,counted:o.counted,owned:o.owned||[],fortuneUntil:o.fortuneUntil||0,crusted:o.crusted||0,stats:Object.assign({},DEFAULT_STATE.stats,o.stats||{}),tables:{goldshelf:o.table||null}}}}catch(e){}}
  const s=Object.assign(structuredClone(DEFAULT_STATE),raw||{});
+ if(raw && !raw.starter1k)s.starter1k=0;
  s.stats=Object.assign(structuredClone(DEFAULT_STATE.stats),s.stats||{});if(!s.stats.plays)s.stats.plays={};
  if(!Array.isArray(s.signal)||s.signal.length!==6)s.signal=[0,0,0,0,0,0];
  if(!s.cards||typeof s.cards!=='object')s.cards={};if(!s.tables)s.tables={};if(!s.since)s.since={};
  return s}
 S=loadSave();
 if(QS.has('reset')){S=structuredClone(DEFAULT_STATE)}
+let needStarterSave=false;
+if(!S.starter1k){S.tokens=Math.max(S.tokens,START_TOKENS);S.starter1k=1;needStarterSave=true}
 if(QS.has('rich')){S.counted=Math.max(S.counted,3000);S.stubs=Math.max(S.stubs,140);S.tokens=Math.max(S.tokens,400)}
 if(QS.get('q')==='low'||QS.get('q')==='high')S.quality=QS.get('q');
-let saveDirty=false,lastTableSave=0;
+let saveDirty=needStarterSave,lastTableSave=0;
 function markSave(){saveDirty=true}
 const PUSHERS=[];
 function writeSave(withTables){
