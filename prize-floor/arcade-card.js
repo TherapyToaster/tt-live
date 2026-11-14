@@ -13,7 +13,7 @@
 if(window.__ttPfCard)return;window.__ttPfCard=1;
 var NAME="Toasty's Prize Floor",NAME_UP="TOASTY'S PRIZE FLOOR";
 var LIVE="https://therapytoaster.github.io/tt-live/prize-floor/";
-var ART_V="020";
+var ART_V="030";
 var U=(function(){
   var s=document.currentScript&&document.currentScript.src;
   if(s){var u=s.replace(/arcade-card\.js(?:\?.*)?$/i,"");if(u)return u}
@@ -40,7 +40,7 @@ var CARD='<button type="button" class="tt-ns-shot" data-pf-play aria-label="Play
  '<p class="tt-ns-d">A first-person arcade of coin pushers and prize machines from every Toasty game. Play uses in-game tokens only.</p>'+
  '<button type="button" class="tt-ns-play" data-pf-play>&#9654; PLAY</button>'+
  '<a class="tt-ns-new-tab" href="'+LIVE+'" target="_blank" rel="noopener">open in new tab &#8599;</a>'+
- '<p class="tt-ns-keys">CLICK TO LOOK &middot; WASD WALK &middot; CLICK DROP COIN &middot; C BINDER &middot; O QUALITY &middot; ESC RELEASE MOUSE</p></div>';
+ '<p class="tt-ns-keys">CLICK TO LOOK &middot; WASD WALK &middot; E / CLICK USE &middot; MOUSE OR A/D AIM &middot; SPACE DROP &middot; C BINDER &middot; O QUALITY &middot; ESC PAUSE &middot; PHONES: TOUCH CONTROLS</p></div>';
 
 function anchor(root){
   var crumb=root.querySelector("[data-crumb-card]");
