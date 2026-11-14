@@ -1,4 +1,4 @@
-# Toasty's Prize Floor: v0.4 (six wings, twenty-four machines)
+# Toasty's Prize Floor: v0.5 (six wings, twenty-four machines)
 
 Live copy: https://therapytoaster.github.io/tt-live/prize-floor/ (also on Toasty's ARTcade).
 Play uses in-game Tokens and Stubs only. There is no real money and no crypto.
@@ -36,6 +36,10 @@ Serve this folder over HTTP, because ES modules don't load from file://.
 - **Monday Motors Rally:** A/D or the mouse steers. Click starts a race and then boosts (3 charges).
 - **Repairman CRT:** A/D picks a slice, click plays it, and W peeks once (Butter Knife).
 - **Burnt or Golden prompt:** press G or B.
+
+### New in v0.5
+- **New arcade-goers.** Toast folk (beveled toast slices with faces, blush, gloves and sneakers) and skull-hoodie visitors are now rigged characters with a walk cycle, breathing, blinking and head turns. They walk real paths through the doorways, stand at a proper spot in front of each cabinet, play with hand gestures, cheer on a win and slump on a loss. They step around you and each other, and they leave a machine when you take it.
+- **Graphics pass on all 24 machines.** Chrome kick plinths with underglow, attract-mode bulb rows, chrome trims with chase lights, a side-mounted token slot, original side art, and reflective glass over the screens. Lights flash when a machine pays out.
 
 ### New in v0.4 (one new machine per wing)
 | Machine | Type | Wing | Play | Skilled payout |
@@ -83,6 +87,8 @@ Each wing has its own prizes and a 5-card set. A full set unlocks that wing's pl
   - `05-machines.js`: the six v0.2 screen and skill machines
   - `05b-games.js`: the six v0.3 game types
   - `05c-v04a.js` / `05c-v04b.js`: the six v0.4 machines and their prizes
+  - `05d-dress.js`: v0.5 cabinet graphics kit (merged per zone)
+  - `06b2-npc.js`: v0.5 rigged NPCs, navigation grid and animation
   - `06b-alive.js`: NPCs, siren, PA, floor events, ambience, dust and easter eggs
   - `06c-gfx.js`: grading, reflections, beams, carpet, mirror balls, light pools and win juice
   - `06-player.js`: modals, the prize counter, the fridge and the binder
