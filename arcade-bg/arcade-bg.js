@@ -1,16 +1,19 @@
-/* TT ARCADE BG v2
+/* TT ARCADE BG v3
    Pixel background for therapytoaster.com/arcade only
    (body#collection-6ad5b63914df0c0376bddf45 / #tt-arc).
    Motifs from Coty's own machines — toasters and toast, Skullz, crumbs and
    bones, Prize Floor coins and tickets, a CyberToaster Kart, Toaster Pit
    clovers and 7s, No Signal CRT — not Pac-Man or Space Invaders.
-   Variant A (default): night circuit. Drifting toasts and skulls, crumb-stars,
-     prize coins rising, neon kart road along the bottom.
-   Variant B: cabinet alley. Crumb and coin rain, rising crypt skulls, slot
-     reels in the margins, toasters popping toast, stronger CRT.
+   Variant C (default): night circuit + cabinet alley. A's neon kart road and
+     drifting toasts, Skullz, coins and tickets, plus B's dungeon grid, stronger
+     CRT, crumb and bone rain, rising crypt skulls, popping toasters, and
+     side-margin slot reels — densities kept near a single variant so the
+     cards stay readable.
+   Variant A: night circuit only (?v=a). Variant B: cabinet alley only (?v=b).
    Usage:
      <script src="https://therapytoaster.github.io/tt-live/arcade-bg/arcade-bg.js"></script>
-     Variant B: ?v=b  OR  data-variant="B"  OR  window.TT_ARCADE_BG='B'
+     A: ?v=a   B: ?v=b   C: default, or ?v=c
+     Also data-variant="A|B|C" or window.TT_ARCADE_BG.
    Safe to add after the old TT BG ART v1 script: this removes #ttbg-arcade.
    Still delete the old style+script so its rAF loop does not keep running.
    Caps ~30fps, pauses when the tab is hidden, reduced-motion = one still frame.
@@ -19,8 +22,11 @@
 if(window.__ttArcadeBgV2)return;
 var me=document.currentScript;
 var src=me&&me.src||'';
-var variant=(window.TT_ARCADE_BG||(me&&me.getAttribute('data-variant'))||'A').toString().toUpperCase();
-if(/[?&#]v=b\b/i.test(src)||variant==='B')variant='B';else variant='A';
+var variant=(function(){
+  var m=/[?&#]v=([abc])\b/i.exec(src);
+  var v=(m&&m[1]||window.TT_ARCADE_BG||(me&&me.getAttribute('data-variant'))||'C').toString().toUpperCase();
+  return (v==='A'||v==='B'||v==='C')?v:'C';
+})();
 
 function onArcade(){
   if(document.getElementById('tt-arc'))return true;
@@ -53,7 +59,7 @@ function start(){
 
   var ID='ttbg-arcade';
   var cv=document.createElement('canvas');
-  cv.id=ID;cv.setAttribute('aria-hidden','true');cv.setAttribute('data-v','2');cv.setAttribute('data-variant',variant);
+  cv.id=ID;cv.setAttribute('aria-hidden','true');cv.setAttribute('data-v','3');cv.setAttribute('data-variant',variant);
   cv.style.cssText='position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:0;pointer-events:none;display:block;background:#000';
   document.body.insertBefore(cv,document.body.firstChild);
   var pg=document.getElementById('page');
@@ -70,7 +76,7 @@ function start(){
   var x=cv.getContext('2d',{alpha:false});
   var W=0,H=0,D=1,t0=performance.now(),raf=0,last=0;
   var RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)');
-  var px=3,VB=variant==='B';
+  var px=3,VA=variant==='A',VB=variant==='B',VC=variant==='C';
 
   /* ---- compact pixel sprites (hex digits = color index, . = empty) ---- */
   function P(rows){
@@ -242,61 +248,70 @@ function start(){
   function pick(a){return a[Math.random()*a.length|0];}
 
   function init(){
-    var i,n;
+    var i,n,rise;
     stars=[];toasts=[];skulls=[];coins=[];tickets=[];crumbs=[];bones=[];symbols=[];poppers=[];
     px=W<420?2:W<900?3:4;
     /* crumb-stars / ambient specks */
-    n=VB?50:110;
+    n=VB?50:VC?70:110;
     for(i=0;i<n;i++)stars.push({x:Math.random()*W,y:Math.random()*H,z:nrange(.4,1.6),sp:nrange(6,22),a:nrange(.15,.45)});
-    /* drifting toast slices */
-    n=VB?3:7;
+    /* drifting toast slices (A + C; B keeps a few) */
+    n=VB?3:VC?5:7;
     for(i=0;i<n;i++)toasts.push({
       x:Math.random()*W,y:Math.random()*H,s:px+(Math.random()<.35?1:0),
       vx:nrange(.12,.4)*pick([-1,1]),vy:nrange(-.12,.12),
       bob:nrange(0,6.28),bobsp:nrange(.6,1.4),al:nrange(.28,.5),
       kind:Math.random()<.3?'burnt':'toast'
     });
-    /* skulls */
-    n=VB?6:5;
-    for(i=0;i<n;i++)skulls.push({
-      x:Math.random()*W,y:VB?H*nrange(.55,1.05):Math.random()*H,
-      s:px,vx:VB?nrange(-.08,.08):nrange(.1,.32)*pick([-1,1]),
-      vy:VB?nrange(-.22,-.08):nrange(-.08,.08),
-      bob:nrange(0,6.28),al:nrange(.28,.48),alt:i&1
-    });
-    /* coins */
-    n=VB?12:9;
+    /* skulls — A drifts, B rises, C splits the difference */
+    n=VB?6:VC?6:5;
+    for(i=0;i<n;i++){
+      rise=VB||(VC&&i>=3);
+      skulls.push({
+        x:Math.random()*W,y:rise?H*nrange(.55,1.05):Math.random()*H,
+        s:px,vx:rise?nrange(-.08,.08):nrange(.1,.32)*pick([-1,1]),
+        vy:rise?nrange(-.22,-.08):nrange(-.08,.08),
+        bob:nrange(0,6.28),al:nrange(.28,.48),alt:i&1,rise:rise
+      });
+    }
+    /* coins — A/C rise, B falls */
+    n=VB?12:VC?6:9;
     for(i=0;i<n;i++)coins.push({
       x:Math.random()*W,y:Math.random()*H,s:Math.max(2,px-1),
       vy:VB?nrange(18,42):nrange(-28,-12),spin:Math.random()*6,
       al:nrange(.3,.55)
     });
     /* tickets */
-    n=VB?6:5;
+    n=VB?6:VC?3:5;
     for(i=0;i<n;i++)tickets.push({
       x:Math.random()*W,y:Math.random()*H,s:Math.max(2,px-1),
       vy:VB?nrange(14,30):nrange(-18,-8),rot:nrange(-.15,.15),
       al:nrange(.22,.4)
     });
-    if(VB){
-      for(i=0;i<10;i++)crumbs.push({
+    if(VB||VC){
+      n=VB?10:6;
+      for(i=0;i<n;i++)crumbs.push({
         x:Math.random()*W,y:Math.random()*H,s:px,sp:nrange(24,55),
         drift:nrange(-12,12),al:nrange(.2,.45),k:Math.random()<.5?0:1
       });
-      for(i=0;i<6;i++)bones.push({
+      n=VB?6:3;
+      for(i=0;i<n;i++)bones.push({
         x:Math.random()*W,y:Math.random()*H,s:Math.max(2,px-1),
         sp:nrange(16,32),al:nrange(.2,.38),rot:nrange(-.2,.2)
       });
-      /* slot-reel symbols in the side margins */
-      for(i=0;i<10;i++)symbols.push({
-        side:i<5?0:1,y:((i%5)+.3)*H/5,bob:nrange(0,6.28),
-        kind:pick(['clover','seven','coin','toast']),al:nrange(.16,.3),s:px
+      /* slot-reel symbols in the side margins (B + C) */
+      n=VB?10:6;
+      for(i=0;i<n;i++)symbols.push({
+        side:i<(n/2)?0:1,y:((i%(n/2))+.3)*H/(n/2),bob:nrange(0,6.28),
+        kind:VC?pick(['clover','seven']):pick(['clover','seven','coin','toast']),
+        al:nrange(.16,.3),s:px
       });
-      /* toasters that pop toast */
-      n=W<500?2:3;
+      /* toasters that pop toast. C parks them in the side margins
+         so they don't sit on the kart road. */
+      n=VB?(W<500?2:3):(W<500?1:2);
       for(i=0;i<n;i++)poppers.push({
-        x:W*((i+1)/(n+1))+nrange(-30,30),y:H*nrange(.72,.88),
-        s:px,phase:nrange(0,8),al:.42
+        x:VC?(i?W-20-14*px:16):W*((i+1)/(n+1))+nrange(-30,30),
+        y:H*nrange(.72,.88),
+        s:px,phase:nrange(0,8),al:VC?.36:.42
       });
     }else{
       for(i=0;i<5;i++)symbols.push({
@@ -309,18 +324,21 @@ function start(){
        first screen isn't an empty black band. */
     var gt=gutters(), band=Math.max(40, gt.bot-gt.top);
     if(gt.bot>gt.top+16){
-      for(i=0;i<(VB?2:4);i++)toasts.push({
+      n=VB?2:VC?2:4;
+      for(i=0;i<n;i++)toasts.push({
         x:nrange(20,W-40),y:gt.top+nrange(4,Math.max(8,band-8)),
         s:px,vx:nrange(.14,.34)*pick([-1,1]),vy:nrange(-.06,.06),
         bob:nrange(0,6.28),bobsp:nrange(.6,1.4),al:nrange(.4,.58),
         kind:Math.random()<.3?'burnt':'toast'
       });
-      for(i=0;i<(VB?2:3);i++)skulls.push({
+      n=VB?2:VC?2:3;
+      for(i=0;i<n;i++)skulls.push({
         x:nrange(20,W-40),y:gt.top+nrange(4,Math.max(8,band-8)),
         s:px,vx:nrange(.12,.3)*pick([-1,1]),vy:nrange(-.05,.05),
-        bob:nrange(0,6.28),al:nrange(.4,.55),alt:i&1
+        bob:nrange(0,6.28),al:nrange(.4,.55),alt:i&1,rise:!!VB
       });
-      for(i=0;i<4;i++)coins.push({
+      n=VC?2:4;
+      for(i=0;i<n;i++)coins.push({
         x:nrange(16,W-16),y:gt.top+nrange(0,band),
         s:Math.max(2,px-1),vy:VB?nrange(18,32):nrange(-22,-10),
         spin:Math.random()*6,al:nrange(.4,.6)
@@ -330,6 +348,11 @@ function start(){
       /* sit the popping toasters in the gap when there is room */
       for(i=0;i<poppers.length;i++){
         if(gt.bot>gt.top+40)poppers[i].y=gt.bot-10*px;
+      }
+    }else if(VC){
+      /* keep C poppers below the road, in the side margins */
+      for(i=0;i<poppers.length;i++){
+        if(gt.bot>0)poppers[i].y=Math.min(H-16*px, gt.bot+48);
       }
     }
     kart={x:-80,y:0,dir:1,s:Math.max(2,px-1),wait:0.15,speed:0};
@@ -431,10 +454,10 @@ function start(){
     x.fillStyle='#000';x.fillRect(0,0,W,H);
     /* warm floor glow + a cooler top wash for B */
     var g=x.createRadialGradient(W*.5,H*1.08,0,W*.5,H*1.08,H*1.15);
-    g.addColorStop(0,VB?'rgba(255,212,0,.07)':'rgba(255,212,0,.11)');
+    g.addColorStop(0,VB?'rgba(255,212,0,.07)':VC?'rgba(255,212,0,.09)':'rgba(255,212,0,.11)');
     g.addColorStop(1,'rgba(0,0,0,0)');
     x.fillStyle=g;x.fillRect(0,0,W,H);
-    if(VB){
+    if(VB||VC){
       var g2=x.createRadialGradient(W*.5,-H*.1,0,W*.5,-H*.1,H*.7);
       g2.addColorStop(0,'rgba(0,229,255,.05)');g2.addColorStop(1,'rgba(0,0,0,0)');
       x.fillStyle=g2;x.fillRect(0,0,W,H);
@@ -449,7 +472,7 @@ function start(){
       x.fillRect(o.x,yy,o.z,o.z);
     }
 
-    if(VB){
+    if(VB||VC){
       for(i=0;i<crumbs.length;i++){
         o=crumbs[i];
         yy=(o.y+t*o.sp)%(H+20)-10;
@@ -494,7 +517,7 @@ function start(){
     for(i=0;i<skulls.length;i++){
       o=skulls[i];
       var sx,sy;
-      if(VB){
+      if(o.rise){
         sy=((o.y+t*o.vy*40)%(H+40)+H+40)%(H+40)-20;
         sx=o.x+Math.sin(t*0.7+o.bob)*16;
       }else{
@@ -508,7 +531,7 @@ function start(){
     for(i=0;i<symbols.length;i++){
       o=symbols[i];
       var zx,zy,sprm=CLOVER,al=o.al*(0.75+0.25*Math.sin(t*2+o.bob));
-      if(VB){
+      if(o.side!=null){
         zx=o.side?W-28-o.s*8:16;
         zy=o.y+Math.sin(t*0.9+o.bob)*10;
       }else{
@@ -521,8 +544,8 @@ function start(){
       spr(sprm,zx,zy,o.s,COL,al,false);
     }
 
-    /* popping toasters (B) */
-    if(VB){
+    /* popping toasters (B + C) */
+    if(VB||VC){
       for(i=0;i<poppers.length;i++){
         o=poppers[i];
         /* cycle: idle, pop, toast flies, reset — 5.5s */
@@ -561,11 +584,11 @@ function start(){
     drawGlitch(t);
 
     /* CRT scanlines + vignette (a bit stronger on B / No Signal) */
-    x.fillStyle=VB?'rgba(0,0,0,.28)':'rgba(0,0,0,.20)';
+    x.fillStyle=(VB||VC)?'rgba(0,0,0,.28)':'rgba(0,0,0,.20)';
     for(var y=0;y<H;y+=3)x.fillRect(0,y,W,1);
     var v=x.createRadialGradient(W/2,H/2,H*.28,W/2,H/2,H*.92);
     v.addColorStop(0,'rgba(0,0,0,0)');
-    v.addColorStop(1,VB?'rgba(0,0,0,.68)':'rgba(0,0,0,.58)');
+    v.addColorStop(1,(VB||VC)?'rgba(0,0,0,.68)':'rgba(0,0,0,.58)');
     x.fillStyle=v;x.fillRect(0,0,W,H);
   }
 
