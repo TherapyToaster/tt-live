@@ -1,0 +1,362 @@
+<!-- TT STARSHIP LAUNCH PAD v5
+     Paste this OVER the existing Home-only Starship code block
+     (Squarespace: section 6adc833ba83bfe1099491707,
+      block-yui_3_17_2_1_1792836308772_2496).
+     Keep class ttpop-wrap (Tag Wall dock targets it).
+     Not in homepage-code — the hourly refresh will not overwrite this block.
+     Approved by Coty Nov 14, 2026. -->
+<style id="ttpop-css">
+/* Center + tighten the Home Starship section (block is left-column on desktop today) */
+[data-section-id="6adc833ba83bfe1099491707"]{min-height:0!important}
+[data-section-id="6adc833ba83bfe1099491707"] .content-wrapper{min-height:0!important;padding-top:4px!important;padding-bottom:4px!important}
+[data-section-id="6adc833ba83bfe1099491707"] .fe-block-yui_3_17_2_1_1792836308772_2496{
+  grid-area:1/2/7/10;
+}
+@media(min-width:768px){
+  [data-section-id="6adc833ba83bfe1099491707"] .fe-block-yui_3_17_2_1_1792836308772_2496{
+    grid-area:1/2/11/26!important;
+  }
+  [data-section-id="6adc833ba83bfe1099491707"] .fe-block-yui_3_17_2_1_1792836308772_2496 .sqs-block{justify-content:center}
+}
+.ttpop-wrap{background:#000;position:relative;overflow:visible;padding:8px 12px 20px;text-align:center}
+.ttpop-wrap:before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0 1px,transparent 1px 4px);opacity:.7}
+.ttpop-btn{appearance:none;-webkit-appearance:none;display:flex;flex-direction:column;align-items:center;width:min(640px,100%);margin:0 auto;padding:0;border:0;background:transparent;cursor:pointer;color:inherit;font:inherit;text-align:center;position:relative}
+.ttpop-btn:focus{outline:none}
+.ttpop-btn:focus-visible{outline:3px solid #FFD400;outline-offset:6px;box-shadow:0 0 0 6px #000,0 0 0 9px #00e5ff}
+.ttpop-btn[disabled]{cursor:default}
+.ttpop-scene{display:block;position:relative;width:100%;aspect-ratio:5/6;max-height:min(680px,86vh);margin:0 auto;overflow:hidden;border-radius:8px}
+.ttpop-sky{display:block;position:absolute;inset:0;border-radius:8px;background:
+  radial-gradient(120% 70% at 50% 100%,rgba(255,212,0,.12),transparent 42%),
+  radial-gradient(80% 50% at 70% 18%,rgba(0,229,255,.06),transparent 50%),
+  linear-gradient(180deg,#07080d 0%,#0b0d14 55%,#14161c 100%);
+  overflow:hidden}
+.ttpop-sky:after{content:"";position:absolute;inset:0;background-image:
+  radial-gradient(1px 1px at 12% 18%,#fff,transparent),
+  radial-gradient(1px 1px at 28% 8%,rgba(255,255,255,.7),transparent),
+  radial-gradient(1.4px 1.4px at 63% 14%,#fff,transparent),
+  radial-gradient(1px 1px at 81% 22%,rgba(255,255,255,.8),transparent),
+  radial-gradient(1px 1px at 44% 6%,rgba(255,255,255,.55),transparent),
+  radial-gradient(1.2px 1.2px at 91% 9%,#fff,transparent),
+  radial-gradient(1px 1px at 8% 42%,rgba(255,255,255,.5),transparent),
+  radial-gradient(1px 1px at 72% 36%,rgba(255,255,255,.65),transparent);
+  opacity:.8;pointer-events:none}
+.ttpop-svg{position:absolute;inset:0;width:100%;height:100%;display:block;overflow:hidden}
+.ttpop-shipwrap{position:absolute;left:21.2%;top:17.8%;width:19.6%;height:75%;z-index:4;transform-origin:50% 92%;will-change:transform,opacity}
+#ttpop-ship{width:100%;height:100%;display:block;filter:drop-shadow(0 0 10px rgba(0,229,255,.16))}
+#ttpop-tst{position:absolute;left:31%;top:16.6%;width:38%;aspect-ratio:1;border-radius:50%;overflow:hidden;border:2px solid #FFD400;box-shadow:0 0 0 2px #2b2f34,0 0 10px rgba(255,212,0,.55);background:#000;z-index:2;pointer-events:none}
+#ttpop-tst img{width:100%;height:100%;object-fit:cover;display:block}
+.ttpop-flames{position:absolute;left:16%;top:96%;width:68%;height:0;z-index:1;display:flex;justify-content:center;gap:6%;align-items:flex-start;opacity:0;pointer-events:none;transform-origin:50% 0}
+.ttpop-flames.on{opacity:1}
+.ttpop-fl{flex:1;max-width:28%;height:100%;border-radius:45% 45% 50% 50%/10% 10% 90% 90%;background:radial-gradient(ellipse 50% 70% at 50% 0,#fff 0,#c9f3ff 12%,#3fc6ff 26%,rgba(255,176,0,.95) 48%,rgba(255,77,0,.8) 68%,rgba(255,40,0,0) 100%);filter:blur(.5px);mix-blend-mode:screen;animation:ttpop-flick .09s linear infinite alternate;transform-origin:50% 0}
+.ttpop-fl:nth-child(2){animation-delay:.04s}
+.ttpop-fl:nth-child(3){animation-delay:.07s}
+@keyframes ttpop-flick{from{filter:blur(.5px) brightness(1)}to{filter:blur(1px) brightness(1.2) scaleX(1.08)}}
+.ttpop-glow{position:absolute;left:50%;top:97%;width:160%;aspect-ratio:1;transform:translate(-50%,-40%);border-radius:50%;background:radial-gradient(circle,rgba(255,190,80,.55),rgba(255,90,0,.18) 42%,transparent 70%);opacity:0;pointer-events:none;z-index:0;mix-blend-mode:screen}
+.ttpop-flames.on+.ttpop-glow,.ttpop-shipwrap.lit .ttpop-glow{opacity:.95}
+#ttpop-chop-a,#ttpop-chop-b{transition:transform .5s cubic-bezier(.2,.8,.2,1);transform-box:fill-box}
+#ttpop-chop-a{transform-origin:92% 58%}
+#ttpop-chop-b{transform-origin:92% 42%}
+.ttpop-go #ttpop-chop-a{transform:rotate(-32deg)}
+.ttpop-go #ttpop-chop-b{transform:rotate(30deg)}
+.ttpop-steam{position:absolute;inset:0;pointer-events:none;z-index:5;overflow:hidden;border-radius:8px}
+.ttpop-vent{position:absolute;width:48px;height:48px;margin:-24px 0 0 -24px;border-radius:50%;background:radial-gradient(circle at 42% 40%,rgba(255,255,255,.8),rgba(210,214,220,.32) 48%,rgba(180,180,190,0) 72%);filter:blur(5px);animation:ttpop-vent 3.6s ease-out infinite;will-change:transform,opacity}
+@keyframes ttpop-vent{0%{transform:translate(0,0) scale(.3);opacity:0}12%{opacity:.75}100%{transform:translate(var(--vx),var(--vy)) scale(var(--vs));opacity:0}}
+.ttpop-btn:hover .ttpop-vent{animation-duration:2.4s}
+.ttpop-ground{position:absolute;left:2%;right:2%;bottom:6%;height:28%;pointer-events:none;z-index:6;opacity:0;transition:opacity .2s}
+.ttpop-go .ttpop-ground{opacity:1}
+.ttpop-ground i{position:absolute;bottom:0;border-radius:50%;background:radial-gradient(circle at 50% 55%,rgba(255,255,255,.9),rgba(200,202,210,.5) 42%,transparent 72%);filter:blur(8px);animation:ttpop-billow 1.6s ease-out infinite;width:56%;height:150%;left:22%}
+.ttpop-ground i:nth-child(2){left:0%;width:50%;animation-delay:.15s}
+.ttpop-ground i:nth-child(3){left:50%;width:50%;animation-delay:.28s}
+@keyframes ttpop-billow{0%{transform:scale(.4) translateY(16%);opacity:.15}30%{opacity:.95}100%{transform:scale(2.1) translateY(-40%);opacity:0}}
+.ttpop-label{position:relative;display:block;width:100%;margin:10px 0 0;font-family:Anton,"Bebas Neue",Impact,"Arial Black",sans-serif;font-weight:400;font-size:clamp(22px,5.2vw,44px);line-height:.92;letter-spacing:.06em;text-transform:uppercase;color:#FFD400;text-shadow:-2px 0 #ff2a4d,2px 0 #00e5ff,0 0 18px rgba(255,212,0,.35)}
+.ttpop-btn:hover .ttpop-label,.ttpop-btn:focus-visible .ttpop-label{animation:ttpop-glitch .4s steps(2) 2}
+@keyframes ttpop-glitch{0%,100%{transform:none;text-shadow:-2px 0 #ff2a4d,2px 0 #00e5ff,0 0 18px rgba(255,212,0,.35)}25%{transform:translate(-2px,0);text-shadow:2px 0 #ff2a4d,-2px 0 #00e5ff}50%{transform:translate(2px,1px);text-shadow:-3px 0 #ff2a4d,3px 0 #00e5ff}75%{transform:translate(-1px,0)}}
+.ttpop-sub{display:block;width:100%;margin:10px 0 0;color:#FFD400;font:700 13px/1.4 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.12em;text-transform:uppercase;text-shadow:-1px 0 #ff2a4d,1px 0 #00e5ff;min-height:1.4em}
+#ttpop-smoke{position:fixed;inset:0;pointer-events:none;z-index:99998;overflow:hidden}
+.ttpop-puff{position:absolute;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:radial-gradient(circle at 40% 40%,rgba(235,235,235,.78),rgba(160,160,160,.35) 55%,rgba(120,120,120,0) 72%);animation:ttpop-puff 1.8s ease-out forwards;will-change:transform,opacity}
+@keyframes ttpop-puff{from{transform:translate(0,0) scale(.4);opacity:.9}to{transform:translate(var(--dx),var(--dy)) scale(var(--s));opacity:0}}
+#ttpop-ride.ttpop-fly{position:fixed;z-index:99999;margin:0;pointer-events:none;will-change:transform,opacity}
+@media(max-width:600px){
+  .ttpop-wrap{padding:4px 8px 14px}
+  .ttpop-scene{max-height:min(520px,78vh)}
+  .ttpop-label{font-size:clamp(18px,7.2vw,32px)}
+  .ttpop-sub{font-size:11px;letter-spacing:.08em}
+  .ttpop-vent{width:34px;height:34px;margin:-17px 0 0 -17px}
+}
+@media(prefers-reduced-motion:reduce){
+  .ttpop-vent,.ttpop-ground,.ttpop-fl,.ttpop-sky:after,#ttpop-smoke{animation:none!important;display:none!important}
+  .ttpop-label,.ttpop-btn:hover .ttpop-label{animation:none!important}
+  #ttpop-chop-a,#ttpop-chop-b{transition:none}
+}
+</style>
+<div class="ttpop-wrap">
+<button type="button" class="ttpop-btn" id="ttpop-btn" aria-label="Ride the Starship to the top of the page">
+<span class="ttpop-scene" aria-hidden="true">
+<span class="ttpop-sky"></span>
+<svg class="ttpop-svg" viewBox="0 0 500 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="ttpop-st" x1="0" x2="1"><stop offset="0" stop-color="#3d4248"/><stop offset=".16" stop-color="#8b9299"/><stop offset=".38" stop-color="#f6f7f8"/><stop offset=".5" stop-color="#cfd4d8"/><stop offset=".76" stop-color="#868d94"/><stop offset="1" stop-color="#3a3f44"/></linearGradient>
+<linearGradient id="ttpop-fp" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2a2d31"/><stop offset="1" stop-color="#5c636a"/></linearGradient>
+<linearGradient id="ttpop-sh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".45" stop-color="#fff" stop-opacity=".14"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<linearGradient id="ttpop-tw" x1="0" x2="1"><stop offset="0" stop-color="#1a1d22"/><stop offset=".5" stop-color="#3a4048"/><stop offset="1" stop-color="#16181c"/></linearGradient>
+<linearGradient id="ttpop-pad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a3c42"/><stop offset="1" stop-color="#1c1e22"/></linearGradient>
+<linearGradient id="ttpop-haz" x1="0" x2="1"><stop offset="0" stop-color="#FFD400"/><stop offset=".5" stop-color="#FFD400"/><stop offset=".5" stop-color="#111"/><stop offset="1" stop-color="#111"/></linearGradient>
+<pattern id="ttpop-hz" width="18" height="18" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><rect width="9" height="18" fill="#FFD400"/><rect x="9" width="9" height="18" fill="#111"/></pattern>
+</defs>
+<!-- concrete apron -->
+<path d="M20 548 L480 548 L500 600 H0 Z" fill="url(#ttpop-pad)"/>
+<path d="M40 552 L250 470 L460 552" stroke="#FFD400" stroke-width="5" fill="none"/>
+<path d="M70 554 L250 490 L430 554" stroke="#FFD400" stroke-width="3" fill="none" opacity=".7"/>
+<path d="M110 556 L250 508 L390 556" stroke="#FFD400" stroke-width="2" fill="none" opacity=".45"/>
+<rect x="0" y="548" width="500" height="8" fill="url(#ttpop-hz)"/>
+<!-- flame trench -->
+<path d="M188 528h64l10 22H178Z" fill="#090a0c" stroke="#2a2c30" stroke-width="2"/>
+<!-- launch mount / OLM -->
+<path d="M198 500h44l8 28h-60Z" fill="#2b3036" stroke="#111" stroke-width="1.2"/>
+<rect x="204" y="492" width="32" height="12" rx="1" fill="#3a4148" stroke="#1a1c1f"/>
+<rect x="210" y="486" width="20" height="8" fill="#2a2e33"/>
+<g fill="#FFD400"><rect x="200" y="518" width="6" height="4"/><rect x="234" y="518" width="6" height="4"/></g>
+<!-- pad lettering -->
+<text x="36" y="580" fill="#FFD400" font-family="Anton,Impact,sans-serif" font-size="16" letter-spacing="3">PAD 1</text>
+<text x="464" y="580" fill="#FFD400" font-family="ui-monospace,Menlo,monospace" font-size="9" text-anchor="end" letter-spacing="2">STARBASE TOASTY</text>
+<!-- tower shadow / base -->
+<ellipse cx="372" cy="546" rx="48" ry="8" fill="#000" opacity=".45"/>
+<!-- MECHAZILLA tower -->
+<g id="ttpop-tower">
+  <path d="M348 48h52l8 500h-68Z" fill="url(#ttpop-tw)"/>
+  <path d="M352 48h10l8 500h-16Z" fill="#000" opacity=".35"/>
+  <path d="M390 48h8l6 500h-14Z" fill="#fff" opacity=".06"/>
+  <!-- lattice -->
+  <g stroke="#6a727a" stroke-width="1.2" opacity=".85">
+    <path d="M354 80 L442 130 M354 130 L442 80 M354 160 L442 210 M354 210 L442 160 M354 240 L442 290 M354 290 L442 240 M354 320 L442 370 M354 370 L442 320 M354 400 L442 450 M354 450 L442 400"/>
+    <path d="M354 70 V520 M442 70 V520 M348 100 H450 M348 180 H450 M348 260 H450 M348 340 H450 M348 420 H450 M348 500 H450"/>
+  </g>
+  <!-- hazard belts -->
+  <rect x="348" y="500" width="60" height="16" fill="url(#ttpop-hz)"/>
+  <rect x="348" y="172" width="60" height="10" fill="url(#ttpop-hz)"/>
+  <!-- crown / pulleys -->
+  <path d="M340 28h76l-8 22h-60Z" fill="#2a2e34" stroke="#111"/>
+  <circle cx="358" cy="24" r="8" fill="#3a4046" stroke="#FFD400" stroke-width="1.4"/>
+  <circle cx="398" cy="24" r="8" fill="#3a4046" stroke="#FFD400" stroke-width="1.4"/>
+  <rect x="368" y="8" width="22" height="8" rx="1" fill="#FFD400"/>
+  <!-- work decks -->
+  <path d="M330 140h90v6H330Z" fill="#2c3138"/>
+  <path d="M330 300h90v6H330Z" fill="#2c3138"/>
+  <path d="M330 430h90v6H330Z" fill="#2c3138"/>
+  <!-- status lights -->
+  <circle cx="374" cy="64" r="4" fill="#00e5ff"><animate attributeName="opacity" values=".4;1;.4" dur="1.6s" repeatCount="indefinite"/></circle>
+  <circle cx="390" cy="64" r="4" fill="#FFD400"><animate attributeName="opacity" values="1;.35;1" dur="1.2s" repeatCount="indefinite"/></circle>
+  <!-- carriage -->
+  <rect x="336" y="248" width="76" height="72" rx="2" fill="#24282e" stroke="#FFD400" stroke-width="1.4"/>
+  <rect x="344" y="258" width="60" height="52" fill="#1a1d22"/>
+  <g fill="#FFD400" opacity=".9"><rect x="348" y="266" width="16" height="3"/><rect x="348" y="274" width="22" height="3"/><rect x="348" y="282" width="14" height="3"/></g>
+</g>
+<!-- chopsticks (pivot on carriage, wrap the ship) -->
+<g id="ttpop-chop-a">
+  <path d="M338 268 H168 l-14 8 14 8 H338 Z" fill="#3a4149" stroke="#0d0e10" stroke-width="1.2"/>
+  <path d="M168 268 l-22 -6 v28 l22 -6 Z" fill="#2a3036" stroke="#FFD400" stroke-width="1.1"/>
+  <rect x="200" y="271" width="110" height="6" fill="url(#ttpop-hz)"/>
+</g>
+<g id="ttpop-chop-b">
+  <path d="M338 308 H168 l-14 8 14 8 H338 Z" fill="#32383f" stroke="#0d0e10" stroke-width="1.2"/>
+  <path d="M168 308 l-22 -6 v28 l22 -6 Z" fill="#242a30" stroke="#FFD400" stroke-width="1.1"/>
+  <rect x="200" y="311" width="110" height="6" fill="url(#ttpop-hz)"/>
+</g>
+</svg>
+<span class="ttpop-shipwrap" id="ttpop-ride">
+<svg id="ttpop-ship" viewBox="0 0 80 320">
+<defs>
+<linearGradient id="ttpop-st2" x1="0" x2="1"><stop offset="0" stop-color="#3d4248"/><stop offset=".16" stop-color="#8b9299"/><stop offset=".38" stop-color="#f6f7f8"/><stop offset=".5" stop-color="#cfd4d8"/><stop offset=".76" stop-color="#868d94"/><stop offset="1" stop-color="#3a3f44"/></linearGradient>
+<linearGradient id="ttpop-fp2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2a2d31"/><stop offset="1" stop-color="#5c636a"/></linearGradient>
+<linearGradient id="ttpop-sh2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".16"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+</defs>
+<!-- forward flaps -->
+<path d="M24 92 L4 112 3 148 24 128 Z" fill="url(#ttpop-fp2)" stroke="#1a1c1f" stroke-width=".6"/>
+<path d="M56 92 L76 112 77 148 56 128 Z" fill="url(#ttpop-fp2)" stroke="#1a1c1f" stroke-width=".6"/>
+<!-- body + nose -->
+<path d="M24 78 C24 36 32 8 40 4 C48 8 56 36 56 78 V268 H24 Z" fill="url(#ttpop-st2)"/>
+<path d="M24 78 C24 36 32 8 40 4 C36 14 32 44 31 78 V268 H24 Z" fill="#1b1d20" opacity=".5"/>
+<rect x="24" y="6" width="32" height="262" fill="url(#ttpop-sh2)"/>
+<!-- panel lines -->
+<g stroke="#6f767c" stroke-width=".5" opacity=".9"><path d="M24 100H56M24 120H56M24 140H56M24 160H56M24 180H56M24 200H56M24 220H56M24 240H56M26 70H54M29 48H51M32 28H48"/></g>
+<!-- aft flaps -->
+<path d="M24 210 L2 236 1 292 24 272 Z" fill="url(#ttpop-fp2)" stroke="#1a1c1f" stroke-width=".6"/>
+<path d="M56 210 L78 236 79 292 56 272 Z" fill="url(#ttpop-fp2)" stroke="#1a1c1f" stroke-width=".6"/>
+<!-- skirt + raptors -->
+<path d="M24 268 H56 L53 276 H27 Z" fill="#2d3135"/>
+<path d="M28 276h7l1.6 16h-10zM36.5 276h7l1.6 16h-10zM45 276h7l1.6 16h-10z" fill="#3a3f45" stroke="#1d2024" stroke-width=".6"/>
+<ellipse cx="31.5" cy="294" rx="4.2" ry="2.1" fill="#1a1c1e" stroke="#6a7178" stroke-width=".5"/>
+<ellipse cx="40" cy="294" rx="4.2" ry="2.1" fill="#1a1c1e" stroke="#6a7178" stroke-width=".5"/>
+<ellipse cx="48.5" cy="294" rx="4.2" ry="2.1" fill="#1a1c1e" stroke="#6a7178" stroke-width=".5"/>
+<!-- yellow brand band + name -->
+<rect x="24" y="188" width="32" height="3" fill="#FFD400" opacity=".85"/>
+<text x="41" y="175" fill="#2b2f33" font-family="system-ui,sans-serif" font-weight="900" font-size="8" letter-spacing="1.2" transform="rotate(90 41 175)" text-anchor="middle" opacity=".75">TOASTY-1</text>
+<!-- nose cap -->
+<path d="M32 20 C36 6 40 3 40 3 C40 3 44 6 48 20 Z" fill="#1c1e22" opacity=".45"/>
+</svg>
+<span id="ttpop-tst"><img src="https://therapytoaster.github.io/tt-live/alt-art/mr-toasty-acid-portrait-thumb.jpg" alt=""></span>
+<span class="ttpop-flames" id="ttpop-fl"><i class="ttpop-fl"></i><i class="ttpop-fl"></i><i class="ttpop-fl"></i></span>
+<span class="ttpop-glow" id="ttpop-glow"></span>
+</span>
+<span class="ttpop-steam" id="ttpop-steam"></span>
+<span class="ttpop-ground" id="ttpop-gsmoke" aria-hidden="true"><i></i><i></i><i></i></span>
+</span>
+<span class="ttpop-label">Ride the Starship<br>to the top</span>
+<span class="ttpop-sub" id="ttpop-sub" aria-live="polite">Click to launch · Starbase Toasty</span>
+</button>
+</div>
+<script>
+(function(){
+  var b=document.getElementById('ttpop-btn'),
+      wrap=b&&b.closest('.ttpop-wrap'),
+      r=document.getElementById('ttpop-ride'),
+      sub=document.getElementById('ttpop-sub'),
+      fl=document.getElementById('ttpop-fl'),
+      steam=document.getElementById('ttpop-steam');
+  if(!b||!r||!wrap)return;
+  var sm=document.getElementById('ttpop-smoke');
+  if(!sm){sm=document.createElement('div');sm.id='ttpop-smoke';sm.setAttribute('aria-hidden','true');document.body.appendChild(sm)}
+  var home=r.parentNode,busy=0,idle=sub?sub.textContent:'Click to launch · Starbase Toasty';
+  var IGN=1000,FADE=600,PX=1100,SCR_MIN=3000,SCR_MAX=16000,RAMP=.15;
+  function vents(){
+    if(!steam||steam.dataset.on)return;steam.dataset.on=1;
+    var spots=[[.40,.84],[.46,.86],[.52,.84],[.36,.87],[.58,.88],[.31,.83],[.72,.76],[.74,.66],[.70,.58],[.42,.90],[.50,.91],[.62,.86]];
+    spots.forEach(function(s,i){
+      var v=document.createElement('i');v.className='ttpop-vent';
+      v.style.left=(s[0]*100)+'%';v.style.top=(s[1]*100)+'%';
+      v.style.setProperty('--vx',((s[0]<.6?-1:1)*(20+Math.random()*50))+'px');
+      v.style.setProperty('--vy',(-40-Math.random()*70)+'px');
+      v.style.setProperty('--vs',(1.6+Math.random()*1.8).toFixed(2));
+      v.style.animationDelay=(i*.32)+'s';
+      steam.appendChild(v);
+    });
+  }
+  vents();
+  function cl(x){return x<0?0:x>1?1:x}
+  function eio(p){return (1-Math.cos(Math.PI*p))/2}
+  function soft(p){var r=RAMP,a=1/(2*r*(1-r));if(p<=0)return 0;if(p>=1)return 1;if(p<r)return a*p*p;if(p>1-r){var q=1-p;return 1-a*q*q}return a*r*r+2*a*r*(p-r)}
+  function eo(p){return 1-Math.pow(1-p,3)}
+  function puff(x,y,big){
+    var d=document.createElement('i');d.className='ttpop-puff';
+    var a=Math.random()-.5;
+    d.style.left=x+'px';d.style.top=y+'px';
+    d.style.setProperty('--dx',(a*(big?180:70))+'px');
+    d.style.setProperty('--dy',(big?8:24+Math.random()*36)+'px');
+    d.style.setProperty('--s',((big?3.4:2)+Math.random()).toFixed(2));
+    sm.appendChild(d);setTimeout(function(){d.remove()},1900);
+  }
+  function putBack(){
+    r.classList.remove('ttpop-fly','lit');
+    r.style.cssText='';
+    fl.classList.remove('on');fl.style.height='';
+    wrap.classList.remove('ttpop-go');
+    if(r.parentNode!==home)home.appendChild(r);
+  }
+  b.addEventListener('click',function(){
+    if(busy)return;
+    if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches){
+      try{scrollTo({top:0,left:0,behavior:'instant'})}catch(e){scrollTo(0,0)}
+      b.blur();return;
+    }
+    busy=1;b.disabled=true;
+    wrap.classList.add('ttpop-go');
+    fl.classList.add('on');r.classList.add('lit');
+    if(sub)sub.textContent='Ignition…';
+    var y0=scrollY,t0=performance.now(),stop=0,stopT=0,alive=1,hoisted=0,sx,sy,sw,sh,startY=0,cruiseY=0,offY=0,curY=0,cancelY=0;
+    var SCR=Math.round(Math.min(SCR_MAX,Math.max(SCR_MIN,y0/PX/(1-RAMP)*1000)));
+    var LIFT=Math.min(1200,Math.max(800,Math.round(SCR*.12)));
+    var FLY_OFF=Math.max(900,Math.round(SCR*RAMP));
+    var END=IGN+SCR,OUT=END,CAN_OUT=FADE+200;
+    var root=document.documentElement,bd=document.body;
+    var sbHtml=root.style.scrollBehavior,sbBody=bd.style.scrollBehavior;
+    function armSB(){root.style.scrollBehavior='auto';bd.style.scrollBehavior='auto'}
+    function restoreSB(){root.style.scrollBehavior=sbHtml;bd.style.scrollBehavior=sbBody}
+    armSB();
+    function goY(y){
+      armSB();
+      try{window.scrollTo({top:y,left:0,behavior:'instant'})}
+      catch(e){window.scrollTo(0,y)}
+    }
+    var cancel=function(){
+      if(stop||!alive)return;
+      if(performance.now()-t0<220)return;
+      stop=1;stopT=performance.now();cancelY=curY;
+      if(!hoisted)done();
+    };
+    addEventListener('wheel',cancel,{passive:true,once:true});
+    addEventListener('touchstart',cancel,{passive:true,once:true});
+    function hoist(){
+      if(hoisted)return;hoisted=1;
+      var rr=r.getBoundingClientRect();
+      sx=rr.left;sy=rr.top;sw=rr.width;sh=rr.height;
+      document.body.appendChild(r);
+      r.classList.add('ttpop-fly');
+      r.style.left=sx+'px';r.style.top=sy+'px';r.style.width=sw+'px';r.style.height=sh+'px';
+      startY=0;
+      var rise=Math.min(sh*.22,Math.max(0,sy-24));
+      cruiseY=-rise;offY=-(sy+sh+40);curY=0;
+    }
+    function f(n){
+      if(!alive)return;
+      var e=n-t0;
+      var ig=cl(e/IGN);
+      var plume=18+ig*28+(hoisted?cl((e-IGN)/1400)*22:0);
+      fl.style.height=plume.toFixed(1)+'%';
+      if(e>=IGN)hoist();
+      if(e>=IGN&&sub)sub.textContent='Liftoff!';
+      var fading=0;
+      if(hoisted){
+        var since=e-IGN,y=startY;
+        if(stop){
+          var o=cl((e-(stopT-t0))/CAN_OUT);
+          y=cancelY+(offY-cancelY)*eo(o);
+          r.style.opacity=String(1-o);
+          fading=1;
+        }else if(since<=LIFT){
+          y=startY+(cruiseY-startY)*eio(cl(since/LIFT));
+        }else{
+          var p=cl(since/SCR);
+          var flyStart=Math.max(0,1-FLY_OFF/SCR);
+          if(p<=flyStart){
+            y=cruiseY;
+          }else{
+            var fo=cl((p-flyStart)/(1-flyStart||1));
+            y=cruiseY+(offY-cruiseY)*eo(fo);
+            var fade=cl((fo*FLY_OFF-(FLY_OFF-FADE))/FADE);
+            if(fade>0){r.style.opacity=String(1-fade);fading=1}
+          }
+        }
+        curY=y;
+        r.style.transform='translate3d(0,'+y.toFixed(2)+'px,0)';
+      }
+      // Distance-scaled rAF scroll (~1100 px/s cruise, 3–16s, soft ramps).
+      // Instant scroll: force scroll-behavior:auto so Squarespace's html {scroll-behavior:smooth} cannot stall per-frame scrollTo.
+      // Rocket stays on-screen at cruise, then flies off on the SCR clock (last FLY_OFF ms).
+      var p=cl((e-IGN)/SCR),q=soft(p);
+      if(!stop){
+        var maxY=Math.max(0,root.scrollHeight-innerHeight);
+        goY(Math.round(Math.min(y0,maxY)*(1-q)));
+      }
+      if(ig>0&&hoisted&&!fading){
+        var nb=r.getBoundingClientRect();
+        var ex=nb.left+nb.width/2,ey=nb.top+nb.height*.98;
+        var early=(e-IGN)<LIFT;
+        if(nb.bottom>8&&Math.random()<(early?.95:.45))puff(ex,ey,early||e<IGN);
+      }
+      var until=stop?(stopT-t0+CAN_OUT):OUT;
+      if(e<until)requestAnimationFrame(f);else done();
+    }
+    function done(){
+      if(!alive)return;alive=0;
+      putBack();
+      if(!stop)goY(0);
+      restoreSB();
+      removeEventListener('wheel',cancel);
+      removeEventListener('touchstart',cancel);
+      if(sub)sub.textContent=idle;
+      busy=0;b.disabled=false;
+    }
+    requestAnimationFrame(f);
+  });
+})();
+</script>
