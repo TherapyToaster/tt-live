@@ -11,7 +11,7 @@
 if(window.__ttKartCard)return;window.__ttKartCard=1;
 var NAME="CyberToaster Kart",NAME_UP="CYBERTOASTER KART";
 var LIVE="https://therapytoaster.github.io/tt-live/kart/";
-var ART_V="021";
+var ART_V="030";
 var U=(function(){
   var s=document.currentScript&&document.currentScript.src;
   if(s){var u=s.replace(/arcade-card\.js(?:\?.*)?$/i,"");if(u)return u}
@@ -35,7 +35,7 @@ showStyle();
 var THUMB=U+"arcade-thumb.jpg?v="+ART_V;
 var CARD='<button type="button" class="tt-ns-shot" data-kart-play aria-label="Play '+NAME+'" style="background-image:url('+THUMB+')"><span class="tt-ns-new">NEW</span></button>'+
  '<div><p class="tt-ns-k">// new machine</p><h2 class="tt-ns-t">'+NAME+'</h2>'+
- '<p class="tt-ns-d">Comic kart racing: Mr. Toasty\'s Cybertruck vs. the Chevys. Smash the dealership, jump Toasty Lake.</p>'+
+ '<p class="tt-ns-d">Cel-shaded cartoon kart racing: Mr. Toasty\'s Cybertruck vs. the Chevys. Smash the dealership, jump Toasty Lake, or race the Tide Run bridge.</p>'+
  '<button type="button" class="tt-ns-play" data-kart-play>&#9654; PLAY</button>'+
  '<a class="tt-ns-new-tab" href="'+LIVE+'" target="_blank" rel="noopener">open in new tab &#8599;</a>'+
  '<p class="tt-ns-keys">ARROWS/WASD DRIVE &middot; SPACE DRIFT &middot; X ITEM &middot; ENTER START</p></div>';

@@ -1,6 +1,6 @@
-# CyberToaster Kart v0.2.1
+# CyberToaster Kart v0.3.0
 
-A free, just-for-fun comic kart racer. Drive Mr. Toasty's Cybertruck on Monday Errands or Skullz Graveyard, drift, fire items, smash the Monday Motors dealership, and jump Toasty Lake.
+A free, just-for-fun cartoon kart racer. Drive Mr. Toasty's Cybertruck on Monday Errands, Toaster Tide Run, or Skullz Graveyard, drift, fire items, smash the Monday Motors dealership, and jump Toasty Lake.
 
 Open `index.html` in a desktop browser (no server required). The game is a single self-contained file.
 
@@ -14,10 +14,17 @@ Open `index.html` in a desktop browser (no server required). The game is a singl
 
 ## Tracks
 
-- **Monday Errands** — suburb loop, a dealership shortcut, a ramp jump over Toasty Lake, and graffiti walls
+- **Monday Errands** — suburb loop, a dealership shortcut, a ramp jump over Toasty Lake, graffiti walls, and a sky that moves from day to sunset during the race
+- **Toaster Tide Run** — Surf City loop from one roundabout over the high-rise bridge to the other and back, with a boardwalk shortcut
 - **Skullz Graveyard** — purple dirt, RIP stones, and jumps
 
 ## Changelog
+
+### v0.3.0
+
+- Cel-shaded cartoon look: hard 3-band lighting, navy outlines, and colored shadows
+- Monday Errands sky now moves from day to golden hour to sunset during the race
+- New track: Toaster Tide Run — island and mainland roundabouts, a high-rise coastal bridge, and a boardwalk shortcut
 
 ### v0.2.1
 
@@ -34,7 +41,7 @@ Open `index.html` in a desktop browser (no server required). The game is a singl
 
 - First ARTcade release: two tracks, items, dealership shortcut, and the Toasty Lake jump
 
-A dated snapshot of this build lives in `v0.2.1/`. Previous snapshots are kept in `v0.2.0/` and `v0.1.0/`. To put the card on the ARTcade page, add:
+A dated snapshot of this build lives in `v0.3.0/`. Previous snapshots are kept in `v0.2.1/`, `v0.2.0/` and `v0.1.0/`. To put the card on the ARTcade page, add:
 
 ```html
 <script src="https://therapytoaster.github.io/tt-live/kart/arcade-card.js"></script>
