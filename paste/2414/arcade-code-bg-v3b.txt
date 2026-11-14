@@ -1,0 +1,256 @@
+<!-- TT ARCADE page v1 (/arcade, nav "Toasty's ARTcade"): Toaster Tanks + Stickdeath + 3 Grok games + Toaster Chat in ONE Code block.
+     Inline styles scoped to #tt-arc (+ its block via :has); never Custom CSS. One game loaded at a time in the player (iframe is
+     removed when you switch/close, so audio stops). Toaster Tanks + Stickdeath load their own existing pages (/toaster-tanks,
+     /stickdeath; same origin) framed with the site header/footer hidden; framed pages skip the footer audio/counter scripts
+     (they treat a frame as the editor). Stickdeath page keeps its own 18+ Content Warning card as-is. Grok games = same URLs as the
+     old home "Play My Games" row. Chat = exact Chatango embed from the old home "Hang Out" section.
+     Calm: no shake/jitter; title glitch is colour-slice only. Script idempotent under soft-nav (one global keydown listener). -->
+<style>
+.fluid-engine:has(#tt-arc){grid-template-rows:auto!important;grid-auto-rows:auto!important}
+.fe-block:has(#tt-arc){grid-column:2 / -2!important;grid-row:1 / auto!important;height:auto!important;min-height:0!important}
+.fe-block:has(#tt-arc) .sqs-block,.fe-block:has(#tt-arc) .sqs-block-content{width:100%;height:auto!important}
+.sqs-block:has(#tt-arc){padding-left:0!important;padding-right:0!important}
+section.page-section:has(#tt-arc) .section-background{background:repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0 1px,transparent 1px 3px),radial-gradient(ellipse at 10% 0%,rgba(255,212,0,.14),transparent 55%),radial-gradient(ellipse at 92% 100%,rgba(0,229,255,.11),transparent 50%),#000!important}
+#tt-arc{--y:#FFD400;--k:#05070d;--r:#ff2b4a;--c:#00e5ff;box-sizing:border-box;width:100%;max-width:1240px;margin:0 auto;padding:10px 0 40px;color:#dee3de;font-family:inherit;text-align:center}
+#tt-arc *{box-sizing:border-box}
+#tt-arc .ta-kick{margin:0 0 6px;font:700 12px/1.2 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.28em;text-transform:uppercase;color:var(--c)}
+#tt-arc .ta-h{position:relative;display:inline-block;margin:0;font:900 clamp(40px,8vw,92px)/.95 Impact,"Arial Black",sans-serif;text-transform:uppercase;letter-spacing:.02em;color:var(--y);text-shadow:3px 0 0 var(--r),-3px 0 0 var(--c)}
+#tt-arc .ta-h::before,#tt-arc .ta-h::after{content:attr(data-t);position:absolute;left:0;top:0;width:100%;pointer-events:none;text-shadow:none;clip-path:inset(0 0 100% 0)}
+#tt-arc .ta-h::before{color:var(--r);animation:ta-g1 3.2s steps(1) infinite}
+#tt-arc .ta-h::after{color:var(--c);animation:ta-g2 4.1s steps(1) infinite}
+@keyframes ta-g1{0%,84%,100%{clip-path:inset(0 0 100% 0)}86%{clip-path:inset(20% 0 58% 0)}89%{clip-path:inset(64% 0 10% 0)}92%{clip-path:inset(40% 0 42% 0)}}
+@keyframes ta-g2{0%,78%,100%{clip-path:inset(0 0 100% 0)}80%{clip-path:inset(72% 0 6% 0)}83%{clip-path:inset(8% 0 74% 0)}}
+#tt-arc .ta-sub{margin:12px auto 22px;max-width:680px;font-size:15px;line-height:1.45}
+#tt-arc .ta-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;margin:0 0 20px}
+#tt-arc .ta-cab{position:relative;display:flex;flex-direction:column;align-items:stretch;min-width:0;margin:0;padding:10px 10px 12px;border:2px solid var(--y);border-radius:14px 14px 8px 8px;background:linear-gradient(180deg,#14161f,#05070d 60%);color:#fff;font-family:inherit;text-align:center;cursor:pointer;box-shadow:3px 3px 0 var(--r),-3px -3px 0 rgba(0,229,255,.55);transition:transform .18s ease,box-shadow .18s ease}
+#tt-arc .ta-cab:hover,#tt-arc .ta-cab:focus-visible{transform:translateY(-3px);outline:none;box-shadow:5px 5px 0 var(--r),-5px -5px 0 rgba(0,229,255,.65)}
+#tt-arc .ta-cab.ta-on{background:var(--y);color:var(--k)}
+#tt-arc .ta-scr{position:relative;display:block;width:100%;aspect-ratio:1200/630;border-radius:8px;border:2px solid #000;overflow:hidden;background:#000 center/cover no-repeat}
+#tt-arc .ta-scr::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.3) 0 1px,transparent 1px 3px);pointer-events:none}
+#tt-arc .ta-art{position:absolute;inset:0;display:grid;place-items:center;font:900 22px/1 Impact,"Arial Black",sans-serif;text-transform:uppercase;letter-spacing:.04em}
+#tt-arc .ta-tanks .ta-scr{background:radial-gradient(circle at 80% 20%,#ffe9a8 0 6%,transparent 7%),linear-gradient(180deg,#0b1430 0%,#1a2a55 55%,#3b2a10 56%,#5a3d12 100%)}
+#tt-arc .ta-tanks .ta-art{color:var(--y);text-shadow:2px 2px 0 #000}
+#tt-arc .ta-stick .ta-scr{background:radial-gradient(ellipse at center,#3a0000 0%,#0b0b0b 72%)}
+#tt-arc .ta-stick .ta-art{color:#fff;text-shadow:2px 2px 0 #b00000}
+#tt-arc .ta-stick .ta-art span{color:#ff3030}
+#tt-arc .ta-18{position:absolute;top:6px;right:6px;z-index:2;padding:2px 7px;border-radius:999px;background:#b00000;color:#fff;font:800 11px/1.4 system-ui,sans-serif;letter-spacing:.04em}
+#tt-arc .ta-t{display:block;margin:9px 0 2px;font-weight:900;font-size:15px;line-height:1.15;color:var(--y);text-shadow:1px 0 0 var(--r),-1px 0 0 var(--c)}
+#tt-arc .ta-cab.ta-on .ta-t{color:var(--k);text-shadow:none}
+#tt-arc .ta-d{display:block;font-size:12px;line-height:1.3;opacity:.85}
+#tt-arc .ta-ins{display:inline-block;margin-top:8px;font:800 11px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;color:var(--c)}
+#tt-arc .ta-cab.ta-on .ta-ins{color:#b00000}
+#tt-arc .ta-main{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:18px;align-items:start}
+#tt-arc .ta-player{min-width:0;border:2px solid var(--y);border-radius:14px;background:#05070d;overflow:hidden;box-shadow:4px 4px 0 var(--r),-4px -4px 0 rgba(0,229,255,.55)}
+#tt-arc .ta-bar{display:flex;align-items:center;gap:8px;padding:8px 10px 8px 14px;border-bottom:2px solid var(--y);background:#000;color:var(--y);font-weight:800;text-align:left}
+#tt-arc .ta-now{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#tt-arc .ta-bar a,#tt-arc .ta-bar button{flex:none;margin:0;padding:6px 12px;border:2px solid var(--y);border-radius:999px;background:transparent;color:var(--y)!important;font:700 12.5px/1 inherit;text-decoration:none!important;cursor:pointer}
+#tt-arc .ta-bar a:hover,#tt-arc .ta-bar button:hover{background:var(--y);color:var(--k)!important}
+#tt-arc .ta-bar [hidden]{display:none}
+#tt-arc .ta-stage{position:relative;height:640px;background:#000}
+#tt-arc .ta-stage iframe{display:block;width:100%;height:100%;border:0;background:#05070d}
+#tt-arc .ta-stage.ta-auto{height:auto;min-height:420px}
+#tt-arc .ta-idle{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px;background:repeating-linear-gradient(0deg,rgba(255,212,0,.05) 0 1px,transparent 1px 4px),#000}
+#tt-arc .ta-idle b{font:900 clamp(26px,4vw,44px)/1 Impact,"Arial Black",sans-serif;color:var(--y);text-transform:uppercase;text-shadow:2px 0 0 var(--r),-2px 0 0 var(--c)}
+#tt-arc .ta-idle span{font:700 13px/1.3 ui-monospace,Menlo,monospace;letter-spacing:.18em;color:var(--c);opacity:.85}
+#tt-arc .ta-chat{min-width:0;border:2px solid var(--y);border-radius:14px;background:#111;padding:14px;box-shadow:4px 4px 0 var(--r),-4px -4px 0 rgba(0,229,255,.55)}
+#tt-arc .ta-chat h3{margin:0 0 10px;color:var(--y);text-align:center}
+#tt-arc .ta-cbox{position:relative;width:100%;height:640px;overflow:hidden;border-radius:8px}
+#tt-arc .ta-cbox iframe{max-width:100%}
+/* ttch- Live Chess panel (Lichess TV official embed) */
+#tt-arc .ttch-side{min-width:0;display:flex;flex-direction:column;gap:18px}
+#tt-arc .ttch-panel{min-width:0;border:2px solid var(--y);border-radius:14px;background:#111;padding:14px;box-shadow:4px 4px 0 var(--r),-4px -4px 0 rgba(0,229,255,.55);text-align:center}
+#tt-arc .ttch-h{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 0 10px;color:var(--y);text-shadow:2px 0 0 var(--r),-2px 0 0 var(--c)}
+#tt-arc .ttch-live{display:inline-flex;align-items:center;gap:5px;font:900 11px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;color:#000;background:var(--y);padding:4px 7px;border-radius:4px;text-shadow:none;box-shadow:2px 2px 0 var(--r)}
+#tt-arc .ttch-live:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--r)}
+#tt-arc .ttch-box{position:relative;width:100%;aspect-ratio:400/444;border-radius:8px;overflow:hidden;background:#000;outline:1px solid rgba(255,212,0,.35)}
+#tt-arc .ttch-box iframe{position:absolute;inset:0;display:block;width:100%;height:100%;border:0}
+#tt-arc .ttch-btns{display:flex;gap:8px;margin-top:10px}
+#tt-arc .ttch-btns a{flex:1;display:block;padding:9px 8px;border-radius:8px;font-family:inherit;font-size:13px;font-weight:800;line-height:1.2;text-decoration:none;text-transform:uppercase;letter-spacing:.04em;border:2px solid var(--y)}
+#tt-arc .ttch-btns a.ttch-a{background:var(--y);color:#000}
+#tt-arc .ttch-btns a.ttch-b{background:#000;color:var(--y)}
+#tt-arc .ttch-btns a:hover{box-shadow:2px 2px 0 var(--r),-2px -2px 0 var(--c)}
+@media (min-width:641px) and (max-width:1023px){#tt-arc .ttch-side{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}#tt-arc .ta-chat .ta-cbox{height:520px}}
+@media (max-width:1023px){#tt-arc .ta-grid{grid-template-columns:repeat(3,minmax(0,1fr))}#tt-arc .ta-main{grid-template-columns:minmax(0,1fr)}#tt-arc .ta-cbox{height:460px}}
+@media (max-width:640px){#tt-arc{padding-top:4px}#tt-arc .ta-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}#tt-arc .ta-cab:first-child{grid-column:1/-1}#tt-arc .ta-stage{height:72vh;height:72svh}#tt-arc .ta-stage.ta-auto{height:auto}#tt-arc .ta-t{font-size:14px}#tt-arc .ta-art{font-size:17px}#tt-arc .ta-bar{flex-wrap:wrap;padding:8px}#tt-arc .ta-now{flex:1 1 100%;margin-bottom:6px}#tt-arc .ta-bar a,#tt-arc .ta-bar button{flex:1;text-align:center}#tt-arc .ta-chat{padding:12px 8px}#tt-arc .ta-cbox{height:440px}#tt-arc .ta-cbox iframe{display:block;width:100%!important;height:100%!important;border:0}}
+#tt-arc .ta-gb{position:relative;z-index:1;display:flex;justify-content:flex-end;margin:-6px 0 20px}#tt-arc .ta-gb a{display:inline-block;padding:8px 14px;border:2px solid var(--y);border-radius:8px;background:var(--y);color:#000!important;font-family:inherit;font-size:12.5px;font-weight:800;line-height:1.2;letter-spacing:.04em;text-transform:uppercase;text-decoration:none!important}#tt-arc .ta-gb a:hover,#tt-arc .ta-gb a:focus-visible{box-shadow:2px 2px 0 var(--r),-2px -2px 0 var(--c)}@media (max-width:640px){#tt-arc .ta-gb{margin:-2px 0 16px}#tt-arc .ta-gb a{display:block;width:100%;text-align:center;padding:10px 12px}}
+@media (prefers-reduced-motion:reduce){#tt-arc .ta-h::before,#tt-arc .ta-h::after{animation:none}#tt-arc .ta-cab{transition:none}#tt-arc .ta-cab:hover{transform:none}}
+/* tt-ns: featured MR. TOASTY'S NO SIGNAL card + fullscreen overlay player */
+#tt-arc .tt-ns{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:22px;align-items:center;margin:0 0 22px;padding:14px;border:2px solid var(--y);border-radius:14px;background:linear-gradient(180deg,#14161f,#05070d 70%);box-shadow:5px 5px 0 var(--r),-5px -5px 0 rgba(0,229,255,.55);text-align:left}
+#tt-arc .tt-ns-shot{position:relative;display:block;width:100%;aspect-ratio:1200/630;border:2px solid #000;border-radius:8px;overflow:hidden;background:#000 url(https://therapytoaster.github.io/tt-live/game/thumb.jpg) center/cover no-repeat;cursor:pointer;padding:0}
+#tt-arc .tt-ns-shot::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.3) 0 1px,transparent 1px 3px);pointer-events:none}
+#tt-arc .tt-ns-new{position:absolute;top:8px;left:8px;z-index:2;padding:3px 8px;border-radius:4px;background:var(--y);color:#000;font:900 11px/1.3 ui-monospace,Menlo,monospace;letter-spacing:.14em;box-shadow:2px 2px 0 var(--r)}
+#tt-arc .tt-ns-k{margin:0 0 6px;font:700 12px/1.2 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.28em;text-transform:uppercase;color:var(--c)}
+#tt-arc .tt-ns-t{margin:0;font:900 clamp(28px,4vw,48px)/.95 Impact,"Arial Black",sans-serif;text-transform:uppercase;color:var(--y);text-shadow:3px 0 0 var(--r),-3px 0 0 var(--c)}
+#tt-arc .tt-ns-d{margin:10px 0 16px;font-size:15px;line-height:1.45}
+#tt-arc .tt-ns-play{display:inline-block;margin:0;padding:16px 38px;border:0;border-radius:10px;background:#FFD400;color:#000;font:900 clamp(22px,3vw,30px)/1 Impact,"Arial Black",sans-serif;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;box-shadow:5px 5px 0 var(--r),-5px -5px 0 rgba(0,229,255,.65)}
+#tt-arc .tt-ns-play:hover,#tt-arc .tt-ns-play:focus-visible{outline:none;box-shadow:5px 5px 0 var(--c),-5px -5px 0 var(--r)}
+#tt-arc .tt-ns-new-tab{display:inline-block;margin-left:14px;font:700 12px/1.2 ui-monospace,Menlo,monospace;color:var(--y)!important;opacity:.8}
+#tt-arc .tt-ns-keys{margin:12px 0 0;font:700 11px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.06em;color:#9aa;opacity:.9}
+.tt-ns-ov{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;background:#000}
+.tt-ns-ov iframe{flex:1;display:block;width:100%;border:0;background:#000}
+.tt-ns-ov-bar{display:flex;align-items:center;gap:12px;padding:6px 10px;background:#000;border-bottom:2px solid #FFD400;color:#FFD400;font:800 13px/1 ui-monospace,Menlo,monospace;letter-spacing:.08em}
+.tt-ns-ov-bar span{flex:1;text-align:left}
+.tt-ns-ov-bar a{color:#FFD400!important;font-size:12px;opacity:.85}
+.tt-ns-ov-x{width:38px;height:38px;margin:0;padding:0;border:2px solid #FFD400;border-radius:50%;background:#000;color:#FFD400;font:900 20px/1 system-ui,sans-serif;cursor:pointer}
+.tt-ns-ov-x:hover{background:#FFD400;color:#000}
+html.tt-ns-lock,html.tt-ns-lock body{overflow:hidden!important}
+@media (max-width:640px){#tt-arc .tt-ns{grid-template-columns:minmax(0,1fr);gap:12px;padding:10px;text-align:center}#tt-arc .tt-ns-play{width:100%}#tt-arc .tt-ns-new-tab{display:block;margin:12px 0 0}#tt-arc .tt-ns-keys{display:none}}
+</style>
+<div id="tt-arc" data-ttpa-off>
+<div id="tt-intro" aria-label="Toasty's ARTcade">
+<video muted autoplay loop playsinline webkit-playsinline preload="metadata" poster="https://therapytoaster.github.io/tt-live/arcade/toastys-artcade-intro-poster.jpg" disablepictureinpicture controlslist="nodownload nofullscreen noremoteplayback">
+<source src="https://therapytoaster.github.io/tt-live/arcade/toastys-artcade-intro.mp4" type="video/mp4">
+</video>
+</div>
+<p class="ta-kick">// insert toast to play</p>
+<h1 class="ta-h" data-t="Toasty's ARTcade">Toasty's ARTcade</h1>
+<p class="ta-sub">Every Toaster game in one cabinet. Pick a machine, it loads below. Chat with the crew on the side while you play.</p>
+<div class="tt-ns" aria-label="Featured game: Mr. Toasty's No Signal"><button type="button" class="tt-ns-shot" data-ns-play aria-label="Play Mr. Toasty's No Signal"><span class="tt-ns-new">NEW</span></button><div><p class="tt-ns-k">// featured machine</p><h2 class="tt-ns-t">Mr. Toasty's No Signal</h2><p class="tt-ns-d">A retro glitch shooter: blast corrupted toasters and crystal skulls through a 404 maze and find the secret wall.</p><button type="button" class="tt-ns-play" data-ns-play>&#9654; PLAY</button><a class="tt-ns-new-tab" href="https://therapytoaster.github.io/tt-live/game/" target="_blank" rel="noopener">open in new tab &#8599;</a><p class="tt-ns-keys">WASD + MOUSE &middot; CLICK FIRE &middot; 1-3 WEAPONS &middot; TAB MAP &middot; PHONES: TOUCH CONTROLS</p></div></div>
+<div class="ta-grid" role="list">
+<button type="button" class="ta-cab ta-stick" role="listitem" data-k="stickdeath" data-src="/stickdeath" data-own="1" data-title="Stickdeath (18+)"><span class="ta-scr"><span class="ta-18">18+</span><span class="ta-art"><span>Stick<span>death</span></span></span></span><span class="ta-t">Stickdeath</span><span class="ta-d">Stick figure carnage reel. 18+ only.</span><span class="ta-ins">&#9654; INSERT TOAST</span></button>
+<button type="button" class="ta-cab" role="listitem" data-k="mars" data-src="https://cybertruck-starship-launch.grok.me/" data-title="Cybertruck then Mars"><span class="ta-scr" style="background-image:url(https://cybertruck-starship-launch.grok.me/og.jpg)"></span><span class="ta-t">Cybertruck then Mars</span><span class="ta-d">Moonbase, then Starship to Mars.</span><span class="ta-ins">&#9654; INSERT TOAST</span></button>
+<button type="button" class="ta-cab" role="listitem" data-k="feed" data-src="https://feed-fat-coty.grok.me/" data-title="Feed Fat Coty"><span class="ta-scr" style="background-image:url(https://feed-fat-coty.grok.me/og.jpg)"></span><span class="ta-t">Feed Fat Coty</span><span class="ta-d">Feed the craving. Chain combos.</span><span class="ta-ins">&#9654; INSERT TOAST</span></button>
+<button type="button" class="ta-cab" role="listitem" data-k="bite" data-src="https://fat-coty-final-bite.grok.me/" data-title="Fat Coty: Final Bite"><span class="ta-scr" style="background-image:url(https://fat-coty-final-bite.grok.me/og.jpg)"></span><span class="ta-t">Fat Coty: Final Bite</span><span class="ta-d">16-bit street brawl. Eat the Toaster.</span><span class="ta-ins">&#9654; INSERT TOAST</span></button>
+<button type="button" class="ta-cab ta-tanks" role="listitem" data-k="tanks" data-src="/toaster-tanks" data-own="1" data-title="Toaster Tanks"><span class="ta-scr"><span class="ta-art">Toaster<br>Tanks</span></span><span class="ta-t">Toaster Tanks</span><span class="ta-d">2-player artillery. Toasty vs Crusty.</span><span class="ta-ins">&#9654; INSERT TOAST</span></button>
+</div>
+<div class="ta-gb"><a href="https://x.com/gamesgrokbuild" target="_blank" rel="noopener">Follow @gamesgrokbuild on Twitter &#8599;</a></div>
+<div class="ta-main">
+<div class="ta-player">
+<div class="ta-bar"><span class="ta-now">&#127918; Pick a game</span><a class="ta-ext" target="_blank" rel="noopener" hidden>Open full screen &#8599;</a><button type="button" class="ta-x" hidden>Stop</button></div>
+<div class="ta-stage"><div class="ta-idle"><b>Pick a machine</b><span>ONE GAME AT A TIME &middot; KEEPS IT FAST</span></div></div>
+</div>
+<div class="ttch-side"><aside class="ta-chat"><h3>Toaster Chat</h3><div class="ta-cbox"><script id="cid0020000453196839198" data-cfasync="false" async src="https://st.chatango.com/js/gz/emb.js" style="width: 100%;height: 100%;">{"handle":"therapytoasterchat","arch":"js","styles":{"a":"FFD400","b":100,"c":"FFFFFF","d":"FFFFFF","k":"FFD400","l":"FFD400","m":"FFD400","n":"FFFFFF","p":"10","q":"FFD400","r":100}}</script></div></aside><section class="ttch-panel" aria-label="Live Chess"><h3 class="ttch-h">Live Chess <span class="ttch-live">LIVE</span></h3><div class="ttch-box"><iframe src="https://lichess.org/tv/frame?theme=blue&amp;bg=dark" title="Lichess TV - live chess" loading="lazy" allowtransparency="true" referrerpolicy="no-referrer-when-downgrade"></iframe></div><div class="ttch-btns"><a class="ttch-a" href="https://lichess.org/tv" target="_blank" rel="noopener">Watch on Lichess</a><a class="ttch-b" href="https://lichess.org/" target="_blank" rel="noopener">Play a game</a></div></section></div>
+</div>
+</div>
+<script>
+(function(){
+  var root=document.getElementById('tt-arc');if(!root||root.getAttribute('data-ok'))return;root.setAttribute('data-ok','1');
+  var stage=root.querySelector('.ta-stage'),idle=root.querySelector('.ta-idle'),now=root.querySelector('.ta-now'),ext=root.querySelector('.ta-ext'),xb=root.querySelector('.ta-x');
+  var cabs=[].slice.call(root.querySelectorAll('.ta-cab')),ifr=null,timer=null;
+  /* own-site pages framed: hide site chrome + floating widgets inside the frame, size frame to content */
+  var HIDE='#header,#footer-sections,#ttpa,#ttmp,#ttcl,#tt-vc,#tt-dc,.tt-dont,[id^="tt-dc"],.sqs-cookie-banner-v2{display:none!important}'+
+    'html,body{background:#05070d!important;overflow-x:hidden}#page{padding-top:0!important;margin-top:0!important}#page .page-section:first-child{padding-top:12px!important}';
+  function fit(){try{var d=ifr.contentDocument;var h=Math.max(d.documentElement.scrollHeight,d.body.scrollHeight);if(h>200)ifr.style.height=h+'px';}catch(e){}}
+  function prep(){try{var d=ifr.contentDocument;if(!d||d.getElementById('ta-hide'))return;var s=d.createElement('style');s.id='ta-hide';s.textContent=HIDE;d.head.appendChild(s);
+    d.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href]');if(a&&!a.target){try{var u=new URL(a.href,location.href);if(u.origin===location.origin&&!u.hash){e.preventDefault();location.href=u.href;}}catch(x){}}},true);}catch(e){}
+    fit();}
+  function stop(){if(timer){clearInterval(timer);timer=null;}if(ifr){ifr.remove();ifr=null;}stage.classList.remove('ta-auto');idle.style.display='';now.textContent='\uD83C\uDFAE Pick a game';ext.hidden=true;xb.hidden=true;cabs.forEach(function(c){c.classList.remove('ta-on');c.removeAttribute('aria-pressed');});}
+  function play(c,scroll){
+    stop();var src=c.getAttribute('data-src'),own=c.getAttribute('data-own');
+    c.classList.add('ta-on');c.setAttribute('aria-pressed','true');idle.style.display='none';
+    now.textContent='\uD83D\uDD79\uFE0F '+c.getAttribute('data-title');ext.href=src;ext.hidden=false;xb.hidden=false;
+    ifr=document.createElement('iframe');ifr.title=c.getAttribute('data-title');
+    ifr.setAttribute('allow','autoplay; fullscreen; gamepad; clipboard-write; encrypted-media; picture-in-picture');ifr.setAttribute('allowfullscreen','');
+    if(own){stage.classList.add('ta-auto');ifr.style.height='640px';ifr.setAttribute('scrolling','no');ifr.addEventListener('load',function(){prep();setTimeout(fit,600);setTimeout(fit,2000);});timer=setInterval(function(){if(!ifr||!document.body.contains(ifr)){clearInterval(timer);timer=null;return;}prep();},1500);}
+    ifr.src=src;stage.appendChild(ifr);
+    try{history.replaceState(history.state,'','#'+c.getAttribute('data-k'));}catch(e){}
+    if(scroll){var p=root.querySelector('.ta-player');var r=p.getBoundingClientRect();if(r.top<0||r.top>window.innerHeight*.5)p.scrollIntoView({behavior:'smooth',block:'start'});}
+  }
+  cabs.forEach(function(c){c.addEventListener('click',function(){if(c.classList.contains('ta-on'))return;play(c,true);});});
+  xb.addEventListener('click',function(){stop();try{history.replaceState(history.state,'',location.pathname);}catch(e){}});
+  var k=(location.hash||'').slice(1);if(k)cabs.forEach(function(c){if(c.getAttribute('data-k')===k)play(c,false);});
+  if(!window.__ttArcRz){window.__ttArcRz=1;window.addEventListener('resize',function(){var r=document.getElementById('tt-arc');if(r&&r.__fit)r.__fit();});}
+  root.__fit=fit;
+})();
+</script>
+<!-- /TT ARCADE page v1 -->
+<!-- TT TESLA ARCADE list v1: text cards only, no logos/art; links to official sites/stores. Lineup per Tesla release notes (as of Oct 2026, Ryzen/Cybertruck). -->
+<style>
+#tt-tsa{position:relative;z-index:1;max-width:1200px;margin:28px auto;padding:24px 18px;background:rgba(0,0,0,.72);border-radius:14px;box-shadow:0 0 0 1px rgba(255,212,0,.35);color:#fff;font-family:inherit}
+#tt-tsa h2{margin:0;color:#FFD400;font-size:clamp(28px,5vw,48px);letter-spacing:.06em;text-transform:uppercase;text-shadow:-2px 0 #ff2a3d,2px 0 #00e5ff}
+#tt-tsa .tsa-sub{margin:6px 0 18px;color:#fff;opacity:.9;font-size:16px}
+#tt-tsa .tsa-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+#tt-tsa .tsa-c{display:flex;flex-direction:column;gap:6px;padding:14px;background:#000;border:2px solid #FFD400;border-radius:10px;color:#fff!important;text-decoration:none!important;box-shadow:3px 3px 0 #ff2a3d,-3px -3px 0 #00e5ff;transition:box-shadow .2s,background .2s}
+#tt-tsa .tsa-c:hover,#tt-tsa .tsa-c:focus-visible{background:#1a1600;box-shadow:5px 5px 0 #ff2a3d,-5px -5px 0 #00e5ff;outline:none}
+#tt-tsa .tsa-i{font-size:30px;line-height:1}
+#tt-tsa .tsa-n{color:#FFD400;font-size:18px;text-shadow:-1px 0 #ff2a3d,1px 0 #00e5ff}
+#tt-tsa .tsa-d{font-size:14px;opacity:.88;flex:1}
+#tt-tsa .tsa-b{align-self:flex-start;background:#FFD400;color:#000;font-weight:700;font-size:12px;padding:4px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.05em}
+#tt-tsa .tsa-b.tsa-free{background:#00e5ff}
+#tt-tsa h3{color:#FFD400;margin:22px 0 10px;font-size:18px;text-transform:uppercase;letter-spacing:.05em}
+#tt-tsa .tsa-gone{border-style:dashed;opacity:.75}
+#tt-tsa .tsa-gone .tsa-b{background:#ff2a3d;color:#fff}
+#tt-tsa .tsa-note{font-size:12px;opacity:.7;margin-top:14px}
+</style>
+<section id="tt-tsa" aria-labelledby="tt-tsa-h">
+<h2 id="tt-tsa-h">Tesla Arcade</h2>
+<p class="tsa-sub">The games in my Cybertruck &mdash; play them on yours</p>
+<div class="tsa-g" role="list">
+<a class="tsa-c" href="https://iss-sim.spacex.com/" target="_blank" rel="noopener"><span class="tsa-i" aria-hidden="true">🚀</span><b class="tsa-n" data-t="SpaceX Docking Simulator">SpaceX Docking Simulator</b><span class="tsa-d">Dock a Dragon with the ISS using real NASA-style controls.</span><span class="tsa-b tsa-free">&#9654; Play free</span></a>
+<a class="tsa-c" href="https://store.steampowered.com/app/965680/" target="_blank" rel="noopener"><span class="tsa-i" aria-hidden="true">🪃</span><b class="tsa-n" data-t="Boomerang Fu">Boomerang Fu</b><span class="tsa-d">Frantic food-fighter boomerang party brawler for 1-4.</span><span class="tsa-b">Get it &#8599;</span></a>
+<a class="tsa-c" href="https://www.grumpyface.com/" target="_blank" rel="noopener"><span class="tsa-i" aria-hidden="true">🏰</span><b class="tsa-n" data-t="Castle Doombad Classic">Castle Doombad Classic</b><span class="tsa-d">Trap-based tower defense — guard your castle from heroes.</span><span class="tsa-b">Get it &#8599;</span></a>
+<a class="tsa-c" href="https://www.vectorunit.com/beach-buggy-racing-2" target="_blank" rel="noopener"><span class="tsa-i" aria-hidden="true">🏖️</span><b class="tsa-n" data-t="Beach Buggy Racing 2">Beach Buggy Racing 2</b><span class="tsa-d">Kart racing with power-ups — steer with the real wheel.</span><span class="tsa-b">Get it &#8599;</span></a>
+<a class="tsa-c" href="https://store.steampowered.com/app/1794680/" target="_blank" rel="noopener"><span class="tsa-i" aria-hidden="true">🧛</span><b class="tsa-n" data-t="Vampire Survivors">Vampire Survivors</b><span class="tsa-d">Survive endless monster hordes; gothic bullet-heaven roguelite.</span><span class="tsa-b">Get it &#8599;</span></a>
+<a class="tsa-c" href="https://polytopia.io/" target="_blank" rel="noopener"><span class="tsa-i" aria-hidden="true">🗺️</span><b class="tsa-n" data-t="The Battle of Polytopia">The Battle of Polytopia</b><span class="tsa-d">Turn-based 4X strategy: build a tribe, conquer the map.</span><span class="tsa-b">Get it &#8599;</span></a>
+<a class="tsa-c" href="https://www.tesla.com/support/arcade" target="_blank" rel="noopener"><span class="tsa-i" aria-hidden="true">🀄</span><b class="tsa-n" data-t="Mahjong">Mahjong</b><span class="tsa-d">Classic tile-matching solitaire, built into Arcade.</span><span class="tsa-b">Get it &#8599;</span></a>
+<a class="tsa-c" href="https://www.nytimes.com/puzzles/sudoku" target="_blank" rel="noopener"><span class="tsa-i" aria-hidden="true">🔢</span><b class="tsa-n" data-t="Sudoku">Sudoku</b><span class="tsa-d">The number-logic puzzle, as many grids as you like.</span><span class="tsa-b tsa-free">&#9654; Play free</span></a>
+<a class="tsa-c" href="https://store.steampowered.com/app/667600/" target="_blank" rel="noopener"><span class="tsa-i" aria-hidden="true">✈️</span><b class="tsa-n" data-t="Sky Force Reloaded">Sky Force Reloaded</b><span class="tsa-d">Gorgeous vertical shoot-&#x27;em-up with co-op.</span><span class="tsa-b">Get it &#8599;</span></a>
+<a class="tsa-c" href="https://www.google.com/search?q=solitaire" target="_blank" rel="noopener"><span class="tsa-i" aria-hidden="true">🃏</span><b class="tsa-n" data-t="Solitaire">Solitaire</b><span class="tsa-d">The card-table classic for Supercharger stops.</span><span class="tsa-b tsa-free">&#9654; Play free</span></a>
+<a class="tsa-c" href="https://store.steampowered.com/app/593280/" target="_blank" rel="noopener"><span class="tsa-i" aria-hidden="true">🐱</span><b class="tsa-n" data-t="Cat Quest">Cat Quest</b><span class="tsa-d">Open-world action RPG in a land of cats (controller).</span><span class="tsa-b">Get it &#8599;</span></a>
+<a class="tsa-c" href="https://fallout.bethesda.net/en/games/fallout-shelter" target="_blank" rel="noopener"><span class="tsa-i" aria-hidden="true">☢️</span><b class="tsa-n" data-t="Fallout Shelter">Fallout Shelter</b><span class="tsa-d">Build and run your own post-apocalyptic Vault.</span><span class="tsa-b">Get it &#8599;</span></a>
+<a class="tsa-c" href="https://www.stardewvalley.net/" target="_blank" rel="noopener"><span class="tsa-i" aria-hidden="true">🌾</span><b class="tsa-n" data-t="Stardew Valley">Stardew Valley</b><span class="tsa-d">Farm, fish, mine and make friends in Pelican Town.</span><span class="tsa-b">Get it &#8599;</span></a>
+<a class="tsa-c" href="https://www.tesla.com/support/arcade" target="_blank" rel="noopener"><span class="tsa-i" aria-hidden="true">🎲</span><b class="tsa-n" data-t="Backgammon">Backgammon</b><span class="tsa-d">Two-player dice-and-checkers strategy, built into Arcade.</span><span class="tsa-b">Get it &#8599;</span></a>
+<a class="tsa-c" href="https://cupheadgame.com/" target="_blank" rel="noopener"><span class="tsa-i" aria-hidden="true">☕</span><b class="tsa-n" data-t="Cuphead">Cuphead</b><span class="tsa-d">Hand-drawn 1930s run-and-gun boss rush (controller).</span><span class="tsa-b">Get it &#8599;</span></a>
+<a class="tsa-c" href="https://lichess.org/" target="_blank" rel="noopener"><span class="tsa-i" aria-hidden="true">♟️</span><b class="tsa-n" data-t="Chess">Chess</b><span class="tsa-d">Play the AI or a friend across the screen.</span><span class="tsa-b tsa-free">&#9654; Play free</span></a>
+<a class="tsa-c" href="https://play2048.co/" target="_blank" rel="noopener"><span class="tsa-i" aria-hidden="true">🧮</span><b class="tsa-n" data-t="2048">2048</b><span class="tsa-d">Slide and merge tiles until you hit 2048.</span><span class="tsa-b tsa-free">&#9654; Play free</span></a>
+</div>
+<h3>Retired from Tesla Arcade</h3>
+<div class="tsa-g">
+<a class="tsa-c tsa-gone" href="https://atari.com/" target="_blank" rel="noopener"><span class="tsa-i" aria-hidden="true">👾</span><b class="tsa-n" data-t="Atari classics">Atari classics</b><span class="tsa-d">Asteroids, Missile Command, Tempest, Centipede/Millipede, Super Breakout, Lunar Lander, Gravitar — removed from Ryzen cars (incl. Cybertruck) in 2024.20; still on older Intel cars.</span><span class="tsa-b">Retired &middot; official site &#8599;</span></a>
+<a class="tsa-c tsa-gone" href="https://www.sonicthehedgehog.com/" target="_blank" rel="noopener"><span class="tsa-i" aria-hidden="true">💨</span><b class="tsa-n" data-t="Sonic the Hedgehog">Sonic the Hedgehog</b><span class="tsa-d">Added Dec 2021, removed in the 2022 holiday update (license ended).</span><span class="tsa-b">Retired &middot; official site &#8599;</span></a>
+</div>
+<p class="tsa-note">Not affiliated with Tesla or any publisher. Links go to each game&rsquo;s official site or store page. In-car versions play in Park only.</p>
+</section>
+<!-- /TT TESLA ARCADE list v1 -->
+
+  
+  
+
+<!-- TT ARCADE BG v3: Toasty-game motifs, variant C (A's kart road + B's dungeon/CRT). For A use ?v=a, for B use ?v=b. CSS is injected by the script. -->
+<script src="https://therapytoaster.github.io/tt-live/arcade-bg/arcade-bg.js?c=41b8209"></script>
+
+<script>
+/* tt-ns overlay player: idempotent under Squarespace soft-nav; iframe removed on close so audio stops. Not sandboxed. */
+(function(){
+var U='https://therapytoaster.github.io/tt-live/game/';
+function close(){var o=document.getElementById('tt-ns-ov');if(o)o.remove();document.documentElement.classList.remove('tt-ns-lock')}
+function open(){close();var o=document.createElement('div');o.id='tt-ns-ov';o.className='tt-ns-ov';o.setAttribute('role','dialog');o.setAttribute('aria-label',"Mr. Toasty's No Signal");
+o.innerHTML='<div class="tt-ns-ov-bar"><span>MR. TOASTY\'S NO SIGNAL</span><a href="'+U+'" target="_blank" rel="noopener">open in new tab &#8599;</a><button type="button" class="tt-ns-ov-x" aria-label="Close game">&times;</button></div>';
+var f=document.createElement('iframe');f.src=U;f.title="Mr. Toasty's No Signal";f.setAttribute('allow','fullscreen; pointer-lock; autoplay');f.setAttribute('allowfullscreen','');o.appendChild(f);
+document.body.appendChild(o);document.documentElement.classList.add('tt-ns-lock');o.querySelector('.tt-ns-ov-x').onclick=close;setTimeout(function(){try{f.focus()}catch(e){}},50)}
+if(!window.__ttNsBound){window.__ttNsBound=1;
+document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-ns-play]');if(b){e.preventDefault();open()}});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')close()});}
+close();
+})();
+</script>
+
+<!-- TT ARCADE INTRO v4: looping inline reel at the top of #tt-arc, above the title.
+     Same video/poster as the old entry gate. Autoplay, muted, loop, playsinline; no controls, no overlay, no scroll lock, no click-to-enter. -->
+<style>
+#tt-arc #tt-intro{position:relative;inset:auto;z-index:1;box-sizing:border-box;width:100%;max-width:100%;margin:0 0 18px;border-radius:14px;overflow:hidden;border:2px solid #FFD400;box-shadow:0 0 0 1px rgba(255,212,0,.35),0 0 18px rgba(255,212,0,.28);background:#000;line-height:0;aspect-ratio:16/9;max-height:min(360px,56vw)}
+#tt-arc #tt-intro video{width:100%;height:100%;object-fit:contain;object-position:center;display:block;background:#000;pointer-events:none}
+@media (max-width:640px){#tt-arc #tt-intro{margin:0 0 14px;border-radius:10px;max-height:min(200px,56vw)}}
+</style>
+<script>
+(function(){
+var root=document.getElementById('tt-arc');if(!root)return;
+document.documentElement.classList.remove('tt-intro-lock');
+/* strip a leftover fullscreen gate if an older block is still cached */
+var stray=document.querySelectorAll('#tt-intro');
+for(var i=0;i<stray.length;i++){if(!root.contains(stray[i]))stray[i].remove();}
+var box=root.querySelector('#tt-intro');if(!box)return;
+var v=box.querySelector('video');if(!v)return;
+v.muted=true;v.loop=true;v.autoplay=true;v.playsInline=true;v.controls=false;
+v.removeAttribute('controls');
+var RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)');
+if(RM&&RM.matches){v.removeAttribute('autoplay');try{v.pause()}catch(e){}v.currentTime=0;return;}
+var p=v.play&&v.play();if(p&&p.catch)p.catch(function(){});
+})();
+</script>
+<script src="https://therapytoaster.github.io/tt-live/skullz/arcade-card.js"></script>
+<script src="https://therapytoaster.github.io/tt-live/crypt/arcade-card.js"></script>
+<script src="https://therapytoaster.github.io/tt-live/toaster-pit/arcade-card.js"></script>
+<script src="https://therapytoaster.github.io/tt-live/kart/arcade-card.js"></script>
+<script src="https://therapytoaster.github.io/tt-live/burnt-offerings/arcade-card.js"></script>
+<script src="https://therapytoaster.github.io/tt-live/crumb-dungeon/arcade-card.js"></script><script src="https://therapytoaster.github.io/tt-live/prize-floor/arcade-card.js"></script><link rel="stylesheet" href="https://therapytoaster.github.io/tt-live/artcade-header/header-bg.css"><script>(function(){var r=document.getElementById('tt-arc');if(r)r.__ttIntro=1;})()</script>
