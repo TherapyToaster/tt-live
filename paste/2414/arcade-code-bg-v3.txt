@@ -97,6 +97,11 @@ html.tt-ns-lock,html.tt-ns-lock body{overflow:hidden!important}
 @media (max-width:640px){#tt-arc .tt-ns{grid-template-columns:minmax(0,1fr);gap:12px;padding:10px;text-align:center}#tt-arc .tt-ns-play{width:100%}#tt-arc .tt-ns-new-tab{display:block;margin:12px 0 0}#tt-arc .tt-ns-keys{display:none}}
 </style>
 <div id="tt-arc" data-ttpa-off>
+<div id="tt-intro" aria-label="Toasty's ARTcade">
+<video muted autoplay loop playsinline webkit-playsinline preload="metadata" poster="https://therapytoaster.github.io/tt-live/arcade/toastys-artcade-intro-poster.jpg" disablepictureinpicture controlslist="nodownload nofullscreen noremoteplayback">
+<source src="https://therapytoaster.github.io/tt-live/arcade/toastys-artcade-intro.mp4" type="video/mp4">
+</video>
+</div>
 <p class="ta-kick">// insert toast to play</p>
 <h1 class="ta-h" data-t="Toasty's ARTcade">Toasty's ARTcade</h1>
 <p class="ta-sub">Every Toaster game in one cabinet. Pick a machine, it loads below. Chat with the crew on the side while you play.</p>
@@ -220,36 +225,27 @@ close();
 })();
 </script>
 
-<!-- TT ARCADE INTRO (v3, additive): ~4s black/yellow retro intro overlay, plays each time /arcade is opened (incl. Squarespace ajax nav).
-     Muted autoplay; fades out on end; fallback 5.5s; tap/click/any key skips. Idempotent: one overlay max, always removed. -->
+<!-- TT ARCADE INTRO v4: looping inline reel at the top of #tt-arc, above the title.
+     Same video/poster as the old entry gate. Autoplay, muted, loop, playsinline; no controls, no overlay, no scroll lock, no click-to-enter. -->
 <style>
-#tt-intro{position:fixed;inset:0;z-index:2147483000;background:#000;opacity:1;transition:opacity .5s ease;cursor:pointer}
-#tt-intro.tt-out{opacity:0;pointer-events:none}
-#tt-intro video{width:100%;height:100%;object-fit:cover;display:block;background:#000}
-#tt-intro .tt-skip{position:absolute;right:14px;bottom:14px;font:700 12px/1 monospace;letter-spacing:.12em;color:#FFD400;opacity:.7;text-transform:uppercase}
-@media (max-aspect-ratio:4/3){#tt-intro video{object-fit:contain}} /* portrait phones: keep full title visible, black letterbox */
-@media (hover:none){#tt-intro .tt-skip::after{content:'Tap to skip'}#tt-intro .tt-skip{font-size:0}#tt-intro .tt-skip::after{font-size:12px}}
-html.tt-intro-lock,html.tt-intro-lock body{overflow:hidden!important}
+#tt-arc #tt-intro{position:relative;inset:auto;z-index:1;box-sizing:border-box;width:100%;max-width:100%;margin:0 0 18px;border-radius:14px;overflow:hidden;border:2px solid #FFD400;box-shadow:0 0 0 1px rgba(255,212,0,.35),0 0 18px rgba(255,212,0,.28);background:#000;line-height:0;aspect-ratio:16/9;max-height:min(360px,56vw)}
+#tt-arc #tt-intro video{width:100%;height:100%;object-fit:contain;object-position:center;display:block;background:#000;pointer-events:none}
+@media (max-width:640px){#tt-arc #tt-intro{margin:0 0 14px;border-radius:10px;max-height:min(200px,56vw)}}
 </style>
 <script>
 (function(){
-var V='https://therapytoaster.github.io/tt-live/arcade/toastys-artcade-intro.mp4',P='https://therapytoaster.github.io/tt-live/arcade/toastys-artcade-intro-poster.jpg';
-if(window.self!==window.top)return;                       /* not inside frames / editor preview */
-if(document.body&&document.body.classList.contains('sqs-edit-mode-active'))return;
-if(!document.getElementById('tt-arc'))return;
-var root=document.getElementById('tt-arc');if(root.__ttIntro)return;root.__ttIntro=1; /* once per page render */
-var old=document.getElementById('tt-intro');if(old)old.remove();
-var o=document.createElement('div');o.id='tt-intro';o.setAttribute('aria-label','ARTcade intro (click or press any key to skip)');
-o.innerHTML='<video muted autoplay playsinline webkit-playsinline preload="auto" poster="'+P+'"><source src="'+V+'" type="video/mp4"></video><span class="tt-skip">Press any key</span>';
-var v=o.querySelector('video');v.muted=true;var done=0,t;
-function end(){if(done)return;done=1;clearTimeout(t);document.removeEventListener('keydown',end,true);o.classList.add('tt-out');
- document.documentElement.classList.remove('tt-intro-lock');setTimeout(function(){try{v.pause()}catch(e){}o.remove()},600)}
-o.addEventListener('click',end);o.addEventListener('touchstart',end,{passive:true});document.addEventListener('keydown',end,true);
-v.addEventListener('ended',end);v.addEventListener('error',end,true);
-t=setTimeout(end,5500);var iv=setInterval(function(){if(done)return clearInterval(iv);if(!root.isConnected){clearInterval(iv);end()}},250); /* ajax nav away */
-document.body.appendChild(o);document.documentElement.classList.add('tt-intro-lock');
-var p=v.play&&v.play();if(p&&p.catch)p.catch(function(){setTimeout(end,1500)});
-window.addEventListener('pagehide',function(){var x=document.getElementById('tt-intro');if(x)x.remove();document.documentElement.classList.remove('tt-intro-lock')},{once:true});
+var root=document.getElementById('tt-arc');if(!root)return;
+document.documentElement.classList.remove('tt-intro-lock');
+/* strip a leftover fullscreen gate if an older block is still cached */
+var stray=document.querySelectorAll('#tt-intro');
+for(var i=0;i<stray.length;i++){if(!root.contains(stray[i]))stray[i].remove();}
+var box=root.querySelector('#tt-intro');if(!box)return;
+var v=box.querySelector('video');if(!v)return;
+v.muted=true;v.loop=true;v.autoplay=true;v.playsInline=true;v.controls=false;
+v.removeAttribute('controls');
+var RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)');
+if(RM&&RM.matches){v.removeAttribute('autoplay');try{v.pause()}catch(e){}v.currentTime=0;return;}
+var p=v.play&&v.play();if(p&&p.catch)p.catch(function(){});
 })();
 </script>
 <script src="https://therapytoaster.github.io/tt-live/skullz/arcade-card.js"></script>
