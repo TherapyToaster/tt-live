@@ -1,0 +1,44 @@
+/* ARTcade-only nav background v2: neon THERAPY TOASTER sign behind the tabs.
+   Desktop uses a 3600×1000 padded composite (header-desktop-v2) so the full
+   sign stays in frame at 1280, 1440 and 1920. The original 2400×793 photo
+   with background-size:cover was cropping the lettering, especially on wide
+   viewports. Sides fade through continued blinds into #05070d — no hard
+   letterbox bars. Overlay stays at 0.42. Mobile (max-width: 799px) is
+   unchanged from v1 (header-mobile, cover, center). Does not change header
+   height, tab borders, the soft yellow glow, or the caution bar. */
+body#collection-6ad5b63914df0c0376bddf45 .header-announcement-bar-wrapper,
+body.collection-6ad5b63914df0c0376bddf45 .header-announcement-bar-wrapper {
+  background-color: #05070d !important;
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.42), rgba(0, 0, 0, 0.42)),
+    url("https://therapytoaster.github.io/tt-live/artcade-header/header-desktop-v2.jpg") !important;
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.42), rgba(0, 0, 0, 0.42)),
+    image-set(
+      url("https://therapytoaster.github.io/tt-live/artcade-header/header-desktop-v2.webp") type("image/webp"),
+      url("https://therapytoaster.github.io/tt-live/artcade-header/header-desktop-v2.jpg") type("image/jpeg")
+    ) !important;
+  background-repeat: no-repeat !important;
+  background-position: center center !important;
+  background-size: cover !important;
+}
+@media screen and (max-width: 799px) {
+  body#collection-6ad5b63914df0c0376bddf45 .header-announcement-bar-wrapper,
+  body.collection-6ad5b63914df0c0376bddf45 .header-announcement-bar-wrapper {
+    background-image:
+      linear-gradient(rgba(0, 0, 0, 0.42), rgba(0, 0, 0, 0.42)),
+      url("https://therapytoaster.github.io/tt-live/artcade-header/header-mobile.jpg") !important;
+    background-image:
+      linear-gradient(rgba(0, 0, 0, 0.42), rgba(0, 0, 0, 0.42)),
+      image-set(
+        url("https://therapytoaster.github.io/tt-live/artcade-header/header-mobile.webp") type("image/webp"),
+        url("https://therapytoaster.github.io/tt-live/artcade-header/header-mobile.jpg") type("image/jpeg")
+      ) !important;
+    background-position: center center !important;
+  }
+}
+/* Keep the wordmark readable over the neon without changing tab chrome. */
+body#collection-6ad5b63914df0c0376bddf45 .header-title-logo img,
+body.collection-6ad5b63914df0c0376bddf45 .header-title-logo img {
+  filter: drop-shadow(0 0 6px #000) drop-shadow(0 1px 2px #000);
+}
