@@ -8,9 +8,11 @@
 <title>Mr. Toasty's CyberToaster Kart</title>
 <style>
 html,body{margin:0;padding:0;background:#050506;overflow:hidden;height:100%;width:100%;
-  touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;}
-#wrap{position:relative;display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:#050506;}
-#c,#hud{position:absolute;inset:0;width:100%;height:100%;display:block;}
+  touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
+  -webkit-tap-highlight-color:transparent;overscroll-behavior:none;}
+#wrap{position:relative;display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:#050506;
+  touch-action:none;-webkit-touch-callout:none;overscroll-behavior:none;}
+#c,#hud{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;-webkit-touch-callout:none;}
 #c{z-index:0;background:#140818;}
 #hud{z-index:1;pointer-events:auto;}
 </style>
@@ -8868,38 +8870,57 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     KeyQ: "quality",
   };
 
-  const touch = { accel: false, brake: false, left: false, right: false, drift: false, item: false, start: false, crt: false, quality: false };
-  let itemEdge = false, startEdge = false, crtEdge = false, qualityEdge = false;
-  const prev = { item: false, start: false, crt: false, quality: false };
-  const queued = { item: false, start: false, crt: false, quality: false };
+  const touch = { accel: false, brake: false, left: false, right: false, drift: false, item: false, start: false, crt: false, quality: false, tilt: false, helpok: false };
+  let itemEdge = false, startEdge = false, crtEdge = false, qualityEdge = false, tiltEdge = false;
+  const prev = { item: false, start: false, crt: false, quality: false, tilt: false };
+  const queued = { item: false, start: false, crt: false, quality: false, tilt: false };
+
+  function isTouchDevice() {
+    try {
+      if ((navigator.maxTouchPoints || 0) > 0 || (navigator.msMaxTouchPoints || 0) > 0) return true;
+      if (window.matchMedia && matchMedia("(pointer: coarse)").matches) return true;
+    } catch (e) {}
+    return false;
+  }
+
+  G.showTouch = isTouchDevice();
+  G.tiltSteer = false;
+  G._tiltLeft = false;
+  G._tiltRight = false;
+  try { G.touchHelp = isTouchDevice() && localStorage.getItem("tt-kart-touch-help") !== "1"; }
+  catch (e) { G.touchHelp = isTouchDevice(); }
+
+  G.dismissTouchHelp = function () {
+    G.touchHelp = false;
+    try { localStorage.setItem("tt-kart-touch-help", "1"); } catch (e) {}
+  };
 
   G.input = {
     keys, touch,
-    down(name) { return !!(keys[name] || touch[name]); },
+    down(name) {
+      if (name === "left") return !!(keys.left || touch.left || (G.tiltSteer && G._tiltLeft && !touch.right && !keys.right));
+      if (name === "right") return !!(keys.right || touch.right || (G.tiltSteer && G._tiltRight && !touch.left && !keys.left));
+      return !!(keys[name] || touch[name]);
+    },
     pressed(name) {
       if (name === "item") return itemEdge;
       if (name === "start") return startEdge;
       if (name === "crt") return crtEdge;
       if (name === "quality") return qualityEdge;
+      if (name === "tilt") return tiltEdge;
       return false;
     },
-    endFrame() {
-      const i = this.down("item"), s = this.down("start"), c = this.down("crt");
-      itemEdge = i && !prev.item;
-      startEdge = s && !prev.start;
-      crtEdge = c && !prev.crt;
-      prev.item = i; prev.start = s; prev.crt = c;
-    },
-    /* called at start of frame BEFORE endFrame? We compute edges at beginning. */
+    endFrame() {},
     beginFrame() {
       const i = this.down("item"), s = this.down("start"), c = this.down("crt");
-      const q = this.down("quality");
+      const q = this.down("quality"), t = this.down("tilt");
       itemEdge = queued.item || (i && !prev.item);
       startEdge = queued.start || (s && !prev.start);
       crtEdge = queued.crt || (c && !prev.crt);
       qualityEdge = queued.quality || (q && !prev.quality);
-      queued.item = queued.start = queued.crt = queued.quality = false;
-      prev.item = i; prev.start = s; prev.crt = c; prev.quality = q;
+      tiltEdge = queued.tilt || (t && !prev.tilt);
+      queued.item = queued.start = queued.crt = queued.quality = queued.tilt = false;
+      prev.item = i; prev.start = s; prev.crt = c; prev.quality = q; prev.tilt = t;
     },
   };
 
@@ -8909,6 +8930,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     if (!e.repeat && (n === "item" || n === "start" || n === "crt" || n === "quality")) queued[n] = true;
     keys[n] = true;
     if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) e.preventDefault();
+    unlockAudio();
   }, { passive: false });
   window.addEventListener("keyup", (e) => {
     const n = map[e.code];
@@ -8916,63 +8938,176 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   });
   window.addEventListener("blur", () => { for (const k of Object.keys(keys)) keys[k] = false; });
 
-  /* Hit-test canvas buttons. Layout computed in render, stored on G.touchButtons */
+  /* Hit-test canvas buttons. Layout computed in render, stored on G.touchButtons
+     in CSS pixels relative to the HUD canvas. */
   G.touchButtons = [];
-  G.showTouch = false;
+
+  function unlockAudio() {
+    if (G.audio && G.audio.unlock) G.audio.unlock();
+  }
+
+  function evToCss(e, target) {
+    const r = target.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+
+  function hitBtn(x, y) {
+    const btns = G.touchButtons || [];
+    for (let i = btns.length - 1; i >= 0; i--) {
+      const b = btns[i];
+      if (x >= b.x && y >= b.y && x <= b.x + b.w && y <= b.y + b.h) return b;
+    }
+    return null;
+  }
+
+  function applyHit(st, b) {
+    if (!b) return;
+    if (b.id === "track") {
+      if (b.trackId && G.selectTrack) G.selectTrack(b.trackId);
+      return;
+    }
+    if (b.id === "helpok") {
+      G.dismissTouchHelp();
+      return;
+    }
+    st[b.id] = true;
+    if (b.id === "item" || b.id === "start" || b.id === "crt" || b.id === "quality" || b.id === "tilt") {
+      queued[b.id] = true;
+    }
+    if (b.id === "tilt") {
+      /* rising edge is handled in the game tick so iOS can prompt from a user gesture */
+      queued.tilt = true;
+    }
+  }
 
   function bindPointer() {
     const c = document.getElementById("hud") || document.getElementById("c");
     if (!c) return;
-    const setFrom = (ev, down) => {
-      const hits = evTouches(ev, c);
-      if (hits.length) G.showTouch = true;
-      /* clear momentary? hold-based: rebuild touch state from current pointers */
-    };
     const pointers = new Map();
+    let ignoreUntilUp = false;
     const update = () => {
-      const st = { accel: false, brake: false, left: false, right: false, drift: false, item: false, start: false, crt: false };
+      const st = { accel: false, brake: false, left: false, right: false, drift: false, item: false, start: false, crt: false, quality: false, tilt: false, helpok: false };
       pointers.forEach((p) => {
         const b = hitBtn(p.x, p.y);
-        if (b) st[b] = true;
+        if (!b) return;
+        if (b.id === "track" || b.id === "helpok") return;
+        st[b.id] = true;
       });
       Object.assign(touch, st);
     };
-    const evToLocal = (e) => {
-      const target = document.getElementById("hud") || c;
-      const r = target.getBoundingClientRect();
-      const HW = (window.TK && window.TK.HW) || 1280;
-      const HH = (window.TK && window.TK.HH) || 720;
-      return {
-        x: (e.clientX - r.left) / r.width * HW,
-        y: (e.clientY - r.top) / r.height * HH,
-      };
-    };
-    c.addEventListener("pointerdown", (e) => {
-      G.showTouch = true;
-      c.setPointerCapture(e.pointerId);
-      pointers.set(e.pointerId, evToLocal(e));
+
+    const onDown = (css, pointerType) => {
+      if (pointerType === "touch" || pointerType === "pen") G.showTouch = true;
+      unlockAudio();
+      if (ignoreUntilUp) return null;
+      if (G.touchHelp && G.showTouch) {
+        G.dismissTouchHelp();
+        ignoreUntilUp = true;
+        return null;
+      }
+      const b = hitBtn(css.x, css.y);
+      applyHit({}, b);
       update();
+      return b;
+    };
+
+    c.addEventListener("pointerdown", (e) => {
+      if (e.pointerType === "touch" || e.pointerType === "pen") G.showTouch = true;
+      try { c.setPointerCapture(e.pointerId); } catch (err) {}
+      pointers.set(e.pointerId, evToCss(e, c));
+      onDown(pointers.get(e.pointerId), e.pointerType);
       e.preventDefault();
     }, { passive: false });
     c.addEventListener("pointermove", (e) => {
       if (!pointers.has(e.pointerId)) return;
-      pointers.set(e.pointerId, evToLocal(e));
+      pointers.set(e.pointerId, evToCss(e, c));
       update();
       e.preventDefault();
     }, { passive: false });
-    const up = (e) => { pointers.delete(e.pointerId); update(); };
-    c.addEventListener("pointerup", up);
-    c.addEventListener("pointercancel", up);
-    window.addEventListener("touchstart", () => { G.showTouch = true; }, { passive: true });
+    const up = (e) => {
+      pointers.delete(e.pointerId);
+      if (pointers.size === 0) ignoreUntilUp = false;
+      update();
+      if (e.preventDefault) e.preventDefault();
+    };
+    c.addEventListener("pointerup", up, { passive: false });
+    c.addEventListener("pointercancel", up, { passive: false });
+
+    /* Touch path: iOS + Playwright multi-touch. Ignore when the same touch also
+       arrives as a pointer event (Chromium), using identifier as a key prefix. */
+    const touchKey = (t) => "t" + t.identifier;
+    const onTouch = (e, kind) => {
+      G.showTouch = true;
+      unlockAudio();
+      const used = {};
+      if (kind === "start" || kind === "move") {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          const t = e.changedTouches[i];
+          const css = evToCss(t, c);
+          pointers.set(touchKey(t), css);
+          if (kind === "start") onDown(css, "touch");
+          used[touchKey(t)] = true;
+        }
+      }
+      if (kind === "end" || kind === "cancel") {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          pointers.delete(touchKey(e.changedTouches[i]));
+        }
+        if (pointers.size === 0) ignoreUntilUp = false;
+      }
+      update();
+      e.preventDefault();
+    };
+    c.addEventListener("touchstart", (e) => onTouch(e, "start"), { passive: false });
+    c.addEventListener("touchmove", (e) => onTouch(e, "move"), { passive: false });
+    c.addEventListener("touchend", (e) => onTouch(e, "end"), { passive: false });
+    c.addEventListener("touchcancel", (e) => onTouch(e, "cancel"), { passive: false });
   }
-  function hitBtn(x, y) {
-    const btns = G.touchButtons;
-    for (let i = 0; i < btns.length; i++) {
-      const b = btns[i];
-      if (x >= b.x && y >= b.y && x <= b.x + b.w && y <= b.y + b.h) return b.id;
+
+  /* Stop scroll, pinch-zoom, double-tap zoom, and the iOS long-press menu. */
+  function block(e) { if (e && e.cancelable) e.preventDefault(); }
+  ["touchstart", "touchmove", "touchend", "gesturestart", "gesturechange", "gestureend"].forEach((type) => {
+    window.addEventListener(type, (e) => {
+      if (type === "touchstart" || type === "touchmove") {
+        G.showTouch = true;
+        unlockAudio();
+      }
+      block(e);
+    }, { passive: false, capture: true });
+  });
+  window.addEventListener("contextmenu", (e) => e.preventDefault());
+  window.addEventListener("dblclick", (e) => e.preventDefault());
+
+  G.requestTilt = function () {
+    const start = () => {
+      window.addEventListener("deviceorientation", onOrient, true);
+    };
+    try {
+      if (typeof DeviceOrientationEvent !== "undefined" && typeof DeviceOrientationEvent.requestPermission === "function") {
+        DeviceOrientationEvent.requestPermission().then((s) => {
+          if (s === "granted") start();
+          else G.tiltSteer = false;
+        }).catch(() => { G.tiltSteer = false; });
+        return;
+      }
+    } catch (e) { G.tiltSteer = false; return; }
+    start();
+  };
+
+  function onOrient(e) {
+    if (!G.tiltSteer) { G._tiltLeft = G._tiltRight = false; return; }
+    const type = (screen.orientation && screen.orientation.type) || "";
+    let axis = 0;
+    if (type.indexOf("landscape") >= 0) {
+      axis = type.indexOf("secondary") >= 0 ? -(e.beta || 0) : (e.beta || 0);
+    } else {
+      axis = e.gamma || 0;
     }
-    return null;
+    const dead = 8;
+    G._tiltLeft = axis < -dead;
+    G._tiltRight = axis > dead;
   }
+
   G.bindInput = bindPointer;
 })(window.TK = window.TK || {});
 
@@ -10590,10 +10725,40 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     if (G.spawnDust) G.spawnDust(wx, wy || 4, wz, 18);
   };
 
+  G.hudLayout = function () {
+    let w = Math.max(1, window.innerWidth), h = Math.max(1, window.innerHeight);
+    if (window.visualViewport && visualViewport.width && visualViewport.height) {
+      w = Math.max(1, visualViewport.width);
+      h = Math.max(1, visualViewport.height);
+    }
+    if (hud) {
+      const r = hud.getBoundingClientRect();
+      if (r.width > 1 && r.height > 1) { w = r.width; h = r.height; }
+    }
+    const s = Math.min(w / HW, h / HH);
+    return {
+      cssW: w, cssH: h, s,
+      ox: (w - HW * s) / 2,
+      oy: (h - HH * s) / 2,
+      dpr: (hud && w) ? (hud.width / w) : 1,
+      portrait: h > w * 1.12,
+    };
+  };
+
   G.fit = function () {
+    if (G._fitting) return;
+    G._fitting = true;
+    try { G._fitInner(); }
+    finally { G._fitting = false; }
+  };
+  G._fitInner = function () {
     const canvas = document.getElementById("c");
     const pr = Math.min(window.devicePixelRatio || 1, 1.75);
-    const w = Math.max(1, window.innerWidth), h = Math.max(1, window.innerHeight);
+    let w = Math.max(1, window.innerWidth), h = Math.max(1, window.innerHeight);
+    if (window.visualViewport && visualViewport.width && visualViewport.height) {
+      w = Math.max(1, Math.round(visualViewport.width));
+      h = Math.max(1, Math.round(visualViewport.height));
+    }
     if (renderer) {
       renderer.setPixelRatio(pr);
       renderer.setSize(w, h, false);
@@ -11073,9 +11238,16 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     if (G.renderPost) G.renderPost(renderer, scene, activeCam);
     else renderer.render(scene, activeCam);
     const ctx = hctx;
-    const pr = hud.width / HW;
-    ctx.setTransform(hud.width / HW, 0, 0, hud.height / HH, 0, 0);
-    ctx.clearRect(0, 0, HW, HH);
+    const L = G.hudLayout();
+    const dpr = L.dpr || 1;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, hud.width, hud.height);
+    if (phase === "title" && camMode !== "lineup" && camMode !== "showroom" && camMode !== "freeze") {
+      ctx.fillStyle = "#f2ce3a";
+      ctx.fillRect(0, 0, hud.width, hud.height);
+    }
+    /* Uniform 16:9 HUD so portrait no longer stretches the menu or buttons. */
+    ctx.setTransform(dpr * L.s, 0, 0, dpr * L.s, dpr * L.ox, dpr * L.oy);
     ctx.imageSmoothingEnabled = false;
     if (camMode === "freeze" || G._hideHud) {
       /* photo / scenery plates — no HUD, no touch chrome, no speed lines */
@@ -11162,9 +11334,10 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
     if (p.drifting || p.driftTier) {
       const cols = ["#6a6a70", "#00f0ff", "#ff8a00", "#ff2bd6"];
-      panel(ctx, HW / 2 - 126, HH - 70, 252, 20, "rgba(12,8,14,0.85)", "#0a0a0c", 4);
+      const dy = G.showTouch ? 100 : (HH - 70);
+      panel(ctx, HW / 2 - 126, dy, 252, 20, "rgba(12,8,14,0.85)", "#0a0a0c", 4);
       ctx.fillStyle = cols[p.driftTier] || "#00f0ff";
-      ctx.fillRect(HW / 2 - 120, HH - 64, G.clamp(p.driftTime / 1.35, 0, 1) * 240, 12);
+      ctx.fillRect(HW / 2 - 120, dy + 6, G.clamp(p.driftTime / 1.35, 0, 1) * 240, 12);
     }
     if (p.boostT > 0) {
       panel(ctx, HW / 2 - 170, 52, 340, 36, "rgba(12,8,14,0.88)", "#ffd400", 5);
@@ -11195,7 +11368,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   };
 
   function _minimap(ctx, field) {
-    const x = HW - 170, y = HH - 170, s = 150, ts = G.track.size;
+    const s = 150, ts = G.track.size;
+    const x = HW - 170, y = G.showTouch ? 56 : (HH - 170);
     if (G.inkPanel) G.inkPanel(ctx, x - 8, y - 8, s + 16, s + 16, "rgba(12,8,14,0.9)", "#ffd400", 5);
     else { ctx.fillStyle = "rgba(5,5,8,0.7)"; ctx.fillRect(x - 4, y - 4, s + 8, s + 8); }
     if (!G._mini) {
@@ -11271,7 +11445,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     const totalW = catalog.length * cardW + (catalog.length - 1) * gap;
     const x0 = HW / 2 - totalW / 2;
     const cy = HH - 176;
-    catalog.forEach(function (tr, i) {
+    if (!(G.showTouch && G.hudLayout && G.hudLayout().portrait)) catalog.forEach(function (tr, i) {
       const x = x0 + i * (cardW + gap);
       const on = tr.id === sel;
       ctx.save();
@@ -11293,10 +11467,11 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       });
     });
     G._trackCards = catalog.map(function (tr, i) {
-      return { id: tr.id, x: x0 + i * (cardW + gap), y: cy, w: cardW, h: cardH };
+      return { id: tr.id, name: tr.name, short: tr.short || tr.name, x: x0 + i * (cardW + gap), y: cy, w: cardW, h: cardH };
     });
     const psW = 360, psH = 44;
-    if (pulse > 0.4) {
+    const hideTitleChrome = G.showTouch && G.hudLayout && G.hudLayout().portrait;
+    if (!hideTitleChrome && pulse > 0.4) {
       ctx.fillStyle = "#ffde00";
       ctx.strokeStyle = "#0a0a0a";
       ctx.lineWidth = 6;
@@ -11348,32 +11523,156 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   };
 
   G.renderTouch = function (ctx, phase) {
+    const L = G.hudLayout();
+    const W = L.cssW, H = L.cssH, dpr = L.dpr || 1;
+    const pad = Math.max(12, Math.min(W, H) * 0.03);
+    const minS = 52;
+    const portrait = !!L.portrait;
     const btns = [];
-    function add(id, x, y, w, h, label, lit) { btns.push({ id, x, y, w, h, label, lit }); }
+    function add(id, x, y, w, h, label, lit, extra) {
+      const b = Object.assign({ id, x, y, w, h, label, lit: !!lit }, extra || {});
+      btns.push(b);
+      return b;
+    }
+    function mapHud(hx, hy, hw, hh) {
+      return { x: L.ox + hx * L.s, y: L.oy + hy * L.s, w: hw * L.s, h: hh * L.s };
+    }
     if (phase === "title" || phase === "finish") {
-      add("start", HW / 2 - 160, HH - 120, 320, 56, phase === "finish" ? "RESTART" : "PRESS START", true);
+      const cards = G._trackCards || [];
       if (phase === "title") {
-        add("left", HW / 2 - 300, HH - 188, 80, 48, "<", false);
-        add("right", HW / 2 + 220, HH - 188, 80, 48, ">", false);
+        if (portrait) {
+          const rowH = Math.max(minS, 58);
+          const startH = Math.max(56, 60);
+          const gap = 8;
+          const rowY = H - pad - startH - gap - rowH;
+          const catalog = G.TRACK_CATALOG || cards;
+          const n = Math.max(1, catalog.length || 3);
+          const cw = Math.min(160, (W - pad * 2 - gap * (n - 1)) / n);
+          const total = n * cw + (n - 1) * gap;
+          const x0 = (W - total) / 2;
+          catalog.forEach(function (tr, i) {
+            const on = (tr.id || tr.trackId) === (G.trackId || "suburb");
+            add("track", x0 + i * (cw + gap), rowY, cw, rowH, (tr.short || tr.name || tr.id || "").toString(), on, { trackId: tr.id });
+          });
+          add("start", W / 2 - 140, H - pad - startH, 280, startH, phase === "finish" ? "RESTART" : "PRESS START", true);
+        } else {
+          cards.forEach(function (tr) {
+            const m = mapHud(tr.x, tr.y, tr.w, tr.h);
+            m.h = Math.max(m.h, minS);
+            m.y = Math.min(m.y, H - m.h - 70);
+            add("track", m.x, m.y, m.w, m.h, tr.short || tr.name || tr.id, tr.id === (G.trackId || "suburb"), { trackId: tr.id });
+          });
+          const st = mapHud(HW / 2 - 180, HH - 118, 360, 56);
+          st.h = Math.max(st.h, 56);
+          st.w = Math.max(st.w, 240);
+          st.x = (W - st.w) / 2;
+          st.y = Math.min(Math.max(st.y, 8), H - st.h - pad);
+          add("start", st.x, st.y, st.w, st.h, "PRESS START", true);
+        }
+        add("crt", pad, pad, Math.max(88, 44), Math.max(44, 44), "CRT " + (G.crtOn ? "ON" : "OFF"), !!G.crtOn);
+      } else {
+        add("start", W / 2 - 140, H - pad - 60, 280, 60, "RESTART", true);
       }
-      add("crt", 16, HH - 48, 140, 32, "CRT", G.crtOn);
     } else {
-      add("left", 24, HH - 130, 100, 80, "<", G.input.down("left"));
-      add("right", 136, HH - 130, 100, 80, ">", G.input.down("right"));
-      add("brake", HW - 250, HH - 220, 100, 72, "BRK", G.input.down("brake"));
-      add("drift", HW - 140, HH - 220, 116, 72, "DRIFT", G.input.down("drift"));
-      add("item", HW - 140, HH - 320, 116, 72, "ITEM", G.input.down("item"));
-      add("accel", HW - 250, HH - 130, 226, 100, "ACCEL", G.input.down("accel"));
+      const bs = portrait ? 64 : 56;
+      const gap = 10;
+      const steerH = bs + 8, steerW = bs + 8;
+      add("left", pad, H - pad - steerH, steerW, steerH, "<", G.input.down("left"));
+      add("right", pad + steerW + gap, H - pad - steerH, steerW, steerH, ">", G.input.down("right"));
+      add("tilt", pad, H - pad - steerH - gap - 44, 108, 44, G.tiltSteer ? "TILT ON" : "TILT OFF", !!G.tiltSteer);
+      const accW = Math.max(bs * 2 + gap, 128);
+      const accH = Math.max(bs + 12, 68);
+      add("accel", W - pad - accW, H - pad - accH, accW, accH, "GAS", G.input.down("accel"));
+      const colW = (accW - gap) / 2;
+      const rowY = H - pad - accH - gap - bs;
+      add("brake", W - pad - accW, rowY, colW, bs, "BRK", G.input.down("brake"));
+      add("drift", W - pad - colW, rowY, colW, bs, "DRIFT", G.input.down("drift"));
+      add("item", W - pad - accW, rowY - gap - bs, accW, bs, "ITEM", G.input.down("item"));
     }
     G.touchButtons = btns;
-    if (!G.showTouch) return;
-    btns.forEach((b) => {
-      ctx.fillStyle = b.lit ? "rgba(255,212,0,0.35)" : "rgba(10,10,14,0.55)";
-      ctx.fillRect(b.x, b.y, b.w, b.h);
-      ctx.strokeStyle = b.lit ? "#ffd400" : "#666";
-      ctx.strokeRect(b.x + 0.5, b.y + 0.5, b.w - 1, b.h - 1);
-      G.drawText(ctx, b.label, b.x + b.w / 2, b.y + b.h / 2 - 8, b.lit ? "#fff" : "#bbb", 2, "center");
-    });
+
+    ctx.save();
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.imageSmoothingEnabled = false;
+
+    if (portrait && G.showTouch && phase !== "title") {
+      ctx.fillStyle = "rgba(8,6,10,0.45)";
+      ctx.fillRect(0, 0, W, 28);
+      ctx.font = "600 13px Trebuchet MS, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = "#ffe48a";
+      ctx.fillText("Rotate your phone for a wider view", W / 2, 14);
+    }
+
+    if (G.showTouch && !G.touchHelp) {
+      btns.forEach(function (b) {
+        if (b.id === "helpok") return;
+        ctx.fillStyle = b.lit ? "rgba(255,212,0,0.42)" : "rgba(10,10,14,0.62)";
+        ctx.beginPath();
+        const r = 10;
+        ctx.moveTo(b.x + r, b.y);
+        ctx.arcTo(b.x + b.w, b.y, b.x + b.w, b.y + b.h, r);
+        ctx.arcTo(b.x + b.w, b.y + b.h, b.x, b.y + b.h, r);
+        ctx.arcTo(b.x, b.y + b.h, b.x, b.y, r);
+        ctx.arcTo(b.x, b.y, b.x + b.w, b.y, r);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = b.lit ? "#ffd400" : "rgba(255,255,255,0.35)";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.fillStyle = b.lit ? "#111" : "#f2f2f2";
+        ctx.font = "700 " + Math.max(14, Math.min(18, b.h * 0.32)) + "px Trebuchet MS, sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(b.label || "", b.x + b.w / 2, b.y + b.h / 2 + 1);
+      });
+    }
+
+    if (G.showTouch && G.touchHelp) {
+      ctx.fillStyle = "rgba(6,4,8,0.72)";
+      ctx.fillRect(0, 0, W, H);
+      const pw = Math.min(420, W - 24), ph = Math.min(360, H - 24);
+      const px = (W - pw) / 2, py = (H - ph) / 2;
+      ctx.fillStyle = "#f2ce3a";
+      ctx.strokeStyle = "#111";
+      ctx.lineWidth = 5;
+      ctx.fillRect(px, py, pw, ph);
+      ctx.strokeRect(px, py, pw, ph);
+      ctx.fillStyle = "#111";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      ctx.font = "800 26px Trebuchet MS, Impact, sans-serif";
+      ctx.fillText("HOW TO PLAY", W / 2, py + 16);
+      ctx.font = "600 15px Trebuchet MS, sans-serif";
+      ctx.textAlign = "left";
+      const lines = [
+        "Steer with the arrows on the left.",
+        "Or tap TILT to steer by tilting the phone.",
+        "Hold GAS to go, BRK to slow down.",
+        "Hold DRIFT plus a direction for a turbo.",
+        "Tap ITEM when you have a pickup.",
+        "Tap a track, then PRESS START.",
+      ];
+      lines.forEach(function (line, i) {
+        ctx.fillText(line, px + 24, py + 60 + i * 28);
+      });
+      const okW = 180, okH = 52;
+      const okX = W / 2 - okW / 2, okY = py + ph - okH - 18;
+      add("helpok", 0, 0, W, H, "GOT IT", true);
+      add("helpok", okX, okY, okW, okH, "GOT IT", true);
+      ctx.fillStyle = "#111";
+      ctx.fillRect(okX, okY, okW, okH);
+      ctx.strokeStyle = "#111";
+      ctx.strokeRect(okX, okY, okW, okH);
+      ctx.fillStyle = "#f2ce3a";
+      ctx.font = "800 20px Trebuchet MS, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("GOT IT", W / 2, okY + okH / 2 + 1);
+    }
+    ctx.restore();
+    G.touchButtons = btns;
   };
 
   G.getCamMode = function () { return camMode; };
@@ -12198,7 +12497,10 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     function start() {
       G.fit();
       window.addEventListener("resize", G.fit);
-      window.addEventListener("orientationchange", G.fit);
+      window.addEventListener("orientationchange", function () { setTimeout(G.fit, 50); G.fit(); });
+      if (window.visualViewport) {
+        visualViewport.addEventListener("resize", G.fit);
+      }
       G.buildTrack();
       G.initRenderer();
       G.field = G.makeField();
@@ -12206,7 +12508,15 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       if (G.setCamMode) G.setCamMode("studio");
       G.bindInput();
       last = performance.now();
+      lastFrameEnd = last;
       requestAnimationFrame(loop);
+      /* Some WebViews and headless Chrome stall rAF. Tick slowly so the
+         game stays alive after a tab resume without pinning the CPU. */
+      if (!G._loopWatch) {
+        G._loopWatch = setInterval(function () {
+          if (!looping && performance.now() - lastFrameEnd > 250) loop(performance.now());
+        }, 250);
+      }
     }
     if ((G._texReady || 0) >= (G._texNeed || 0)) start();
     else {
@@ -12220,16 +12530,26 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     }
   };
 
+  let looping = false, lastFrameEnd = 0;
   function loop(ts) {
     requestAnimationFrame(loop);
-    let dt = (ts - last) / 1000;
-    last = ts;
-    if (dt > 0.05) dt = 0.05;
-    time += dt;
-    G.input.beginFrame();
-    step(dt);
-    if (G.updateWorld) G.updateWorld(dt, time, G.field, phase);
-    if (G.renderFrame) G.renderFrame(phase, G.field, race, time);
+    if (looping) return;
+    looping = true;
+    try {
+      const now = ts || performance.now();
+      let dt = (now - last) / 1000;
+      last = now;
+      if (dt > 0.05) dt = 0.05;
+      if (dt < 0) dt = 0;
+      time += dt;
+      G.input.beginFrame();
+      step(dt);
+      if (G.updateWorld) G.updateWorld(dt, time, G.field, phase);
+      if (G.renderFrame) G.renderFrame(phase, G.field, race, time);
+    } finally {
+      lastFrameEnd = performance.now();
+      looping = false;
+    }
   }
 
   function step(dt) {
@@ -12239,7 +12559,13 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     if (G.input.pressed("quality")) {
       G.setQuality(G.quality === "high" ? "low" : "high");
     }
+    if (G.input.pressed("tilt")) {
+      G.tiltSteer = !G.tiltSteer;
+      if (G.tiltSteer && G.requestTilt) G.requestTilt();
+      else { G._tiltLeft = false; G._tiltRight = false; }
+    }
     if (phase === "title") {
+      if (G.touchHelp && G.showTouch) return;
       if (G.input.pressed("start") || G.input.pressed("item")) startCountdown();
       if (!G._trackArm) G._trackArm = 0;
       if (time > G._trackArm) {
@@ -12249,6 +12575,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       return;
     }
     if (phase === "finish") {
+      if (G.touchHelp && G.showTouch) return;
       if (G.input.pressed("start") || G.input.pressed("item")) {
         G.resetRace(G.field);
         startCountdown();
@@ -12294,6 +12621,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   }
 
   function startCountdown() {
+    if (G.dismissTouchHelp) G.dismissTouchHelp();
     G.audio.unlock();
     G.audio.beep("start");
     G.audio.setMode("title");
@@ -12348,6 +12676,9 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     restoreAfterCompare() { if (G.restoreAfterCompare) G.restoreAfterCompare(); },
 
 
+    pump() {
+      loop(performance.now());
+    },
     tick(seconds, drive) {
       const dt = 1 / 60;
       let left = Math.max(0, seconds || 0);
