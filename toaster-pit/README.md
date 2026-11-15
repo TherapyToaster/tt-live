@@ -1,14 +1,30 @@
-# Toaster Pit v0.6.1
+# Toaster Pit v0.6.2
 
 A Mr. Toasty slot-machine roguelike. You're in the basement for a therapy session, and you owe crumbs to the Breadlord. Pull the cursed 3×5 Toaster Slot, buy charms from the vending fridge, and pay each deadline — or get burnt.
 
-Open `index.html` in desktop Chrome (double-click works; no server or CDN). Mouse, keyboard, and touch all work.
+Open `index.html` in desktop Chrome (double-click works; no server or CDN), or on a phone. Mouse, keyboard, and touch all work.
 
 Rebuild after editing `src/` or `vendor/`:
 
     python3 build.py
 
 CloverPit is a gameplay-loop reference only. Every name, symbol, charm, and line is original. This is not real-money gambling.
+
+## v0.6.2 — mobile and touch controls
+
+Players reported broken mobile controls. A touch-emulated audit (375×667 and 390×844, portrait and landscape, 2–3× DPR) found tiny 16–24px buttons, taps hitting stale buttons, keyboard-only actions (quality, CRT, fridge, restart), no way to read charm or symbol info on a phone, overlapping HUD panels in portrait, a blurry 1× HUD on hi-DPI screens, incomplete gesture blocking, and no rotation handling. The full audit is in `tests/MOBILE-AUDIT-v0.6.2.md`.
+
+- **Control bar:** a bottom bar on every device, inside the safe area: SOUND, ? (how to play), the main action (SIT DOWN / PULL / FRIDGE / BANK + GO / PAY or GET BURNT / NEXT / AGAIN), and MENU. Every button is at least 44px; most are 48px.
+- **Menu:** quality (the Q toggle), CRT scanlines, sound, how to play, and restart run.
+- **Info on tap or long-press:** tap or long-press a charm, a shop offer, or a reel symbol to see what it does. Shop offers open an info card with a BUY button, so a stray tap never spends crumbs. Tapping the lever pulls.
+- **Pointer Events:** mouse, touch, and pen share one input path. Actions fire on release, a finger that slides off a button cancels, and stale taps from a previous screen are ignored, so nothing double-fires.
+- **No scrolling or zooming:** `touch-action:none`, `overscroll-behavior:none`, no callout, selection, double-tap zoom, pinch, or context menu; touchstart and touchmove are blocked with non-passive listeners; safe-area insets are respected.
+- **Audio** unlocks on the first tap, with the WebAudio context resumed on pointerup and touchend for iOS.
+- **Fit:** the HUD is drawn at device resolution, and it re-lays-out on resize, rotation, and visualViewport changes. In portrait the stats sit in one full-width panel, the shop is a single column, and small screens render the 3D scene a little denser so the reels stay readable.
+- **How to play:** shows on the first touch launch and reopens from the ? button (or ? / H on a keyboard).
+- **Desktop:** all keys still work. New ones: Esc opens or closes the menu, and 1–4 buy shop offers.
+- **Bug fix:** after the first fridge visit, the main button stayed on FRIDGE and kept reopening the shop, so session 2 couldn't be played. It now goes back to PULL.
+- **Tested:** a taps-only Playwright playtest (`tests/touch_playtest.py`) at 390×844, 844×390 after a mid-run rotation, 375×667 and 667×375 passes 0 fails with 0 console errors; the desktop playtest (`tests/playtest.py`) still passes.
 
 ## v0.6.1 — wider shot, louder art
 
@@ -29,13 +45,16 @@ Fonts are embedded in `index.html` as ASCII subsets, both under the SIL Open Fon
 
 ## Controls
 
-- **Pull:** Space, Enter, or the PULL button
-- **Re-pull:** T or R (if you have the Triggered Button charm, once per deadline)
-- **Shop / fridge:** X or E after a session, or the FRIDGE button
+Touch: tap the big button in the bottom bar (or the lever) to pull. Tap or long-press anything for info. MENU has quality, CRT, sound, help, and restart.
+
+- **Pull:** Space, Enter, the PULL button, or the lever
+- **Re-pull:** T or R (if you have the Triggered Button charm, once per deadline), or the RE-PULL button
+- **Shop / fridge:** X or E after a session, or the FRIDGE button; 1–4 buy offers
 - **Confirm / bank / pay / continue:** Enter or Space
+- **Menu:** Esc or MENU · **How to play:** ? or H
 - **CRT scanlines:** C
-- **Quality:** Q (high / low)
-- **Mute / volume:** M, or the AUDIO / MUTED button
+- **Quality:** Q (high / low), or MENU → QUALITY
+- **Mute / volume:** M, or the SOUND / MUTED button
 
 ## The loop
 
