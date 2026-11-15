@@ -1,0 +1,378 @@
+/* TT ARCADE INTRO TV
+   Original yellow CRT shell around #tt-intro. Site yellow #FFD400 on black.
+   The 16:9 reel fills the glass; rabbit ears and knobs are CSS/HTML only
+   (no third-party assets). intro-tv.js wraps #tt-intro and loads this file.
+   data-tt-tv="classic" (default): mid-80s set, side knobs on desktop.
+   data-tt-tv="chunky": thicker living-room set, bottom grille + big dial.
+*/
+#tt-arc .tt-tv{
+  --tv-y:#FFD400;
+  --tv-hi:#FFE14A;
+  --tv-mid:#F0C700;
+  --tv-lo:#C9A000;
+  --tv-edge:#6E5800;
+  --tv-k:#05070d;
+  --tv-lip:#141108;
+  box-sizing:border-box;
+  position:relative;
+  width:100%;
+  max-width:760px;
+  margin:4px auto 22px;
+  padding:0;
+  background:transparent;
+  z-index:2;
+}
+#tt-arc .tt-tv *,
+#tt-arc .tt-tv *::before,
+#tt-arc .tt-tv *::after{box-sizing:border-box}
+#tt-arc .tt-tv-ant{
+  position:relative;
+  width:52%;
+  height:40px;
+  margin:0 auto -2px;
+  pointer-events:none;
+  z-index:1;
+}
+#tt-arc .tt-tv-rod{
+  position:absolute;
+  left:50%;
+  bottom:6px;
+  width:3px;
+  height:38px;
+  margin-left:-1.5px;
+  border-radius:2px 2px 0 0;
+  background:linear-gradient(180deg,#3a3a3a,#161616 70%,#0a0a0a);
+  box-shadow:1px 0 0 #0008;
+  transform-origin:50% 100%;
+}
+#tt-arc .tt-tv-rod-l{transform:rotate(-36deg)}
+#tt-arc .tt-tv-rod-r{transform:rotate(34deg)}
+#tt-arc .tt-tv-rod::after{
+  content:"";
+  position:absolute;
+  top:-6px;left:50%;
+  width:8px;height:8px;
+  margin-left:-4px;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#666,#1a1a1a 65%);
+  box-shadow:0 0 0 1px #000c;
+}
+#tt-arc .tt-tv-hinge{
+  position:absolute;
+  left:50%;
+  bottom:0;
+  width:22px;height:12px;
+  margin-left:-11px;
+  border-radius:4px 4px 2px 2px;
+  background:linear-gradient(180deg,var(--tv-hi),var(--tv-lo));
+  box-shadow:inset 0 1px 0 #fff7,0 1px 0 #0006;
+}
+#tt-arc .tt-tv-body{
+  position:relative;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 68px;
+  gap:0 10px;
+  padding:14px 12px 16px 16px;
+  border-radius:20px;
+  background:
+    repeating-linear-gradient(115deg,rgba(0,0,0,.045) 0 2px,transparent 2px 7px),
+    linear-gradient(165deg,var(--tv-hi) 0%,var(--tv-y) 32%,var(--tv-mid) 68%,var(--tv-lo) 100%);
+  box-shadow:
+    inset 0 2px 0 rgba(255,255,255,.38),
+    inset 0 -5px 0 rgba(0,0,0,.18),
+    inset 3px 0 0 rgba(255,255,255,.12),
+    0 2px 0 var(--tv-edge),
+    0 10px 0 #000,
+    0 16px 28px rgba(0,0,0,.55);
+}
+#tt-arc .tt-tv-well{
+  position:relative;
+  min-width:0;
+  border-radius:22px / 26px;
+  overflow:hidden;
+  background:#000;
+  box-shadow:
+    0 0 0 3px var(--tv-lip),
+    0 0 0 6px #3d3200,
+    0 0 0 7px rgba(0,0,0,.35),
+    inset 0 0 0 1px #000;
+}
+#tt-arc .tt-tv #tt-intro{
+  position:relative;
+  inset:auto;
+  z-index:1;
+  width:100%;
+  max-width:100%;
+  margin:0;
+  padding:0;
+  border:0;
+  border-radius:22px / 26px;
+  overflow:hidden;
+  background:#000;
+  line-height:0;
+  aspect-ratio:16/9;
+  max-height:none;
+  height:auto;
+  box-shadow:none;
+}
+#tt-arc .tt-tv #tt-intro video,
+#tt-arc .tt-tv #tt-intro img.tt-intro-still{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  object-position:center;
+  display:block;
+  background:#000;
+  pointer-events:none;
+  border-radius:inherit;
+}
+#tt-arc .tt-tv-glass{
+  position:absolute;
+  inset:0;
+  z-index:4;
+  pointer-events:none;
+  border-radius:inherit;
+  background:
+    radial-gradient(80% 55% at 28% 14%,rgba(255,255,255,.2),transparent 58%),
+    radial-gradient(120% 120% at 50% 50%,transparent 52%,rgba(0,0,0,.5) 100%);
+  box-shadow:inset 0 0 22px rgba(0,0,0,.55);
+}
+#tt-arc .tt-tv-glass::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  background:repeating-linear-gradient(
+    180deg,
+    rgba(0,0,0,.16) 0 1px,
+    transparent 1px 3px
+  );
+  opacity:.32;
+  mix-blend-mode:multiply;
+}
+#tt-arc .tt-tv-side{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  gap:10px;
+  padding:8px 0 4px;
+  min-width:0;
+}
+#tt-arc .tt-tv-led{
+  width:10px;height:10px;
+  margin-top:2px;
+  border-radius:50%;
+  background:#3CFF6A;
+  box-shadow:0 0 8px #3CFF6A,0 0 0 2px #1a1400;
+  animation:tt-tv-led 2.4s steps(2,end) infinite;
+  flex:none;
+}
+@keyframes tt-tv-led{
+  0%,100%{opacity:1}
+  50%{opacity:.35}
+}
+#tt-arc .tt-tv-knob{
+  position:relative;
+  width:22px;height:22px;
+  border-radius:50%;
+  flex:none;
+  background:radial-gradient(circle at 35% 30%,#4a4a4a,#1a1a1a 62%,#0a0a0a);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.28),
+    0 1px 0 #fff4,
+    0 2px 0 #0006;
+}
+#tt-arc .tt-tv-knob::after{
+  content:"";
+  position:absolute;
+  left:50%;top:3px;
+  width:2px;height:7px;
+  margin-left:-1px;
+  border-radius:1px;
+  background:#FFD400;
+  transform:rotate(28deg);
+  transform-origin:50% 8px;
+}
+#tt-arc .tt-tv-knob-2::after{transform:rotate(-50deg)}
+#tt-arc .tt-tv-badge{
+  writing-mode:vertical-rl;
+  transform:rotate(180deg);
+  margin-top:auto;
+  padding:6px 4px;
+  border-radius:2px;
+  background:#111;
+  color:var(--tv-y);
+  font:800 8px/1 ui-monospace,Menlo,Consolas,monospace;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  box-shadow:1px 1px 0 #0008;
+}
+#tt-arc .tt-tv-vents{
+  display:grid;
+  grid-template-columns:repeat(3,6px);
+  gap:3px;
+  margin-top:2px;
+}
+#tt-arc .tt-tv-vents i{
+  width:6px;height:6px;
+  border-radius:50%;
+  background:#1a1400;
+  box-shadow:inset 0 1px 0 #000,0 1px 0 #fff3;
+  display:block;
+}
+#tt-arc .tt-tv-chin{display:none}
+#tt-arc .tt-tv-feet{
+  display:flex;
+  justify-content:space-between;
+  width:78%;
+  margin:-2px auto 0;
+  pointer-events:none;
+}
+#tt-arc .tt-tv-feet span{
+  width:42px;height:10px;
+  border-radius:0 0 6px 6px;
+  background:linear-gradient(180deg,var(--tv-lo),var(--tv-edge));
+  box-shadow:0 2px 0 #000;
+}
+
+/* Mobile: full width, knobs under the glass so the screen stays wide and short. */
+@media (max-width:640px){
+  #tt-arc .tt-tv{
+    max-width:100%;
+    margin:0 0 16px;
+  }
+  #tt-arc .tt-tv-ant{width:42%;height:26px}
+  #tt-arc .tt-tv-rod{height:24px}
+  #tt-arc .tt-tv-body{
+    display:flex;
+    flex-direction:column;
+    padding:10px 10px 8px;
+    border-radius:16px;
+    gap:0;
+  }
+  #tt-arc .tt-tv-well,
+  #tt-arc .tt-tv #tt-intro{border-radius:14px / 16px}
+  #tt-arc .tt-tv-side{display:none}
+  #tt-arc .tt-tv-chin{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:8px 4px 2px;
+  }
+  #tt-arc .tt-tv-chin .tt-tv-badge{
+    writing-mode:horizontal-tb;
+    transform:none;
+    margin:0 auto 0 0;
+    padding:3px 7px;
+    letter-spacing:.14em;
+  }
+  #tt-arc .tt-tv-feet{width:84%}
+  #tt-arc .tt-tv-feet span{width:28px;height:8px}
+}
+
+/* Chunky 80s living-room set */
+#tt-arc .tt-tv[data-tt-tv="chunky"]{max-width:800px}
+#tt-arc .tt-tv[data-tt-tv="chunky"] .tt-tv-ant{width:56%;height:42px}
+#tt-arc .tt-tv[data-tt-tv="chunky"] .tt-tv-rod{width:4px;height:40px;margin-left:-2px}
+#tt-arc .tt-tv[data-tt-tv="chunky"] .tt-tv-rod-l{transform:rotate(-42deg)}
+#tt-arc .tt-tv[data-tt-tv="chunky"] .tt-tv-rod-r{transform:rotate(28deg);height:28px;bottom:6px}
+#tt-arc .tt-tv[data-tt-tv="chunky"] .tt-tv-rod::after{width:10px;height:10px;margin-left:-5px;top:-7px}
+#tt-arc .tt-tv[data-tt-tv="chunky"] .tt-tv-hinge{width:28px;height:14px;margin-left:-14px;border-radius:5px}
+#tt-arc .tt-tv[data-tt-tv="chunky"] .tt-tv-body{
+  grid-template-columns:minmax(0,1fr);
+  padding:18px 18px 0;
+  border-radius:12px 12px 8px 8px;
+  background:
+    repeating-linear-gradient(90deg,rgba(0,0,0,.06) 0 1px,transparent 1px 5px),
+    linear-gradient(180deg,var(--tv-hi),var(--tv-y) 30%,var(--tv-mid) 70%,var(--tv-lo));
+  box-shadow:
+    inset 0 3px 0 rgba(255,255,255,.4),
+    inset 0 -6px 0 rgba(0,0,0,.2),
+    0 3px 0 var(--tv-edge),
+    0 12px 0 #000,
+    0 20px 32px rgba(0,0,0,.6);
+}
+#tt-arc .tt-tv[data-tt-tv="chunky"] .tt-tv-well,
+#tt-arc .tt-tv[data-tt-tv="chunky"] #tt-intro{
+  border-radius:10px;
+}
+#tt-arc .tt-tv[data-tt-tv="chunky"] .tt-tv-side{display:none}
+#tt-arc .tt-tv[data-tt-tv="chunky"] .tt-tv-chin{
+  display:grid;
+  grid-template-columns:auto auto auto auto 1fr auto;
+  align-items:center;
+  gap:10px;
+  padding:12px 8px 14px;
+}
+#tt-arc .tt-tv[data-tt-tv="chunky"] .tt-tv-badge{
+  writing-mode:horizontal-tb;
+  transform:none;
+  margin:0;
+  padding:4px 8px;
+  font-size:9px;
+}
+#tt-arc .tt-tv[data-tt-tv="chunky"] .tt-tv-dial{
+  display:block;
+  width:36px;height:36px;
+  border-radius:50%;
+  background:
+    repeating-conic-gradient(from 0deg,#1a1a1a 0 8deg,#2e2e2e 0 16deg);
+  box-shadow:
+    inset 0 0 0 4px #111,
+    inset 0 2px 0 #fff3,
+    0 2px 0 #0007;
+  position:relative;
+}
+#tt-arc .tt-tv[data-tt-tv="chunky"] .tt-tv-dial::after{
+  content:"";
+  position:absolute;
+  left:50%;top:6px;
+  width:3px;height:10px;
+  margin-left:-1.5px;
+  background:var(--tv-y);
+  border-radius:1px;
+  transform:rotate(40deg);
+  transform-origin:50% 12px;
+}
+#tt-arc .tt-tv[data-tt-tv="chunky"] .tt-tv-grille{
+  display:flex;
+  gap:3px;
+  height:22px;
+  min-width:0;
+  width:100%;
+  align-self:center;
+  align-items:stretch;
+}
+#tt-arc .tt-tv[data-tt-tv="chunky"] .tt-tv-grille b{
+  flex:1;
+  border-radius:1px;
+  background:repeating-linear-gradient(180deg,#1a1400 0 2px,transparent 2px 4px),#2a2200;
+  box-shadow:inset 0 0 0 1px #0006;
+}
+#tt-arc .tt-tv[data-tt-tv="chunky"] .tt-tv-knob{width:26px;height:26px}
+#tt-arc .tt-tv[data-tt-tv="chunky"] .tt-tv-feet{width:86%}
+#tt-arc .tt-tv[data-tt-tv="chunky"] .tt-tv-feet span{
+  width:56px;height:12px;
+  border-radius:0 0 4px 4px;
+  background:#3a3000;
+}
+
+@media (max-width:640px){
+  #tt-arc .tt-tv[data-tt-tv="chunky"] .tt-tv-ant{height:30px;width:50%}
+  #tt-arc .tt-tv[data-tt-tv="chunky"] .tt-tv-body{padding:12px 12px 0;border-radius:10px}
+  #tt-arc .tt-tv[data-tt-tv="chunky"] .tt-tv-chin{
+    grid-template-columns:auto auto auto 1fr auto;
+    gap:8px;
+    padding:8px 4px 10px;
+  }
+  #tt-arc .tt-tv[data-tt-tv="chunky"] .tt-tv-chin .tt-tv-badge{display:none}
+  #tt-arc .tt-tv[data-tt-tv="chunky"] .tt-tv-dial{width:28px;height:28px}
+  #tt-arc .tt-tv[data-tt-tv="chunky"] .tt-tv-grille{height:16px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  #tt-arc .tt-tv-led{animation:none}
+}
