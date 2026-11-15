@@ -104,7 +104,8 @@ body.touch #modal .box>div:last-child:has(#mClose){position:sticky;bottom:-18px;
 #howto .hbox{width:min(560px,94vw);max-height:100%;overflow:auto;touch-action:pan-y;overscroll-behavior:contain;background:linear-gradient(180deg,#110e18,#08070c);border:3px solid var(--y);border-radius:10px;box-shadow:5px 5px 0 var(--m),-5px -5px 0 var(--c);padding:14px 18px;font-family:system-ui,sans-serif;font-weight:600;color:#cbbcd9;font-size:14px;line-height:1.45}
 #howto h3{margin:0 0 6px;color:var(--y);font-family:Impact,"Arial Black",sans-serif;font-size:24px;letter-spacing:1px}
 #howto b{color:var(--y)}#howto ul{margin:6px 0 10px;padding-left:18px}#howto li{margin:3px 0}
-#howtoOk{display:block;margin:6px auto 0;min-width:160px;min-height:48px;font-size:18px}
+#howtoOk{display:block;position:sticky;bottom:0;margin:6px auto 0;min-width:160px;min-height:48px;font-size:18px;background:#14110a;box-shadow:0 -8px 12px #08070c}
+@media (max-height:460px){#howto .hbox{font-size:12px;line-height:1.3;padding:8px 14px}#howto h3{font-size:18px;margin:0 0 2px}#howto ul{margin:2px 0 4px}#howto li{margin:1px 0}#howtoOk{min-height:44px;font-size:16px}}
 #rot{display:none;position:fixed;left:calc(10px + env(safe-area-inset-left,0px));top:calc(26px + env(safe-area-inset-top,0px));z-index:13;max-width:46vw;font-family:system-ui;font-weight:800;font-size:12px;color:#000;background:var(--c);border-radius:8px;padding:8px 10px;min-height:44px;line-height:1.3}
 body.inMachine #rot{display:none!important}
 @media (max-height:500px){.watch{transform:scale(.7);transform-origin:bottom left}#touch .stick{bottom:calc(96px + var(--sb));left:calc(150px + var(--sl))}#tTop{top:calc(6px + var(--st))}body.touch #mhelp{top:calc(6px + env(safe-area-inset-top,0px))}body.touch #msgs{top:calc(58px + env(safe-area-inset-top,0px))}#touch .btns{gap:6px}#touch .btns button{height:48px}}
@@ -3517,6 +3518,7 @@ tbtn('tCards',()=>{if(modal.open&&modal.kind==='binder'){closeModal();return}if(
 tbtn('tPause',()=>{if(modal.open)return;if(play.mode==='machine')exitMachine();pausedAt=performance.now();$('overlay').style.display='flex';$('go').textContent='PAUSED · TAP TO RESUME'});
 $('howtoOk').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();audioUnlock();showHowto(false)});
 $('howto').addEventListener('click',e=>{e.stopPropagation()});
+$('howto').addEventListener('pointerdown',e=>{if(e.target===$('howto')){e.preventDefault();showHowto(false)}});
 $('rot').addEventListener('pointerdown',e=>{e.preventDefault();rotDismissed=true;rotHint()});
 // no page scroll / zoom / long-press / context menu anywhere (modal and how-to boxes may still scroll)
 const scrollable=t=>t&&t.closest&&t.closest('#modal .box,#howto .hbox');
