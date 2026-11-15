@@ -1,7 +1,15 @@
-# Toasty's Prize Floor: v0.5 (six wings, twenty-four machines)
+# Toasty's Prize Floor: v0.5.1 (six wings, twenty-four machines, Butter Lane bowling)
 
 Live copy: https://therapytoaster.github.io/tt-live/prize-floor/ (also on Toasty's ARTcade).
 Play uses in-game Tokens and Stubs only. There is no real money and no crypto.
+
+## v0.5.1: Butter Lane (lobby bowling)
+- **Where:** in the lobby, along the north wall between the Crypt door and the Kart door. It sits east of the chrome column, and the lane runs toward the wall.
+- **Play:** walk up to the approach and press E. Each game is 3 frames for 3 Tokens. Aim with A/D, the arrow keys or the mouse. Click or press Space once to lock POWER and again to lock SPIN, which rolls the ball. On touch, use the ◀ ▶ buttons or drag to aim, and press USE. E, Q or Esc leaves.
+- **Scoring:** standard bowling rules. A strike scores 10 plus the next two balls, a spare scores 10 plus the next ball, and frame 3 grants bonus balls. A perfect game is 90.
+- **Payout:** Stubs = round(score / 11) + 1 per strike + ceil(spares / 2). In QA simulation this came to about 0.73 Stubs per Token for random play, 1.00 for an average bowler and 1.26 for a good one.
+- **Physics:** the pins and ball run in their own Rapier world, with the pins drawn as one instanced mesh. Fallen pins are swept away, and pins left standing are re-spotted where they stand. NPCs never path onto the lane.
+- **QA hooks:** with `?shot`, `window.__BOWL` exposes `auto(aim,power,spin)`, `standing()`, `scores()` and `pay()`. The QA scripts are qa/bowlsim.json (economy), qa/bowltests.json, qa/bowlnpc.json and qa/bowlshots.json.
 
 ## Run
 Serve this folder over HTTP, because ES modules don't load from file://.
