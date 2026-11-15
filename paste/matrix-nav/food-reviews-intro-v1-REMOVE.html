@@ -1,0 +1,73 @@
+<!-- TherapyToaster Food Reviews intro v1: original 404 still and video -->
+<style>
+#ttflash-ov{position:fixed;inset:0;z-index:2147483647;background:#000;color:#FFD400;overflow:hidden;opacity:1;transition:opacity .22s ease;font-family:monospace}
+#ttflash-ov.ttflash-out{opacity:0;pointer-events:none}
+#ttflash-ov canvas.ttflash-rain{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none}
+#ttflash-ov.ttflash-raining{background:transparent}
+#ttflash-ov.ttflash-rainfx .ttflash-controls{opacity:0;pointer-events:none;transition:opacity .2s}
+#ttflash-ov video,#ttflash-ov .ttflash-still{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
+#ttflash-ov video{opacity:0;transition:opacity .07s linear}
+#ttflash-ov.ttflash-playing video{opacity:1}
+#ttflash-ov.ttflash-playing .ttflash-still{visibility:hidden}
+#ttflash-ov .ttflash-still{animation:ttflash-static .32s steps(1,end) both}
+#ttflash-ov .ttflash-controls{position:absolute;z-index:2;bottom:max(22px,env(safe-area-inset-bottom));left:0;right:0;display:flex;justify-content:center;gap:14px;padding:0 12px}
+#ttflash-ov button{appearance:none;border:1px solid #FFD400;background:rgba(0,0,0,.82);color:#FFD400;font:700 12px/1.2 monospace;letter-spacing:.05em;text-transform:uppercase;padding:12px 15px;min-height:44px;cursor:pointer;box-shadow:3px 3px 0 rgba(255,212,0,.2)}
+#ttflash-ov button:hover,#ttflash-ov button:focus-visible{background:#FFD400;color:#000;outline:2px solid #FFD400;outline-offset:3px}
+@media(max-width:767px){#ttflash-ov video{object-fit:cover}}
+@keyframes ttflash-static{0%{transform:translateX(-5px);filter:drop-shadow(5px 0 #f03) drop-shadow(-5px 0 #0ff)}25%{transform:translateX(4px);clip-path:inset(7% 0 5%)}50%{transform:none;clip-path:inset(0);filter:none}75%{transform:translateX(-3px);filter:drop-shadow(3px 0 #f03)}100%{transform:none;filter:none}}
+@media(prefers-reduced-motion:reduce){#ttflash-ov{display:none}}
+</style>
+<script>
+(function(){
+  'use strict';
+  if(location.pathname.replace(/\/+$/,'')!=='/food-reviews')return;
+  if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  var K='ttfoodflash-seen';
+  try{if(sessionStorage.getItem(K))return;sessionStorage.setItem(K,'1')}catch(e){}
+  if(document.getElementById('ttflash-ov'))return;
+  var BASE='https://therapytoaster.github.io/tt-live/site-intro/';
+  var ov=document.createElement('div');ov.id='ttflash-ov';
+  ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');ov.setAttribute('aria-label','M®ToaSty site intro');
+  ov.innerHTML='<img class="ttflash-still" src="https://therapytoaster.github.io/tt-live/intro/no-signal.webp?v=1" alt="404 NO SIGNAL">'+
+    '<video muted playsinline preload="auto" poster="'+BASE+'site-intro-v1-poster.jpg" aria-label="Animated 404 No Signal artwork"><source src="'+BASE+'site-intro-v1.mp4" type="video/mp4"></video>'+
+    '<div class="ttflash-controls"><button type="button" class="ttflash-sound" aria-pressed="false">Tap for sound</button><button type="button" class="ttflash-skip">Skip</button></div>';
+  var v=ov.querySelector('video'),sound=ov.querySelector('.ttflash-sound'),skip=ov.querySelector('.ttflash-skip');
+  var done=false,started=false,tFlash,tBlocked,tHard,prevFocus,oldOverflow;
+  v.muted=true;v.defaultMuted=true;v.playsInline=true;
+  var RM=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches,raining=false,raf=0,cv=null;
+  function finish(){
+    if(done)return;done=true;cancelAnimationFrame(raf);
+    clearTimeout(tFlash);clearTimeout(tBlocked);clearTimeout(tHard);
+    try{v.pause()}catch(e){}v.muted=true;
+    ov.classList.add('ttflash-out');document.removeEventListener('keydown',keys,true);
+    if(document.body)document.body.style.overflow=oldOverflow;
+    setTimeout(function(){if(cv){cv.width=cv.height=0;cv=null}ov.remove();if(prevFocus&&prevFocus.isConnected&&prevFocus.focus)prevFocus.focus({preventScroll:true})},240);
+  }
+  function end(fast){finish()}
+  function keys(e){
+    if(e.key==='Escape'){e.preventDefault();end(true)}
+    if(e.key==='Tab'){e.preventDefault();(document.activeElement===sound?skip:sound).focus({preventScroll:true})}
+  }
+  v.addEventListener('playing',function(){if(done)return;started=true;clearTimeout(tBlocked);ov.classList.add('ttflash-playing')});
+  v.addEventListener('ended',function(){end()});v.addEventListener('error',function(){finish()});
+  skip.addEventListener('click',function(e){e.stopPropagation();end(true)});
+  ov.addEventListener('click',function(e){if(!e.target.closest('button'))end(true)});
+  sound.addEventListener('click',function(){
+    if(done)return;v.muted=!v.muted;sound.textContent=v.muted?'Tap for sound':'Mute';sound.setAttribute('aria-pressed',String(!v.muted));
+    var p=v.play();if(p&&p.catch)p.catch(function(){finish()});
+  });
+  function mount(){
+    if(done)return;prevFocus=document.activeElement;oldOverflow=document.body.style.overflow;
+    document.body.appendChild(ov);document.body.style.overflow='hidden';skip.focus({preventScroll:true});
+    document.addEventListener('keydown',keys,true);
+    tHard=setTimeout(function(){end(true)},4900);
+    tFlash=setTimeout(function(){
+      if(done)return;
+      tBlocked=setTimeout(function(){if(!started)finish()},950);
+      var p;try{p=v.play()}catch(e){setTimeout(finish,900);return}
+      if(p&&p.catch)p.catch(function(){setTimeout(finish,900)});
+    },320);
+  }
+  if(document.body)mount();else document.addEventListener('DOMContentLoaded',mount,{once:true});
+})();
+</script>
