@@ -1,6 +1,9 @@
-/* TT matrix nav transition v1
+/* TT matrix nav transition v2
    Short yellow-on-black rain of 0s and 1s when a visitor clicks a site tab
-   (desktop header nav + mobile menu links), then the new page loads.
+   other than Home (desktop header nav + mobile menu links), then the new
+   page loads. Links to Home — the Home tab, Home tiles, the site title/logo,
+   and any href of "/" or "/home" — navigate immediately, with no rain.
+   Nothing plays on page load or on a first visit.
    Skips new-tab / modified / external clicks, same-page links, and the
    Squarespace mobile-menu folder and Back controls so the menu keeps working.
    Respects prefers-reduced-motion (navigate immediately, no overlay).
@@ -37,6 +40,13 @@
   function norm(p){
     p=(p||'/').toLowerCase().replace(/\/+$/,'');
     return (p===''||p==='/home')?'/':p;
+  }
+  function isHomeUrl(href){
+    try{
+      var u=new URL(href,location.href);
+      if(u.origin!==location.origin)return false;
+      return norm(u.pathname)==='/';
+    }catch(e){return false;}
   }
 
   /* Folder tab titles are <button>s (desktop) or <a data-folder-id> (mobile).
@@ -219,6 +229,7 @@
   }
 
   function start(url){
+    if(isHomeUrl(url)){navigate(url);return;}
     if(window.__ttMatrixBusy)return;
     window.__ttMatrixBusy=1;
     if(reduced()){window.__ttMatrixBusy=0;navigate(url);return;}
@@ -254,6 +265,8 @@
     var url=targetUrl(a,e);
     if(!url)url=folderUrl(e.target);
     if(!url)return;
+    /* Home tab, logo, tiles, or any "/" / "/home" link: no rain, normal nav */
+    if(isHomeUrl(url))return;
     /* take over the click completely so Squarespace / other footer
        handlers cannot start a navigation underneath the rain */
     e.preventDefault();
