@@ -26,6 +26,7 @@ Open `index.html` in a desktop browser (no server required). The game is a singl
 - Short taps now start the race and select a track; audio unlocks on the first tap
 - Optional tilt steering, a dismissible how-to-play overlay, pinch/zoom/callout locks, and a portrait rotate hint
 - Desktop keyboard controls are unchanged
+- Title screen keeps the 3D truck visible in the letterbox on phones
 
 ### v0.3.1
 

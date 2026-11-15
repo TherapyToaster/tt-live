@@ -11242,11 +11242,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     const dpr = L.dpr || 1;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, hud.width, hud.height);
-    if (phase === "title" && camMode !== "lineup" && camMode !== "showroom" && camMode !== "freeze") {
-      ctx.fillStyle = "#f2ce3a";
-      ctx.fillRect(0, 0, hud.width, hud.height);
-    }
-    /* Uniform 16:9 HUD so portrait no longer stretches the menu or buttons. */
+    /* Leave letterboxes transparent so the 3D title/race view shows through.
+       Uniform 16:9 HUD so portrait no longer stretches the menu or buttons. */
     ctx.setTransform(dpr * L.s, 0, 0, dpr * L.s, dpr * L.ox, dpr * L.oy);
     ctx.imageSmoothingEnabled = false;
     if (camMode === "freeze" || G._hideHud) {
