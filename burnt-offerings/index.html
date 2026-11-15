@@ -2,8 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#05070d">
+<meta name="format-detection" content="telephone=no">
 <title>BURNT OFFERINGS</title>
+<!-- bo-build: mobile-touch-v1 -->
 <style>
 /* Vendored SIL OFL 1.1 latin subsets: Anton, Epilogue. See data/BRAND.md */
 @font-face {
@@ -2000,6 +2006,403 @@ table.run-stats td {
   .map-grid { grid-template-columns: 1fr; }
   .run-title { font-size: 36px; }
 }
+
+/* =========================================================
+   Touch + phone layer (mobile controls audit, Nov 2026)
+   ========================================================= */
+html, body {
+  height: 100%;
+  height: var(--app-h, 100dvh);
+  overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+body {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+input, select, textarea {
+  -webkit-user-select: auto;
+  user-select: auto;
+  -webkit-touch-callout: default;
+}
+img { -webkit-user-drag: none; user-drag: none; }
+body.mode-3d,
+body.mode-3d #app,
+body.mode-3d #stage,
+#scene3d-wrap,
+#scene3d-canvas { touch-action: none; }
+body.mode-2d { touch-action: pan-x pan-y; }
+button, [role="button"], .card, .lane, .deck-card, .mini-card, .menu-item { touch-action: manipulation; }
+
+/* Overlays: scroll when taller than the screen; never clip the top. */
+.overlay {
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  align-items: flex-start;
+  padding: max(14px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+}
+.overlay > .panel,
+.overlay > .run-panel { margin: auto; max-width: 100%; }
+#overlay-menu.overlay { padding: 0; }
+#overlay-menu .menu-inner { min-height: 100%; height: auto; }
+#overlay-help { z-index: 230; }
+#overlay-touch { z-index: 260; }
+#overlay-card { z-index: 270; }
+
+.help-foot { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.help-foot .btn { width: auto; min-width: 150px; }
+
+/* hand hint wording */
+.hint-touch { display: none; }
+body.is-touch .hint-touch { display: inline; }
+body.is-touch .hint-mouse { display: none; }
+
+/* session-notes header is a button so phones can fold it */
+#btn-log {
+  all: unset;
+  cursor: pointer;
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  text-transform: inherit;
+}
+
+/* actions: Card info + Burn on one row */
+.act-row { display: flex; gap: 8px; }
+.act-row .btn { flex: 1 1 0; }
+body.mode-3d .btn.info,
+.btn.info {
+  background: transparent;
+  color: var(--cyan);
+  border: 1px solid rgba(0, 237, 255, 0.6);
+  box-shadow: none;
+}
+body.mode-3d .btn.info:hover:not(:disabled) { background: rgba(0, 237, 255, 0.12); }
+
+/* drag ghost for the 2D table */
+.drag-ghost {
+  position: fixed;
+  left: 0; top: 0;
+  z-index: 400;
+  pointer-events: none;
+  padding: 10px 14px;
+  background: var(--gold);
+  color: var(--void);
+  font-family: var(--font-display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  box-shadow: -3px 0 0 rgba(0,237,255,0.7), 3px 0 0 rgba(200,20,42,0.75);
+}
+
+/* ---------- Card details (long-press / Card info) ---------- */
+#overlay-card { background: rgba(5, 7, 13, 0.88); }
+.panel.card-detail {
+  width: min(640px, 100%);
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  background: rgba(5, 7, 13, 0.94);
+  border: 1px solid var(--gold);
+  box-shadow: -3px 0 0 rgba(0,237,255,0.55), 3px 0 0 rgba(200,20,42,0.6), 0 0 30px rgba(255,212,0,0.15);
+  color: var(--cream);
+  padding: 20px;
+}
+.card-detail .cd-card { flex: 0 0 auto; }
+.card-detail .cd-card .card {
+  width: 168px;
+  height: 234px;
+  transform: none !important;
+  cursor: default;
+}
+.card-detail .cd-card .card .portrait { width: 100%; height: auto; }
+.card-detail .cd-body { flex: 1 1 auto; min-width: 0; }
+.card-detail h3 {
+  font-family: var(--font-display);
+  color: var(--gold);
+  font-size: 26px;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-shadow: var(--rgb-split);
+  margin-bottom: 6px;
+}
+.card-detail .cd-arch { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.2em; color: var(--cyan); text-transform: uppercase; margin-bottom: 10px; }
+.card-detail .cd-stats { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 12px; }
+.card-detail .cd-stats span {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid rgba(255,212,0,0.35);
+  padding: 4px 7px;
+}
+.card-detail .cd-stats b { color: var(--gold); font-size: 13px; }
+.card-detail .cd-text { font-size: 15px; line-height: 1.45; margin-bottom: 10px; }
+.card-detail .cd-mark { color: var(--magenta, #ff3fa4); font-size: 13px; margin-bottom: 8px; }
+.card-detail .cd-flavor { font-style: italic; opacity: 0.75; font-size: 13px; margin-bottom: 8px; }
+.card-detail .cd-note { font-family: var(--font-mono); font-size: 11px; color: var(--crt); margin-bottom: 8px; }
+.card-detail .btn { margin-top: 12px; min-height: 48px; }
+
+/* ---------- Touch how-to ---------- */
+.panel.touch-help {
+  width: min(560px, 100%);
+  background: rgba(5, 7, 13, 0.95);
+  border: 1px solid var(--gold);
+  box-shadow: -3px 0 0 rgba(0,237,255,0.55), 3px 0 0 rgba(200,20,42,0.6);
+  color: var(--cream);
+  padding: 22px 22px 20px;
+}
+.touch-help .menu-kicker {
+  font: 600 11px/1 var(--font-mono);
+  letter-spacing: 0.3em;
+  color: var(--gold);
+  margin-bottom: 10px;
+}
+.touch-help h2 {
+  font-family: var(--font-display);
+  font-size: clamp(26px, 7vw, 38px);
+  letter-spacing: 0.04em;
+  color: var(--gold);
+  text-shadow: var(--rgb-split);
+  text-align: left;
+  margin-bottom: 12px;
+}
+.touch-help .th-list { padding-left: 1.3em; font-size: 15px; line-height: 1.45; }
+.touch-help .th-list li { margin-bottom: 9px; }
+.touch-help .th-list li::marker { color: var(--gold); font-family: var(--font-display); }
+.touch-help .th-list b { color: var(--gold); }
+.touch-help .th-foot { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; opacity: 0.75; margin: 8px 0 4px; }
+.touch-help .btn { min-height: 50px; }
+
+/* ---------- Tap targets: 44px on touch screens ---------- */
+body.is-touch .btn,
+body.is-touch .choice-btn,
+body.is-touch .deck-card,
+body.is-touch .mini-card,
+body.is-touch .quality-row button,
+body.is-touch .magnet-card,
+body.is-touch #items .item,
+body.is-touch #items .magnet-chip,
+body.is-touch #btn-help,
+body.is-touch #btn-gallery,
+body.is-touch #btn-view,
+body.is-touch #btn-menu,
+body.is-touch .menu-item,
+body.is-touch #btn-log { min-height: 44px; }
+body.is-touch .choice-btn,
+body.is-touch #btn-help,
+body.is-touch #btn-menu { min-width: 48px; }
+body.is-touch #btn-log { display: inline-flex; align-items: center; padding-right: 10px; }
+
+/* =================== compact 3D HUD (phones) =================== */
+body.mode-3d.is-compact #top {
+  height: calc(46px + env(safe-area-inset-top));
+  padding: env(safe-area-inset-top) max(8px, env(safe-area-inset-right)) 0 max(8px, env(safe-area-inset-left));
+  gap: 8px;
+}
+body.mode-3d.is-compact #top h1 { font-size: 16px; white-space: nowrap; line-height: 1; }
+body.mode-3d.is-compact #top h1 span { display: none; }
+body.mode-3d.is-compact #top .meta { gap: 8px; font-size: 9px; letter-spacing: 0.08em; }
+body.mode-3d.is-compact #top .meta > span {
+  display: flex; flex-direction: column; align-items: center; line-height: 1.15;
+}
+body.mode-3d.is-compact #top .meta > span b { font-size: 13px; }
+body.mode-3d.is-compact #btn-gallery,
+body.mode-3d.is-compact #btn-view { display: none; }
+body.mode-3d.is-compact #btn-help,
+body.mode-3d.is-compact #btn-menu { padding: 0 10px; font-size: 13px; min-height: 44px; }
+body.mode-3d.is-compact .kitchen-chip { max-width: 110px; font-size: 10px; }
+
+body.mode-3d.is-compact #speech { font-size: 11px; padding: 5px 9px 6px 10px; line-height: 1.3; }
+body.mode-3d.is-compact #speech .tag { font-size: 8px; letter-spacing: 0.2em; }
+body.mode-3d.is-compact #hud-meter { font-size: 9px; padding: 5px 8px; letter-spacing: 0.1em; }
+body.mode-3d.is-compact #hud-meter b { font-size: 14px; }
+
+body.mode-3d.is-compact #items .itext { display: none; }
+body.mode-3d.is-compact #items .iname { font-size: 12px; }
+body.mode-3d.is-compact #items .item,
+body.mode-3d.is-compact #items .magnet-chip {
+  padding: 4px 9px;
+  display: flex; align-items: center;
+}
+body.mode-3d.is-compact #items { scrollbar-width: none; }
+body.mode-3d.is-compact #items::-webkit-scrollbar { display: none; }
+
+body.mode-3d.is-compact #actions h2 { display: none; }
+body.mode-3d.is-compact #preview { padding: 0; }
+body.mode-3d.is-compact #preview .eq { font-size: 18px; line-height: 1; }
+body.mode-3d.is-compact #preview .combos { font-size: 8px; letter-spacing: 0.08em; margin-top: 2px; }
+body.mode-3d.is-compact .btn { font-size: 13px; padding: 6px 8px; margin-top: 0; min-height: 44px; }
+
+body.mode-3d.is-compact #log-wrap {
+  max-height: none;
+  width: auto;
+  padding: 0 0 0 10px;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+body.mode-3d.is-compact #log-wrap h2 { margin: 0; }
+body.mode-3d.is-compact #log-wrap:not(.open) #log { display: none; }
+body.mode-3d.is-compact #log-wrap.open { width: min(320px, calc(100vw - 16px)); padding-bottom: 8px; }
+body.mode-3d.is-compact #log-wrap.open #log { max-height: 34vh; overflow-y: auto; padding-right: 8px; }
+body.mode-3d.is-compact #btn-log::after { content: " ▸"; }
+body.mode-3d.is-compact #log-wrap.open #btn-log::after { content: " ▾"; }
+
+/* ----- portrait phones ----- */
+body.mode-3d.is-compact.is-portrait #top h1 { display: none; }
+body.mode-3d.is-compact.is-portrait #top .meta { flex: 1 1 auto; justify-content: space-between; }
+body.mode-3d.is-compact.is-portrait #top .meta > span:nth-child(5) { display: none; } /* deck count */
+body.mode-3d.is-compact.is-portrait .kitchen-chip { display: none !important; }
+body.mode-3d.is-compact.is-portrait #opponent {
+  top: calc(48px + env(safe-area-inset-top));
+  left: 8px; right: 112px;
+  width: auto;
+  transform: none;
+}
+body.mode-3d.is-compact.is-portrait #speech { max-height: 52px; overflow: hidden; }
+body.mode-3d.is-compact.is-portrait #hud-meter {
+  top: calc(48px + env(safe-area-inset-top));
+  right: 8px;
+  width: 98px;
+  text-align: center;
+  line-height: 1.15;
+}
+body.mode-3d.is-compact.is-portrait #hud-meter b { display: block; font-size: 16px; }
+body.mode-3d.is-compact.is-portrait #items {
+  top: calc(106px + env(safe-area-inset-top));
+  left: 8px; right: 8px;
+  width: auto;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  gap: 6px;
+  touch-action: pan-x;
+}
+body.mode-3d.is-compact.is-portrait #items .item,
+body.mode-3d.is-compact.is-portrait #items .magnet-chip { flex: 0 0 auto; white-space: nowrap; }
+body.mode-3d.is-compact.is-portrait #actions {
+  left: max(8px, env(safe-area-inset-left));
+  right: max(8px, env(safe-area-inset-right));
+  bottom: max(8px, env(safe-area-inset-bottom));
+  width: auto;
+  padding: 7px 8px;
+  display: grid;
+  grid-template-columns: minmax(64px, auto) 1fr 1.15fr;
+  grid-template-areas: "prev row end";
+  gap: 8px;
+  align-items: center;
+}
+body.mode-3d.is-compact.is-portrait #preview { grid-area: prev; }
+body.mode-3d.is-compact.is-portrait .act-row { grid-area: row; gap: 6px; }
+body.mode-3d.is-compact.is-portrait #btn-end { grid-area: end; }
+body.mode-3d.is-compact.is-portrait .act-row .btn { padding: 4px 4px; font-size: 12px; letter-spacing: 0.03em; line-height: 1.05; }
+body.mode-3d.is-compact.is-portrait #log-wrap {
+  left: 8px;
+  bottom: auto;
+  top: calc(158px + env(safe-area-inset-top));
+}
+
+/* ----- landscape phones ----- */
+body.mode-3d.is-short #top { height: calc(42px + env(safe-area-inset-top)); }
+body.mode-3d.is-short #btn-help,
+body.mode-3d.is-short #btn-menu { min-height: 40px; }
+body.is-touch.mode-3d.is-short #btn-help,
+body.is-touch.mode-3d.is-short #btn-menu { min-height: 44px; }
+body.mode-3d.is-short #opponent {
+  top: calc(44px + env(safe-area-inset-top));
+  width: min(440px, 52vw);
+}
+body.mode-3d.is-short #speech { max-height: 46px; overflow: hidden; }
+body.mode-3d.is-short #hud-meter { top: calc(46px + env(safe-area-inset-top)); right: max(8px, env(safe-area-inset-right)); }
+body.mode-3d.is-short #items {
+  top: calc(46px + env(safe-area-inset-top));
+  left: max(8px, env(safe-area-inset-left));
+  width: 148px;
+  gap: 5px;
+  max-height: calc(var(--app-h, 100dvh) - 46px - 60px);
+  overflow-y: auto;
+  touch-action: pan-y;
+}
+body.mode-3d.is-short #actions {
+  right: max(8px, env(safe-area-inset-right));
+  bottom: max(8px, env(safe-area-inset-bottom));
+  width: 176px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+body.mode-3d.is-short .act-row { gap: 6px; }
+body.mode-3d.is-short .act-row .btn { font-size: 12px; padding: 4px; }
+body.mode-3d.is-short #log-wrap { left: max(8px, env(safe-area-inset-left)); bottom: max(8px, env(safe-area-inset-bottom)); }
+
+/* ----- overlays on phones ----- */
+@media (max-width: 760px), (max-height: 540px) {
+  .panel { padding: 18px 16px 18px; }
+  .panel h2 { font-size: 18px; letter-spacing: 0.2em; }
+  .panel .sub { font-size: 13px; margin-bottom: 14px; }
+  .magnet-grid { gap: 8px; }
+  .magnet-card { padding: 10px 12px; }
+  .magnet-card p { font-size: 13px; line-height: 1.3; }
+  .help-body { font-size: 14px; line-height: 1.45; }
+  #overlay-map, #overlay-shop, #overlay-toaster, #overlay-dumpster, #overlay-runend {
+    padding: max(16px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(40px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  }
+  .run-title { font-size: 34px; }
+  .run-foot { flex-wrap: wrap; }
+  .run-foot .btn { width: auto; min-width: 140px; }
+  .map-grid { grid-template-columns: 1fr; gap: 16px; }
+  .map-flavor { min-height: 0; }
+  .shop-grid { grid-template-columns: 1fr; }
+  .mini-card, .deck-card { min-width: 0; flex: 1 1 140px; }
+  .choice-btn { padding: 8px 12px; }
+  .quality-row button { flex: 1 1 140px; }
+  #overlay-gallery.overlay { padding: max(10px, env(safe-area-inset-top)) 8px 10px; }
+  #overlay-menu .menu-inner { padding: max(18px, env(safe-area-inset-top)) max(22px, env(safe-area-inset-right)) max(26px, env(safe-area-inset-bottom)) max(22px, env(safe-area-inset-left)); }
+  #overlay-menu .menu-kicker { margin-bottom: 0.8rem; }
+  #overlay-menu .menu-sub { margin-bottom: 1rem; }
+  .menu-item { font-size: clamp(1.5rem, 7.5vw, 2.3rem); padding: 0.25rem 0 0.3rem 1.6rem; }
+  .menu-coin, .menu-foot { font-size: 10px; }
+}
+@media (max-width: 520px) {
+  .magnet-grid { grid-template-columns: 1fr; }
+  .panel.card-detail { flex-direction: column; align-items: center; text-align: center; padding: 16px; }
+  .card-detail .cd-stats { justify-content: center; }
+  .card-detail .cd-card .card { width: 150px; height: 209px; }
+}
+@media (max-height: 540px) and (orientation: landscape) {
+  #overlay-menu .menu-inner { justify-content: flex-start; }
+  #overlay-menu h1.menu-title { font-size: 34px; }
+  #overlay-menu nav { display: grid; grid-template-columns: 1fr 1fr; column-gap: 24px; max-width: none; }
+  .menu-item { font-size: 1.55rem; }
+  .card-detail .cd-card .card { width: 132px; height: 184px; }
+  .card-detail h3 { font-size: 22px; }
+}
+
+/* 2D fallback on a phone: drop the desktop min-width, allow vertical scroll */
+@media (max-width: 960px) {
+  body.mode-2d { min-width: 0; overflow-x: hidden; }
+}
+/* landscape phones: the Repairman's line moves into the top bar so the booth is clear */
+body.mode-3d.is-short #top h1 { display: none; }
+body.mode-3d.is-short #top { justify-content: flex-end; }
+body.mode-3d.is-short #opponent {
+  top: calc(3px + env(safe-area-inset-top));
+  left: max(8px, env(safe-area-inset-left));
+  right: auto;
+  width: calc(100% - 360px);
+  transform: none;
+  z-index: 31;
+}
+body.mode-3d.is-short #speech { max-height: 38px; padding: 3px 8px 4px; font-size: 10.5px; line-height: 1.3; }
+body.mode-3d.is-short #speech .tag { display: inline; margin-right: 6px; font-size: 8px; }
+body.mode-3d.is-compact #speech { min-height: 0; }
 
 </style>
 </head>
@@ -6516,6 +6919,23 @@ three/build/three.module.js:
   var armR = null, armL = null, playAnim = null;
   var godRays = [];
   var camClose = null, camPlay = null, camLookClose = null, camLookPlay = null;
+  /* Phone layouts. "wide" is the designed desktop framing. "tall" (portrait phones)
+     and "short" (landscape phones) raise the camera so the lanes are visible above
+     the hand, and pin the hand to the bottom of the view as a small fan. */
+  var layoutMode = "wide";
+  var CAMS = {
+    wide:  { pos: [0, 1.98, 3.22], look: [0, 1.08, -0.38] },
+    tall:  { pos: [0, 3.00, 2.75], look: [0, 0.45, -0.75] },
+    short: { pos: [0, 2.30, 3.00], look: [0, 0.82, -0.40] }
+  };
+  var HAND_T = {
+    wide:  { D: 1.05, s: 0.45, bottom: -0.07, fill: 0.48 },
+    tall:  { D: 1.05, s: 0.46, bottom: 0.035, fill: 0.96 },
+    short: { D: 1.05, s: 0.42, bottom: -0.07, fill: 0.50 }
+  };
+  var press = null, drag = null, suppressClickUntil = 0;
+  var handInsetPx = 0;
+  var LONG_MS = 430, DRAG_PX = 12;
 
   function now() { return (typeof performance !== "undefined" ? performance.now() : Date.now()); }
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
@@ -8053,8 +8473,47 @@ three/build/three.module.js:
     var z = side === "enemy" ? -0.48 : 0.18;
     return { x: x, y: TABLE_Y + 0.07, z: z, rx: -Math.PI / 2 + 0.10, ry: 0, rz: 0 };
   }
+  function layoutFor(w, h) {
+    var a = w / Math.max(1, h);
+    if (a < 0.9) return "tall";
+    if (Math.min(w, h) <= 540 && a < 2.6) return "short";
+    return "wide";
+  }
+  function applyLayout(mode) {
+    if (!camPlay) return;
+    layoutMode = mode;
+    var c = CAMS[mode] || CAMS.wide;
+    camPlay.set(c.pos[0], c.pos[1], c.pos[2]);
+    camLookPlay.set(c.look[0], c.look[1], c.look[2]);
+  }
+  function compactHand() { return !!(HAND_T[layoutMode] && camPlay && camera); }
+  function handWorldCompact(i, n) {
+    var t = HAND_T[layoutMode];
+    var P = camPlay, L = camLookPlay;
+    var f = new THREE.Vector3().subVectors(L, P).normalize();
+    var r = new THREE.Vector3(-f.z, 0, f.x).normalize();
+    var u = new THREE.Vector3().crossVectors(r, f).normalize();
+    var aspect = camera.aspect || 1;
+    var halfH = t.D * Math.tan((playFov(aspect) * Math.PI / 180) / 2);
+    var halfW = halfH * aspect;
+    var s = t.s;
+    var cw = CARD_W * s, ch = CARD_H * s;
+    var mid = (n - 1) / 2;
+    var avail = Math.max(0, halfW * 2 * t.fill - cw);
+    var spacing = n > 1 ? Math.min(cw * 1.04, avail / (n - 1)) : 0;
+    var x = (i - mid) * spacing;
+    var bottom = handInsetPx ? Math.max(t.bottom, lastH ? handInsetPx / lastH : 0) : t.bottom;
+    var y = -halfH + ch * 0.5 + halfH * bottom * 2;
+    var pos = new THREE.Vector3().copy(P)
+      .addScaledVector(f, t.D - i * 0.004)
+      .addScaledVector(r, x)
+      .addScaledVector(u, y - Math.abs(i - mid) * ch * 0.035);
+    var pitch = Math.asin(Math.max(-1, Math.min(1, -f.y)));
+    return { x: pos.x, y: pos.y, z: pos.z, rx: -pitch, ry: 0, rz: (i - mid) * -0.045, s: s, up: u, toCam: f.clone().negate() };
+  }
   function handWorld(i, n) {
     n = Math.max(1, n || 5);
+    if (compactHand()) return handWorldCompact(i, n);
     var mid = (n - 1) / 2;
     var x = (i - mid) * 0.36;
     var z = 1.12 + Math.abs(i - mid) * 0.028;
@@ -8068,7 +8527,7 @@ three/build/three.module.js:
     grp.userData.defId = card ? card.defId : null;
     var frontTex = getCardTex(card);
     var backTex = cardBackTex();
-    var frontMat = mat({ map: frontTex, roughness: 0.42, metalness: 0.04, envMapIntensity: 0.45, color: 0xffffff });
+    var frontMat = mat({ map: frontTex, emissiveMap: frontTex, emissive: 0x000000, roughness: 0.42, metalness: 0.04, envMapIntensity: 0.45, color: 0xffffff });
     var backMat = mat({ map: backTex, roughness: 0.48, metalness: 0.04, envMapIntensity: 0.35 });
     var edgeMat = mat({ color: 0xd8cbb0, roughness: 0.7, metalness: 0.04 });
     var edge = new THREE.Mesh(track(new THREE.BoxGeometry(CARD_W, CARD_H, CARD_T)), edgeMat);
@@ -8096,14 +8555,23 @@ three/build/three.module.js:
   }
   function place(g, pose, lift) {
     if (!g || !pose) return;
-    g.position.set(pose.x, pose.y + (lift || 0), pose.z);
+    g.position.set(pose.x, pose.y, pose.z);
+    if (lift) {
+      if (pose.up) {
+        /* compact hand: slide the card up the screen and toward the lens */
+        g.position.addScaledVector(pose.up, (lift / 0.09) * CARD_H * (pose.s || 1) * 0.2);
+        g.position.addScaledVector(pose.toCam, lift * 0.25);
+      } else {
+        g.position.y += lift;
+      }
+    }
     g.rotation.set(pose.rx, pose.ry || 0, pose.rz || 0);
-    g.scale.setScalar(1);
+    g.scale.setScalar(pose.s || 1);
   }
   function setCardArt(g, card) {
     if (!g || !card) return;
     var tex = getCardTex(card);
-    if (g.userData.frontMat) { g.userData.frontMat.map = tex; g.userData.frontMat.needsUpdate = true; }
+    if (g.userData.frontMat) { g.userData.frontMat.map = tex; g.userData.frontMat.emissiveMap = tex; g.userData.frontMat.needsUpdate = true; }
   }
   function disposeMesh(m) {
     if (!m) return;
@@ -8171,6 +8639,17 @@ three/build/three.module.js:
     }
   }
 
+  /* The phone hand sits close to the lens, outside the lamp pool, so let the
+     printed face carry a little of its own light there. */
+  function litHand(m, on, amt) {
+    var fm = m && m.userData.frontMat;
+    if (!fm || !fm.emissive) return;
+    var want = on ? (amt || 0.7) : 0;
+    if (fm.userData.lit !== want) {
+      fm.userData.lit = want;
+      fm.emissive.setRGB(want, want, want);
+    }
+  }
   function applyHoverPose() {
     if (!lastPub) return;
     var nHand = (lastPub.hand || []).length;
@@ -8183,14 +8662,30 @@ three/build/three.module.js:
       tilting = hover && hover.kind === "hand" && hover.index === i;
       if (tilting) lift = Math.max(lift, 0.14);
       pose = handWorld(i, nHand);
+      litHand(m, !!pose.up, layoutMode === "wide" ? 0.4 : 0.7);
+      if (drag && drag.index === i && drag.world) {
+        placeDragged(m, pose);
+        continue;
+      }
       place(m, pose, lift);
-      if (tilting) {
+      if (tilting && pose.up) {
+        m.scale.setScalar((pose.s || 1) * 1.08);
+      } else if (tilting) {
         m.rotation.x += 0.16;
         m.rotation.z += 0.08;
         m.rotation.y += 0.05;
         m.scale.setScalar(1.12);
       }
-      if (lastPub.selectedHand === i) m.rotation.x += 0.04;
+      if (lastPub.selectedHand === i && !pose.up) m.rotation.x += 0.04;
+    }
+    if (drag) {
+      for (i = 0; i < 4; i++) {
+        var lg = laneGlow.player[i];
+        if (lg && lg.material) {
+          var empty = !(lastPub.playerLanes && lastPub.playerLanes[i]);
+          lg.material.emissiveIntensity = drag.target === i ? (empty ? 2.2 : 0.5) : (empty ? 0.7 : 0);
+        }
+      }
     }
     ["player", "enemy"].forEach(function (kind) {
       var lanes = kind === "player" ? lastPub.playerLanes : lastPub.enemyLanes;
@@ -8352,6 +8847,8 @@ three/build/three.module.js:
       mesh.position.set(lerp(from.x, to.x, u), lerp(from.y + 0.1, to.y, u) + Math.sin(u * Math.PI) * 0.28, lerp(from.z, to.z, u));
       mesh.rotation.x = lerp(from.rx, to.rx, u);
       mesh.rotation.y = lerp(from.ry, to.ry, u);
+      mesh.rotation.z = lerp(from.rz || 0, to.rz || 0, u);
+      mesh.scale.setScalar(lerp(from.s || 1, 1, u));
     }, dur, function () { delete animating[card.iid]; place(mesh, to, 0); if (done) done(); });
   }
   function animateBurn(lane, done) {
@@ -8454,36 +8951,169 @@ three/build/three.module.js:
     }
     return null;
   }
-  function onMove(ev) {
-    if (!enabled || !ready) return;
-    ndcFromEvent(ev);
-    hover = pickObject();
-    canvas.style.cursor = hover ? "pointer" : "default";
-  }
-  function onClick(ev) {
-    if (!enabled || !ready) return;
-    ndcFromEvent(ev);
-    var p = pickObject();
-    if (!p) return;
-    ev.preventDefault();
-    ev.stopPropagation();
+  /* Pointer input for mouse, touch and pen alike.
+     - tap / click: select a hand card, then tap a lane (or tap your own slice to select it)
+     - drag a hand card onto a lane to play it
+     - long-press (or right-click) any face-up card to read it
+     Touch never sets hover, so nothing stays zoomed after a finger lifts. */
+  function dispatchPick(p) {
+    if (!p) return false;
     if (p.kind === "hand" && callbacks.onHandClick) callbacks.onHandClick(p.index);
     else if (p.kind === "player" && callbacks.onPlayerLaneClick) callbacks.onPlayerLaneClick(p.index);
     else if (p.kind === "enemy" && callbacks.onEnemyLaneClick) callbacks.onEnemyLaneClick(p.index);
+    return true;
   }
-  /* Phones: first-contact hover + treat touch/pen pointerup as a click, then
-     suppress the ghost click that follows so a tap doesn't select then un-select. */
-  var suppressClick = false;
-  function onPointerUp(ev) {
+  function pickPlayerLane() {
+    if (!ready) return null;
+    raycaster.setFromCamera(pointer, camera);
+    var objs = laneGlow.player.slice();
+    for (var i = 0; i < meshes.player.length; i++) if (meshes.player[i]) objs.push(meshes.player[i]);
+    var found = raycaster.intersectObjects(objs, true);
+    if (!found.length) {
+      /* forgiving drop: nearest lane centre on the table plane */
+      var hit = rayToY(TABLE_Y + 0.07);
+      if (!hit) return null;
+      if (hit.z < -0.2 || hit.z > 0.75) return null;
+      var li = Math.round(hit.x / LANE_DX + 1.5);
+      return li >= 0 && li <= 3 && Math.abs(hit.x - (li - 1.5) * LANE_DX) < LANE_DX * 0.6 ? li : null;
+    }
+    var o = found[0].object;
+    var pi = laneGlow.player.indexOf(o);
+    if (pi >= 0) return pi;
+    while (o && meshes.player.indexOf(o) < 0) o = o.parent;
+    return o ? meshes.player.indexOf(o) : null;
+  }
+  function rayToY(y) {
+    var ro = raycaster.ray.origin, rd = raycaster.ray.direction;
+    if (Math.abs(rd.y) < 1e-4) return null;
+    var t = (y - ro.y) / rd.y;
+    if (t <= 0) return null;
+    return new THREE.Vector3().copy(ro).addScaledVector(rd, t);
+  }
+  function placeDragged(m, pose) {
+    m.position.copy(drag.world);
+    m.rotation.set(pose.rx * 0.6 - 0.45, 0, 0);
+    m.scale.setScalar(Math.max(0.55, (pose.s || 1) * 1.15));
+  }
+  function updateDrag() {
+    if (!drag) return;
+    raycaster.setFromCamera(pointer, camera);
+    var w = rayToY(TABLE_Y + 0.32);
+    if (w) drag.world = w;
+    drag.target = pickPlayerLane();
+  }
+  function endPress() {
+    if (press && press.timer) clearTimeout(press.timer);
+    press = null;
+  }
+  function onDown(ev) {
     if (!enabled || !ready) return;
-    if (ev.pointerType === "touch" || ev.pointerType === "pen") {
-      onClick(ev);
-      suppressClick = true;
+    if (ev.pointerType === "mouse" && ev.button !== 0) return;
+    if (press && press.id !== ev.pointerId) { endPress(); drag = null; return; } /* second finger: cancel */
+    ndcFromEvent(ev);
+    var p = pickObject();
+    var isMouse = ev.pointerType === "mouse";
+    hover = isMouse ? p : null;
+    if (!isMouse && ev.cancelable) ev.preventDefault();
+    press = { id: ev.pointerId, x0: ev.clientX, y0: ev.clientY, t0: ev.timeStamp, pick: p, type: ev.pointerType, longFired: false, dragging: false, timer: 0 };
+    try { canvas.setPointerCapture(ev.pointerId); } catch (e) {}
+    if (p && !p.empty && callbacks.onInspect) {
+      var pr0 = press;
+      press.timer = setTimeout(function () {
+        if (press !== pr0 || pr0.dragging) return;
+        pr0.longFired = true;
+        hover = null;
+        callbacks.onInspect(p.kind, p.index);
+      }, LONG_MS);
     }
   }
+  function onMove(ev) {
+    if (!enabled || !ready) return;
+    ndcFromEvent(ev);
+    if (press && press.id === ev.pointerId) {
+      var dx = ev.clientX - press.x0, dy = ev.clientY - press.y0;
+      var far = dx * dx + dy * dy > DRAG_PX * DRAG_PX;
+      if (press.longFired && far && ev.timeStamp - press.t0 < LONG_MS) {
+        /* a busy frame let the long-press timer win, but the finger was already
+           moving before the hold time: treat it as a drag after all */
+        press.longFired = false;
+        if (callbacks.onInspectCancel) callbacks.onInspectCancel();
+      }
+      if (!press.dragging && !press.longFired && far) {
+        if (press.timer) { clearTimeout(press.timer); press.timer = 0; }
+        var pk = press.pick;
+        if (pk && pk.kind === "hand" && (!callbacks.canDrag || callbacks.canDrag(pk.index))) {
+          press.dragging = true;
+          drag = { index: pk.index, world: null, target: null };
+          hover = null;
+          if (callbacks.onDragStart) callbacks.onDragStart(pk.index);
+        }
+      }
+      if (press.dragging) {
+        updateDrag();
+        canvas.style.cursor = "grabbing";
+        return;
+      }
+    }
+    if (ev.pointerType === "mouse") {
+      hover = pickObject();
+      canvas.style.cursor = hover ? "pointer" : "default";
+    }
+  }
+  function onUp(ev) {
+    if (!press || press.id !== ev.pointerId) return;
+    var pr = press;
+    endPress();
+    suppressClickUntil = now() + 600;
+    try { canvas.releasePointerCapture(ev.pointerId); } catch (e) {}
+    if (pr.type !== "mouse") hover = null;
+    if (!enabled || !ready) { drag = null; return; }
+    if (pr.longFired && ev.timeStamp - pr.t0 < LONG_MS) {
+      pr.longFired = false;               /* it was really a quick tap */
+      if (callbacks.onInspectCancel) callbacks.onInspectCancel();
+    }
+    if (pr.longFired) return;
+    if (pr.dragging) {
+      ndcFromEvent(ev);
+      updateDrag();
+      var target = drag ? drag.target : null, idx = drag ? drag.index : -1;
+      drag = null;
+      canvas.style.cursor = "default";
+      if (target != null && callbacks.onDrop) callbacks.onDrop(idx, target);
+      else if (callbacks.onDragCancel) callbacks.onDragCancel(idx);
+      return;
+    }
+    ndcFromEvent(ev);
+    var p = pickObject() || pr.pick;
+    if (dispatchPick(p) && ev.cancelable) ev.preventDefault();
+  }
+  function onCancel(ev) {
+    if (press && press.id === ev.pointerId) {
+      endPress();
+      if (drag && callbacks.onDragCancel) callbacks.onDragCancel(drag.index);
+      drag = null;
+      hover = null;
+    }
+  }
+  function onLeave(ev) {
+    if (ev.pointerType === "mouse" && !press) hover = null;
+  }
+  function onContext(ev) {
+    ev.preventDefault();
+    if (!enabled || !ready) return;
+    ndcFromEvent(ev);
+    var p = pickObject();
+    endPress();
+    if (p && !p.empty && callbacks.onInspect) callbacks.onInspect(p.kind, p.index);
+  }
+  /* Synthetic clicks (keyboard, scripts) still work; the click that follows a real
+     pointer gesture is swallowed so a tap doesn't select then un-select. */
   function onClickWrap(ev) {
-    if (suppressClick) { suppressClick = false; return; }
-    onClick(ev);
+    if (now() < suppressClickUntil) return;
+    if (!enabled || !ready) return;
+    ndcFromEvent(ev);
+    var p = pickObject();
+    if (dispatchPick(p)) { ev.preventDefault(); ev.stopPropagation(); }
   }
 
   /* ---------- Post-processing ---------- */
@@ -8643,6 +9273,9 @@ three/build/three.module.js:
     var h = Math.max(16, wrap.clientHeight || 800);
     if (w === lastW && h === lastH && (rt || composer)) return;
     lastW = w; lastH = h;
+    var lm = layoutFor(w, h);
+    if (lm !== layoutMode) applyLayout(lm);
+    if (bloomPass) bloomPass.strength = layoutMode === "wide" ? 0.38 : 0.22;
     var pr = quality.ps1 ? 1 : (quality.pr || 1);
     canvas.style.width = w + "px";
     canvas.style.height = h + "px";
@@ -8826,6 +9459,7 @@ three/build/three.module.js:
        Cards stay in the foreground; hover-zoom is unchanged. */
     camPlay = new THREE.Vector3(0, 1.98, 3.22);
     camLookPlay = new THREE.Vector3(0, 1.08, -0.38);
+    layoutMode = "wide";
     camClose = new THREE.Vector3(0.05, 1.70, 0.08);
     camLookClose = new THREE.Vector3(-0.18, 1.60, -1.02);
     camBase = camPlay; camLook = camLookPlay;
@@ -8879,8 +9513,11 @@ three/build/three.module.js:
 
     canvas.style.touchAction = "none";
     canvas.addEventListener("pointermove", onMove);
-    canvas.addEventListener("pointerdown", onMove);
-    canvas.addEventListener("pointerup", onPointerUp);
+    canvas.addEventListener("pointerdown", onDown);
+    canvas.addEventListener("pointerup", onUp);
+    canvas.addEventListener("pointercancel", onCancel);
+    canvas.addEventListener("pointerleave", onLeave);
+    canvas.addEventListener("contextmenu", onContext);
     canvas.addEventListener("click", onClickWrap);
 
     renderFrame(0);
@@ -8922,8 +9559,11 @@ three/build/three.module.js:
     raf = 0;
     if (canvas) {
       canvas.removeEventListener("pointermove", onMove);
-      canvas.removeEventListener("pointerdown", onMove);
-      canvas.removeEventListener("pointerup", onPointerUp);
+      canvas.removeEventListener("pointerdown", onDown);
+      canvas.removeEventListener("pointerup", onUp);
+      canvas.removeEventListener("pointercancel", onCancel);
+      canvas.removeEventListener("pointerleave", onLeave);
+      canvas.removeEventListener("contextmenu", onContext);
       canvas.removeEventListener("click", onClickWrap);
     }
     if (composer && composer.dispose) try { composer.dispose(); } catch (e) {}
@@ -8963,6 +9603,12 @@ three/build/three.module.js:
   }
 
   function playFov(aspect) {
+    if (layoutMode === "tall") {
+      /* fit the four lanes (about 2.8 wide at ~3.6 away) across a narrow screen */
+      var need = 2 * Math.atan(0.40 / Math.max(0.3, aspect)) * 180 / Math.PI;
+      return Math.max(58, Math.min(84, need));
+    }
+    if (layoutMode === "short") return 56;
     if (aspect < 0.65) return 68;   /* phone portrait: ceiling + floor, not fish-eye */
     if (aspect < 1.05) return 65;
     if (aspect <= 1.85) return 62;  /* 16:9 / 16:10 / 4:3 — designed framing */
@@ -8988,6 +9634,60 @@ three/build/three.module.js:
   api.glitch = glitch;
   api.setMeter = setMeter;
   api.resize = resize;
+  api.getLayout = function () { return layoutMode; };
+  /* test helper: a screen point (CSS px) where a tap really lands on this card/lane,
+     found by projecting points on the card and raycasting back through them */
+  api.tapPointOf = function (kind, index) {
+    if (!ready) return null;
+    var rect = canvas.getBoundingClientRect();
+    var target = kind === "hand" ? meshes.hand[index] : (meshes[kind] && meshes[kind][index]);
+    var cands = [];
+    var xs = [0, -0.3, 0.3, -0.42, 0.42, -0.15, 0.15], ys = [0, 0.25, -0.25, 0.4];
+    for (var yi = 0; yi < ys.length; yi++) for (var xi = 0; xi < xs.length; xi++) {
+      var v;
+      if (target) {
+        target.updateMatrixWorld(true);
+        v = new THREE.Vector3(xs[xi] * CARD_W, ys[yi] * CARD_H, 0.01).applyMatrix4(target.matrixWorld);
+      } else {
+        var lw = laneWorld(kind, index);
+        v = new THREE.Vector3(lw.x + xs[xi] * CARD_W * 0.8, lw.y, lw.z - ys[yi] * CARD_H * 0.6);
+      }
+      v.project(camera);
+      cands.push(v);
+    }
+    var saved = { x: pointer.x, y: pointer.y };
+    for (var i = 0; i < cands.length; i++) {
+      pointer.x = cands[i].x; pointer.y = cands[i].y;
+      var pk = pickObject();
+      if (pk && pk.kind === kind && pk.index === index) {
+        pointer.x = saved.x; pointer.y = saved.y;
+        return { x: rect.left + (cands[i].x + 1) / 2 * rect.width, y: rect.top + (1 - cands[i].y) / 2 * rect.height };
+      }
+    }
+    pointer.x = saved.x; pointer.y = saved.y;
+    return null;
+  };
+  api._debugHand = function () {
+    return meshes.hand.map(function (m) { var fm = m && m.userData.frontMat; return fm ? { type: fm.type, em: fm.emissive && fm.emissive.getHexString(), map: !!fm.emissiveMap, s: m.scale.x } : null; });
+  };
+  api._tune = function (cams, hand) {
+    var k;
+    if (cams) for (k in cams) CAMS[k] = cams[k];
+    if (hand) for (k in hand) HAND_T[k] = hand[k];
+    applyLayout(layoutMode); lastW = 0; resize();
+  };
+  api.setLongPressMs = function (ms) { LONG_MS = Math.max(200, ms | 0); };
+  api.setHandInset = function (px) { handInsetPx = Math.max(0, px || 0); };
+  /* test helper: screen (CSS px, relative to the canvas) of a hand card / lane centre */
+  api.screenOf = function (kind, index) {
+    if (!ready) return null;
+    var v;
+    if (kind === "hand") { var m = meshes.hand[index]; if (!m) return null; v = m.position.clone(); }
+    else { var lw = laneWorld(kind, index); v = new THREE.Vector3(lw.x, lw.y, lw.z); }
+    v.project(camera);
+    var rect = canvas.getBoundingClientRect();
+    return { x: rect.left + (v.x + 1) / 2 * rect.width, y: rect.top + (1 - v.y) / 2 * rect.height };
+  };
   api.isEnabled = function () { return enabled; };
   api.isReady = function () { return ready; };
   api.renderFrame = function () { renderFrame(tAcc * 1000); };
@@ -11923,6 +12623,39 @@ window.SKULRZ_POOL = [{"id":"skulrz-2237","name":"SkulRz #2237","nftName":"SkulR
     return audioCtx;
   }
 
+  /* Phones only allow audio after a user gesture: create + resume the context and
+     play one silent sample on the very first tap, click, or key. */
+  var audioUnlocked = false;
+  function unlockAudio() {
+    if (audioUnlocked) return;
+    var ctx = ensureAudio();
+    if (!ctx) return;
+    try {
+      if (ctx.state === "suspended" && ctx.resume) ctx.resume();
+      var b = ctx.createBuffer(1, 1, 22050);
+      var src = ctx.createBufferSource();
+      src.buffer = b;
+      src.connect(ctx.destination);
+      if (src.start) src.start(0); else if (src.noteOn) src.noteOn(0);
+    } catch (e) {}
+    if (ctx.state !== "suspended") {
+      audioUnlocked = true;
+      ["pointerdown", "touchend", "mousedown", "keydown"].forEach(function (t) {
+        document.removeEventListener(t, unlockAudio, true);
+      });
+    }
+  }
+  ["pointerdown", "touchend", "mousedown", "keydown"].forEach(function (t) {
+    document.addEventListener(t, unlockAudio, true);
+  });
+  document.addEventListener("visibilitychange", function () {
+    if (!audioCtx) return;
+    try {
+      if (document.hidden) audioCtx.suspend();
+      else if (audioUnlocked) audioCtx.resume();
+    } catch (e) {}
+  });
+
   function beep(freq, dur, type, gain, at) {
     var ctx = ensureAudio();
     if (!ctx || ctx.state === "suspended") {
@@ -12138,10 +12871,10 @@ window.SKULRZ_POOL = [{"id":"skulrz-2237","name":"SkulRz #2237","nftName":"SkulR
         "</div>" +
         '<div id="tray">' +
           '<div id="items"></div>' +
-          '<div id="hand-wrap"><h2>Your hand — click a card, then a lane</h2><div id="hand" class="hand"></div></div>' +
+          '<div id="hand-wrap"><h2>Your hand — <span class="hint-mouse">click a card, then a lane</span><span class="hint-touch">tap a card, then a lane · hold to read</span></h2><div id="hand" class="hand"></div></div>' +
           '<div id="actions"></div>' +
         "</div>" +
-        '<div id="log-wrap"><h2>Session notes</h2><ul id="log"></ul></div>' +
+        '<div id="log-wrap"><h2><button type="button" id="btn-log" aria-expanded="false">Session notes</button></h2><ul id="log"></ul></div>' +
       "</div>" +
       '<div id="overlay-magnet" class="overlay hidden"></div>' +
       '<div id="overlay-help" class="overlay hidden"></div>' +
@@ -12156,6 +12889,8 @@ window.SKULRZ_POOL = [{"id":"skulrz-2237","name":"SkulRz #2237","nftName":"SkulR
       '<div id="overlay-toaster" class="overlay hidden"></div>' +
       '<div id="overlay-dumpster" class="overlay hidden"></div>' +
       '<div id="overlay-runend" class="overlay hidden"></div>' +
+      '<div id="overlay-card" class="overlay hidden" role="dialog" aria-label="Card details"></div>' +
+      '<div id="overlay-touch" class="overlay hidden" role="dialog" aria-label="Touch controls"></div>' +
       '<div id="toast-msg"></div>';
   }
 
@@ -12191,9 +12926,9 @@ window.SKULRZ_POOL = [{"id":"skulrz-2237","name":"SkulRz #2237","nftName":"SkulR
         "<p>When you end your turn, your attacking Heat is <b>Crunch</b>. Combos across your lanes add <b>Mult</b> — Pair, Two Pair, Triple, Full Stack, Same Spread, Golden Run. The meter moves by <b>Crunch × Mult</b> toward Charcoal. Push it past his <b>Appetite</b> to win.</p>" +
         "<p>His unblocked Heat pushes the meter back toward <b>Raw</b>. If it hits Raw, you lose. He plays one card <b>face-down</b> each turn. The <b>Butter Knife</b> peeks at it. The <b>Fork</b> jams a lane. Once, you may <b>Pull the Plug</b>: the meter snaps to the middle, and your magnet melts.</p>" +
         "<p>Every face on the table is one of Coty's <b>SkulRz</b> — 213 pieces, each with its own art. Open the <b>Card Pool</b> to browse them all. Jam is a fruit spread (grape, lime, berry), never a blood color.</p>" +
-        "<p>The default view is a lo-fi <b>3D booth</b>. Use the <b>2D table</b> button if you want the flat layout back.</p>" +
+        "<p>The default view is a lo-fi <b>3D booth</b>. Use the <b>2D table</b> button (or <b>Settings</b> on a phone) if you want the flat layout back. On a phone: tap a card then a lane, or drag it; hold any card to read it.</p>" +
       "</div>" +
-      '<div style="text-align:center"><button type="button" class="btn end" id="btn-dismiss-help">Sit down</button></div>' +
+      '<div class="help-foot"><button type="button" class="btn" id="btn-touch-help">Touch controls</button><button type="button" class="btn end" id="btn-dismiss-help">Sit down</button></div>' +
     "</div>";
   }
 
@@ -12337,16 +13072,16 @@ window.SKULRZ_POOL = [{"id":"skulrz-2237","name":"SkulRz #2237","nftName":"SkulR
     magnetList.forEach(function (id) {
       var m = null;
       for (var i = 0; i < E.MAGNETS.length; i++) if (E.MAGNETS[i].id === id) m = E.MAGNETS[i];
-      if (m) items += '<div class="magnet-chip' + (pub.magnetMelted ? " melted" : "") + '"><span class="iname">' + esc(m.name) + '</span><span class="itext">' + esc(m.text) + "</span></div>";
+      if (m) items += '<div class="magnet-chip' + (pub.magnetMelted ? " melted" : "") + '" tabindex="0" role="button" data-info="' + esc(m.name + ": " + m.text) + '"><span class="iname">' + esc(m.name) + '</span><span class="itext">' + esc(m.text) + "</span></div>";
     });
     (pub.synergies || []).forEach(function (s) {
-      items += '<div class="magnet-chip synergy"><span class="iname">' + esc(s.name) + '</span><span class="itext">' + esc(s.text) + "</span></div>";
+      items += '<div class="magnet-chip synergy" tabindex="0" role="button" data-info="' + esc(s.name + ": " + s.text) + '"><span class="iname">' + esc(s.name) + '</span><span class="itext">' + esc(s.text) + "</span></div>";
     });
     if (pub.jamPackets > 0) {
       items += '<button type="button" class="item" data-item="jam"' + (pub.phase !== "main" ? " disabled" : "") + '><span class="iname">Jam Packet ×' + pub.jamPackets + '</span><span class="itext">+2 Mult on your next score.</span></button>';
     }
     if (pub.sparePlug > 0) {
-      items += '<div class="magnet-chip"><span class="iname">Spare Fuse ×' + pub.sparePlug + '</span><span class="itext">The next Pull the Plug will not melt your magnets.</span></div>';
+      items += '<div class="magnet-chip" tabindex="0" role="button" data-info="Spare Fuse: the next Pull the Plug will not melt your magnets."><span class="iname">Spare Fuse ×' + pub.sparePlug + '</span><span class="itext">The next Pull the Plug will not melt your magnets.</span></div>';
     }
     $("items").innerHTML = items;
 
@@ -12365,7 +13100,10 @@ window.SKULRZ_POOL = [{"id":"skulrz-2237","name":"SkulRz #2237","nftName":"SkulR
       '<h2>The work</h2>' +
       '<div id="preview"><div class="eq">' + prev.crunch + " × " + prev.mult + " = " + prev.total + "</div>" +
       '<div class="combos">' + esc(comboStr) + "</div></div>" +
+      '<div class="act-row">' +
+      '<button type="button" class="btn info" id="btn-info" ' + ((pub.selectedHand != null || canBurn) ? "" : "disabled") + ' aria-label="Read the selected card">Card info</button>' +
       '<button type="button" class="btn burn" id="btn-burn" ' + (canBurn && !busy ? "" : "disabled") + ">Burn selected</button>" +
+      "</div>" +
       '<button type="button" class="btn end" id="btn-end" ' + (pub.phase === "main" && !busy ? "" : "disabled") + ">End turn</button>";
   }
 
@@ -12422,6 +13160,7 @@ window.SKULRZ_POOL = [{"id":"skulrz-2237","name":"SkulRz #2237","nftName":"SkulR
     if (scoreHold) renderScoreOverlay(scoreHold, true);
     else renderScoreOverlay(null, false);
     if (mode3d && globalScene() && globalScene().isReady()) {
+      updateHandInset();
       try { globalScene().sync(pub); } catch (err) { console.warn("3D sync", err); }
     }
     window.__BO_STATE = pub;
@@ -12490,6 +13229,7 @@ window.SKULRZ_POOL = [{"id":"skulrz-2237","name":"SkulRz #2237","nftName":"SkulR
         '<button type="button" class="menu-item" id="btn-menu-quick">Quick Duel</button>' +
         '<button type="button" class="menu-item" id="btn-menu-pool">Card Pool</button>' +
         '<button type="button" class="menu-item" id="btn-menu-how">How to Play</button>' +
+        '<button type="button" class="menu-item" id="btn-menu-touch">Touch Controls</button>' +
         '<button type="button" class="menu-item" id="btn-menu-settings">Settings</button>' +
         '<button type="button" class="menu-item" id="btn-menu-credits">Credits</button>' +
       '</nav>' +
@@ -12538,6 +13278,11 @@ window.SKULRZ_POOL = [{"id":"skulrz-2237","name":"SkulRz #2237","nftName":"SkulR
         btn("high", "High", "PBR, soft shadows, bloom, film grain. Default.") +
         btn("medium", "Medium", "Aimed at 60fps on a normal laptop.") +
         btn("lofi", "Lo-fi PS1", "Chunky pixels, dither, vertex snap.") +
+      "</div>" +
+      '<p style="margin:14px 0 4px;letter-spacing:0.08em;text-transform:uppercase;font-size:12px;color:var(--gold)">Table</p>' +
+      '<div class="quality-row">' +
+        '<button type="button" data-setview="3d" class="' + (mode3d ? "on" : "") + '">3D booth</button>' +
+        '<button type="button" data-setview="2d" class="' + (!mode3d ? "on" : "") + '">2D table</button>' +
       "</div>" +
       '<p style="opacity:0.7;font-size:13px;margin-top:8px">The booth stays dim either way. High is the polished look; Lo-fi keeps the original prototype vibe.</p>' +
       '<button type="button" class="btn end" id="btn-close-settings" style="margin-top:18px">Back</button>' +
@@ -12598,7 +13343,17 @@ window.SKULRZ_POOL = [{"id":"skulrz-2237","name":"SkulRz #2237","nftName":"SkulR
         onEnemyLaneClick: function (i) {
           if (!state || state.phase !== "main" || busy) return;
           if (state.selectedItem === "fork") onFork(i);
-        }
+        },
+        onInspect: function (kind, i) { inspectSlot(kind, i); swallowNextClick(); },
+        onInspectCancel: function () { closeCardDetail(); },
+        canDrag: function (i) { return !!(state && state.phase === "main" && !busy && state.hand[i]); },
+        onDragStart: function (i) {
+          if (!state || state.phase !== "main" || busy) return;
+          state.selectedHand = i; state.selectedLane = null; state.selectedItem = null;
+          render();
+        },
+        onDrop: function (i, lane) { dropHandOnLane(i, lane); },
+        onDragCancel: function () { render(); }
       });
     } catch (err) {
       console.warn("3D booth failed to start", err);
@@ -12610,6 +13365,305 @@ window.SKULRZ_POOL = [{"id":"skulrz-2237","name":"SkulRz #2237","nftName":"SkulR
       return;
     }
     setView(qs.view === "2d" ? "2d" : "3d");
+  }
+
+  /* ---------- Touch: card details, drag-to-play, how-to ---------- */
+  var isTouch = (function () {
+    try {
+      return ("ontouchstart" in window) || (navigator.maxTouchPoints > 0) ||
+        (window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+    } catch (e) { return false; }
+  })();
+
+  function dropHandOnLane(i, lane) {
+    if (!state || state.phase !== "main" || busy) return;
+    if (state.playerLanes[lane]) {
+      fail("That booth is taken. Burn it first.");
+      return;
+    }
+    onPlay(i, lane);
+  }
+
+  function findCardByIid(iid) {
+    if (iid == null) return null;
+    var id = String(iid), i;
+    if (state) {
+      var pools = [state.hand || [], state.playerLanes || [], state.enemyLanes || []];
+      for (var k = 0; k < pools.length; k++) {
+        for (i = 0; i < pools[k].length; i++) {
+          var c = pools[k][i];
+          if (c && String(c.iid) === id) return { card: c, enemy: k === 2 };
+        }
+      }
+    }
+    if (run && run.deck) {
+      for (i = 0; i < run.deck.length; i++) {
+        if (run.deck[i] && String(run.deck[i].iid) === id) {
+          try { return { card: E.hydrateCard(run.deck[i]), enemy: false }; } catch (e) { return null; }
+        }
+      }
+    }
+    return null;
+  }
+
+  /* After a long-press the finger lifts over the new overlay; the click that the
+     browser synthesises from that lift must not close it straight away. */
+  function swallowNextClick() {
+    var done = false;
+    function off() {
+      if (done) return; done = true;
+      document.removeEventListener("click", sw, true);
+      document.removeEventListener("pointerdown", off, true);
+    }
+    function sw(e) { e.stopPropagation(); e.preventDefault(); off(); }
+    document.addEventListener("click", sw, true);
+    document.addEventListener("pointerdown", off, true);   /* a fresh tap clicks normally */
+    setTimeout(off, 15000);
+  }
+
+  function inspectSlot(kind, i) {
+    if (!state) return;
+    var c = kind === "hand" ? state.hand[i] : (kind === "player" ? state.playerLanes[i] : state.enemyLanes[i]);
+    if (c) showCardDetail(c, kind === "enemy");
+  }
+
+  function showCardDetail(c, enemy) {
+    var el = $("overlay-card");
+    if (!el || !c) return;
+    var hidden = c.faceDown && !c.peeked;
+    var spread = (E.SPREADS[c.spread] || { name: String(c.spread) }).name;
+    var body;
+    if (hidden) {
+      body = "<h3>Face-down slice</h3><p>The Repairman is hiding this one. Use the <b>Butter Knife</b> to peek.</p>";
+    } else {
+      body = "<h3>" + esc(c.name) + "</h3>" +
+        (c.archetypeName && c.archetypeName !== c.name ? '<div class="cd-arch">' + esc(c.archetypeName) + "</div>" : "") +
+        '<div class="cd-stats"><span>Heat <b>' + esc(c.heat) + "</b></span><span>Crust <b>" + esc(c.crust) + "</b></span><span>Toast <b>" + esc(c.toast) + "</b></span><span>" + esc(spread) + "</span>" +
+        "<span>" + (c.cost ? esc(c.cost) + " Crumbs" : "Free") + "</span></div>" +
+        (c.text ? '<p class="cd-text">' + esc(c.isCopy ? "A crumb of a crumb." : c.text) + "</p>" : "") +
+        (c.burnMark ? '<p class="cd-mark">Burn mark: ' + esc(c.burnMark) + "</p>" : "") +
+        (c.flavor ? '<p class="cd-flavor">' + esc(c.flavor) + "</p>" : "") +
+        (c.sick ? '<p class="cd-note">Just sat down — it waits a turn before it bites.</p>' : "") +
+        (enemy ? '<p class="cd-note">The Repairman\u2019s side.</p>' : "");
+    }
+    el.innerHTML = '<div class="panel card-detail">' +
+      '<div class="cd-card">' + cardHTML(c, { hideCost: false, enemy: enemy }) + "</div>" +
+      '<div class="cd-body">' + body +
+        '<button type="button" class="btn end" id="btn-close-card">Got it</button></div>' +
+    "</div>";
+    el.classList.remove("hidden");
+    sfxClick();
+  }
+  function closeCardDetail() {
+    var el = $("overlay-card");
+    if (el) { el.classList.add("hidden"); el.innerHTML = ""; }
+  }
+
+  var TOUCH_KEY = "bo-touch-help-v1";
+  function touchHelpHTML() {
+    return '<div class="panel touch-help">' +
+      '<div class="menu-kicker">// HOW TO PLAY — TOUCH</div>' +
+      "<h2>FINGERS ON THE TABLE</h2>" +
+      '<ol class="th-list">' +
+        "<li><b>Tap a card</b> in your hand, then <b>tap a glowing lane</b>. Or just <b>drag</b> the card onto the lane.</li>" +
+        "<li><b>Hold a card</b> (yours or his) to read it. <b>Card info</b> reads the selected one.</li>" +
+        "<li>Short on Crumbs? <b>Tap one of your slices</b> on the table, then <b>Burn</b>.</li>" +
+        "<li><b>Items</b>: tap one. The Fork then wants a Repairman lane.</li>" +
+        "<li>Done? <b>End turn</b>. Keep the Toast Meter off Charcoal.</li>" +
+      "</ol>" +
+      '<p class="th-foot">Turn your phone sideways for a wider booth. Sound starts on your first tap.</p>' +
+      '<button type="button" class="btn end" id="btn-close-touch">Got it — deal me in</button>' +
+    "</div>";
+  }
+  function openTouchHelp() {
+    var el = $("overlay-touch");
+    if (!el) return;
+    el.innerHTML = touchHelpHTML();
+    el.classList.remove("hidden");
+  }
+  function closeTouchHelp() {
+    var el = $("overlay-touch");
+    if (el) el.classList.add("hidden");
+    try { if (window.localStorage) window.localStorage.setItem(TOUCH_KEY, "1"); } catch (e) {}
+  }
+  function maybeTouchHelp() {
+    if (!isTouch || testMode || qs.skiphelp === "1" || qs.touchhelp === "0") return;
+    var seen = null;
+    try { seen = window.localStorage && window.localStorage.getItem(TOUCH_KEY); } catch (e) {}
+    if (!seen || qs.touchhelp === "1") openTouchHelp();
+  }
+
+  /* Viewport bookkeeping: real visible height (mobile URL bars), compact flags. */
+  /* Portrait phones: keep the 3D hand above the bottom action bar. */
+  function updateHandInset() {
+    var sc = globalScene();
+    if (!sc || !sc.setHandInset) return;
+    var px = 0;
+    var b = document.body;
+    if (b.classList.contains("is-portrait") && b.classList.contains("is-compact")) {
+      var a = $("actions");
+      if (a) {
+        var r = a.getBoundingClientRect();
+        var h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        if (r.height) px = Math.max(0, h - r.top) + 10;
+      }
+    }
+    sc.setHandInset(px);
+  }
+
+  function syncViewport() {
+    var vv = window.visualViewport;
+    var w = vv ? vv.width : window.innerWidth;
+    var h = vv ? vv.height : window.innerHeight;
+    var de = document.documentElement;
+    de.style.setProperty("--app-h", Math.round(h) + "px");
+    de.style.setProperty("--app-w", Math.round(w) + "px");
+    var b = document.body;
+    b.classList.toggle("is-touch", !!isTouch);
+    b.classList.toggle("is-portrait", h > w * 1.1);
+    b.classList.toggle("is-compact", Math.min(w, h) <= 540 || w <= 760);
+    b.classList.toggle("is-short", h <= 540 && w > h);
+    if (globalScene() && globalScene().isReady && globalScene().isReady()) {
+      updateHandInset();
+      try { globalScene().resize(); } catch (e) {}
+    }
+  }
+  function bindViewport() {
+    var t = 0;
+    function later() { clearTimeout(t); syncViewport(); t = setTimeout(syncViewport, 250); }
+    window.addEventListener("resize", later);
+    window.addEventListener("orientationchange", later);
+    if (window.visualViewport) window.visualViewport.addEventListener("resize", later);
+    syncViewport();
+  }
+
+  /* Stop the page from scrolling, pinch/double-tap zooming, or popping the long-press
+     callout while playing. Overlays that hold long text still scroll. */
+  function scrollableAncestor(el) {
+    while (el && el !== document.body && el.nodeType === 1) {
+      if (el.classList && (el.classList.contains("overlay") || el.id === "log-wrap" || el.id === "items" || el.classList.contains("scroll-ok"))) {
+        if (el.scrollHeight > el.clientHeight + 1 || el.scrollWidth > el.clientWidth + 1) return el;
+      }
+      el = el.parentNode;
+    }
+    return null;
+  }
+  function bindTouchGuards() {
+    document.addEventListener("touchmove", function (ev) {
+      if (ev.touches && ev.touches.length > 1) { if (ev.cancelable) ev.preventDefault(); return; }
+      if (document.body.classList.contains("mode-2d")) return;
+      if (!scrollableAncestor(ev.target) && ev.cancelable) ev.preventDefault();
+    }, { passive: false });
+    ["gesturestart", "gesturechange", "gestureend"].forEach(function (t) {
+      document.addEventListener(t, function (ev) { if (ev.cancelable) ev.preventDefault(); }, { passive: false });
+    });
+    var lastEnd = 0;
+    document.addEventListener("touchend", function (ev) {
+      var n = Date.now();
+      var t = ev.target;
+      var formy = t && t.closest && t.closest("input, select, textarea");
+      if (!formy && n - lastEnd < 320 && ev.cancelable) {
+        /* second tap of a double-tap: block zoom but keep the tap */
+        ev.preventDefault();
+        if (t && t.click && t.closest && t.closest("button, [role=button], .card, .lane, .deck-card, .gallery-card")) t.click();
+      }
+      lastEnd = n;
+    }, { passive: false });
+    document.addEventListener("dblclick", function (ev) { ev.preventDefault(); });
+    document.addEventListener("contextmenu", function (ev) {
+      var t = ev.target;
+      if (t && t.closest && t.closest("input, textarea, a[href]")) return;
+      ev.preventDefault();
+    });
+    document.addEventListener("selectstart", function (ev) {
+      var t = ev.target;
+      if (t && t.closest && t.closest("input, textarea, select")) return;
+      ev.preventDefault();
+    });
+  }
+
+  /* DOM cards (2D table, run screens): long-press to read, drag a hand card onto a lane. */
+  function bindDomCardGestures() {
+    var gp = null;
+    var ghost = null;
+    function domCardAt(t) {
+      return t && t.closest ? t.closest("#app .card[data-iid], .deck-card[data-iid], .deck-card[data-toast-card], .deck-card[data-dump-card], .deck-card") : null;
+    }
+    function iidOf(el) {
+      return el.getAttribute("data-iid") || el.getAttribute("data-toast-card") || el.getAttribute("data-dump-card") ||
+        el.getAttribute("data-pick-card") || (function () {
+          for (var k = 0; k < el.attributes.length; k++) {
+            var a = el.attributes[k];
+            if (/^data-.*card$/.test(a.name) && a.value && !/index/.test(a.name)) return a.value;
+          }
+          return null;
+        })();
+    }
+    document.addEventListener("pointerdown", function (ev) {
+      if (ev.pointerType === "mouse" && ev.button !== 0) return;
+      var el = domCardAt(ev.target);
+      if (!el || el.closest("#overlay-card")) return;
+      var p = { id: ev.pointerId, x0: ev.clientX, y0: ev.clientY, t0: ev.timeStamp, el: el, fired: false, drag: false };
+      p.timer = setTimeout(function () {
+        if (gp !== p || p.drag) return;
+        var f = findCardByIid(iidOf(el));
+        if (f) { p.fired = true; showCardDetail(f.card, f.enemy); }
+      }, 450);
+      gp = p;
+    }, true);
+    document.addEventListener("pointermove", function (ev) {
+      if (!gp || gp.id !== ev.pointerId) return;
+      var dx = ev.clientX - gp.x0, dy = ev.clientY - gp.y0;
+      if (gp.fired && dx * dx + dy * dy > 144 && ev.timeStamp - gp.t0 < 450) { gp.fired = false; closeCardDetail(); }
+      if (gp.fired) return;
+      if (!gp.drag && dx * dx + dy * dy > 144) {
+        clearTimeout(gp.timer);
+        var hc = gp.el.closest("#hand .card");
+        if (hc && !mode3d && state && state.phase === "main" && !busy) {
+          gp.drag = true;
+          gp.hand = parseInt(hc.getAttribute("data-hand"), 10);
+          state.selectedHand = gp.hand; state.selectedLane = null; state.selectedItem = null;
+          render();
+          ghost = document.createElement("div");
+          ghost.className = "drag-ghost";
+          ghost.textContent = (state.hand[gp.hand] && state.hand[gp.hand].name) || "slice";
+          document.body.appendChild(ghost);
+        } else {
+          gp = null;
+          return;
+        }
+      }
+      if (gp.drag && ghost) {
+        ghost.style.transform = "translate(" + (ev.clientX - 40) + "px," + (ev.clientY - 60) + "px)";
+        if (ev.cancelable) ev.preventDefault();
+      }
+    }, { capture: true, passive: false });
+    function finish(ev, cancel) {
+      if (!gp || gp.id !== ev.pointerId) return;
+      var p = gp;
+      gp = null;
+      clearTimeout(p.timer);
+      if (ghost) { ghost.remove(); ghost = null; }
+      if (p.fired && ev.timeStamp - p.t0 < 450) { p.fired = false; closeCardDetail(); }
+      if (p.fired) {
+        /* swallow the click that would otherwise follow the long-press */
+        var swallow = function (e) { e.stopPropagation(); e.preventDefault(); document.removeEventListener("click", swallow, true); };
+        document.addEventListener("click", swallow, true);
+        setTimeout(function () { document.removeEventListener("click", swallow, true); }, 500);
+        return;
+      }
+      if (p.drag && !cancel) {
+        var under = document.elementFromPoint(ev.clientX, ev.clientY);
+        var lane = under && under.closest && under.closest('.lane[data-side="player"]');
+        if (lane) dropHandOnLane(p.hand, parseInt(lane.getAttribute("data-lane"), 10));
+        else render();
+        var sw = function (e) { e.stopPropagation(); e.preventDefault(); document.removeEventListener("click", sw, true); };
+        document.addEventListener("click", sw, true);
+        setTimeout(function () { document.removeEventListener("click", sw, true); }, 400);
+      }
+    }
+    document.addEventListener("pointerup", function (ev) { finish(ev, false); }, true);
+    document.addEventListener("pointercancel", function (ev) { finish(ev, true); }, true);
   }
 
   function fail(reason) {
@@ -12897,6 +13951,26 @@ window.SKULRZ_POOL = [{"id":"skulrz-2237","name":"SkulRz #2237","nftName":"SkulR
       ensureAudio();
       var t = ev.target;
       if (!(t instanceof Element)) return;
+      if (t.id === "btn-close-card" || t.closest("#btn-close-card") || t.id === "overlay-card") { closeCardDetail(); return; }
+      if (t.id === "btn-close-touch" || t.closest("#btn-close-touch")) { closeTouchHelp(); return; }
+      if (t.id === "btn-menu-touch" || t.closest("#btn-menu-touch")) { openTouchHelp(); return; }
+      if (t.id === "btn-touch-help" || t.closest("#btn-touch-help")) { openTouchHelp(); return; }
+      if (t.id === "btn-log" || t.closest("#btn-log")) {
+        var lw = $("log-wrap");
+        var open = !lw.classList.contains("open");
+        lw.classList.toggle("open", open);
+        $("btn-log").setAttribute("aria-expanded", open ? "true" : "false");
+        return;
+      }
+      if (t.id === "btn-info" || t.closest("#btn-info")) {
+        if (state && state.selectedHand != null) inspectSlot("hand", state.selectedHand);
+        else if (state && state.selectedLane != null) inspectSlot("player", state.selectedLane);
+        return;
+      }
+      var vbtn = t.closest("[data-setview]");
+      if (vbtn) { setView(vbtn.getAttribute("data-setview")); render(); renderSettings(); return; }
+      var info = t.closest("[data-info]");
+      if (info) { showToast(info.getAttribute("data-info")); return; }
       var magnet = t.closest("[data-magnet]");
       if (magnet) { onPickMagnet(magnet.getAttribute("data-magnet")); return; }
       if (t.id === "btn-dismiss-help" || t.closest("#btn-dismiss-help")) { closeHelpManual(); return; }
@@ -13006,6 +14080,14 @@ window.SKULRZ_POOL = [{"id":"skulrz-2237","name":"SkulRz #2237","nftName":"SkulR
     });
 
     document.addEventListener("keydown", function (ev) {
+      if (ev.key === "Escape") {
+        if ($("overlay-card") && !$("overlay-card").classList.contains("hidden")) { closeCardDetail(); return; }
+        if ($("overlay-touch") && !$("overlay-touch").classList.contains("hidden")) { closeTouchHelp(); return; }
+      }
+      if ((ev.key === "i" || ev.key === "I") && state) {
+        if (state.selectedHand != null) { inspectSlot("hand", state.selectedHand); return; }
+        if (state.selectedLane != null) { inspectSlot("player", state.selectedLane); return; }
+      }
       if (!state || busy) return;
       if (ev.key === "e" || ev.key === "E") {
         if (state.phase === "main") endTurn();
@@ -13024,7 +14106,12 @@ window.SKULRZ_POOL = [{"id":"skulrz-2237","name":"SkulRz #2237","nftName":"SkulR
   function start() {
     build();
     bind();
+    bindTouchGuards();
+    bindDomCardGestures();
+    bindViewport();
     init3D();
+    if (qs.longpress && globalScene() && globalScene().setLongPressMs) globalScene().setLongPressMs(parseInt(qs.longpress, 10));
+    syncViewport();
     var opts = {};
     if (qs.seed) opts.seed = parseInt(qs.seed, 10);
     if (qs.magnet) {
@@ -13047,6 +14134,7 @@ window.SKULRZ_POOL = [{"id":"skulrz-2237","name":"SkulRz #2237","nftName":"SkulR
     render();
     var skipMenu = testMode || qs.skiphelp === "1" || qs.menu === "0" || !!qs.seed;
     if (!skipMenu) openMenu();
+    maybeTouchHelp();
   }
 
 
@@ -13627,7 +14715,10 @@ window.SKULRZ_POOL = [{"id":"skulrz-2237","name":"SkulRz #2237","nftName":"SkulR
     autoPlayRun: function (opts) { return autoPlayRunUI(opts || {}); },
     autoPlayRunTo: function (target, opts) { return autoPlayRunTo(target, opts || {}); },
     startQuickDuel: function (magnet, seed) { startQuickDuel(); if (magnet || seed) { state = E.newDuel({ magnet: magnet, seed: seed, skipHelp: true }); E.dismissHelp(state); render(); } return pub(); },
-    runEngine: R
+    runEngine: R,
+    inspect: function (kind, i) { inspectSlot(kind, i); return !$("overlay-card").classList.contains("hidden"); },
+    openTouchHelp: function () { openTouchHelp(); },
+    isTouch: function () { return isTouch; }
   };
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);

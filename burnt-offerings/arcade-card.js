@@ -29,7 +29,12 @@ showStyle();
 (function(){
   if(document.getElementById("tt-bo-ovcss"))return;
   var st=document.createElement("style");st.id="tt-bo-ovcss";
-  st.textContent="@media (max-height:500px){#tt-bo-ov .tt-ns-ov-bar{padding:2px 8px;font-size:10px;gap:8px;border-bottom-width:1px}#tt-bo-ov .tt-ns-ov-bar a{font-size:10px}#tt-bo-ov .tt-ns-ov-x{width:26px;height:26px;font-size:15px}}";
+  /* Phones: full visible height (URL bars), no rubber-band scroll behind the game,
+     and a close button that stays a 44px tap target even on a short landscape screen. */
+  st.textContent="#tt-bo-ov{height:100vh;height:100dvh;overscroll-behavior:contain;touch-action:none}"+
+    "#tt-bo-ov iframe{min-height:0;touch-action:none}"+
+    "#tt-bo-ov .tt-ns-ov-x{min-width:44px;min-height:44px;touch-action:manipulation}"+
+    "@media (max-height:500px){#tt-bo-ov .tt-ns-ov-bar{padding:0 8px;font-size:10px;gap:8px;border-bottom-width:1px}#tt-bo-ov .tt-ns-ov-bar a{font-size:10px}#tt-bo-ov .tt-ns-ov-x{width:44px;height:44px;font-size:17px;border-width:1px}}";
   (document.head||document.documentElement).appendChild(st);
 })();
 var THUMB=U+"arcade-thumb.jpg?v="+ART_V;
@@ -38,7 +43,7 @@ var CARD='<button type="button" class="tt-ns-shot" data-bo-play aria-label="Play
  '<p class="tt-ns-d">A creepy diner card duel: burn your SkulRz slices, toast the meter, outlast The Repairman.</p>'+
  '<button type="button" class="tt-ns-play" data-bo-play>&#9654; PLAY</button>'+
  '<a class="tt-ns-new-tab" href="'+LIVE+'" target="_blank" rel="noopener">open in new tab &#8599;</a>'+
- '<p class="tt-ns-keys">MOUSE · CLICK A CARD, THEN A LANE · PHONES: TOUCH</p></div>';
+ '<p class="tt-ns-keys">CLICK OR DRAG A CARD ONTO A LANE · PHONES: TAP OR DRAG, HOLD A CARD TO READ IT</p></div>';
 
 function anchor(root){
   var kart=root.querySelector("[data-kart-card]");
@@ -92,6 +97,7 @@ function open(){
   o.innerHTML='<div class="tt-ns-ov-bar"><span>'+NAME_UP+'</span><a href="'+LIVE+'" target="_blank" rel="noopener">open in new tab &#8599;</a><button type="button" class="tt-ns-ov-x" aria-label="Close game">&times;</button></div>';
   var f=document.createElement("iframe");f.src=LIVE;f.title=NAME;
   f.setAttribute("allow","fullscreen; pointer-lock; autoplay; gamepad");
+  f.setAttribute("scrolling","no");
   f.setAttribute("allowfullscreen","");
   f.setAttribute("tabindex","0");
   o.appendChild(f);document.body.appendChild(o);
