@@ -3,18 +3,19 @@
 <head>
 <meta charset="utf-8">
 <link rel="icon" href="data:,">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Toasty's Prize Floor — v0.5.1</title>
+<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Toasty's Prize Floor — v0.5.2</title>
 <style>
 :root{--y:#FFD400;--m:#ff2bd6;--c:#00f0ff;--k:#05070d;--cream:#f2ecd6}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:"Arial Black",Impact,system-ui,sans-serif;color:var(--cream);user-select:none;-webkit-user-select:none;touch-action:none}
 canvas#c{display:block;width:100vw;height:100vh}
-#overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;background:radial-gradient(circle at 50% 40%,rgba(40,20,60,.82),rgba(0,0,0,.95));z-index:30;text-align:center;cursor:pointer}
+#overlay{position:fixed;inset:0;display:flex;overflow-y:auto;overscroll-behavior:contain;padding:16px;align-items:center;justify-content:center;flex-direction:column;background:radial-gradient(circle at 50% 40%,rgba(40,20,60,.82),rgba(0,0,0,.95));z-index:30;text-align:center;cursor:pointer}
 #overlay h1{font-family:Impact,"Arial Black",sans-serif;font-size:min(9vw,82px);margin:0;color:var(--y);letter-spacing:2px;text-shadow:3px 0 var(--m),-3px 0 var(--c),0 0 34px rgba(255,212,0,.6)}
 #overlay h2{margin:.2em 0 .9em;font-size:min(4vw,20px);color:var(--c);letter-spacing:4px}
 #overlay .go{font-size:min(5vw,28px);padding:.5em 1.2em;border:3px solid var(--y);color:var(--y);animation:pulse 1.2s infinite}
-#overlay .ctl{margin-top:1.2em;font-family:system-ui,sans-serif;font-weight:600;font-size:14px;line-height:1.7;color:#cbbcd9;max-width:640px}
+#overlay .ctl{width:min(640px,94vw);margin-top:1.2em;font-family:system-ui,sans-serif;font-weight:600;font-size:14px;line-height:1.7;color:#cbbcd9;max-width:640px}
 #overlay .ctl b{color:var(--y)}
 #overlay .qrow{margin-top:14px;display:flex;gap:8px;align-items:center;font-family:system-ui;font-weight:800;font-size:13px;color:#9a90a8}
 #overlay .qrow button.on{background:var(--y);color:#000}
@@ -68,14 +69,46 @@ button:disabled{opacity:.35;cursor:default}
 .choice button small{display:block;font-family:system-ui;font-weight:700;font-size:12px;margin-top:6px;opacity:.9}
 .choice .burnt{border-color:#ff5a00;color:#ff8a3a}
 .choice .burnt:hover{background:#ff5a00;color:#000}
-#touch{display:none;position:fixed;inset:0;z-index:8;pointer-events:none}
-#touch .stick{position:absolute;left:24px;bottom:120px;width:120px;height:120px;border-radius:50%;border:2px solid rgba(255,212,0,.5);pointer-events:none}
+html,body,canvas{-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+canvas{touch-action:none}
+#touch{display:none;position:fixed;inset:0;z-index:8;pointer-events:none;--sl:env(safe-area-inset-left,0px);--sr:env(safe-area-inset-right,0px);--sb:env(safe-area-inset-bottom,0px);--st:env(safe-area-inset-top,0px)}
+#touch button{touch-action:none;-webkit-user-select:none;user-select:none;font-family:"Arial Black",Impact,sans-serif;color:var(--y);border:2px solid var(--y);border-radius:10px;background:rgba(0,0,0,.55);padding:0;min-width:48px;min-height:48px}
+#touch button.dn{background:var(--y);color:#000}
+#touch .stick{position:absolute;left:calc(24px + var(--sl));bottom:calc(140px + var(--sb));width:120px;height:120px;border-radius:50%;border:2px solid rgba(255,212,0,.45);pointer-events:none;opacity:.55}
+#touch .stick.live{opacity:1}
 #touch .knob{position:absolute;left:40px;top:40px;width:40px;height:40px;border-radius:50%;background:rgba(255,212,0,.6)}
-#touch .btns{position:absolute;right:18px;bottom:24px;display:flex;flex-direction:column;gap:10px;pointer-events:auto}
-#touch .btns button{width:84px;height:50px;font-size:14px;background:rgba(0,0,0,.6)}
-#touch .lr{position:absolute;right:120px;bottom:24px;display:none;gap:10px;pointer-events:auto}
-#touch .lr button{width:64px;height:50px;font-size:18px;background:rgba(0,0,0,.6)}
-@media (max-height:500px){.watch{transform:scale(.7);transform-origin:bottom left}#touch .stick{bottom:120px;left:150px}}
+body.inMachine #touch .stick{display:none}
+#touch .btns{position:absolute;right:calc(12px + var(--sr));bottom:calc(12px + var(--sb));display:flex;flex-direction:column;gap:8px;pointer-events:auto}
+#touch .btns button{width:84px;height:52px;font-size:15px}
+#tNudge{display:none}
+#touch .lr{position:absolute;right:calc(106px + var(--sr));bottom:calc(12px + var(--sb));display:none;gap:8px;pointer-events:auto}
+#touch .lr button{width:62px;height:56px;font-size:20px}
+#tX{position:absolute;right:calc(106px + var(--sr));bottom:calc(78px + var(--sb));display:flex;flex-wrap:wrap-reverse;justify-content:flex-end;gap:8px;max-width:min(60vw,330px);pointer-events:auto}
+#tX button{height:48px;padding:0 12px;font-size:14px}
+#tTop{position:absolute;right:calc(10px + var(--sr));top:calc(26px + var(--st));display:flex;gap:8px;pointer-events:auto}
+#tTop button{width:52px;height:48px;font-size:16px}
+#tTop #tCards{width:auto;padding:0 10px;font-size:12px}
+body.touch #overlay h2{letter-spacing:1px;text-align:center;font-size:14px}
+body.touch #overlay .ctl{font-size:13px;line-height:1.45}
+body.touch #overlay .qrow{margin-top:8px}
+body.touch #ver{top:auto;bottom:calc(2px + env(safe-area-inset-bottom,0px));right:auto;left:50%;transform:translateX(-50%);font-size:9px;white-space:nowrap}
+body.touch #msgs{top:calc(82px + env(safe-area-inset-top,0px));max-width:94vw}
+body.touch #mhelp{top:calc(26px + env(safe-area-inset-top,0px));bottom:auto;left:calc(10px + env(safe-area-inset-left,0px));transform:none;white-space:normal;max-width:calc(100vw - 230px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px));font-size:12px;line-height:1.3}
+body.touch #prompt{white-space:normal;max-width:86vw;text-align:center}
+body.touch #hud{left:calc(10px + env(safe-area-inset-left,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px))}
+body.touch #modal .box{touch-action:pan-y;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;max-height:calc(100% - 24px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
+body.touch #modal button,body.touch .tabs button,body.touch #overlay .qrow button{min-height:44px;min-width:44px}
+body.touch .tabs button{padding:10px 12px}
+body.touch #modal .box>div:last-child:has(#mClose){position:sticky;bottom:-18px;margin:10px -20px -18px;padding:8px 20px;background:rgba(8,7,12,.96);border-top:1px solid #3a2a4a}
+#howto{display:none;position:fixed;inset:0;z-index:40;align-items:center;justify-content:center;background:rgba(0,0,0,.72);padding:calc(10px + env(safe-area-inset-top,0px)) 10px calc(10px + env(safe-area-inset-bottom,0px))}
+#howto .hbox{width:min(560px,94vw);max-height:100%;overflow:auto;touch-action:pan-y;overscroll-behavior:contain;background:linear-gradient(180deg,#110e18,#08070c);border:3px solid var(--y);border-radius:10px;box-shadow:5px 5px 0 var(--m),-5px -5px 0 var(--c);padding:14px 18px;font-family:system-ui,sans-serif;font-weight:600;color:#cbbcd9;font-size:14px;line-height:1.45}
+#howto h3{margin:0 0 6px;color:var(--y);font-family:Impact,"Arial Black",sans-serif;font-size:24px;letter-spacing:1px}
+#howto b{color:var(--y)}#howto ul{margin:6px 0 10px;padding-left:18px}#howto li{margin:3px 0}
+#howtoOk{display:block;margin:6px auto 0;min-width:160px;min-height:48px;font-size:18px}
+#rot{display:none;position:fixed;left:calc(10px + env(safe-area-inset-left,0px));top:calc(26px + env(safe-area-inset-top,0px));z-index:13;max-width:46vw;font-family:system-ui;font-weight:800;font-size:12px;color:#000;background:var(--c);border-radius:8px;padding:8px 10px;min-height:44px;line-height:1.3}
+body.inMachine #rot{display:none!important}
+@media (max-height:500px){.watch{transform:scale(.7);transform-origin:bottom left}#touch .stick{bottom:calc(96px + var(--sb));left:calc(150px + var(--sl))}#tTop{top:calc(6px + var(--st))}body.touch #mhelp{top:calc(6px + env(safe-area-inset-top,0px))}body.touch #msgs{top:calc(58px + env(safe-area-inset-top,0px))}#touch .btns{gap:6px}#touch .btns button{height:48px}}
+@media (max-width:500px){.watch{transform:scale(.72);transform-origin:bottom left}body.touch #mhelp{max-width:calc(100vw - 20px);top:calc(80px + env(safe-area-inset-top,0px))}body.touch #msgs{top:calc(150px + env(safe-area-inset-top,0px))}#touch .stick{bottom:calc(120px + var(--sb))}#tX{bottom:calc(140px + var(--sb));right:calc(12px + var(--sr));max-width:calc(100vw - 24px)}#touch .lr{bottom:calc(76px + var(--sb))}}
 #ver{position:fixed;right:10px;top:8px;z-index:10;font-family:system-ui;font-size:11px;color:#777;pointer-events:none;text-align:right}
 </style>
 <script type="importmap">
@@ -86,7 +119,7 @@ button:disabled{opacity:.35;cursor:default}
 <canvas id="c"></canvas>
 <div id="overlay">
   <h1>TOASTY'S PRIZE FLOOR</h1>
-  <h2>v0.5.1 · SIX WINGS · 24 MACHINES · NEW BOWLING LANE</h2>
+  <h2>v0.5.2 · SIX WINGS · 24 MACHINES · BUTTER LANE · TOUCH READY</h2>
   <div class="go" id="go">CLICK TO ENTER</div>
   <div class="ctl" id="ctl"><b>WASD</b> walk · <b>MOUSE</b> look · <b>SHIFT</b> hurry · <b>E</b> / <b>CLICK</b> use · <b>C</b> card binder · <b>O</b> graphics Low/High<br>
   At a machine: <b>MOUSE</b> or <b>A/D</b> aim/steer/pick · <b>CLICK</b>/<b>SPACE</b> play · <b>W/S</b> extra moves · <b>1-4</b> Rerun channels · <b>T</b> nudge a pusher · <b>E</b> or <b>Q</b> step back<br>
@@ -108,9 +141,21 @@ button:disabled{opacity:.35;cursor:default}
 <div id="msgs"></div>
 <div id="modal"><div class="box" id="mbox"></div></div>
 <div id="touch"><div class="stick" id="stick"><div class="knob" id="knob"></div></div>
-  <div class="lr" id="tLR"><button id="tL">◀</button><button id="tR">▶</button></div>
+  <div id="tTop"><button id="tHelp" aria-label="How to play">?</button><button id="tCards" aria-label="Card binder">CARDS</button><button id="tPause" aria-label="Pause and graphics">❚❚</button></div>
+  <div id="tX"></div>
+  <div class="lr" id="tLR"><button id="tL" aria-label="Left">◀</button><button id="tR" aria-label="Right">▶</button></div>
   <div class="btns"><button id="tUse">USE</button><button id="tNudge">NUDGE</button><button id="tBack">BACK</button></div></div>
-<div id="ver">v0.5.1 · prototype<br><span id="qv"></span></div>
+<div id="rot">↻ Rotate your phone for the best view · tap to hide</div>
+<div id="howto"><div class="hbox"><h3>HOW TO PLAY (TOUCH)</h3><ul>
+<li><b>Walk:</b> put your left thumb anywhere on the left half and drag.</li>
+<li><b>Look:</b> drag on the right half.</li>
+<li><b>Use a machine:</b> when its name pops up, <b>tap the screen</b> or press <b>USE</b>.</li>
+<li><b>At a machine:</b> <b>TAP</b> the screen to insert Tokens, drop, fire or lock. <b>DRAG</b> to aim and steer. <b>◀ ▶</b> fine-tune. Some machines add extra buttons. <b>BACK</b> steps away.</li>
+<li><b>Prizes:</b> feed Stubs to the Stub Toaster, then spend them at the Prize Counter. <b>CARDS</b> opens your binder.</li>
+<li><b>❚❚</b> pauses and sets graphics. <b>?</b> shows this again.</li>
+<li>Sideways (landscape) gives the best view. Tokens are for play only, with no real money.</li></ul>
+<button id="howtoOk">GOT IT</button></div></div>
+<div id="ver">v0.5.2 · prototype<br><span id="qv"></span></div>
 <script type="module">
 import * as THREE from 'three';
 import RAPIER from 'rapier';
@@ -125,7 +170,7 @@ import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js'
 import {Reflector} from 'three/addons/objects/Reflector.js';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 
-const VERSION='0.5.1';
+const VERSION='0.5.2';
 const QS=new URLSearchParams(location.search);let FASTSIM=false;
 const $=id=>document.getElementById(id);
 const rand=(a,b)=>a+Math.random()*(b-a);
@@ -134,7 +179,7 @@ const pick=a=>a[Math.floor(Math.random()*a.length)];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const lerp=(a,b,t)=>a+(b-a)*t;
 const TAU=Math.PI*2;
-const isTouch=matchMedia('(pointer: coarse)').matches&&!QS.has('desktop');
+let isTouch=!QS.has('desktop')&&(matchMedia('(pointer: coarse)').matches||(navigator.maxTouchPoints>0&&!matchMedia('(hover: hover)').matches));
 
 // ================= SAVE =================
 const SAVE_KEY='tpf_v02',OLD_KEY='tpf_v01';
@@ -167,6 +212,8 @@ addEventListener('beforeunload',()=>writeSave(true));
 
 // ================= AUDIO (procedural WebAudio) =================
 const A={ctx:null,master:null,amb:{},last:{}};
+function audioUnlock(){audioInit();const c=A.ctx;if(!c)return;if(c.state!=='running'){try{c.resume()}catch(e){}}if(!A.unlocked){try{const b=c.createBuffer(1,1,22050),src=c.createBufferSource();src.buffer=b;src.connect(c.destination);src.start(0);A.unlocked=true}catch(e){}}}
+if(QS.has('shot'))window.__audioState=()=>A.ctx?A.ctx.state:'none';
 function audioInit(){
  if(A.ctx){if(A.ctx.state==='suspended')A.ctx.resume();return}
  try{A.ctx=new (window.AudioContext||window.webkitAudioContext)()}catch(e){return}
@@ -278,7 +325,7 @@ function buildComposer(){
  bloomPass=new UnrealBloomPass(new THREE.Vector2(w,h),+(QS.get("bs")||(hi?.38:.32)),+(QS.get("br")||.35),+(QS.get("bt")||1.0));composer.addPass(bloomPass);
  composer.addPass(new OutputPass());
  crtPass=new ShaderPass(CRT);crtPass.uniforms.uR.value.set(w*pr,h*pr);composer.addPass(crtPass);
- camera.aspect=w/h;camera.updateProjectionMatrix();
+ camera.aspect=w/h;{const a=w/h;const f=a<1.2?Math.min(100,2*Math.atan(Math.tan(35*Math.PI/180)*1.2/a)*180/Math.PI):70;camera.fov=f;camera.userData.baseFov=f}camera.updateProjectionMatrix();
  $('qv').textContent=`GRAPHICS: ${hi?'HIGH':'LOW'} (O to switch)`;
  $('qLow').classList.toggle('on',!hi);$('qHigh').classList.toggle('on',hi)}
 function applyShadows(){const on=Q.high;if(renderer.shadowMap.enabled!==on){renderer.shadowMap.enabled=on;scene.traverse(o=>{if(o.material){(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>m.needsUpdate=true)}})}}
@@ -2708,7 +2755,7 @@ function bwPay(score,strikes,spares){return Math.round(score/11)+strikes+Math.fl
 Object.assign(BWL,{aimX:0,power:0,spin:0,t:0,fr:[[],[],[]],f:0,gone:Array(10).fill(false),sw:Array(10).fill(false),fade:Array(10).fill(0),rollT:0,last:'',lastCol:'#FFD400',dirty:true,best:0,gutter:false,hit:false,strikes:0,spares:0,streak:0,camK:0,paid:0,upBefore:10});
 BWL.reset=function(){const B=BWL;B.fr=[];for(let i=0;i<BW_FR;i++)B.fr.push([]);B.f=0;B.strikes=0;B.spares=0;B.streak=0;bwRack();B.upBefore=10};
 BWL.action=function(){const B=BWL;
- if(B.state==='idle'||B.state==='over'){if(!charge(BW_COST,'BUTTER LANE'))return;B.reset();B.state='aim';B.last='AIM · CLICK TO SET POWER';B.lastCol='#00f0ff';SFX.ding(0);B.dirty=true;return}
+ if(B.state==='idle'||B.state==='over'){if(!charge(BW_COST,'BUTTER LANE'))return;B.reset();B.state='aim';B.last=isTouch?'AIM · TAP TO SET POWER':'AIM · CLICK TO SET POWER';B.lastCol='#00f0ff';SFX.ding(0);B.dirty=true;return}
  if(B.state==='aim'){B.state='power';B.t=0;SFX.tick();B.dirty=true;return}
  if(B.state==='power'){B.power=tri(B.t,.85);B.state='spin';B.t=0;SFX.tick();B.dirty=true;return}
  if(B.state==='spin'){B.spin=tri(B.t,.7)*2-1;B.launch();return}};
@@ -2733,7 +2780,7 @@ BWL.update=function(dt){const B=BWL;B.t+=dt;
   else if(B.t>1.6){B.score()}}
  else if(B.state==='sweep'){B.t+=0;const k=B.t/.9;B.sweep.visible=true;B.sweep.position.set(0,.85-.6*Math.sin(Math.min(1,k)*Math.PI),BW_DECK-.12-Math.min(1,k)*.9);
   for(let i=0;i<10;i++)if(B.sw[i])B.fade[i]=Math.max(.001,1-k*1.4);bwSync();
-  if(k>=1){B.sweep.visible=false;for(let i=0;i<10;i++)if(B.sw[i]){B.sw[i]=false;B.fade[i]=0;bwHide(i)}if(B.after==='rack')bwRack();bwSync();B.state=B.after==='over'?'over':'aim';if(B.after==='over')B.finish();else{B.last='AIM · CLICK TO SET POWER';B.lastCol='#00f0ff'}B.dirty=true}}
+  if(k>=1){B.sweep.visible=false;for(let i=0;i<10;i++)if(B.sw[i]){B.sw[i]=false;B.fade[i]=0;bwHide(i)}if(B.after==='rack')bwRack();bwSync();B.state=B.after==='over'?'over':'aim';if(B.after==='over')B.finish();else{B.last=isTouch?'AIM · TAP TO SET POWER':'AIM · CLICK TO SET POWER';B.lastCol='#00f0ff'}B.dirty=true}}
  // camera rides a little toward the pins during the roll
  if(play.machine==='bowl'&&!play.tween){const tk=(B.state==='roll'||B.state==='settle')?1:0;B.camK+=(tk-B.camK)*Math.min(1,dt*2.5);if(B.camK>.001||tk){const z=1.62-1.15*B.camK,y=1.48-.18*B.camK;camera.position.copy(B.L(0,y,z));camera.lookAt(B.view.look)}}
  laneGlow(dt);if(B.dirty){bwSync();if(!FASTSIM){B.draw();B.dirty=false}}};
@@ -2758,7 +2805,7 @@ BWL.score=function(){const B=BWL,w=BWP.w;if(BWP.ball){w.removeRigidBody(BWP.ball
 BWL.finish=function(){const B=BWL;const sc=bwScores(B.fr);const total=sc[sc.length-1]||0;const pay=bwPay(total,B.strikes,B.spares);B.paid=pay;B.lastTotal=total;
  if(!S.bowl)S.bowl={best:0,games:0};S.bowl.games++;if(total>S.bowl.best)S.bowl.best=total;
  stubs(pay,B,`BUTTER LANE final: ${total} pts · +${pay} Stubs`,'#FFD400',B.L(0,1.9,-.75));
- if(!FASTSIM&&total>=60)bigWin('BUTTER BOWLER!',`${total} points`);B.last=`FINAL ${total} · +${pay} STUBS · CLICK FOR A NEW GAME`;B.lastCol='#FFD400';B.state='over';B.dirty=true};
+ if(!FASTSIM&&total>=60)bigWin('BUTTER BOWLER!',`${total} points`);B.last=`FINAL ${total} · +${pay} STUBS · ${isTouch?'TAP':'CLICK'} FOR A NEW GAME`;B.lastCol='#FFD400';B.state='over';B.dirty=true};
 BWL.enter=()=>{BWL.dirty=true;BWL.camK=0;msg(isTouch?'BUTTER LANE: ◀ ▶ or drag to aim, USE locks POWER, USE again locks SPIN and rolls. Strikes and spares pay extra Stubs.':'BUTTER LANE: aim with A/D or the mouse, click to lock POWER, click again to lock SPIN and roll. Strikes and spares pay extra Stubs.','#FFD400')};
 BWL.draw=function(){const B=BWL,t=B.scr.t,x=t.image.getContext('2d'),W=1024,H=448;
  const gr=x.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#160a24');gr.addColorStop(1,'#07040c');x.fillStyle=gr;x.fillRect(0,0,W,H);
@@ -2784,7 +2831,7 @@ BWL.draw=function(){const B=BWL,t=B.scr.t,x=t.image.getContext('2d'),W=1024,H=44
   meterBar(x,374,my,250,34,B.state==='power'?tri(B.t,.85):(B.state==='spin'?B.power:0),{lo:'#00f0ff',hi:'#ff5a00',label:'POWER'});
   meterBar(x,644,my,200,34,B.state==='spin'?tri(B.t,.7):(.5),{lo:'#ff2bd6',hi:'#00f0ff',label:'SPIN  ◀ hook · straight · hook ▶'})}
  x.font='bold 30px system-ui,sans-serif';x.fillStyle=B.lastCol||'#fff';x.shadowColor=B.lastCol||'#fff';x.shadowBlur=10;
- const msgT=B.state==='idle'?`CLICK TO BOWL · ${BW_COST} TOKENS · 3 FRAMES`:B.state==='aim'?'AIM WITH A/D OR MOUSE · CLICK = POWER':B.state==='power'?'CLICK TO LOCK POWER':B.state==='spin'?'CLICK TO LOCK SPIN & ROLL':B.last;
+ const C=isTouch?'TAP':'CLICK';const msgT=B.state==='idle'?`${C} TO BOWL · ${BW_COST} TOKENS · 3 FRAMES`:B.state==='aim'?(isTouch?'DRAG OR ◀ ▶ TO AIM · TAP = POWER':'AIM WITH A/D OR MOUSE · CLICK = POWER'):B.state==='power'?`${C} TO LOCK POWER`:B.state==='spin'?`${C} TO LOCK SPIN & ROLL`:B.last;
  x.fillText(msgT,24,my+80,W-200);x.shadowBlur=0;
  x.font='bold 20px system-ui,sans-serif';x.fillStyle='#9a7ac0';x.fillText('STRIKE = 10 + next 2 balls · SPARE = 10 + next ball · Stubs = score ÷ 11 + 1 per strike + spare bonus',24,H-22,W-200);
  t.needsUpdate=true};
@@ -2805,12 +2852,38 @@ const TARGETS=[
 Object.values(MACHINES).forEach(m=>TARGETS.push({id:m.id,p:m.target.p,r:m.target.r,label:m.target.label,act:()=>enterMachine(m.id),zone:m.w.id}));
 const _f=new THREE.Vector3(),_d=new THREE.Vector3();
 function findTarget(){_f.set(0,0,-1).applyQuaternion(camera.quaternion);let best=null,bd=0;for(const t of TARGETS){if(t.zone&&t.zone!==curZone)continue;_d.copy(t.p).sub(camera.position);const dist=_d.length();if(dist>t.r)continue;_d.normalize();const dot=_d.dot(_f);if(dot>.78&&dot>bd){bd=dot;best=t}}return best}
+// ---- v0.5.2 touch scheme per machine: g = drag gain, lr = show ◀ ▶, x = extra buttons [label,key], h = touch help
+const TCFG={
+ pusher:{g:1,lr:1,h:'TAP or USE drops a Token · DRAG or ◀ ▶ aims · NUDGE shakes the shelf'},
+ toastomatic:{lr:0,h:'TAP: insert 2 Tokens · TAP again to POP at GOLDEN'},
+ exitdrop:{lr:0,h:'TAP: drop the ball (2 Tokens) · time it into the static TV'},
+ laneslide:{g:1,lr:1,x:[['▲ SLIDE','w'],['▼ SLIDE','s']],h:'◀ ▶ or DRAG picks a lane · TAP slides it · ▲ ▼ slide back'},
+ toasterslot:{lr:0,h:'TAP: pull the lever (1 Token)'},
+ rally:{g:1,lr:1,h:'TAP: start, then TAP to boost · DRAG or ◀ ▶ steers'},
+ repairman:{g:1,lr:1,x:[['PEEK','w']],h:'◀ ▶ or DRAG picks a slice · TAP plays it · PEEK once per round'},
+ gravegrabber:{g:4,lr:1,h:'TAP: 3 Tokens · TAP stops the claw across · TAP again stops it deep · ◀ ▶ nudge'},
+ whackaglitch:{g:1,lr:1,x:[['1','1'],['2','2'],['3','3'],['4','4'],['5','5']],h:'TAP: 3 Tokens · TAP whacks · DRAG/◀ ▶ moves the mallet, or hit a TV 1-5'},
+ lakejump:{g:14,lr:1,h:'TAP: 3 Tokens · DRAG or ◀ ▶ aims · TAP rolls at the power shown'},
+ crumbstacker:{lr:0,x:[['TAKE MINOR','s']],h:'TAP: 2 Tokens · TAP drops each row · TAKE MINOR cashes out at 8'},
+ tipjar:{g:14,lr:1,h:'DRAG or ◀ ▶ aims · TAP tosses 1 Token at the power shown'},
+ breadwheel:{lr:0,h:'TAP: grab the wheel (2 Tokens) · TAP again to let it rip'},
+ rerun:{g:1,lr:1,x:[['1','1'],['2','2'],['3','3'],['4','4']],h:'TAP: 3 Tokens · watch the rerun, then repeat it with 1-4'},
+ critter:{g:3,lr:0,h:'TAP: 3 Tokens · DRAG aims the Toast Zapper · TAP fires'},
+ derby:{lr:0,h:'TAP: 3 Tokens · TAP on the beat as each note hits the line'},
+ capsule:{lr:0,h:'TAP: 2 Tokens · TAP 3 times to crank'},
+ hockey:{g:3,lr:0,h:'TAP: 2 Tokens · DRAG moves your spatula · TAP smashes · first to 5'},
+ bell:{lr:1,h:'TAP: 2 Tokens · MASH TAP (or ◀ ▶) for power · TAP again in the middle'},
+ bowl:{g:2,lr:1,h:'TAP: 3 Tokens · DRAG or ◀ ▶ aims · TAP locks POWER · TAP locks SPIN and rolls'}};
+function tcfg(m){return TCFG[m.kind==='pusher'?'pusher':m.id]||{g:1,lr:1,h:'TAP or USE plays · DRAG or ◀ ▶ aims'}}
+function touchMachineUI(m){const c=m?tcfg(m):null;$('tLR').style.display=c&&c.lr?'flex':'none';$('tNudge').style.display=m&&m.kind==='pusher'?'block':'none';
+ const x=$('tX');x.innerHTML='';if(c&&c.x)for(const [lab,k] of c.x){const b=document.createElement('button');b.textContent=lab;b.dataset.k=k;x.appendChild(b)}
+ document.body.classList.toggle('inMachine',!!m)}
 function enterMachine(id){const m=MACHINES[id];if(!m)return;play.mode='machine';play.machine=id;const v=m.view;
  const mm=new THREE.Matrix4().lookAt(v.pos,v.look,new THREE.Vector3(0,1,0));const q=new THREE.Quaternion().setFromRotationMatrix(mm);
- play.tween={from:{p:camera.position.clone(),q:camera.quaternion.clone()},to:{p:v.pos.clone(),q},t:0};$('mhelp').textContent=isTouch?'Drag right side or ◀ ▶ to aim/steer · USE to play · BACK to leave':m.help;$('mhelp').style.display='block';$('cross').style.display='none';$('prompt').style.display='none';play.target=null;
- $('tLR').style.display=isTouch?'flex':'none';
+ play.tween={from:{p:camera.position.clone(),q:camera.quaternion.clone()},to:{p:v.pos.clone(),q},t:0};$('mhelp').textContent=isTouch?tcfg(m).h+' · BACK leaves':m.help;$('mhelp').style.display='block';$('cross').style.display='none';$('prompt').style.display='none';play.target=null;
+ if(isTouch)touchMachineUI(m);
  if(m.kind==='pusher'){m.dispDirty=true;msg(`${m.name}: ${m.rule1}`)}m.enter&&m.enter()}
-function exitMachine(){if(play.mode!=='machine')return;play.mode='walk';play.machine=null;$('mhelp').style.display='none';$('cross').style.display='block';$('tLR').style.display='none';
+function exitMachine(){if(play.mode!=='machine')return;play.mode='walk';play.machine=null;$('mhelp').style.display='none';$('cross').style.display='block';if(isTouch)touchMachineUI(null);
  play.tween={from:{p:camera.position.clone(),q:camera.quaternion.clone()},to:{p:play.pos.clone(),q:new THREE.Quaternion().setFromEuler(new THREE.Euler(play.pitch,play.yaw,0,'YXZ'))},t:0}}
 function interact(){if(play.mode==='walk'){const t=findTarget();if(t)t.act()}else if(play.mode==='machine')machineAction()}
 function machineAction(){if(play.tween)return;const m=MACHINES[play.machine];if(m)m.action()}
@@ -3387,8 +3460,9 @@ function gfxUpdate(dt,now){if(!GFX.refl&&play&&renderer.info.render.frame>2)refl
  const sOn=ALIVE.sirenT>0;for(const b of GFX.beams){b.material.uniforms.uI.value=(b.userData.i0??(b.userData.i0=b.material.uniforms.uI.value))*(sOn?1.4+.4*Math.sin(now*14):1)*(evtActive('golden')?1.3:1)}}
 
 // ================= INPUT =================
-function start(){if(play.started)return;play.started=true;audioInit();$('overlay').style.display='none';relock();setAmb(curZone);msg('Welcome to the Prize Floor. v0.5.1: BUTTER LANE is open: bowl toast pins in the lobby, by the Kart door. Listen for the siren!','#FFD400')}
-$('overlay').addEventListener('click',()=>{if(!play.started)start();else{audioInit();$('overlay').style.display='none';relock()}});
+function start(){if(play.started)return;play.started=true;audioUnlock();if(isTouch){let seen=false;try{seen=!!localStorage.getItem('tpf_howto')}catch(e){}if(!seen)showHowto(true);rotHint()}$('overlay').style.display='none';relock();setAmb(curZone);msg('Welcome to the Prize Floor. v0.5.2: tap, drag, play! BUTTER LANE is in the lobby by the Kart door.','#FFD400')}
+let pausedAt=-1e9;
+$('overlay').addEventListener('click',()=>{if(performance.now()-pausedAt<700)return;if(!play.started)start();else{audioUnlock();$('overlay').style.display='none';relock()}});
 $('qLow').onclick=e=>{e.stopPropagation();S.qualityManual=true;setQuality('low')};$('qHigh').onclick=e=>{e.stopPropagation();S.qualityManual=true;setQuality('high')};
 document.addEventListener('pointerlockchange',()=>{play.locked=document.pointerLockElement===canvas;if(!play.locked&&play.started&&!modal.open&&!isTouch){if(play.mode==='machine')exitMachine();$('overlay').style.display='flex';$('go').textContent='PAUSED · CLICK TO RESUME'}});
 canvas.addEventListener('mousedown',e=>{if(!play.started||isTouch)return;if(!play.locked){relock();return}if(e.button===0){if(play.mode==='machine')machineAction();else interact()}});
@@ -3405,16 +3479,60 @@ addEventListener('keydown',e=>{const k=e.key.toLowerCase();play.keys[k]=true;if(
  if(play.mode==='machine'){const m=MACHINES[play.machine];if(m&&!play.tween)m.key(k)}});
 addEventListener('keyup',e=>{play.keys[e.key.toLowerCase()]=false});
 addEventListener('blur',()=>{play.keys={}});
+// ================= TOUCH (v0.5.2 rewrite: never depends on pointer lock) =================
 const touch={move:null,look:null,mx:0,mz:0};
-if(isTouch){$('touch').style.display='block';$('ctl').innerHTML='<b>LEFT THUMB</b> walk · <b>RIGHT THUMB</b> look / aim · <b>USE</b> interact / play · <b>BACK</b> step away · <b>◀ ▶</b> pick / steer';$('go').textContent='TAP TO ENTER';
- canvas.addEventListener('touchstart',e=>{for(const t of e.changedTouches){if(t.clientX<innerWidth*.45&&!touch.move)touch.move={id:t.identifier,x:t.clientX,y:t.clientY};else if(!touch.look)touch.look={id:t.identifier,x:t.clientX,y:t.clientY}}e.preventDefault()},{passive:false});
- canvas.addEventListener('touchmove',e=>{for(const t of e.changedTouches){if(touch.move&&t.identifier===touch.move.id){const dx=clamp((t.clientX-touch.move.x)/50,-1,1),dy=clamp((t.clientY-touch.move.y)/50,-1,1);touch.mx=dx;touch.mz=dy;$('knob').style.transform=`translate(${dx*40}px,${dy*40}px)`}
-  if(touch.look&&t.identifier===touch.look.id){const dx=t.clientX-touch.look.x,dy=t.clientY-touch.look.y;touch.look.x=t.clientX;touch.look.y=t.clientY;if(play.mode==='walk'){play.yaw-=dx*.005;play.pitch=clamp(play.pitch-dy*.005,-1.35,1.35)}else if(play.mode==='machine'){const m=MACHINES[play.machine];if(m)m.aim(dx*.03,dy*.03)}}}e.preventDefault()},{passive:false});
- const end=e=>{for(const t of e.changedTouches){if(touch.move&&t.identifier===touch.move.id){touch.move=null;touch.mx=touch.mz=0;$('knob').style.transform=''}if(touch.look&&t.identifier===touch.look.id)touch.look=null}};
- canvas.addEventListener('touchend',end);canvas.addEventListener('touchcancel',end);
- $('tUse').onclick=()=>{audioInit();if(play.mode==='machine')machineAction();else interact()};$('tBack').onclick=()=>{if(modal.open&&modal.kind!=='choice')closeModal();else exitMachine()};
- $('tNudge').onclick=()=>{const m=MACHINES[play.machine];if(m&&m.kind==='pusher')m.nudge()};
- $('tL').onclick=()=>{const m=MACHINES[play.machine];if(m)m.key('a')};$('tR').onclick=()=>{const m=MACHINES[play.machine];if(m)m.key('d')}}
+const TAP_MS=1500,TAP_PX=14;// movement decides a tap; the time cap is loose because slow phones timestamp late
+function machineDragGain(){const m=MACHINES[play.machine];return m?(tcfg(m).g||1):1}
+function stickAt(x,y){const st=$('stick');if(x==null){st.style.left='';st.style.top='';st.style.bottom='';st.classList.remove('live');return}st.style.left=(x-60)+'px';st.style.top=(y-60)+'px';st.style.bottom='auto';st.classList.add('live')}
+function enableTouch(){if(document.body.classList.contains('touch'))return;isTouch=true;document.body.classList.add('touch');$('touch').style.display='block';
+ $('ctl').innerHTML='<b>LEFT THUMB</b> walk · <b>RIGHT THUMB</b> look · <b>TAP</b> a machine or <b>USE</b> to play · at a machine <b>TAP</b> plays, <b>DRAG</b> aims · <b>BACK</b> steps away · <b>?</b> help';
+ if(!play.started)$('go').textContent='TAP TO ENTER';if(document.pointerLockElement)try{document.exitPointerLock()}catch(e){}
+ if(play.mode==='machine')touchMachineUI(MACHINES[play.machine]);rotHint()}
+function showHowto(on=true){$('howto').style.display=on?'flex':'none';if(!on)try{localStorage.setItem('tpf_howto','1')}catch(e){}}
+let rotDismissed=false;
+function rotHint(){const r=$('rot');if(!r)return;r.style.display=isTouch&&play.started&&!rotDismissed&&innerHeight>innerWidth?'block':'none'}
+function onTap(x){if(modal.open)return;if(play.mode==='machine'){machineAction();return}if(play.mode==='walk')interact()}
+canvas.addEventListener('touchstart',e=>{e.preventDefault();if(!isTouch&&!QS.has('desktop'))enableTouch();audioUnlock();
+ for(const t of e.changedTouches){if(play.mode==='walk'&&t.clientX<innerWidth*.45&&!touch.move){touch.move={id:t.identifier,x:t.clientX,y:t.clientY};stickAt(t.clientX,t.clientY)}
+  else if(!touch.look)touch.look={id:t.identifier,x:t.clientX,y:t.clientY,t0:e.timeStamp,moved:0}}},{passive:false});
+canvas.addEventListener('touchmove',e=>{e.preventDefault();for(const t of e.changedTouches){
+  if(touch.move&&t.identifier===touch.move.id){const dx=clamp((t.clientX-touch.move.x)/50,-1,1),dy=clamp((t.clientY-touch.move.y)/50,-1,1);touch.mx=dx;touch.mz=dy;$('knob').style.transform=`translate(${dx*40}px,${dy*40}px)`}
+  if(touch.look&&t.identifier===touch.look.id){const dx=t.clientX-touch.look.x,dy=t.clientY-touch.look.y;touch.look.x=t.clientX;touch.look.y=t.clientY;touch.look.moved+=Math.abs(dx)+Math.abs(dy);
+   if(play.mode==='walk'&&!play.tween){play.yaw-=dx*.005;play.pitch=clamp(play.pitch-dy*.005,-1.35,1.35)}
+   else if(play.mode==='machine'&&!play.tween){const m=MACHINES[play.machine];const g=.03*machineDragGain();if(m)m.aim(dx*g,dy*g)}}}},{passive:false});
+const tEnd=e=>{e.preventDefault();audioUnlock();for(const t of e.changedTouches){if(touch.move&&t.identifier===touch.move.id){touch.move=null;touch.mx=touch.mz=0;$('knob').style.transform='';stickAt(null)}
+  if(touch.look&&t.identifier===touch.look.id){const L=touch.look;touch.look=null;if(QS.has('shot'))window.__lastTap={type:e.type,moved:L.moved,dt:e.timeStamp-L.t0,tween:!!play.tween,mode:play.mode};if(e.type==='touchend'&&L.moved<TAP_PX&&e.timeStamp-L.t0<TAP_MS&&!play.tween)onTap(t.clientX)}}};
+canvas.addEventListener('touchend',tEnd,{passive:false});canvas.addEventListener('touchcancel',tEnd,{passive:false});
+// buttons: pointerdown for instant, multi-touch-safe presses; ◀ ▶ auto-repeat while held
+function tbtn(id,fn,rep=false){const b=$(id);if(!b)return;let iv=null,to=null;const stop=()=>{clearTimeout(to);clearInterval(iv);to=iv=null;b.classList.remove('dn')};
+ b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();audioUnlock();b.classList.add('dn');fn(e);if(rep){stop();b.classList.add('dn');to=setTimeout(()=>{iv=setInterval(()=>fn(e),95)},300)}});
+ ['pointerup','pointercancel','pointerleave'].forEach(k=>b.addEventListener(k,stop));b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation()});b.addEventListener('contextmenu',e=>e.preventDefault())}
+tbtn('tUse',()=>{if(modal.open)return;if(play.mode==='machine')machineAction();else interact()});
+tbtn('tBack',()=>{if(modal.open){if(modal.kind!=='choice')closeModal()}else exitMachine()});
+tbtn('tNudge',()=>{const m=MACHINES[play.machine];if(m&&m.kind==='pusher')m.nudge()});
+tbtn('tL',()=>{const m=MACHINES[play.machine];if(m&&!play.tween)m.key('a')},true);tbtn('tR',()=>{const m=MACHINES[play.machine];if(m&&!play.tween)m.key('d')},true);
+$('tX').addEventListener('pointerdown',e=>{const b=e.target.closest('button');if(!b)return;e.preventDefault();e.stopPropagation();audioUnlock();const m=MACHINES[play.machine];if(m&&!play.tween)m.key(b.dataset.k);b.classList.add('dn');setTimeout(()=>b.classList.remove('dn'),140)});
+tbtn('tHelp',()=>showHowto(true));
+tbtn('tCards',()=>{if(modal.open&&modal.kind==='binder'){closeModal();return}if(!modal.open&&play.mode==='walk')openBinder();else if(play.mode==='machine')msg('Step back from the machine to open the Card Binder.')});
+tbtn('tPause',()=>{if(modal.open)return;if(play.mode==='machine')exitMachine();pausedAt=performance.now();$('overlay').style.display='flex';$('go').textContent='PAUSED · TAP TO RESUME'});
+$('howtoOk').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();audioUnlock();showHowto(false)});
+$('howto').addEventListener('click',e=>{e.stopPropagation()});
+$('rot').addEventListener('pointerdown',e=>{e.preventDefault();rotDismissed=true;rotHint()});
+// no page scroll / zoom / long-press / context menu anywhere (modal and how-to boxes may still scroll)
+const scrollable=t=>t&&t.closest&&t.closest('#modal .box,#howto .hbox');
+let _sy=null,_se=null;
+document.addEventListener('touchstart',e=>{const el=scrollable(e.target);if(el){_se=el;_sy=e.touches[0].clientY}},{passive:true});
+document.addEventListener('touchmove',e=>{e.preventDefault();if(_se&&_sy!=null&&e.touches.length===1){const y=e.touches[0].clientY;_se.scrollTop+=_sy-y;_sy=y}},{passive:false});
+document.addEventListener('touchend',()=>{_sy=null;_se=null},{passive:true});
+
+document.addEventListener('touchstart',e=>{if(e.touches.length>1&&!scrollable(e.target))e.preventDefault()},{passive:false});
+['gesturestart','gesturechange','gestureend','dblclick','selectstart'].forEach(k=>document.addEventListener(k,e=>e.preventDefault(),{passive:false}));
+document.addEventListener('contextmenu',e=>e.preventDefault());
+['pointerdown','touchend','click','keydown'].forEach(k=>document.addEventListener(k,()=>audioUnlock(),{passive:true,capture:true}));
+// resize / rotation / mobile URL-bar changes
+let _rzT=0;const reflow=()=>{clearTimeout(_rzT);_rzT=setTimeout(()=>{dispatchEvent(new Event('resize'));rotHint()},180)};
+addEventListener('orientationchange',reflow);if(window.visualViewport)visualViewport.addEventListener('resize',reflow);addEventListener('resize',()=>rotHint());
+if(isTouch)enableTouch();
 
 // ================= FX / LOOP =================
 let glitchAmt=0,shake=0,nextGlitch=6;
@@ -3496,7 +3614,7 @@ window.TPF={S,PUSHERS,MACHINES,play,version:VERSION,WINGS,PRIZES,CARDS,Q,COLL,PA
  info(){return renderer.info.render},
  drawCalls(){renderer.info.autoReset=false;renderer.info.reset();render();const r={calls:renderer.info.render.calls,tris:renderer.info.render.triangles};renderer.info.autoReset=true;return r},
  npcSim(sec,step=1/30){const t0=performance.now()/1000;for(let t=0;t<sec;t+=step){for(const n of ALIVE.npcs)npcUpdate(n,step,t0+t)}},
- npcStats(){return NPCST},
+ npcStats(){return NPCST},targets(){return TARGETS.map(t=>({id:t.id,label:t.label,p:[t.p.x,t.p.y,t.p.z],zone:t.zone||null}))},modalKind(){return modal.open?modal.kind:null},
  npcSpots(){return NPC_SPOTS.map(s=>({id:s.id,kind:s.kind,p:[+s.p.x.toFixed(2),+s.p.z.toFixed(2)]}))},
  npcCheck(){const out=[];for(const n of ALIVE.npcs){let pen=0;for(const b of COLL){const dx=Math.max(b.x0-n.pos.x,0,n.pos.x-b.x1),dz=Math.max(b.z0-n.pos.z,0,n.pos.z-b.z1);const d=Math.hypot(dx,dz);pen=Math.max(pen,.2-d)}let near=9;for(const o of ALIVE.npcs)if(o!==n)near=Math.min(near,o.pos.distanceTo(n.pos));out.push({i:n.i,s:n.state,skull:n.skull,z:n.zone,g:n.goal&&n.goal.id,react:n.react,p:[+n.pos.x.toFixed(2),+n.pos.z.toFixed(2)],pen:+pen.toFixed(3),near:+near.toFixed(2),gd:n.goal?+n.pos.distanceTo(n.goal.p).toFixed(2):null})}return out},
  render(){render()},

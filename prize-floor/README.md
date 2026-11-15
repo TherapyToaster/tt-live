@@ -1,7 +1,21 @@
-# Toasty's Prize Floor: v0.5.1 (six wings, twenty-four machines, Butter Lane bowling)
+# Toasty's Prize Floor: v0.5.2 (six wings, twenty-four machines, Butter Lane bowling, touch-ready)
 
 Live copy: https://therapytoaster.github.io/tt-live/prize-floor/ (also on Toasty's ARTcade).
 Play uses in-game Tokens and Stubs only. There is no real money and no crypto.
+
+## v0.5.2: mobile and touch controls
+- **Walk and look:** drag a thumb anywhere on the left half to walk. A floating joystick appears where you touch. Drag on the right half to look. None of this needs pointer lock.
+- **Machines:** tap a machine's name (or press **USE**) to step up to it. At a machine, **TAP** anywhere plays (insert Tokens, drop, fire or lock), and **DRAG** anywhere aims or steers, with a gain tuned per machine. **◀ ▶** fine-tune and repeat while held. **BACK** leaves. Machines that need extra keys get their own buttons:
+  - Lane Slide: ▲ / ▼ slide back.
+  - Repairman: PEEK.
+  - Rerun Recall: channels 1-4.
+  - Whack-a-Glitch: TVs 1-5.
+  - Crumb Stacker: TAKE MINOR.
+  NUDGE only shows at coin pushers.
+- **Top-right buttons:** **?** reopens the how-to (it also shows on the first touch launch), **CARDS** opens the binder, and **❚❚** pauses and offers the LOW/HIGH graphics buttons.
+- **No accidental browser gestures:** pinch, double-tap zoom, long-press menus, text selection and page scroll are all blocked. Modal lists still scroll with a finger, and their close bar stays visible.
+- **Fit:** safe-area insets are handled, the game resizes on rotation and URL-bar changes, and portrait widens the field of view. A dismissible "rotate for the best view" hint shows in portrait, and the game stays playable there. Audio unlocks on the first tap, including the iOS resume.
+- **QA scripts:** qa/touch.py (per-machine touch audit), qa/touchui.py (UI, modals, pause, rotation), qa/artcade.py (ARTcade iframe) and qa/desktop.py (desktop regression).
 
 ## v0.5.1: Butter Lane (lobby bowling)
 - **Where:** in the lobby, along the north wall between the Crypt door and the Kart door. It sits east of the chrome column, and the lane runs toward the wall.
