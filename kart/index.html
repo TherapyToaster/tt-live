@@ -7433,24 +7433,26 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 /* Toaster Tide Run — Surf City there-and-back track data + typemap.
    Self-contained: only registers into TRACK_CATALOG / buildTrack. */
 (function (G) {
-  const SIZE = 2048;
+  const SIZE = 3072;
   const TYPE = { OFF: 0, ROAD: 1, BOOST: 2, SHOULDER: 3, CHECK: 4, WATER: 5 };
   const ROAD_W = 88;
-  const CREST_H = 70;
-  const RAB_R = 150;
-  const ISLAND = { x: 1328.83, y: 1519.32 };
-  const MAINLAND = { x: 719.17, y: 528.68 };
+  const CREST_H = 180;
+  const RAB_R = 280;
+  const LAPS = 2;
+  const ISLAND = { x: 2238.33, y: 2677.20 };
+  const MAINLAND = { x: 833.67, y: 394.80 };
 
-  /* Closed Catmull-Rom control points, y-down, start on the island-bound deck. */
+  /* Closed Catmull-Rom control points, y-down, start on the island-bound deck.
+     World is 3072 so the high-rise and both roundabouts can grow together. */
   const RAW = [
-    [704.5, 777.0], [712.8, 872.8], [721.1, 968.5], [729.4, 1064.3], [745.9, 1169.9],
-    [763.7, 1220.6], [814.8, 1315.6], [887.0, 1398.3], [929.3, 1431.8], [1024.6, 1483.8],
-    [1122.7, 1513.9], [1169.0, 1526.9], [1257.9, 1651.5], [1329.6, 1669.3], [1401.2, 1650.7],
-    [1455.2, 1600.2], [1465.4, 1457.2], [1419.1, 1399.5], [1350.9, 1370.9], [1277.3, 1378.4],
-    [1168.2, 1410.4], [1079.3, 1384.8], [999.8, 1344.5], [928.2, 1280.1], [875.8, 1197.4],
-    [846.4, 1106.8], [837.5, 1014.7], [829.2, 919.0], [820.9, 823.2], [816.8, 775.3],
-    [808.4, 679.6], [854.7, 593.0], [868.9, 520.2], [793.2, 398.2], [721.6, 378.7],
-    [649.5, 395.8], [594.4, 445.4], [581.6, 588.5], [627.0, 647.0], [694.9, 676.7],
+    [958.3, 869.5], [1025.3, 1060.6], [1092.3, 1251.7], [1159.3, 1442.9], [1243.2, 1658.0],
+    [1296.9, 1767.1], [1421.6, 1981.7], [1567.7, 2184.6], [1644.8, 2274.4], [1804.4, 2431.0],
+    [1960.9, 2627.4], [1939.9, 2691.3], [2106.0, 2923.9], [2239.8, 2957.2], [2373.4, 2922.5],
+    [2474.2, 2828.1], [2493.2, 2561.3], [2406.8, 2453.5], [2279.6, 2400.1], [2142.1, 2414.1],
+    [2001.0, 2476.8], [1821.1, 2270.3], [1689.6, 2145.5], [1554.9, 1978.6], [1435.7, 1787.1],
+    [1342.9, 1593.7], [1277.2, 1409.3], [1210.3, 1218.3], [1143.2, 1027.0], [1109.8, 931.4],
+    [1066.6, 782.4], [1086.7, 514.9], [1113.2, 379.0], [971.9, 151.2], [838.2, 114.8],
+    [703.7, 146.7], [600.8, 239.4], [576.8, 506.5], [661.7, 615.7], [788.4, 671.1],
   ];
 
   const AXIS_DX = MAINLAND.x - ISLAND.x;
@@ -7517,6 +7519,54 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     }
     path.forEach((p) => { p.total = total; });
 
+    /* Put s=0 at the foot of the outbound climb so the race (and title hero)
+       starts looking up the span, not already halfway to the crest. */
+    (function rotateToRampFoot() {
+      let startI = 0, best = 1e15;
+      const want = RAMP_START + 40;
+      for (let i = 0; i < path.length; i++) {
+        const p = path[i];
+        const dM = Math.hypot(p.x - MAINLAND.x, p.y - MAINLAND.y);
+        const towardIsl = p.dx * AXIS_UX + p.dy * AXIS_UY; /* AXIS runs island→mainland */
+        if (towardIsl >= 0) continue;
+        const err = Math.abs(dM - want);
+        if (err < best) { best = err; startI = i; }
+      }
+      if (!startI) return;
+      const rotated = path.slice(startI).concat(path.slice(0, startI));
+      let s = 0;
+      for (const p of rotated) { p.s = s; s += p.len; }
+      path.length = 0;
+      Array.prototype.push.apply(path, rotated);
+      total = s;
+      path.forEach((p) => { p.total = total; });
+    })();
+
+    /* Path sections: first/last samples inside each RAB (hysteresis-free),
+       so a brief Catmull bulge at the lip cannot close the loop early. */
+    let islEnterS = 0.24 * total, islExitS = 0.50 * total, mainEnterS = 0.73 * total;
+    (function markSections() {
+      const lim = RAB_R + 24;
+      let firstIsl = -1, lastIsl = -1, firstMain = -1;
+      for (const p of path) {
+        if (Math.hypot(p.x - ISLAND.x, p.y - ISLAND.y) < lim) {
+          if (firstIsl < 0) firstIsl = p.s;
+          lastIsl = p.s;
+        }
+      }
+      if (firstIsl >= 0) { islEnterS = firstIsl; islExitS = lastIsl; }
+      /* Mainland wraps near s=0 after the start is rotated to the ramp foot,
+         so pick the first mainland hit after the island exit. */
+      for (const p of path) {
+        if (p.s <= lastIsl + 80) continue;
+        if (Math.hypot(p.x - MAINLAND.x, p.y - MAINLAND.y) < lim) {
+          firstMain = p.s;
+          break;
+        }
+      }
+      if (firstMain >= 0) mainEnterS = firstMain;
+    })();
+
     const map = document.createElement("canvas");
     map.width = SIZE; map.height = SIZE;
     const mctx = map.getContext("2d");
@@ -7575,8 +7625,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       const segs = [];
       const outPts = [], retPts = [];
       for (const p of path) {
-        if (p.s < 0.36 * total) outPts.push(p);
-        else if (p.s > 0.44 * total && p.s < 0.84 * total) retPts.push(p);
+        if (p.s < islEnterS) outPts.push(p);
+        else if (p.s > islExitS && p.s < mainEnterS) retPts.push(p);
       }
       for (let i = 0; i < outPts.length; i++) {
         const p = outPts[i];
@@ -7605,7 +7655,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     /* Water under the actual deck + a sound band + the SE ocean. Road stamps over. */
     function stampWater(x, y, rad) {
       /* Keep circulating roadways and their infields dry. */
-      const keep = RAB_R + ROAD_W * 0.55;
+      const keep = RAB_R + ROAD_W + 28;
       let r = rad;
       const dI = Math.hypot(x - ISLAND.x, y - ISLAND.y);
       const dM = Math.hypot(x - MAINLAND.x, y - MAINLAND.y);
@@ -7630,11 +7680,12 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       if (s < 90 || AXIS_LEN - s < 90) continue;
       stampWater(x, y, 90);
     }
-    /* ocean off the island beach (east / south-east) */
+    /* ocean off the island beach (east / south-east), kept off the circulating road */
+    const oceanOriginX = ISLAND.x + 420, oceanOriginY = ISLAND.y + 180;
     for (let i = 0; i < 80; i++) {
-      stampWater(1680 + (i % 10) * 40, 1480 + ((i / 10) | 0) * 50, 90);
+      stampWater(oceanOriginX + (i % 10) * 40, oceanOriginY + ((i / 10) | 0) * 50, 90);
     }
-    for (let i = 0; i < 40; i++) stampWater(1580 + i * 12, 1750, 70);
+    for (let i = 0; i < 40; i++) stampWater(oceanOriginX - 80 + i * 12, oceanOriginY + 220, 70);
 
     /* shoulders only on the outside of each carriageway so the median stays empty */
     function nearestMedian(x, y) {
@@ -7665,6 +7716,16 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       const shade = ((p.s / 8) & 1) ? 0 : 8;
       stamp(p.x, p.y, 48 + shade, 50 + shade, 58 + shade, TYPE.ROAD, ROAD_W / 2);
     }
+    /* Fast hairpin runoff — a wide apron so a 260+ entry can run a little
+       wide without sinking into grass and stalling the circulating lane. */
+    function stampRabApron(cx, cy) {
+      for (let a = 0; a < Math.PI * 2; a += 0.03) {
+        const r = RAB_R + ROAD_W * 0.5 + 16;
+        stamp(cx + Math.cos(a) * r, cy + Math.sin(a) * r, 48, 50, 58, TYPE.ROAD, 24);
+      }
+    }
+    stampRabApron(ISLAND.x, ISLAND.y);
+    stampRabApron(MAINLAND.x, MAINLAND.y);
 
     /* start / finish checkers */
     const start = path[0];
@@ -7680,9 +7741,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     }
 
     /* crest boosts — highest point on each carriageway (the deck is offset from the RAB axis) */
-    function highestOnHalf(fromFrac, toFrac) {
+    function highestOnRange(a, b) {
       let best = path[0], bh = -1;
-      const a = fromFrac * total, b = toFrac * total;
       for (const p of path) {
         if (p.s < a || p.s > b) continue;
         const h = heightAt(p.x, p.y);
@@ -7690,8 +7750,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       }
       return best;
     }
-    const crestOut = highestOnHalf(0.0, 0.35);
-    const crestRet = highestOnHalf(0.45, 0.85);
+    const crestOut = highestOnRange(0.0, islEnterS);
+    const crestRet = highestOnRange(islExitS, mainEnterS);
     const boosts = [];
     function paintBoost(p) {
       const nx = -p.dy, ny = p.dx;
@@ -7710,15 +7770,54 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     /* Shortcut: Soundside Toast Park boardwalk — stay on the outbound side of
        the island pocket, then jump a marsh channel onto the return climb.
        (A straight cut through the original park coords would pave over the return.) */
-    const entry = atPath(path, 0.2085 * total);
-    const land = atPath(path, 0.5072 * total);
-    const park = { x: 1100, y: 1590 };
-    const midA = { x: 1020, y: 1515 };
-    const rampPt = { x: 1100, y: 1590 };
+    /* Leave the outbound just as the descent meets grade, hook south into the
+       park, then jump a marsh gap onto the start of the return climb. */
+    const entry = atPath(path, Math.max(0, islEnterS - 90));
+    const land = atPath(path, islExitS + 40);
+    function awayFromRab(x, y, minD) {
+      const dx = x - ISLAND.x, dy = y - ISLAND.y, d = Math.hypot(dx, dy) || 1;
+      if (d >= minD) return { x, y };
+      const s = minD / d;
+      return { x: ISLAND.x + dx * s, y: ISLAND.y + dy * s };
+    }
+    function pathClear(x, y, minD) {
+      for (let s = 0; s < total; s += 10) {
+        const q = atPath(path, s);
+        if (Math.hypot(q.x - x, q.y - y) < minD) return false;
+      }
+      return true;
+    }
+    const minPocket = RAB_R + ROAD_W * 0.75 + 20;
+    /* Push due-south (and slightly outward) from the entry so the boardwalk
+       sits in the island pocket. Do not lerp toward land — entry and land are
+       only ~120 units apart, and that lerp sat mid on the official path. */
+    const ex = entry.x - ISLAND.x, ey = entry.y - ISLAND.y, el = Math.hypot(ex, ey) || 1;
+    let px = 0, py = 1;
+    if (ex / el * px + ey / el * py < 0) { /* prefer outward from the RAB */ }
+    let midA = { x: entry.x, y: entry.y }, rampPt = { x: entry.x, y: entry.y };
+    for (let dist = 130; dist <= 280; dist += 8) {
+      const candMid = awayFromRab(entry.x + px * (dist * 0.45) + (ex / el) * 18, entry.y + py * (dist * 0.45) + (ey / el) * 18, minPocket);
+      const candRamp = awayFromRab(entry.x + px * dist + (ex / el) * 30, entry.y + py * dist + (ey / el) * 30, minPocket);
+      const midGap = Math.hypot(candRamp.x - candMid.x, candRamp.y - candMid.y);
+      if (midGap < 70) continue;
+      if (pathClear(candMid.x, candMid.y, 52) && pathClear(candRamp.x, candRamp.y, 70)) {
+        midA = candMid; rampPt = candRamp; break;
+      }
+    }
+    /* Launch 48 covers ~180-200 units at race speed; leave the landing unpaved. */
+    (function tuneGap() {
+      const want = 185;
+      const gdx = land.x - rampPt.x, gdy = land.y - rampPt.y, glen = Math.hypot(gdx, gdy) || 1;
+      let cand = awayFromRab(land.x - gdx / glen * want, land.y - gdy / glen * want, minPocket);
+      const midGap = Math.hypot(cand.x - midA.x, cand.y - midA.y);
+      if (midGap >= 70 && pathClear(cand.x, cand.y, 48)) rampPt = cand;
+    })();
+    const park = { x: midA.x, y: midA.y };
     const landPt = { x: land.x, y: land.y, s: land.s };
-    const SH = ROAD_W * 0.42;
-    stampSeg(entry.x, entry.y, midA.x, midA.y, SH, 40, 40, 46, TYPE.ROAD);
-    stampSeg(midA.x, midA.y, rampPt.x, rampPt.y, SH, 40, 40, 46, TYPE.ROAD);
+    /* Narrow wood-colored typ so the approach does not smear asphalt or grass. */
+    const SH = 8;
+    stampSeg(entry.x, entry.y, midA.x, midA.y, SH, 126, 96, 62, TYPE.ROAD);
+    stampSeg(midA.x, midA.y, rampPt.x, rampPt.y, SH, 126, 96, 62, TYPE.ROAD);
     /* Do not pave the jump gap — landing is the official return road. */
     /* Marsh pond off the boardwalk, official line, and jump corridor. */
     const lake = { x: park.x - 10, y: park.y + 80, rx: 26, ry: 20 };
@@ -7772,7 +7871,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       {
         byPos: true, x: rampPt.x, y: rampPt.y,
         ang: Math.atan2(landPt.x - rampPt.x, landPt.y - rampPt.y),
-        rad: 24, launch: 48, boost: true, shortcut: true,
+        rad: 28, launch: 48, boost: true, shortcut: true,
         aimX: landPt.x, aimY: landPt.y,
       },
     ];
@@ -7858,8 +7957,9 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       roadW: ROAD_W, dealership: null,
       noCenterDashes: true,
       crestH: CREST_H,
-      laps: 4,
+      laps: LAPS,
       islandRab: ISLAND, mainlandRab: MAINLAND, rabR: RAB_R,
+      islEnterS, islExitS, mainEnterS, bridgeSpan: AXIS_LEN - 2 * RAMP_START,
       crestOut: { x: crestOut.x, y: crestOut.y, s: crestOut.s },
       crestRet: { x: crestRet.x, y: crestRet.y, s: crestRet.s },
       park: { x: park.x, y: park.y },
@@ -7894,7 +7994,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   const cat = G.TRACK_CATALOG || (G.TRACK_CATALOG = []);
   if (!cat.some((t) => t.id === "surfcity")) {
     const gy = cat.findIndex((t) => t.id === "graveyard");
-    const entry = { id: "surfcity", name: "Toaster Tide Run", short: "Tide Run", laps: 4 };
+    const entry = { id: "surfcity", name: "Toaster Tide Run", short: "Tide Run", laps: LAPS };
     if (gy >= 0) cat.splice(gy, 0, entry);
     else cat.push(entry);
   }
@@ -7908,7 +8008,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     return _build ? _build(id) : null;
   };
   G.buildSurfCityTrack = buildSurfCityTrack;
-  G.SURFCITY = { SIZE, ROAD_W, CREST_H, RAB_R, ISLAND, MAINLAND, AXIS_LEN, AXIS_UX, AXIS_UY, heightAt, axisT };
+  G.SURFCITY = { SIZE, ROAD_W, CREST_H, RAB_R, LAPS, ISLAND, MAINLAND, AXIS_LEN, AXIS_UX, AXIS_UY, RAMP_START, heightAt, axisT };
 })(window.TK = window.TK || {});
 
 
@@ -7981,6 +8081,16 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     const alen = Math.hypot(ax, ay) || 1;
     const ux = ax / alen, uy = ay / alen;
 
+    const clearR = (T.rabR || 230) + (T.roadW || 88) * 0.55 + 36;
+    function placeOut(c, x, z, minD) {
+      const dx = x - c.x, dz = z - c.y, d = Math.hypot(dx, dz) || 1;
+      if (d >= minD) return { x: x, z: z };
+      const s = minD / d;
+      return { x: c.x + dx * s, z: c.y + dz * s };
+    }
+    const oceX = 0.92, oceZ = 0.39, oceN = Math.hypot(oceX, oceZ);
+    const ox = oceX / oceN, oz = oceZ / oceN;
+
     /* --- Intracoastal Waterway: a wide ribbon under the real deck, not the RAB axis. --- */
     if (median.length) {
       /* Thin boxes, same yaw as the jersey median, so the sound is reliably
@@ -7994,7 +8104,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         const dx = b.x - a.x, dy = b.y - a.y;
         const len = Math.max(Math.hypot(dx, dy), 80) + 60;
         /* X = perpendicular (same convention as jersey boxes), Z = along the span. */
-        const sheet = box(640, 0.16, len, waterMat, mx, 0.14, my);
+        const sheet = box(720, 0.16, len, waterMat, mx, 0.14, my);
         sheet.rotation.y = Math.atan2(a.dx || dx, a.dy || dy);
         sheet.castShadow = false;
         grp.add(sheet);
@@ -8002,16 +8112,18 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     }
 
     /* Ocean east of the island, kept clear of the circulating hairpin. */
-    const ocean = new (THREE().Mesh)(new (THREE().PlaneGeometry)(780, 680), oceanMat);
+    const oceanPos = placeOut(isl, isl.x + ox * (clearR + 420), isl.y + oz * (clearR + 420), clearR + 360);
+    const ocean = new (THREE().Mesh)(new (THREE().PlaneGeometry)(720, 620), oceanMat);
     ocean.rotation.x = -Math.PI / 2;
-    ocean.position.set(1920, 0.08, 1920);
+    ocean.position.set(oceanPos.x, 0.08, oceanPos.z);
     ocean.receiveShadow = true;
     grp.add(ocean);
     /* A second pad so the ocean reads behind the beach from the crest. */
-    const ocean2 = new (THREE().Mesh)(new (THREE().PlaneGeometry)(420, 280), oceanMat);
+    const ocean2Pos = placeOut(isl, isl.x + ox * (clearR + 220) + 80, isl.y + oz * (clearR + 220) - 40, clearR + 200);
+    const ocean2 = new (THREE().Mesh)(new (THREE().PlaneGeometry)(380, 240), oceanMat);
     ocean2.rotation.x = -Math.PI / 2;
     ocean2.rotation.z = -0.55;
-    ocean2.position.set(1860, 0.09, 1720);
+    ocean2.position.set(ocean2Pos.x, 0.09, ocean2Pos.z);
     ocean2.receiveShadow = true;
     grp.add(ocean2);
 
@@ -8021,7 +8133,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         new (THREE().PlaneGeometry)(220 - i * 12, 5 + (i % 3)), foamMat);
       foam.rotation.x = -Math.PI / 2;
       foam.rotation.z = -0.55 + (i % 2 ? 0.04 : -0.03);
-      foam.position.set(1760 + i * 18, 0.16, 1688 + i * 22);
+      const fp = placeOut(isl, ocean2Pos.x - 40 + i * 18, ocean2Pos.z - 40 + i * 22, clearR + 30);
+      foam.position.set(fp.x, 0.16, fp.z);
       foam.receiveShadow = true;
       grp.add(foam);
     }
@@ -8037,7 +8150,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         const m = median[i];
         const h = m.h != null ? m.h : 0;
         /* Keep mid-crest water clear so the drop reads; place pads on the shoulders. */
-        if (h > 48) continue;
+        if (h > (T.crestH || 120) * 0.65) continue;
         const nx = -m.dy, ny = m.dx;
         const side = (i / 7) % 2 ? 1 : -1;
         const dist = 200 + (i % 3) * 28;
@@ -8048,31 +8161,36 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       }
     }
     /* Mainland marsh around the hairpin (kept off the circulating roadway). */
+    const marshClear = (T.rabR || 230) + 50;
     for (let i = 0; i < 10; i++) {
       const ang = (i / 10) * Math.PI * 2;
-      const r = 230 + (i % 4) * 22;
+      const r = marshClear + 40 + (i % 4) * 22;
       const x = main.x + Math.cos(ang) * r, z = main.y + Math.sin(ang) * r;
-      if (Math.hypot(x - main.x, z - main.y) < (T.rabR || 150) + 40) continue;
+      if (Math.hypot(x - main.x, z - main.y) < marshClear) continue;
       marshPad(x, z, 16 + (i % 4) * 5, 1.2);
     }
+
+    /* Keep island / mainland scenery outside the circulating roadway. */
+    const beachOrigin = placeOut(isl, isl.x + ox * (clearR + 80), isl.y + oz * (clearR + 80), clearR + 60);
 
     /* --- Butter Beach strip, dunes, sea oats --- */
     const beach = new (THREE().Mesh)(new (THREE().PlaneGeometry)(280, 110), sandMat);
     beach.rotation.x = -Math.PI / 2;
     beach.rotation.z = 0.55;
-    beach.position.set(1668, 0.16, 1598);
+    beach.position.set(beachOrigin.x, 0.16, beachOrigin.z);
     beach.receiveShadow = true;
     grp.add(beach);
     for (let i = 0; i < 8; i++) {
+      const dx = (i - 3.5) * 22, dz = (i - 3.5) * 10;
       const dune = cyl(16 + (i % 3) * 4, 3.2, duneMat,
-        1610 + i * 22, 1.4, 1558 + i * 10, 8);
+        beachOrigin.x + dx - 40, 1.4, beachOrigin.z + dz - 24, 8);
       dune.scale.set(1.3, 1, 0.7);
       dune.rotation.y = 0.55;
       grp.add(dune);
       /* sea oats on the dune crest */
       for (let k = 0; k < 7; k++) {
         const oat = box(0.28, 3.4 + (k % 3) * 0.5, 0.28, oatMat,
-          1610 + i * 22 + (k - 3) * 2.1, 3.6, 1558 + i * 10 + (k % 2) * 2);
+          beachOrigin.x + dx - 40 + (k - 3) * 2.1, 3.6, beachOrigin.z + dz - 24 + (k % 2) * 2);
         oat.rotation.z = (k % 2 ? 0.15 : -0.12);
         grp.add(oat);
       }
@@ -8083,9 +8201,10 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     for (let i = 0; i < 22; i++) {
       const row = i < 12 ? 0 : 1;
       const col = row === 0 ? i : i - 12;
-      const hx = 1588 + col * 20 + row * 10;
-      const hz = 1528 + col * 9 - row * 22;
-      grp.add(addInk(stiltHouse(hx, hz, houseYaw, PASTELS[(i * 3) % PASTELS.length], i), 0.08));
+      const hx0 = beachOrigin.x - 80 + col * 20 + row * 10;
+      const hz0 = beachOrigin.z - 70 + col * 9 - row * 22;
+      const hp = placeOut(isl, hx0, hz0, clearR + 10);
+      grp.add(addInk(stiltHouse(hp.x, hp.z, houseYaw, PASTELS[(i * 3) % PASTELS.length], i), 0.08));
     }
 
     /* candy umbrellas on the sand only */
@@ -8098,7 +8217,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       cap.position.y = 6.4;
       cap.rotation.x = Math.PI;
       g.add(cap);
-      g.position.set(1644 + (i % 6) * 20, 0, 1580 + ((i / 6) | 0) * 20);
+      const up = placeOut(isl, beachOrigin.x - 20 + (i % 6) * 20, beachOrigin.z - 18 + ((i / 6) | 0) * 20, clearR + 8);
+      g.position.set(up.x, 0, up.z);
       grp.add(addInk(g, 0.07));
     }
 
@@ -8122,10 +8242,11 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     /* rail along the pier */
     pier.add(box(0.35, 1.8, 270, railMat, -7.4, 3.2, 0));
     pier.add(box(0.35, 1.8, 270, railMat, 7.4, 3.2, 0));
-    pier.position.set(1610, 0, 1725);
+    const pierPos = placeOut(isl, isl.x + ox * (clearR + 200), isl.y + oz * (clearR + 200), clearR + 140);
+    pier.position.set(pierPos.x, 0, pierPos.z);
     pier.rotation.y = 0.62;
     grp.add(addInk(pier, 0.1));
-    T.pier = { x: 1610, y: 1725 };
+    T.pier = { x: pierPos.x, y: pierPos.z };
 
     /* --- Boardwalk Bites shop row by the island roundabout --- */
     const shopCols = [
@@ -8149,7 +8270,9 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         sm.userData = { celOK: true };
         g.add(box(16, 4, 0.4, sm, 0, 13.4, 0.2));
       }
-      g.position.set(1540 + i * 24, 0, 1418 - i * 11);
+      /* Landward / west-south of the island RAB, clear of the circulating road. */
+      const base = placeOut(isl, isl.x - 40 + i * 24, isl.y - 240 - i * 11, clearR + 24);
+      g.position.set(base.x, 0, base.z);
       g.rotation.y = 0.35;
       grp.add(addInk(g, 0.1));
     });
@@ -8163,6 +8286,18 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     const pondMesh = cyl(22, 0.5, waterMat, pond.x, 0.62, pond.y, 12);
     pondMesh.scale.set(1.25, 1, 0.9);
     grp.add(pondMesh);
+    function nearBoardwalk(x, z, pad) {
+      const sc = T.shortcut;
+      if (!sc || !sc.waypoints) return false;
+      const pts = sc.waypoints;
+      const r = (pad || 22);
+      for (let i = 0; i < pts.length; i++) {
+        if (Math.hypot(x - pts[i].x, z - pts[i].y) < r) return true;
+      }
+      if (sc.entry && Math.hypot(x - sc.entry.x, z - sc.entry.y) < r) return true;
+      if (sc.ramp && Math.hypot(x - sc.ramp.x, z - sc.ramp.y) < r) return true;
+      return false;
+    }
     for (let i = 0; i < 3; i++) {
       const sh = new (THREE().Group)();
       sh.add(box(10, 0.5, 8, woodMat, 0, 3.4, 0));
@@ -8170,7 +8305,10 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       sh.add(box(0.5, 3.4, 0.5, woodMat, 4, 1.7, -3));
       sh.add(box(0.5, 3.4, 0.5, woodMat, -4, 1.7, 3));
       sh.add(box(0.5, 3.4, 0.5, woodMat, 4, 1.7, 3));
-      sh.position.set(park.x - 20 + i * 16, 0, park.y - 16 + (i % 2) * 14);
+      /* Offset off the plank run so tables never sit on the boardwalk. */
+      const tx = park.x - 36 + i * 10, tz = park.y + 28 + (i % 2) * 10;
+      if (nearBoardwalk(tx, tz, 24)) continue;
+      sh.position.set(tx, 0, tz);
       grp.add(addInk(sh, 0.08));
     }
     const sc = T.shortcut;
@@ -8182,25 +8320,35 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       addBoardwalk(grp, pts[1], pts[2], 0.55, plankMat, plankAlt, railWood, true);
     }
 
-    /* --- Tide Tower (NW of the mainland hairpin) --- */
+    /* --- Tide Tower: a tall water tower just off the mainland hairpin, on the
+       side the chase cam sees when arriving from the span and leaving toward it. */
     const tower = new (THREE().Group)();
     for (let i = 0; i < 4; i++) {
       const a = i * Math.PI * 0.5 + 0.4;
-      tower.add(box(1.4, 36, 1.4, rust, Math.cos(a) * 7, 18, Math.sin(a) * 7));
+      tower.add(box(1.8, 58, 1.8, rust, Math.cos(a) * 9, 29, Math.sin(a) * 9));
     }
-    tower.add(cyl(11, 14, toon(0xd8dde4), 0, 38, 0, 10));
-    tower.add(cyl(3.4, 5, toon(0xb0b6c0), 0, 46, 0, 8));
-    tower.add(box(6, 3.6, 0.45, toon(0xf2c24a), 0, 38.5, 11.1));
-    tower.position.set(520, 0, 360);
+    tower.add(cyl(16, 20, toon(0xd8dde4), 0, 62, 0, 12));
+    tower.add(cyl(4.2, 7, toon(0xb0b6c0), 0, 74, 0, 8));
+    tower.add(box(9, 5, 0.5, toon(0xf2c24a), 0, 62, 16.2));
+    /* Park the tower just off the start / right of the outbound climb, where
+       the title hero, the chase cam, and the mainland loop can all see it. */
+    const start0 = T.pointAt(0);
+    const sdx = start0.dx || -ux, sdy = start0.dy || -uy;
+    /* The title / chase cameras frame the palm side of the start; put the tower
+       there so it is not cropped off the opposite edge. */
+    const rpx = -sdy, rpy = sdx;
+    const towerPos = { x: start0.x + rpx * 70 + sdx * 40, z: start0.y + rpy * 70 + sdy * 40 };
+    tower.position.set(towerPos.x, 0, towerPos.z);
     grp.add(addInk(tower, 0.1));
-    T.tideTower = { x: 520, y: 360 };
+    T.tideTower = { x: towerPos.x, y: towerPos.z };
 
     /* Mainland cottages (a few, not a dense strip). */
-    const mainHouses = [
-      [560, 430, 0.4], [500, 470, -0.3], [820, 380, 0.8], [860, 450, 1.1],
+    const mainHouseOff = [
+      [-140, 40, 0.4], [-180, 90, -0.3], [200, -40, 0.8], [230, 40, 1.1],
     ];
-    mainHouses.forEach(function (h, i) {
-      grp.add(addInk(stiltHouse(h[0], h[1], h[2], PASTELS[(i + 2) % PASTELS.length], 40 + i), 0.08));
+    mainHouseOff.forEach(function (h, i) {
+      const hp = placeOut(main, main.x + h[0], main.y + h[1], clearR + 8);
+      grp.add(addInk(stiltHouse(hp.x, hp.z, h[2], PASTELS[(i + 2) % PASTELS.length], 40 + i), 0.08));
     });
 
     /* Monday Marina — docks on the sound, mainland side of the span. */
@@ -8227,23 +8375,28 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     marina.children[marina.children.length - 1].position.set(18, 0.8, -20);
     marina.add(addInk(makeSkiff(toon(0xffe08a), toon(0x3a6a8a)), 0.07));
     marina.children[marina.children.length - 1].position.set(18, 0.8, 8);
-    /* Place the marina on the sound side near the mainland approach. */
-    marina.position.set(620, 0, 740);
-    marina.rotation.y = 0.55;
+    /* Docks in the water on the opposite side of the start, in the visible sound. */
+    let marinaPos = { x: start0.x - rpx * 170 + sdx * 90, z: start0.y - rpy * 170 + sdy * 90 };
+    let marinaYaw = Math.atan2(sdx, sdy);
+    marina.position.set(marinaPos.x, 0, marinaPos.z);
+    marina.rotation.y = marinaYaw;
     grp.add(addInk(marina, 0.09));
-    T.marina = { x: 620, y: 740 };
+    T.marina = { x: marinaPos.x, y: marinaPos.z };
 
     /* Palms along the beach, park, marina, and hairpins. */
     if (G.buildPalm) {
-      const palms = [
-        [1632, 1558], [1668, 1576], [1596, 1538], [1704, 1594],
-        [1740, 1616], [1772, 1634], [1572, 1518], [1810, 1650],
-        [1088, 1568], [1130, 1610], [1060, 1608],
-        [600, 720], [650, 770], [640, 430], [800, 400], [540, 500],
+      const palmSpec = [
+        [isl, 80, 40], [isl, 120, 70], [isl, 40, 20], [isl, 160, 90],
+        [isl, 200, 110], [isl, 230, 130], [isl, 20, 0], [isl, 270, 150],
+        [isl, -200, -80], [isl, -160, -40], [isl, -240, -70],
+        [main, -40, 260], [main, 20, 300], [main, 40, -90], [main, 180, -80], [main, -140, 80],
       ];
-      palms.forEach(function (p, i) {
+      palmSpec.forEach(function (p, i) {
+        const c = p[0];
+        const pp = placeOut(c, c.x + p[1], c.y + p[2], clearR + 6);
+        if (nearBoardwalk(pp.x, pp.z, 28)) return;
         const m = G.buildPalm(mats, 20 + i);
-        m.position.set(p[0], 0, p[1]);
+        m.position.set(pp.x, 0, pp.z);
         m.scale.setScalar(1.2 + (i % 3) * 0.14);
         grp.add(addInk(m, 0.07));
         if (!G._palms) G._palms = [];
@@ -8251,19 +8404,75 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       });
     }
 
-    /* Hairpin islands: grassy discs + a ring, a palm in the middle. */
+    /* Fill the field around the island hairpin: cottages, dunes, and palms
+       on every side that is not already the beach strip. */
+    (function fillIslandField() {
+      const beachAng = Math.atan2(oz, ox);
+      for (let i = 0; i < 16; i++) {
+        const ang = (i / 16) * Math.PI * 2;
+        let dang = Math.abs(Math.atan2(Math.sin(ang - beachAng), Math.cos(ang - beachAng)));
+        if (dang < 0.55) continue; /* leave the beach arc alone */
+        const dist = clearR + 55 + (i % 4) * 28;
+        const x = isl.x + Math.cos(ang) * dist, z = isl.y + Math.sin(ang) * dist;
+        if (nearBoardwalk(x, z, 36)) continue;
+        if (i % 3 === 0) {
+          const dune = cyl(14 + (i % 3) * 4, 2.8, duneMat, x, 1.3, z, 8);
+          dune.scale.set(1.25, 1, 0.75);
+          dune.rotation.y = ang;
+          grp.add(dune);
+        } else if (i % 3 === 1) {
+          grp.add(addInk(stiltHouse(x, z, ang + 1.2, PASTELS[(i * 5) % PASTELS.length], 90 + i), 0.08));
+        }
+        if (G.buildPalm) {
+          const pm = G.buildPalm(mats, 110 + i);
+          const px = isl.x + Math.cos(ang + 0.12) * (dist + 18);
+          const pz = isl.y + Math.sin(ang + 0.12) * (dist + 18);
+          if (!nearBoardwalk(px, pz, 28)) {
+            pm.position.set(px, 0, pz);
+            pm.scale.setScalar(1.05 + (i % 3) * 0.12);
+            grp.add(addInk(pm, 0.07));
+          }
+        }
+      }
+      /* a second, looser ring of cottages a bit farther out */
+      for (let i = 0; i < 8; i++) {
+        const ang = (i / 8) * Math.PI * 2 + 0.3;
+        let dang = Math.abs(Math.atan2(Math.sin(ang - beachAng), Math.cos(ang - beachAng)));
+        if (dang < 0.7) continue;
+        const dist = clearR + 150 + (i % 3) * 20;
+        const x = isl.x + Math.cos(ang) * dist, z = isl.y + Math.sin(ang) * dist;
+        if (nearBoardwalk(x, z, 36)) continue;
+        grp.add(addInk(stiltHouse(x, z, ang + 0.4, PASTELS[(i * 2 + 3) % PASTELS.length], 120 + i), 0.08));
+      }
+    })();
+
+    /* Hairpin islands: a large grassy disc, curb, inner ring, and a few palms
+       so the bigger roundabouts still read from the chase camera. */
     [isl, main].forEach(function (c, i) {
-      const disc = cyl(R_inner(T), 1.3, grass, c.x, 0.7, c.y, 16);
+      const ri = R_inner(T);
+      const disc = cyl(ri, 1.3, grass, c.x, 0.7, c.y, 24);
       grp.add(disc);
-      const ring = new (THREE().Mesh)(new (THREE().TorusGeometry)(18, 2.2, 6, 20), concrete);
+      const curb = new (THREE().Mesh)(new (THREE().TorusGeometry)(Math.max(20, ri - 2.4), 2.5, 6, 32), concrete);
+      curb.rotation.x = Math.PI / 2;
+      curb.position.set(c.x, 1.65, c.y);
+      grp.add(curb);
+      const ring = new (THREE().Mesh)(new (THREE().TorusGeometry)(Math.max(22, ri * 0.36), 2.2, 6, 24), concrete);
       ring.rotation.x = Math.PI / 2;
-      ring.position.set(c.x, 1.4, c.y);
+      ring.position.set(c.x, 1.5, c.y);
       grp.add(ring);
       if (G.buildPalm) {
         const m = G.buildPalm(mats, 70 + i);
         m.position.set(c.x, 0, c.y);
-        m.scale.setScalar(0.9);
+        m.scale.setScalar(1.15);
         grp.add(addInk(m, 0.07));
+        for (let k = 0; k < 2; k++) {
+          const a = i * 1.2 + k * 2.3;
+          const r = ri * 0.52;
+          const p2 = G.buildPalm(mats, 80 + i * 3 + k);
+          p2.position.set(c.x + Math.cos(a) * r, 0, c.y + Math.sin(a) * r);
+          p2.scale.setScalar(0.78);
+          grp.add(addInk(p2, 0.07));
+        }
       }
     });
 
@@ -8392,22 +8601,24 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       const h = m.h != null ? m.h : (T.heightAt ? T.heightAt(m.x, m.y) : 0);
       if (h < 8) continue;
       const s = m.s != null ? m.s : i;
-      if (s - lastPierS < 56 && lastPierS >= 0) continue;
+      /* Wider spacing so the span does not read as a forest of pillars. */
+      if (s - lastPierS < 96 && lastPierS >= 0) continue;
       lastPierS = s;
       const nx = -m.dy, ny = m.dx;
-      const span = 22;
+      const span = 24;
+      const thick = h > 90 ? 10.5 : 8.6;
       for (const side of [-1, 1]) {
         const px = m.x + nx * side * span * 0.5;
         const pz = m.y + ny * side * span * 0.5;
         const shaftH = h + 1.2;
-        const shaft = box(7.5, shaftH, 7.5, mats.concrete, px, shaftH * 0.5, pz);
+        const shaft = box(thick, shaftH, thick, mats.concrete, px, shaftH * 0.5, pz);
         shaft.rotation.y = Math.atan2(m.dx, m.dy);
         grp.add(shaft);
-        /* waterline footing */
-        grp.add(box(11, 2.4, 11, mats.pierCap, px, 1.1, pz));
+        /* waterline footing, kept low so it does not stack into the opposite lane */
+        grp.add(box(14, 2.2, 14, mats.pierCap, px, 1.0, pz));
       }
-      /* cap beam under the deck, tying the pair together */
-      const cap = box(span + 14, 2.2, 10, mats.pierCap, m.x, h + 0.4, m.y);
+      /* Cap beam sits under the deck, not poking up between the carriageways. */
+      const cap = box(span + 14, 1.6, 9, mats.pierCap, m.x, h - 0.9, m.y);
       cap.rotation.y = Math.atan2(m.dx, m.dy);
       grp.add(cap);
     }
@@ -8474,15 +8685,15 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       last = { x: rx, z: rz, h: h };
     }
 
-    /* Jersey median between the two decks. */
-    for (let i = 0; i < median.length; i += 3) {
+    /* Slim jersey-barrier median: a narrow wall with a red/white cap, not chunky slabs. */
+    for (let i = 0; i < median.length; i += 2) {
       const m = median[i];
       const h = m.h != null ? m.h : (T.heightAt ? T.heightAt(m.x, m.y) : 0);
       const yaw = Math.atan2(m.dx, m.dy);
-      const seg = box(8, 3.2, 15, mats.concrete, m.x, h + 1.7, m.y);
-      seg.rotation.y = yaw;
-      grp.add(seg);
-      const lip = box(8.2, 0.35, 15, toon((i / 3 | 0) % 2 ? 0xe0342c : 0xf4f4f0), m.x, h + 3.4, m.y);
+      const body = box(2.2, 3.6, 14, mats.concrete, m.x, h + 1.85, m.y);
+      body.rotation.y = yaw;
+      grp.add(body);
+      const lip = box(2.5, 0.32, 14, toon((i / 2 | 0) % 2 ? 0xe0342c : 0xf4f4f0), m.x, h + 3.7, m.y);
       lip.rotation.y = yaw;
       grp.add(lip);
     }
@@ -8518,9 +8729,9 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       const m = segs[i];
       T.walls.push({
         x: m.x, y: m.y, ang: m.ang,
-        hl: 12,
-        hd: 5.5,
-        h: 4.2,
+        hl: 8,
+        hd: 1.6,
+        h: 4.0,
         y0: m.h != null ? m.h : (T.heightAt ? T.heightAt(m.x, m.y) : 0),
         kind: "median",
       });
@@ -8606,9 +8817,9 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     let s = 0, p = path[0];
     if (which === "climb") { s = 0.04 * total; p = atS(s); }
     else if (which === "crest") { s = (T.boosts && T.boosts[0] && T.boosts[0].s) || 0.12 * total; p = atS(s); }
-    else if (which === "island") { s = 0.30 * total; p = atS(s); }
+    else if (which === "island") { s = (T.islEnterS != null ? T.islEnterS + 80 : 0.30 * total); p = atS(s); }
     else if (which === "shortcut") { p = sc.ramp || sc.waypoints && sc.waypoints[1] || p; s = p.s || 0; }
-    else if (which === "mainland") { s = 0.92 * total; p = atS(s); }
+    else if (which === "mainland") { s = (T.mainEnterS != null ? T.mainEnterS + 80 : 0.92 * total); p = atS(s); }
     else if (which === "pier") { p = path[0]; }
     const player = G_.field && G_.field.player;
     if (!player) return null;
@@ -8628,8 +8839,11 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       const mid = (T.median && T.median[(T.median.length * 0.5) | 0]) || atS(0.12 * total);
       const nx = -(mid.dy || 0), ny = mid.dx || 1;
       const h = mid.h != null ? mid.h : (T.heightAt ? T.heightAt(mid.x, mid.y) : 40);
-      G_.freezeCam([mid.x + nx * 320, Math.max(36, h * 0.55), mid.y + ny * 320],
-        [mid.x, 8, mid.y]);
+      const crest = T.crestH || h || 180;
+      const dist = 280 + crest * 1.6;
+      /* Sit above the deck and look slightly down so the roadway reads, not just the piers. */
+      G_.freezeCam([mid.x + nx * dist, crest + 48, mid.y + ny * dist],
+        [mid.x, crest * 0.62, mid.y]);
     } else if (G_.snapChaseCam) {
       G_.snapChaseCam();
     }
@@ -9098,27 +9312,30 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     /* simple hops off marked ramps; heightAt is the local deck / ground */
     k.alt = k.alt || 0;
     k.vz = k.vz || 0;
+    const landFromJump = function () {
+      k.alt = ground;
+      k.vz = 0;
+      k.jumpId = -1;
+      if (k.isPlayer && G.shakeT < 0.2) G.shakeT = 0.18;
+      if (k._onShortcutJump) {
+        k._onShortcutJump = false;
+        if (T.isWater && T.isWater(k.x, k.y)) {
+          _splashRespawn(k, T);
+        } else {
+          _burst(k, "dirt", 6);
+          if (T.skipShortcutChecks) T.skipShortcutChecks(k);
+          G.shortcutT = 1.4;
+          if (k.isPlayer && G.audio && G.audio.boost) G.audio.boost();
+        }
+      } else {
+        _burst(k, "dirt", 4);
+      }
+    };
     if (k.alt > ground + 0.15 || k.vz > 0) {
       k.vz -= 78 * dt;
       k.alt += k.vz * dt;
       if (k.alt <= ground) {
-        k.alt = ground;
-        k.vz = 0;
-        k.jumpId = -1;
-        if (k.isPlayer && G.shakeT < 0.2) G.shakeT = 0.18;
-        if (k._onShortcutJump) {
-          k._onShortcutJump = false;
-          if (T.isWater && T.isWater(k.x, k.y)) {
-            _splashRespawn(k, T);
-          } else {
-            _burst(k, "dirt", 6);
-            if (T.skipShortcutChecks) T.skipShortcutChecks(k);
-            G.shortcutT = 1.4;
-            if (k.isPlayer && G.audio && G.audio.boost) G.audio.boost();
-          }
-        } else {
-          _burst(k, "dirt", 4);
-        }
+        landFromJump();
       } else if (T.isWater && T.isWater(k.x, k.y)) {
         if (!k._lakeSpray) {
           k._lakeSpray = true;
@@ -9132,6 +9349,10 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       } else {
         k._lakeSpray = false;
       }
+    } else if (k.jumpId != null && k.jumpId >= 0) {
+      /* Ground rose to meet a stale jump (shortcut landing at the foot of
+         the return climb) so the airborne branch never saw alt <= ground. */
+      landFromJump();
     } else if (T.isWater && T.isWater(k.x, k.y)) {
       _splashRespawn(k, T);
     } else if (T.jumps && T.jumps.length) {
@@ -9151,7 +9372,12 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
           k.jumpId = ji;
           k.vz = j.launch || 34;
           k.alt = 0.25;
-          if (j.shortcut) k._onShortcutJump = true;
+          if (j.shortcut) {
+            k._onShortcutJump = true;
+            /* Advance checks as soon as the jump is taken, not only on
+               touchdown, so a mid-air snapshot cannot miss the skip. */
+            if (T.skipShortcutChecks) T.skipShortcutChecks(k);
+          }
           _playerGlitch(k, 0.55, 0.22);
           if (j.aimX != null) {
             const want = Math.atan2(j.aimY - k.y, j.aimX - k.x);
@@ -9435,7 +9661,10 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
   function _splashRespawn(k, T) {
     const sc = T.shortcut;
-    const p = (sc && sc.landing) ? T.pointAt(sc.landing.s) : T.pointAt(k.s || 0);
+    const fromSC = !!k._onShortcutJump;
+    /* Only the shortcut jump may respawn at the landing and skip checks.
+       A wide RAB entry that clips the water used to teleport across the hairpin. */
+    const p = (fromSC && sc && sc.landing) ? T.pointAt(sc.landing.s) : T.pointAt(k.s || 0);
     k.x = p.x; k.y = p.y;
     k.ang = Math.atan2(p.dy, p.dx);
     k.speed = 75;
@@ -9447,7 +9676,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     _burst(k, "splash", 18);
     if (k.isPlayer) G.shakeT = Math.max(G.shakeT || 0, 0.35);
     if (G.audio && G.audio.hit) G.audio.hit();
-    if (T.skipShortcutChecks) T.skipShortcutChecks(k);
+    if (fromSC && T.skipShortcutChecks) T.skipShortcutChecks(k);
   }
 
   function _dealershipSmash(field) {
@@ -10566,6 +10795,14 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       const bot = r.yBot != null ? r.yBot : 14.5;
       return Math.min(h, bot - 2.2);
     }
+    /* On a high-rise descent the deck behind the truck is higher than the
+       camera's default height; lift so the lens stays above the roadway. */
+    function deckClearance(x, z, h) {
+      if (!deckFollow || !T.heightAt) return h;
+      const deck = T.heightAt(x, z) || 0;
+      if (deck < 2) return h;
+      return Math.max(h, deck + 10);
+    }
 
     /* Pull in if a graffiti/underpass wall sits between camera and truck;
        duck if the camera path is under a roof slab. */
@@ -10576,10 +10813,13 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       let h = height;
       for (let i = 0; i <= 6; i++) {
         const u = i / 6;
-        h = roofClearance(p.x - fx * b * u, p.y - fz * b * u, h);
+        const sx = p.x - fx * b * u, sz = p.y - fz * b * u;
+        h = roofClearance(sx, sz, h);
+        h = deckClearance(sx, sz, h);
       }
       /* Look a little behind the desired cam so we duck before hitting the lip. */
       h = roofClearance(cx - fx * 14, cz - fz * 14, h);
+      h = deckClearance(cx - fx * 14, cz - fz * 14, h);
       if (wallHitsSeg(cx, cz, p.x, p.y, h) || propHitsSeg(cx, cz, p.x, p.y)) continue;
       back = b;
       height = h;
@@ -10593,7 +10833,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
     const tx = p.x - fx * back;
     const tz = p.y - fz * back;
-    let ty = height;
+    let ty = deckClearance(tx, tz, height);
     const rHere = roofAt(tx, tz, 2);
     if (rHere && ty > rHere.yBot - 1.6) ty = rHere.yBot - 1.8;
 
@@ -10670,15 +10910,45 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   function _studioCam(field, t, close) {
     const p = field.player;
     const cx = p.x, cz = p.y;
+    const T = G.track;
+    const alt = p.alt || (T && T.heightAt ? T.heightAt(p.x, p.y) : 0) || 0;
+    /* Tide Run title: a wide hero looking up the climb, not an under-truck close-up.
+       (The start sits on the ramp; a world-Y of 8.6 used to land under the deck.) */
+    if (!close && T && T.id === "surfcity") {
+      const yaw = p.ang + Math.PI + 0.42 + Math.sin((t || 0) * 0.2) * 0.04;
+      const dist = 96;
+      studioCam.fov = 52;
+      studioCam.position.set(
+        cx + Math.cos(yaw) * dist,
+        alt + 26,
+        cz + Math.sin(yaw) * dist
+      );
+      studioCam.lookAt(
+        cx + Math.cos(p.ang) * 28,
+        alt + 14,
+        cz + Math.sin(p.ang) * 28
+      );
+      studioCam.updateProjectionMatrix();
+      if (G._sun) {
+        const sy = p.ang + 0.35;
+        G._sun.position.set(cx + Math.cos(sy) * 80, alt + 140, cz + Math.sin(sy) * 80);
+        G._sun.target.position.set(cx, alt, cz);
+        G._sun.target.updateMatrixWorld();
+        if (!G._sun.target.parent) scene.add(G._sun.target);
+      }
+      return;
+    }
     const dist = close ? 28 : 30;
     /* Front-right 3/4, slightly elevated, matching the illustration (hood on the right). */
     const yaw = p.ang + 0.78 + Math.sin((t || 0) * 0.25) * 0.03;
+    studioCam.fov = close ? 42 : 42;
     studioCam.position.set(
       cx + Math.cos(yaw) * dist,
-      close ? 8.2 : 8.6,
+      (close ? 8.2 : 8.6) + alt,
       cz + Math.sin(yaw) * dist
     );
-    studioCam.lookAt(cx + Math.cos(p.ang) * 1.0, 3.4, cz + Math.sin(p.ang) * 1.0);
+    studioCam.lookAt(cx + Math.cos(p.ang) * 1.0, 3.4 + alt, cz + Math.sin(p.ang) * 1.0);
+    studioCam.updateProjectionMatrix();
     if (G._sun) {
       const sy = p.ang + 0.35;
       G._sun.position.set(cx + Math.cos(sy) * 70, 110, cz + Math.sin(sy) * 70);

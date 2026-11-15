@@ -1,4 +1,4 @@
-# CyberToaster Kart v0.3.0
+# CyberToaster Kart v0.3.1
 
 A free, just-for-fun cartoon kart racer. Drive Mr. Toasty's Cybertruck on Monday Errands, Toaster Tide Run, or Skullz Graveyard, drift, fire items, smash the Monday Motors dealership, and jump Toasty Lake.
 
@@ -19,6 +19,11 @@ Open `index.html` in a desktop browser (no server required). The game is a singl
 - **Skullz Graveyard** — purple dirt, RIP stones, and jumps
 
 ## Changelog
+
+### v0.3.1
+
+- Toaster Tide Run: taller (crest 180) and longer bridge, bigger roundabouts, and a 2-lap race
+- Slim jersey-barrier median, Tide Tower and marina visible from the race camera, a cleaned-up boardwalk, and a wide title shot
 
 ### v0.3.0
 
@@ -41,7 +46,7 @@ Open `index.html` in a desktop browser (no server required). The game is a singl
 
 - First ARTcade release: two tracks, items, dealership shortcut, and the Toasty Lake jump
 
-A dated snapshot of this build lives in `v0.3.0/`. Previous snapshots are kept in `v0.2.1/`, `v0.2.0/` and `v0.1.0/`. To put the card on the ARTcade page, add:
+A dated snapshot of this build lives in `v0.3.1/`. Previous snapshots are kept in `v0.3.0/`, `v0.2.1/`, `v0.2.0/` and `v0.1.0/`. To put the card on the ARTcade page, add:
 
 ```html
 <script src="https://therapytoaster.github.io/tt-live/kart/arcade-card.js"></script>
