@@ -1,4 +1,4 @@
-# Toaster Pit v0.6.0
+# Toaster Pit v0.6.1
 
 A Mr. Toasty slot-machine roguelike. You're in the basement for a therapy session, and you owe crumbs to the Breadlord. Pull the cursed 3×5 Toaster Slot, buy charms from the vending fridge, and pay each deadline — or get burnt.
 
@@ -9,6 +9,11 @@ Rebuild after editing `src/` or `vendor/`:
     python3 build.py
 
 CloverPit is a gameplay-loop reference only. Every name, symbol, charm, and line is original. This is not real-money gambling.
+
+## v0.6.1 — wider shot, louder art
+
+- **Camera:** pulled back from z 5.15 to 5.6, with the look-at point at y 1.48 (it was 1.42) and the camera at y 1.6 (it was 1.58). The FOV is 44° on 16:9 (it was 42°), 48° on 4:3, and 52° on squarer screens. On portrait phones the FOV widens until the full cabinet and lever fit. The camera is still fully locked and straight-on.
+- **Graffiti:** pieces were rearranged to the spots the camera can actually see. BREADLORD and TOASTY sit in the top band on either side of the monitor. PIT moved to the left gutter, out from behind the lever. CRUMBS and a magenta skull are on the right strip, and a big bone skull is on the left. The side walls show in the back corners with a vertical PIT, a vertical TOASTY and skull stencils. The pieces are bolder and more saturated with neon glow passes, and their paint-only glow map catches the bloom while the bricks stay dark and gritty. Magenta and cyan corner uplights and a warm top rim wash the walls. The wall behind the cabinet is dimmed so the reels keep their contrast.
 
 ## v0.6 — gritty graffiti look
 

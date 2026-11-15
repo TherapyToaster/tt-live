@@ -1560,7 +1560,7 @@ class RoundedBoxGeometry extends BoxGeometry {
 // Palette is the shared Mr. Toasty universe set, all on black.
 var PIT = PIT || {};
 
-PIT.VERSION = "0.6.0";
+PIT.VERSION = "0.6.1";
 
 PIT.PAL = {
   black:    "#000000",
@@ -2018,6 +2018,7 @@ PIT.colorMat = function (hex, opts) {
     ctx.textBaseline = "alphabetic";
     ctx.lineJoin = "round";
     var w = ctx.measureText(text).width;
+    if (opt.glow) { ctx.save(); ctx.shadowColor = color; ctx.shadowBlur = size * 0.5; ctx.fillStyle = color; ctx.fillText(text, 0, 0); ctx.restore(); }
     ctx.strokeStyle = rgba(color, 0.22);
     ctx.lineWidth = size * 0.22;
     ctx.strokeText(text, 0, 0);
@@ -2072,6 +2073,17 @@ PIT.colorMat = function (hex, opts) {
     // overspray cloud behind the piece
     var bg = opt.cloud || P.magenta;
     sprayDot(ctx, w * 0.5, -size * 0.35, Math.max(w * 0.62, size), bg, 0.28, rng, 220);
+    // v0.6.1 neon glow pass (bloom-friendly) behind the outline
+    if (opt.glow) {
+      ctx.save();
+      ctx.shadowColor = opt.glow;
+      ctx.shadowBlur = size * 0.45;
+      ctx.strokeStyle = opt.glow;
+      ctx.lineWidth = size * 0.24;
+      ctx.strokeText(text, 0, 0);
+      ctx.strokeText(text, 0, 0);
+      ctx.restore();
+    }
     // 3D block shadow
     ctx.fillStyle = "#050305";
     for (var d = 1; d <= Math.round(size * 0.08); d++) ctx.fillText(text, d, d);
@@ -2111,7 +2123,7 @@ PIT.colorMat = function (hex, opts) {
     ctx.translate(x, y);
     ctx.rotate(opt.rot || 0);
     // overspray
-    sprayDot(ctx, 0, 0, s * 0.95, color, 0.16, rng, 160);
+    sprayDot(ctx, 0, 0, s * 0.95, color, opt.glow ? 0.3 : 0.16, rng, 160);
     ctx.fillStyle = color;
     // cranium + jaw
     ctx.beginPath();
@@ -4189,8 +4201,8 @@ PIT.colorMat = function (hex, opts) {
   var chasers = [];
   var shafts = [];
   // Locked, straight-on, centered front view. Never moves.
-  var camBase = new THREE.Vector3(0, 1.58, 5.15);
-  var camLook = new THREE.Vector3(0, 1.42, 0);
+  var camBase = new THREE.Vector3(0, 1.6, 5.6); // v0.6.1: pulled back (was z 5.15)
+  var camLook = new THREE.Vector3(0, 1.48, 0);
   var quality = true, ready = false;
   var spin = null;
   var strobeLights = 0;
@@ -4423,8 +4435,8 @@ PIT.colorMat = function (hex, opts) {
     // v0.6: tagged brick walls (one unique canvas per wall, not tiled, so tags read)
     if (PIT.GraffitiWalls) {
       var gb = PIT.GraffitiWalls.backWall(quality), gs = PIT.GraffitiWalls.sideWall();
-      graffBack = { map: wallTex(gb.color, an, true), bump: wallTex(gb.bump, an, false) };
-      graffSide = { map: wallTex(gs.color, an, true), bump: wallTex(gs.bump, an, false) };
+      graffBack = { map: wallTex(gb.color, an, true), bump: wallTex(gb.bump, an, false), glow: wallTex(gb.glow, an, true) };
+      graffSide = { map: wallTex(gs.color, an, true), bump: wallTex(gs.bump, an, false), glow: wallTex(gs.glow, an, true) };
     }
     floorTex = linMap(PIT.nearestTex(makeConcrete(256), true), 6, 6);
     floorTex.magFilter = THREE.LinearFilter;
@@ -4457,12 +4469,13 @@ PIT.colorMat = function (hex, opts) {
     var backM = wallM, sideM = wallM;
     if (graffBack) {
       // Paint reads in the dark basement: a little emissive from the same map, plus brick bump.
-      backM = std({ map: graffBack.map, color: 0xeee2d6, roughness: 0.86, metalness: 0.02, bumpMap: graffBack.bump, bumpScale: 0.9, envMapIntensity: 0.35, emissive: 0xffffff, emissiveMap: graffBack.map, emissiveIntensity: 0.24 });
-      sideM = std({ map: graffSide.map, color: 0xe2d6ca, roughness: 0.86, metalness: 0.02, bumpMap: graffSide.bump, bumpScale: 0.9, envMapIntensity: 0.35, emissive: 0xffffff, emissiveMap: graffSide.map, emissiveIntensity: 0.16 });
+      // v0.6.1: paint-only emissive map, so the pieces glow and the bricks stay gritty
+      backM = std({ map: graffBack.map, color: 0xf4ece4, roughness: 0.82, metalness: 0.02, bumpMap: graffBack.bump, bumpScale: 0.9, envMapIntensity: 0.35, emissive: 0xffffff, emissiveMap: graffBack.glow, emissiveIntensity: 0.62 });
+      sideM = std({ map: graffSide.map, color: 0xeee4da, roughness: 0.84, metalness: 0.02, bumpMap: graffSide.bump, bumpScale: 0.9, envMapIntensity: 0.35, emissive: 0xffffff, emissiveMap: graffSide.glow, emissiveIntensity: 0.55 });
     }
-    mesh(new THREE.BoxGeometry(18, 6.2, 0.28), backM, scene, 0, 3.0, -8.05, false);
-    mesh(new THREE.BoxGeometry(0.28, 6.2, 16), sideM, scene, -8.95, 3.0, -1, false);
-    mesh(new THREE.BoxGeometry(0.28, 6.2, 16), sideM, scene, 8.95, 3.0, -1, false);
+    mesh(new THREE.BoxGeometry(18, 6.2, 0.28), backM, scene, 0, 3.0, -8.05, false).name = "wall-back";
+    mesh(new THREE.BoxGeometry(0.28, 6.2, 16), sideM, scene, -8.95, 3.0, -1, false).name = "wall-left";
+    mesh(new THREE.BoxGeometry(0.28, 6.2, 16), sideM, scene, 8.95, 3.0, -1, false).name = "wall-right";
     if (PIT.GraffitiWalls) {
       // spray splats + a stencil on the concrete floor (decal, under the puddle)
       var fsT = wallTex(PIT.GraffitiWalls.floorSplats(), aniso(), true);
@@ -5110,6 +5123,18 @@ PIT.colorMat = function (hex, opts) {
     var sideL = new THREE.PointLight(0xffe0b0, 18, 12, 1.5);
     sideL.position.set(-5.5, 3.2, 0.4);
     scene.add(sideL);
+    // v0.6.1 neon wall washes: uplights in the left/right corners + a top-band rim, no shadows
+    function wallWash(col, inten, px, py, pz, tx, ty, tz, ang) {
+      var l = new THREE.SpotLight(col, inten, 14, ang, 0.75, 1.2);
+      l.position.set(px, py, pz);
+      l.target.position.set(tx, ty, tz);
+      l.castShadow = false;
+      scene.add(l); scene.add(l.target);
+      return l;
+    }
+    wallWash(0xff00c8, 30, -6.0, 0.25, -6.4, -6.0, 3.6, -8.0, Math.PI / 5);
+    wallWash(0x00f0ff, 30, 7.4, 0.25, -6.4, 7.4, 3.6, -8.0, Math.PI / 5);
+    wallWash(0xffd4a0, 26, 0, 5.7, -5.0, 0, 4.9, -8.0, Math.PI / 2.6);
     var floorFill = new THREE.SpotLight(0xffd8a8, 16, 14, Math.PI / 2.4, 0.8, 1.4);
     floorFill.position.set(1.2, 3.6, 3.4);
     floorFill.target.position.set(2.0, 0, 1.4);
@@ -5447,7 +5472,7 @@ PIT.colorMat = function (hex, opts) {
       scene.fog = new THREE.FogExp2(0x16140f, 0.012);
       scene.background = new THREE.Color(0x16140f);
 
-      camera = new THREE.PerspectiveCamera(42, 16 / 9, 0.1, 50);
+      camera = new THREE.PerspectiveCamera(44, 16 / 9, 0.1, 50);
       camera.position.copy(camBase);
       camera.lookAt(camLook);
 
@@ -5493,7 +5518,10 @@ PIT.colorMat = function (hex, opts) {
       camera.aspect = w / Math.max(1, h);
       // Keep the machine and back wall framed: taller viewports get a slightly wider FOV.
       var aspect = camera.aspect;
-      camera.fov = aspect < 1.25 ? 50 : aspect < 1.5 ? 46 : 42;
+      camera.fov = aspect < 1.25 ? 52 : aspect < 1.5 ? 48 : 44; // v0.6.1: +2 deg (was 50/46/42)
+      // v0.6.1: narrow/portrait screens widen just enough that cabinet + lever (|x| <= 2.15 m) fit.
+      var needFov = 2 * Math.atan((2.15 / (camBase.z - 0.7)) / Math.max(0.3, aspect)) * 180 / Math.PI;
+      camera.fov = Math.min(96, Math.max(camera.fov, needFov));
       camera.position.copy(camBase);
       camera.lookAt(camLook);
       camera.updateProjectionMatrix();
@@ -5558,6 +5586,7 @@ PIT.colorMat = function (hex, opts) {
     },
 
     isSpinning: function () { return !!spin; },
+    _debug: function () { return { scene: scene, camera: camera }; },
     setUvOff: function (v) {
       var i;
       for (i = 0; i < reels.length; i++) reels[i].mat.uniforms.uvOff.value = v;
@@ -5780,7 +5809,7 @@ PIT.colorMat = function (hex, opts) {
 
 
 /* ==== 31-graffiti-walls.js ==== */
-// Toaster Pit v0.6 — tagged basement: back wall, side walls, cabinet skin and marquee.
+// Toaster Pit v0.6.1 — tagged basement: back wall, side walls, cabinet skin and marquee.
 // Procedural only; original tags (TOASTY, PIT, BREADLORD, CRUMBS). Palette-locked + grit.
 (function () {
   var P = PIT.PAL, G = PIT.Graffiti;
@@ -5792,122 +5821,132 @@ PIT.colorMat = function (hex, opts) {
   }
 
   // ---------- back wall: 18 m x 6.2 m, bottom at y = -0.1 ----------
+  // v0.6.1 layout follows what the pulled-back locked camera actually sees (raycast mask):
+  // top band y 4.3-5.9 (both sides of the monitor), left gutter x -6.8..-4.1, right strip x 6.4..8.9.
+  // Returns color, bump and a paint-only emissive map (bricks stay dark, paint glows).
   function backWall(quality) {
     var W = 2048, H = 704, PX = W / 18;
-    var col = canvas(W, H), bump = canvas(W, H), ctx = col.ctx, rng = PIT.makeRng(606);
+    var col = canvas(W, H), bump = canvas(W, H), minor = canvas(W, H), key = canvas(W, H), glow = canvas(W, H);
+    var ctx = col.ctx, m = minor.ctx, k = key.ctx, rng = PIT.makeRng(616);
     function X(x) { return (x + 9) * PX; }
     function Y(y) { return (6.1 - y) * PX; }
 
     G.bricks(ctx, W, H, 30, 10, rng);
-    // bump: bricks only, greyscale
-    var brng = PIT.makeRng(606);
-    G.bricks(bump.ctx, W, H, 30, 10, brng, ["#9a9a9a", "#8a8a8a", "#a4a4a4", "#909090", "#868686", "#9e9e9e"], "#303030");
-
-    // a raw concrete band at the bottom (old render)
+    G.bricks(bump.ctx, W, H, 30, 10, PIT.makeRng(606), ["#9a9a9a", "#8a8a8a", "#a4a4a4", "#909090", "#868686", "#9e9e9e"], "#303030");
     ctx.fillStyle = "#2a2724";
     ctx.fillRect(0, Y(0.55), W, H - Y(0.55));
-    ctx.fillStyle = "rgba(0,0,0,0.3)";
-    for (var i = 0; i < 400; i++) ctx.fillRect(rng() * W, Y(0.55) + rng() * (H - Y(0.55)), 1 + rng() * 3, 1);
+    // buffed patches = clean dark grounds that make the pieces pop
+    G.buffPatch(ctx, X(-8.7), Y(5.95), 7.5 * PX, 1.75 * PX, "#121014", rng);
+    G.buffPatch(ctx, X(1.4), Y(5.95), 7.4 * PX, 1.75 * PX, "#141016", rng);
+    G.buffPatch(ctx, X(-6.9), Y(1.9), 3.0 * PX, 1.75 * PX, "#18151a", rng);
+    G.buffPatch(ctx, X(6.3), Y(5.0), 2.6 * PX, 3.2 * PX, "#121014", rng);
+    // dim the wall straight behind the cabinet so the reels keep their contrast
+    var vg = ctx.createRadialGradient(X(0), Y(1.6), 20, X(0), Y(1.6), 4.2 * PX);
+    vg.addColorStop(0, "rgba(0,0,0,0.72)");
+    vg.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = vg;
+    ctx.fillRect(0, 0, W, H);
 
-    // buffed patches over older paint
-    G.buffPatch(ctx, X(-8.4), Y(2.05), 6.0 * PX, 1.75 * PX, "#3a3634", rng);
-    G.buffPatch(ctx, X(2.3), Y(1.95), 6.2 * PX, 1.6 * PX, "#141214", rng);
-    G.buffPatch(ctx, X(-1.2), Y(5.95), 2.4 * PX, 0.75 * PX, "#2a2626", rng);
-
-    // ghost of old, half-buffed tags underneath
-    ctx.globalAlpha = 0.35;
-    G.tag(ctx, "PIT", X(-8.6), Y(2.6), 44, P.bone, rng, { rot: -0.1 });
-    G.tag(ctx, "TOASTY", X(6.3), Y(0.95), 30, P.cyan, rng, { rot: 0.05 });
-    G.tag(ctx, "CRUMBS", X(-2.2), Y(1.9), 26, P.boneDk, rng, { rot: -0.08 });
-    ctx.globalAlpha = 1;
-
-    // ---- pieces ----
-    G.throwup(ctx, "TOASTY", X(-6.3), Y(1.05), 120, P.yellow, P.toast, rng, { cloud: P.magenta, rot: -0.04, drips: 8, maxW: 2.2 * PX });
-    G.tag(ctx, "BREADLORD", X(-6.2), Y(0.3), 30, P.boneLt, rng, { rot: -0.03, drips: 3 });
-    G.stencilSkull(ctx, X(-4.6), Y(0.55), 0.42 * PX, P.cyan, rng, { drips: 2, rot: 0.08 });
-    G.stencilToast(ctx, X(4.6), Y(0.45), 0.38 * PX, P.yellow, rng, { drips: 2, rot: -0.08 });
-    G.throwup(ctx, "PIT", X(3.95), Y(0.86), 112, P.cyan, P.magenta, rng, { cloud: P.toast, rot: 0.05, drips: 6, outer: P.yellow, maxW: 2.2 * PX });
-
-    // tags across the top band (above / between the neon)
-    G.tag(ctx, "BREADLORD", X(-7.6), Y(5.55), 46, P.glitch, rng, { rot: -0.06, crown: true, drips: 4 });
-    G.tag(ctx, "TOASTY", X(3.4), Y(5.6), 48, P.yellow, rng, { rot: 0.05, crown: true, drips: 3 });
-    G.tag(ctx, "CRUMBS", X(-1.0), Y(5.55), 38, P.bone, rng, { rot: 0.02, drips: 2 });
-    G.tag(ctx, "PIT", X(7.2), Y(4.95), 40, P.magenta, rng, { rot: -0.12 });
-    G.tag(ctx, "PIT", X(-8.7), Y(4.95), 36, P.cyan, rng, { rot: 0.1 });
-
-    // tags in the gutters beside the gallery + under it
-    G.tag(ctx, "BREADLORD", X(-2.85), Y(1.55), 30, P.yellow, rng, { rot: -0.05, drips: 3 });
-    G.tag(ctx, "TOASTY", X(1.25), Y(1.5), 30, P.magenta, rng, { rot: 0.06, drips: 2 });
-    G.tag(ctx, "PIT", X(-6.0), Y(1.65), 28, P.bone, rng, { rot: 0.04 });
-    G.tag(ctx, "CRUMBS", X(4.3), Y(1.75), 26, P.yellow, rng, { rot: -0.04 });
-    G.tag(ctx, "X", X(-4.45), Y(3.2), 30, P.glitch, rng, { rot: 0 });
-    G.tag(ctx, "X", X(4.25), Y(3.25), 30, P.cyan, rng, { rot: 0 });
-
-    // stencils: our skull (toast crown + X eyes) and toast
-    G.stencilSkull(ctx, X(-7.35), Y(3.35), 0.95 * PX, P.boneLt, rng, { drips: 4, rot: -0.05 });
-    G.stencilToast(ctx, X(7.35), Y(3.3), 0.95 * PX, P.yellow, rng, { drips: 4, rot: 0.06 });
-    G.stencilSkull(ctx, X(-2.45), Y(4.75), 0.55 * PX, P.magenta, rng, { drips: 3 });
-    G.stencilSkull(ctx, X(2.45), Y(4.75), 0.55 * PX, P.cyan, rng, { drips: 3 });
-    G.stencilToast(ctx, X(0.0), Y(5.7), 0.4 * PX, P.toast, rng, {});
-
-    // wheatpaste posters in the gutters beside the monitor
-    G.wheatpaste(ctx, X(-2.45), Y(3.05), 0.95 * PX, 1.3 * PX, ["FEED THE", "BREADLORD", "BASEMENT THERAPY"], rng, { block: P.glitch, rot: -0.04 });
-    G.wheatpaste(ctx, X(2.45), Y(3.05), 0.95 * PX, 1.3 * PX, ["ITS ART", "THERAPY", "PULL · PAY · REPEAT"], rng, { block: P.magenta, rot: 0.05 });
-    G.wheatpaste(ctx, X(-7.75), Y(1.25), 0.75 * PX, 0.95 * PX, ["PIT", "NO REFUNDS ON CRUMBS"], rng, { block: P.toast, rot: 0.03 });
-
-    // sticker bombs
+    // ---- minor layer: ghost tags, scribbles, stickers, posters ----
+    m.globalAlpha = 0.4;
+    G.tag(m, "PIT", X(-8.6), Y(2.7), 44, P.bone, rng, { rot: -0.1 });
+    G.tag(m, "TOASTY", X(4.6), Y(1.0), 30, P.cyan, rng, { rot: 0.05 });
+    m.globalAlpha = 1;
+    G.wheatpaste(m, X(-2.45), Y(3.05), 0.95 * PX, 1.3 * PX, ["FEED THE", "BREADLORD", "BASEMENT THERAPY"], rng, { block: P.glitch, rot: -0.04 });
+    G.wheatpaste(m, X(2.45), Y(3.05), 0.95 * PX, 1.3 * PX, ["ITS ART", "THERAPY", "PULL · PAY · REPEAT"], rng, { block: P.magenta, rot: 0.05 });
+    G.wheatpaste(m, X(5.6), Y(1.55), 0.75 * PX, 0.9 * PX, ["PIT", "NO REFUNDS ON CRUMBS"], rng, { block: P.toast, rot: 0.04 });
     var kinds = ["skull", "toast", "word", "holo", "x", "word"];
     var words = ["PIT", "TOASTY", "BREADLORD", "CRUMBS", "XX", "PIT"];
     function bomb(cx, cy, rw, rh, n, sz) {
-      for (var k = 0; k < n; k++) {
-        var kind = kinds[(rng() * kinds.length) | 0];
-        var s = sz * (0.6 + rng() * 0.8);
-        var w = kind === "word" ? s * 2.1 : s, h = s;
-        G.sticker(ctx, X(cx) + (rng() - 0.5) * rw * PX, Y(cy) + (rng() - 0.5) * rh * PX, w, h, kind, rng, { word: words[(rng() * words.length) | 0] });
+      for (var i = 0; i < n; i++) {
+        var kind = kinds[(rng() * kinds.length) | 0], s = sz * (0.6 + rng() * 0.8);
+        G.sticker(m, X(cx) + (rng() - 0.5) * rw * PX, Y(cy) + (rng() - 0.5) * rh * PX, kind === "word" ? s * 2.1 : s, s, kind, rng, { word: words[(rng() * words.length) | 0] });
       }
     }
-    bomb(-1.9, 1.85, 0.9, 0.7, 14, 22);
-    bomb(1.9, 1.85, 0.9, 0.7, 14, 22);
-    bomb(-4.35, 1.7, 2.6, 0.4, 12, 18);
-    bomb(4.35, 1.7, 2.6, 0.4, 12, 18);
-    bomb(-7.4, 2.1, 1.2, 0.6, 9, 20);
-    bomb(7.4, 2.1, 1.2, 0.6, 9, 20);
-    bomb(0, 4.15, 1.2, 0.5, 8, 18);
-
-    // spray scribbles + arrows
-    for (i = 0; i < 18; i++) {
+    bomb(-4.3, 1.75, 0.5, 2.6, 12, 22);
+    bomb(-5.5, 0.35, 1.6, 0.35, 8, 20);
+    bomb(5.4, 1.35, 1.2, 0.5, 9, 20);
+    bomb(-3.9, 4.35, 1.6, 0.25, 7, 18);
+    bomb(4.2, 4.35, 1.6, 0.25, 7, 18);
+    bomb(7.6, 2.0, 2.2, 0.5, 10, 22);
+    for (var i = 0; i < 22; i++) {
       var sx = rng() * W, sy = Y(0.6) - rng() * (Y(0.6) - Y(5.9)), pts = [[sx, sy]];
-      for (var k = 0; k < 4; k++) pts.push([pts[k][0] + (rng() - 0.3) * 70, pts[k][1] + (rng() - 0.5) * 40]);
-      G.sprayLine(ctx, pts, 2 + rng() * 2, [P.yellow, P.magenta, P.cyan, P.toast, P.bone][(rng() * 5) | 0], rng, { drips: 0.4, dripLen: 22 });
+      for (var q = 0; q < 4; q++) pts.push([pts[q][0] + (rng() - 0.3) * 70, pts[q][1] + (rng() - 0.5) * 40]);
+      G.sprayLine(m, pts, 2.5 + rng() * 2, [P.yellow, P.magenta, P.cyan, P.toast, P.bone][(rng() * 5) | 0], rng, { drips: 0.4, dripLen: 24 });
     }
 
-    G.grime(ctx, W, H, rng, quality === false ? 0.6 : 1);
-    return { color: col.canvas, bump: bump.canvas };
+    // ---- key layer: the big, saturated, glowing pieces ----
+    // top band, left of the monitor
+    G.throwup(k, "BREADLORD", X(-6.0), Y(4.62), 130, P.glitch, P.magenta, rng, { cloud: P.cyan, rot: -0.02, drips: 10, outer: P.yellow, maxW: 4.3 * PX, glow: P.magenta });
+    // top band, right of the monitor
+    G.throwup(k, "TOASTY", X(1.75), Y(4.6), 140, P.yellow, P.toast, rng, { cloud: P.magenta, rot: 0.02, drips: 10, outer: P.boneLt, maxW: 4.1 * PX, glow: P.yellow });
+    // left gutter (between fridge and cabinet), clear of the lever
+    G.throwup(k, "PIT", X(-6.25), Y(0.62), 150, P.cyan, P.magenta, rng, { cloud: P.yellow, rot: -0.03, drips: 8, outer: P.yellow, maxW: 2.05 * PX, glow: P.cyan });
+    // right strip beside the gallery
+    G.throwup(k, "CRUMBS", X(6.45), Y(2.6), 100, P.toast, P.yellow, rng, { cloud: P.cyan, rot: 0.03, drips: 7, outer: P.boneLt, maxW: 2.35 * PX, glow: P.toast });
+    // skull + toast stencils in the visible strips
+    G.stencilSkull(k, X(-6.2), Y(2.95), 1.05 * PX, P.boneLt, rng, { drips: 5, rot: -0.04, glow: true });
+    G.stencilSkull(k, X(7.65), Y(4.15), 0.95 * PX, P.magenta, rng, { drips: 4, rot: 0.05, glow: true });
+    G.stencilToast(k, X(-8.2), Y(4.9), 0.8 * PX, P.yellow, rng, { drips: 3, rot: -0.06 });
+    G.stencilSkull(k, X(-0.2), Y(5.65), 0.42 * PX, P.cyan, rng, { drips: 2 });
+    // tags with glow
+    G.tag(k, "TOASTY", X(-5.95), Y(1.65), 34, P.yellow, rng, { rot: -0.05, crown: true, drips: 3, glow: true });
+    G.tag(k, "PIT", X(6.6), Y(3.35), 40, P.cyan, rng, { rot: 0.06, drips: 2, glow: true });
+    G.tag(k, "BREADLORD", X(4.8), Y(1.85), 26, P.magenta, rng, { rot: -0.04, glow: true });
+    G.tag(k, "X", X(-4.3), Y(3.25), 34, P.glitch, rng, { rot: 0, glow: true });
+
+    // composite: color = bricks + minor + key, then grit over everything
+    ctx.drawImage(minor.canvas, 0, 0);
+    ctx.drawImage(key.canvas, 0, 0);
+    G.grime(ctx, W, H, rng, quality === false ? 0.45 : 0.75);
+    // emissive: black + faint minor + full key pieces (bloom-friendly accents)
+    glow.ctx.fillStyle = "#000";
+    glow.ctx.fillRect(0, 0, W, H);
+    glow.ctx.globalAlpha = 0.35;
+    glow.ctx.drawImage(minor.canvas, 0, 0);
+    glow.ctx.globalAlpha = 1;
+    glow.ctx.drawImage(key.canvas, 0, 0);
+    return { color: col.canvas, bump: bump.canvas, glow: glow.canvas };
   }
 
-  // ---------- side walls: 16 m x 6.2 m ----------
+  // ---------- side walls: 16 m x 6.2 m (z -9..7) ----------
+  // Visible from the locked camera: the back corners only. Left wall u ~0.86-0.93, right wall u ~0.07-0.16.
   function sideWall() {
     var W = 2048, H = 704, PX = W / 16;
-    var col = canvas(W, H), bump = canvas(W, H), ctx = col.ctx, rng = PIT.makeRng(707);
+    var col = canvas(W, H), bump = canvas(W, H), key = canvas(W, H), glow = canvas(W, H);
+    var ctx = col.ctx, k = key.ctx, rng = PIT.makeRng(717);
     G.bricks(ctx, W, H, 34, 11, rng, ["#34201a", "#2a1a14", "#40281c", "#2e1e18", "#221410"]);
     G.bricks(bump.ctx, W, H, 34, 11, PIT.makeRng(707), ["#9a9a9a", "#8a8a8a", "#a4a4a4", "#909090", "#868686"], "#303030");
     function Y(y) { return (6.1 - y) * PX; }
-    // visible ends: u near 0 (right wall, back corner) and u near 1 (left wall, back corner)
-    [0.05, 0.62].forEach(function (u0, side) {
-      var x0 = u0 * W;
-      G.buffPatch(ctx, x0, Y(2.2), 5.5 * PX, 1.8 * PX, side ? "#2c2828" : "#161416", rng);
-      G.throwup(ctx, side ? "CRUMBS" : "BREADLORD", x0 + 0.3 * PX, Y(0.75), side ? 110 : 90, side ? P.magenta : P.toast, side ? P.cyan : P.yellow, rng, { cloud: side ? P.yellow : P.cyan, drips: 6 });
-      G.tag(ctx, "TOASTY", x0 + 0.6 * PX, Y(3.4), 40, P.yellow, rng, { crown: true, drips: 3 });
-      G.tag(ctx, "PIT", x0 + 3.6 * PX, Y(3.0), 44, P.cyan, rng, { drips: 2 });
-      G.stencilSkull(ctx, x0 + 4.6 * PX, Y(4.4), 0.8 * PX, P.boneLt, rng, { drips: 3 });
-      for (var k = 0; k < 12; k++) {
-        var kinds = ["skull", "toast", "word", "holo", "x"];
-        var kind = kinds[(rng() * kinds.length) | 0], s = 16 + rng() * 14;
-        G.sticker(ctx, x0 + rng() * 5 * PX, Y(2.6) + rng() * 0.8 * PX, kind === "word" ? s * 2 : s, s, kind, rng, { word: ["PIT", "TOASTY", "CRUMBS"][(rng() * 3) | 0] });
+    function U(u) { return u * W; }
+    // corner strips: dark buff + vertical pieces
+    G.buffPatch(ctx, U(0.84), Y(6.0), 0.11 * W, 6.0 * PX, "#141016", rng);
+    G.buffPatch(ctx, U(0.05), Y(6.0), 0.13 * W, 6.0 * PX, "#141016", rng);
+    // left wall corner (u ~0.87-0.92)
+    G.stencilSkull(k, U(0.895), Y(5.0), 0.85 * PX, P.cyan, rng, { drips: 4, glow: true });
+    k.save(); k.translate(U(0.905), Y(1.0)); k.rotate(-Math.PI / 2);
+    G.throwup(k, "PIT", 0, 0, 90, P.yellow, P.toast, rng, { cloud: P.magenta, drips: false, maxW: 2.6 * PX, glow: P.yellow });
+    k.restore();
+    // right wall corner (u ~0.08-0.15)
+    k.save(); k.translate(U(0.1), Y(5.7)); k.rotate(Math.PI / 2);
+    G.throwup(k, "TOASTY", 0, 0, 100, P.magenta, P.glitch, rng, { cloud: P.cyan, drips: false, maxW: 3.6 * PX, glow: P.magenta });
+    k.restore();
+    G.stencilSkull(k, U(0.125), Y(1.3), 0.8 * PX, P.yellow, rng, { drips: 3, glow: true });
+    // the rest of the walls (seen in reflections / wide aspect) keep tags + stickers
+    [0.25, 0.5].forEach(function (u0) {
+      G.tag(k, "CRUMBS", U(u0), Y(3.4), 46, P.yellow, rng, { crown: true, drips: 3 });
+      G.tag(k, "PIT", U(u0 + 0.12), Y(2.4), 50, P.cyan, rng, { drips: 2 });
+      for (var i = 0; i < 10; i++) {
+        var kinds = ["skull", "toast", "word", "holo", "x"], kind = kinds[(rng() * 5) | 0], s = 16 + rng() * 14;
+        G.sticker(k, U(u0) + rng() * 4 * PX, Y(2.0) + rng() * 0.8 * PX, kind === "word" ? s * 2 : s, s, kind, rng, { word: ["PIT", "TOASTY", "CRUMBS"][(rng() * 3) | 0] });
       }
     });
-    G.grime(ctx, W, H, rng, 1);
-    return { color: col.canvas, bump: bump.canvas };
+    ctx.drawImage(key.canvas, 0, 0);
+    G.grime(ctx, W, H, rng, 0.8);
+    glow.ctx.fillStyle = "#000";
+    glow.ctx.fillRect(0, 0, W, H);
+    glow.ctx.drawImage(key.canvas, 0, 0);
+    return { color: col.canvas, bump: bump.canvas, glow: glow.canvas };
   }
 
   // ---------- cabinet face skin (transparent decal over the gold bezels) ----------
