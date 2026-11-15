@@ -1,4 +1,9 @@
-/* TT matrix nav transition v2
+/* TT matrix nav transition v3
+   v3: fixes the back/forward bug — browsers (iPhone Safari, Chrome) restore the
+   previous page from the back-forward cache with the rain overlay still on top,
+   frozen, swallowing every click. The overlay is now cleared on pageshow, the
+   rain keeps moving until the next page takes over (no frozen frame on slow
+   loads), and a safety timer clears it if navigation never happens.
    Short yellow-on-black rain of 0s and 1s when a visitor clicks a site tab
    other than Home (desktop header nav + mobile menu links), then the new
    page loads. Links to Home — the Home tab, Home tiles, the site title/logo,
@@ -125,7 +130,7 @@
     document.documentElement.appendChild(ov);
     var ctx=c.getContext('2d');
     if(!ctx){onDone();return {cancel:function(){},fadeOut:function(){onDone();}};}
-    var dpr=Math.min(window.devicePixelRatio||1,2),W,H,fs,cols,rows,y,sp,hold,hx,t0,last,raf=0,done=false;
+    var dpr=Math.min(window.devicePixelRatio||1,2),W,H,fs,cols,rows,y,sp,hold,hx,t0,last,raf=0,done=false,fired=false;
 
     function size(){
       W=ov.clientWidth||innerWidth;H=ov.clientHeight||innerHeight;
@@ -170,14 +175,11 @@
       ctx.fillRect(0,0,W,H);
       ctx.globalAlpha=1;
       ctx.drawImage(hold,0,0,W,H);
-      if(t>=1){finish();return;}
+      if(t>=1&&!fired){fired=true;try{onDone();}catch(e){}}
       raf=requestAnimationFrame(frame);
     }
     raf=requestAnimationFrame(frame);
 
-    function finish(){
-      if(done)return;done=true;cancelAnimationFrame(raf);onDone();
-    }
     function cancel(){
       if(done)return;done=true;cancelAnimationFrame(raf);
       if(ov&&ov.parentNode)ov.remove();
@@ -228,6 +230,29 @@
     location.href=url;
   }
 
+  var safety=0;
+  function clearAll(){
+    clearTimeout(safety);safety=0;
+    var ctl=window.__ttMatrixCtl;window.__ttMatrixCtl=null;
+    if(ctl&&ctl.cancel)ctl.cancel();
+    var ov=document.getElementById(OV_ID);if(ov)ov.remove();
+    window.__ttMatrixBusy=0;
+  }
+  /* back/forward cache restore (iOS Safari swipe-back, Back button): the page
+     comes back exactly as we left it, overlay included — wipe it */
+  function closeMobileMenu(){
+    try{
+      if(!/\bheader--menu-open\b/.test(document.body.className))return;
+      var bs=document.querySelectorAll('.header-burger-btn');
+      for(var i=0;i<bs.length;i++){if(bs[i].offsetParent!==null){bs[i].click();return;}}
+    }catch(e){}
+  }
+  window.addEventListener('pageshow',function(e){
+    var ours=!!(document.getElementById(OV_ID)||window.__ttMatrixBusy);
+    if(e.persisted||ours)clearAll();
+    if(e.persisted&&ours)closeMobileMenu();
+  });
+
   function start(url){
     if(isHomeUrl(url)){navigate(url);return;}
     if(window.__ttMatrixBusy)return;
@@ -256,6 +281,13 @@
       navigate(url);
     });
     window.__ttMatrixCtl=ctl;
+    /* if the new page never takes over (blocked nav, offline, download), give the page back */
+    clearTimeout(safety);
+    safety=setTimeout(function(){
+      var c3=window.__ttMatrixCtl;window.__ttMatrixCtl=null;
+      if(c3&&c3.fadeOut)c3.fadeOut();
+      window.__ttMatrixBusy=0;
+    },DURATION+7000);
   }
 
   document.addEventListener('click',function(e){
