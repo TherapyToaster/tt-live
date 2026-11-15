@@ -1,8 +1,8 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.20.5"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.20.6"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <link rel="icon" href="data:,"><title>MR. TOASTY'S NO SIGNAL SKULLZ — Therapy Toaster</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Anton&family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
-html,body{margin:0;height:100%;background:#000;overflow:hidden;color:#FFD400;font-family:'Press Start 2P',monospace;touch-action:none;user-select:none;-webkit-user-select:none}
+html,body{margin:0;height:100%;background:#000;overflow:hidden;color:#FFD400;font-family:'Press Start 2P',monospace;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
 #c{position:fixed;inset:0;width:100vw;height:100vh;object-fit:contain;image-rendering:pixelated;cursor:crosshair}
 #hud{position:fixed;left:0;right:0;bottom:0;display:none;justify-content:space-around;align-items:center;padding:8px;background:linear-gradient(transparent,#000c);font-size:clamp(9px,1.6vw,16px);text-shadow:2px 0 #f0f,-2px 0 #0ff}
 #hud{pointer-events:none;box-shadow:inset 0 2px 0 #e3b303,inset 0 4px 0 #00f0ff55,0 -10px 18px #000a}#hud b{display:block;font-size:.6em;color:#fff;opacity:.7}#hearts{image-rendering:pixelated;display:block;width:90px;height:14px;margin:0 auto 1px}body.touch #hearts{display:none!important}body.touch #hud{box-shadow:inset 0 1px 0 #e3b30399,0 2px 8px #0008}
@@ -1348,7 +1348,7 @@ const SFX={rifle:()=>{noise(.12,.2,2400);tone(180,.08,'square',.06,60);tone(60,.
  amb:k=>{if(k=='drip')tone(1800+Math.random()*900,.06,'sine',.03,900);else if(k=='hum')tone(60,.8,'sine',.03,61);else if(k=='glitch'){noise(.08,.04,6000);tone(3000,.03,'square',.012)}else if(k=='oven'){noise(.6,.035,300)}else if(k=='rain')noise(.9,.03,2500);else tone(80,.5,'sine',.02,70)},
  crackle:()=>noise(.04,.03,3000),win:()=>[392,523,659,784,1046,1318].forEach((f,i)=>setTimeout(()=>tone(f,.2,'square',.06),i*110))};
 // ---------- juice ----------
-let hs=0;const isTouch=('ontouchstart' in window)||matchMedia('(pointer:coarse)').matches;
+let hs=0;const isTouch=(navigator.maxTouchPoints>0)||matchMedia('(pointer:coarse)').matches||(('ontouchstart' in window)&&matchMedia('(hover:none)').matches);
 let shakeOn=meta().shake!==0;
 function shake(a){if(!shakeOn)return;P.shake=Math.min(isTouch?1.8:3.2,Math.max(P.shake,a*.55))}
 function hitStop(t){hs=Math.max(hs,t)}
@@ -1707,7 +1707,7 @@ if(isTouch)document.body.classList.add('touch');
 // v0.6.1: touch controls moved to 74-v061-touch.js
 // ---------- overlays / flow ----------
 function show(id){for(const o of document.querySelectorAll('.ov'))o.style.display=o.id==id?'flex':'none';$('hud').style.display=id?'none':'flex';document.body.classList.toggle('playing',!id);if(id)document.exitPointerLock&&document.exitPointerLock()}
-function lockPtr(){try{cv.requestPointerLock()?.catch?.(()=>{})}catch(_){}}
+function lockPtr(){if(typeof isTouch!=='undefined'&&isTouch)return;try{cv.requestPointerLock()?.catch?.(()=>{})}catch(_){}}
 function floorMsg(){if(P.sight)seen.fill(1);const B=boss&&boss.B;
  msg(B?(B.secret?'SECRET FLOOR // ':'FLOOR '+run.floor+' // ')+(B.finale?'FINALE: DESTROY ':'BOSS: FREE ')+B.n+' // '+theme.n+(CUR?' // '+(CUR.sky?CUR.sky.S.n:''):''):FL.curse?'CURSED FLOOR: '+FL.curse.n+' — '+FL.curse.d+' (x2 SKULLZ)':'FLOOR '+run.floor+'/'+FINAL_FLOOR+' // '+theme.n+(CUR?': '+CUR.L.sub:'')+' // FIND THE EXIT'+(cursedAt>=0?' (OR THE RED CURSED DOOR)':'')+(props.some(q=>q.D.vendor)?' // TOASTY\'S CART IS HERE':''))}
 function start(mode='standard'){ATTRACT.end();au();if(mode=='endless'&&!unlocked('endless'))mode='standard';newRun(mode);const M=meta();M.runs++;saveMeta(M);state='play';show(null);floorMsg();lockPtr()}
@@ -2018,7 +2018,7 @@ const TOUCH=(()=>{const lk=$('alock'),z=$('tzone'),joy=$('joy'),kn=$('knob'),ajo
  const R=()=>56*sets().size,leftSide=x=>sets().left?x>innerWidth*.55:x<innerWidth*.45;
  const look=dx=>{if(P&&state=='play')P.a+=dx*.0055*sets().sens};
  // v0.7.4 visible AIM stick: rests just inside the SWAP WEAPON/USE buttons (landscape) or above USE (portrait); mirrored for left-handed
- const aimHome=()=>{const S=sets(),bs=+S.size||1,W=innerWidth,H=innerHeight;let x,y;if(W>=H*1.1){x=W-(220+80*bs);y=Math.round(H*0.34)}else{x=W-(30+60*bs);y=H-(40+180*bs)}if(S.left)x=W-x;return[x,y]}; // v0.18.1: landscape AIM rests above the gun, under SWAP
+ const aimHome=()=>{const S=sets(),bs=+S.size||1,W=innerWidth,H=innerHeight,portrait=H>W*1.05;let x,y;if(portrait){x=W-(28+70*bs);y=H-(28+70*bs)}else{x=W-(36+210*bs);y=H-(22+72*bs)}if(S.left)x=W-x;return[x,y]}; // v0.20.6: AIM stays in the lower-right thumb zone, left of SWAP
  const idleAim=()=>{const[x,y]=aimHome();ajoy.style.left=x+'px';ajoy.style.top=y+'px';ajoy.className='idle';akn.style.transform=''};
  const idleJoy=()=>{const S=sets();joy.style.left=(S.left?innerWidth-110:110)+'px';joy.style.top=(innerHeight-100)+'px';joy.className='idle';kn.style.transform='';idleAim()};
  z.addEventListener('touchstart',e=>{e.preventDefault();au();for(const t of e.changedTouches){if(leftSide(t.clientX)&&jid===null){jid=t.identifier;jx=t.clientX;jy=t.clientY;joy.style.left=jx+'px';joy.style.top=jy+'px';joy.className='on';kn.style.transform=''}
@@ -2033,7 +2033,7 @@ const TOUCH=(()=>{const lk=$('alock'),z=$('tzone'),joy=$('joy'),kn=$('knob'),ajo
    if(sets().stick=='twin'){touch.mx=dx/r*k;touch.my=-dy/r*k;K.shift=m>.96?1:0}else{const ay=Math.abs(sy0),fy=ay<.12?0:Math.sign(sy0)*(ay-.12)/.88;touch.my=fy;touch.mx=0;K.shift=fy>.93?1:0}}
   else if(t.identifier===aid)aimMove(t)}},{passive:false});
  const zend=e=>{for(const t of e.changedTouches){if(t.identifier===jid){jid=null;sx0=sy0=0;touch.mx=touch.my=0;K.shift=0;idleJoy()}if(t.identifier===aid){if(!aDrag&&!aHold&&performance.now()-aT<=TAP.ms){tapQ=performance.now();akn.style.transform='';akn.classList.remove('tap');void akn.offsetWidth;akn.classList.add('tap');ajoy.className='on';taps++;aid=null;aHold=false;asx=asy=0;setTimeout(()=>{if(aid===null)idleAim()},300);continue}aid=null;aHold=false;asx=asy=0;idleAim()}}};
- z.addEventListener('touchend',zend);z.addEventListener('touchcancel',zend);
+ z.addEventListener('touchend',e=>{e.preventDefault();zend(e)},{passive:false});z.addEventListener('touchcancel',e=>{e.preventDefault();zend(e)},{passive:false});
  // v0.7.8: no FIRE button on touch — the AIM stick's centre is the trigger (tap = 1 shot, hold = keep firing)
  // USE: only shown (pulsing) when something usable is in reach
  bU.addEventListener('touchstart',e=>{e.preventDefault();au();bU.classList.add('down');if(state=='play')use()},{passive:false});bU.addEventListener('touchend',e=>{e.preventDefault();bU.classList.remove('down')},{passive:false});
@@ -2163,7 +2163,7 @@ function tutText(){const one=sets().stick!='twin',q=s=>$('ttut').querySelector(s
  q('.tm').innerHTML='MAP · PAUSE ▲'}
 $('ttut').addEventListener('touchstart',e=>{e.preventDefault();if(!tutOn)return;tutOn=false;save('skullz_tut6',1);$('ttut').className='';state='play';TOUCH.reset()},{passive:false});
 $('ttut').addEventListener('click',()=>{if(!tutOn)return;tutOn=false;save('skullz_tut6',1);$('ttut').className='';state='play'});
-let rotDone=false;function rotHint(){const el=$('rot');const show=isTouch&&!rotDone&&(state=='play'||state=='tut')&&innerHeight>innerWidth;el.className=show?'on':'';if(show)setTimeout(()=>{el.className='';rotDone=true},5000)}
+let rotDone=false;function rotHint(){const el=$('rot');const show=isTouch&&!rotDone&&!tutOn&&state=='play'&&innerHeight>innerWidth;el.className=show?'on':'';if(show)setTimeout(()=>{if(!tutOn){el.className='';rotDone=true}},5000)}
 $('rot').addEventListener('touchstart',e=>{e.preventDefault();rotDone=true;$('rot').className=''},{passive:false});
 // leaving the page/app mid-run on a phone pauses the game
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&isTouch&&state=='play')pauseGame()});
@@ -14089,6 +14089,199 @@ if(typeof TT==='object'){
   const CLOSE=1.15;
   if(typeof TT==='object'){
     TT.gunVer=VER;TT.liveVer=VER;TT.wepClose=CLOSE;TT.xh=false;
+    if(TT.exitVer)TT.exitVer=VER;
+  }
+})();
+
+// v0.20.6 — mobile / touch control pass.
+// Tested on 375x667 and 390x844, portrait and landscape, plus desktop 1280x720.
+// CLOSE stays 1.15. No camera recoil/shake, no center reticle, HUD stays at the top,
+// v0.20.5 gun pose is unchanged. F still fires. Pointer lock is desktop-only.
+(function(){
+  const VER='0.20.6';
+  const CLOSE=1.15;
+  const TUT_KEY='skullz_tut0206';
+
+  function $(id){return document.getElementById(id)}
+
+  const CSS=`
+html,body,canvas,#tc,#tc *,#ttut,#rot,#c{
+  -webkit-touch-callout:none!important;
+  -webkit-user-select:none!important;
+  user-select:none!important;
+}
+#joy,#ajoy,#ttut,#rot{touch-action:none}
+/* gunov is z-index 5; keep the sticks visible over the viewmodel in landscape */
+body.touch.playing #joy,body.touch.playing #ajoy{z-index:6!important}
+#alock,#alock.on,#alock.fire{display:none!important}
+/* undo the v0.18.1 mid-screen lift that put AIM / SWAP / RELOAD / PARRY out of thumb reach and under the HUD */
+body.touch.playing #bWpn{
+  right:calc(var(--sr) + 12px)!important;
+  left:auto!important;
+  bottom:calc(var(--sb) + 14px)!important;
+  top:auto!important;
+  width:calc(88px*var(--bs,1))!important;
+  height:calc(64px*var(--bs,1))!important;
+  min-width:44px!important;min-height:44px!important;
+  z-index:7;
+}
+body.touch.playing #bReload,body.touch.playing #bParry{
+  min-width:44px!important;min-height:44px!important;
+  width:48px!important;height:48px!important;
+  font-size:8px!important;
+  top:auto!important;z-index:7;
+}
+body.touch.playing #bReload{
+  right:calc(var(--sr) + 12px + 88px*var(--bs,1) + 8px)!important;
+  left:auto!important;
+  bottom:calc(var(--sb) + 22px)!important;
+}
+body.touch.playing #bParry{
+  right:calc(var(--sr) + 12px)!important;
+  left:auto!important;
+  bottom:calc(var(--sb) + 14px + 64px*var(--bs,1) + 8px)!important;
+}
+body.touch.playing #bUse{
+  right:calc(var(--sr) + 12px + 88px*var(--bs,1) + 8px)!important;
+  left:auto!important;
+  bottom:calc(var(--sb) + 22px + 56px)!important;
+  width:52px!important;height:52px!important;
+  min-width:44px!important;min-height:44px!important;
+}
+body.lefty.touch.playing #bWpn,body.lefty.touch.playing #bParry{
+  right:auto!important;left:calc(var(--sl) + 12px)!important;
+}
+body.lefty.touch.playing #bReload,body.lefty.touch.playing #bUse{
+  right:auto!important;left:calc(var(--sl) + 12px + 88px*var(--bs,1) + 8px)!important;
+}
+body.touch.playing #bMap,body.touch.playing #bPause{
+  width:44px!important;height:44px!important;
+  min-width:44px!important;min-height:44px!important;
+  top:calc(var(--st,0px) + 2px)!important;
+  border-radius:10px!important;font-size:8px!important;
+  z-index:8;
+}
+body.touch.playing #hud{
+  padding-right:calc(var(--sr,0px) + 108px)!important;
+  min-height:44px;
+}
+/* portrait: give the 3D view the space above a bottom control dock so the game is actually playable */
+@media (orientation:portrait){
+  body.touch.playing #c,body.touch #c{
+    inset:unset!important;
+    top:var(--hudh,56px)!important;left:0!important;right:0!important;bottom:auto!important;
+    width:100vw!important;
+    height:calc(100vw * 0.625)!important;
+    object-fit:contain!important;object-position:50% 0!important;
+  }
+  /* stack SWAP / RELOAD / PARRY above the bottom sticks so they don't sit on FIRE */
+  body.touch.playing #bWpn{
+    bottom:calc(var(--sb) + 14px + 124px*var(--bs,1) + 28px)!important;
+  }
+  body.touch.playing #bReload{
+    bottom:calc(var(--sb) + 14px + 124px*var(--bs,1) + 28px)!important;
+  }
+  body.touch.playing #bParry{
+    bottom:calc(var(--sb) + 14px + 124px*var(--bs,1) + 28px + 64px*var(--bs,1) + 8px)!important;
+  }
+  body.touch.playing #bUse{
+    bottom:calc(var(--sb) + 14px + 124px*var(--bs,1) + 28px + 64px*var(--bs,1) + 8px)!important;
+  }
+}
+#rot{top:calc(var(--hudh,56px) + 10px)!important;white-space:normal;max-width:min(420px,92vw);text-align:center;line-height:1.5;padding:10px 14px}
+#ttut{touch-action:none;-webkit-touch-callout:none;background:rgba(0,0,0,.78)!important}
+#ttut p,#ttut .tutcard p,#ttut .tutcard .tap{
+  position:static!important;left:auto!important;right:auto!important;bottom:auto!important;
+  margin:14px 0 0;color:#FFD400;animation:blink 1.1s steps(2) infinite;text-align:center;
+}
+#ttut .tutcard{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:min(420px,92vw);max-height:min(90vh,640px);overflow:auto;
+  background:rgba(8,8,14,.94);border:3px solid #FFD400;border-radius:16px;
+  padding:16px 16px 12px;text-align:center;color:#fff;
+  font:10px 'Press Start 2P',monospace;line-height:1.7;
+  box-shadow:6px 6px 0 #ff00c8,-3px -3px 0 #00f0ff;
+}
+#ttut .tutcard h2{margin:0 0 12px;color:#FFD400;font:14px 'Press Start 2P',monospace;letter-spacing:1px}
+#ttut .tutcard ul{list-style:none;margin:0;padding:0;text-align:left}
+#ttut .tutcard li{margin:0 0 10px;padding-left:0;color:#fff}
+#ttut .tutcard li b{color:#FFD400}
+#ttut .tutcard li small{display:block;color:#00f0ff;font-size:8px;margin-top:3px}
+#ttut .tutcard .tap{margin:14px 0 0;color:#FFD400;animation:blink 1.1s steps(2) infinite;text-align:center}
+@media (orientation:portrait){
+  #ttut .tutcard{width:min(360px,94vw);font-size:9px;padding:14px 12px 10px}
+  #ttut .tutcard h2{font-size:12px}
+}
+`;
+
+  (function inject(){
+    let s=$('hud-v0206-touch');
+    if(!s){s=document.createElement('style');s.id='hud-v0206-touch';(document.head||document.documentElement).appendChild(s)}
+    s.textContent=CSS;
+    // remove the mid-screen lift stylesheet so our bottom-anchor rules win on specificity ties
+    const old=$('hud-v0181-touch');if(old)old.remove();
+  })();
+
+  function tutText(){
+    const el=$('ttut');if(!el)return;
+    el.innerHTML='<div class="tutcard"><h2>HOW TO PLAY</h2><ul>'
+      +'<li><b>LEFT STICK</b> — MOVE</li>'
+      +'<li><b>RIGHT STICK</b> — AIM</li>'
+      +'<li><b>TAP OR HOLD FIRE</b> — SHOOT<small>THE KNOB IN THE AIM STICK</small></li>'
+      +'<li><b>SWAP WEAPON</b> — CHANGE GUNS<small>HOLD IT FOR THE WHEEL</small></li>'
+      +'<li>WALK INTO DOORS TO OPEN THEM</li>'
+      +'<li><b>MAP</b> AND <b>PAUSE</b> ARE AT THE TOP</li>'
+      +'</ul><div class="tap">TAP ANYWHERE TO PLAY</div></div>';
+  }
+
+  function dismissTut(){
+    const el=$('ttut');
+    const open=(typeof tutOn!=='undefined'&&tutOn)||(el&&el.classList.contains('on'))||(typeof state!=='undefined'&&state==='tut');
+    if(!open)return;
+    if(typeof tutOn!=='undefined')tutOn=false;
+    if(typeof save==='function'){save('skullz_tut6',1);save(TUT_KEY,1)}
+    else{try{localStorage.setItem(TUT_KEY,'1');localStorage.setItem('skullz_tut6','1')}catch(e){}}
+    if(el)el.className='';
+    if(typeof state!=='undefined'&&(state==='tut'||state==='play'))state='play';
+    if(typeof TOUCH==='object'&&TOUCH.reset)TOUCH.reset();
+    if(typeof rotHint==='function')rotHint();
+  }
+
+  // Drop the v0.6.1 #ttut listeners so they cannot clear tutOn and hide the card
+  // before this dismiss path can save skullz_tut0206 and call rotHint().
+  let tt=$('ttut');
+  if(tt&&tt.parentNode){
+    const neu=tt.cloneNode(true);
+    tt.parentNode.replaceChild(neu,tt);
+    tt=neu;
+  }
+  if(tt){
+    tt.addEventListener('touchstart',e=>{e.preventDefault();dismissTut()},{passive:false});
+    tt.addEventListener('click',e=>{e.preventDefault();dismissTut()});
+  }
+
+  if(typeof start==='function'){
+    const _s=start;
+    start=function(mode){
+      const first=isTouch&&!(typeof load==='function'?load(TUT_KEY,0):0);
+      _s(mode);
+      if(first){
+        tutText();
+        if(typeof tutOn!=='undefined')tutOn=true;
+        state='tut';
+        if(tt)tt.className='on';
+        const rot=$('rot');if(rot)rot.className='';
+        if(typeof TOUCH==='object'&&TOUCH.reset)TOUCH.reset();
+      }
+    };
+  }
+
+  if(typeof TT==='object'){
+    TT.gunVer=VER;
+    TT.liveVer=VER;
+    TT.wepClose=CLOSE;
+    TT.xh=false;
+    TT.touchVer=VER;
     if(TT.exitVer)TT.exitVer=VER;
   }
 })();
