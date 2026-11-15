@@ -1,0 +1,521 @@
+<!--
+  Circle Check Terms — Squarespace Code Block snippet.
+-->
+<div class="tt-cc" data-tt-cc-page="terms">
+  <style>
+.tt-cc,
+.tt-cc *,
+.tt-cc *::before,
+.tt-cc *::after {
+  box-sizing: border-box;
+}
+.tt-cc {
+  --tt-cc-bg: #0B1B3F;
+  --tt-cc-card: #102448;
+  --tt-cc-card-2: #153056;
+  --tt-cc-teal: #12D6D0;
+  --tt-cc-orange: #FF9A1F;
+  --tt-cc-text: #F4F7FB;
+  --tt-cc-muted: #A9B6CE;
+  --tt-cc-dim: #8090AB;
+  --tt-cc-line: rgba(18, 214, 208, 0.22);
+  --tt-cc-max: 1120px;
+  --tt-cc-pad: 24px;
+  position: relative;
+  width: 100vw;
+  max-width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  background: var(--tt-cc-bg);
+  color: var(--tt-cc-text);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 18px;
+  line-height: 1.6;
+  color-scheme: dark;
+  text-align: left;
+}
+.tt-cc h1,
+.tt-cc h2,
+.tt-cc h3,
+.tt-cc p,
+.tt-cc ul,
+.tt-cc ol,
+.tt-cc li,
+.tt-cc a,
+.tt-cc figure,
+.tt-cc figcaption,
+.tt-cc img,
+.tt-cc picture,
+.tt-cc nav,
+.tt-cc header,
+.tt-cc footer,
+.tt-cc section {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  max-width: none;
+  box-shadow: none;
+  text-transform: none;
+  letter-spacing: normal;
+  text-decoration: none;
+  list-style: none;
+}
+.tt-cc img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border: 0;
+}
+.tt-cc a {
+  color: var(--tt-cc-teal);
+  text-decoration: none;
+  transition: color 0.15s ease, background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.tt-cc a:hover {
+  color: #5EEAE5;
+}
+.tt-cc a:focus-visible {
+  outline: 2px solid var(--tt-cc-teal);
+  outline-offset: 3px;
+}
+.tt-cc-glow {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 70% 45% at 85% 8%, rgba(18, 214, 208, 0.16), transparent 58%),
+    radial-gradient(ellipse 55% 40% at 8% 18%, rgba(255, 154, 31, 0.10), transparent 55%),
+    radial-gradient(ellipse 50% 30% at 50% 100%, rgba(18, 214, 208, 0.07), transparent 60%);
+}
+.tt-cc-inner {
+  position: relative;
+  z-index: 1;
+  width: min(var(--tt-cc-max), calc(100% - (var(--tt-cc-pad) * 2)));
+  margin: 0 auto;
+}
+.tt-cc-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.tt-cc-brand a {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--tt-cc-text);
+  text-decoration: none;
+}
+.tt-cc-brand a:hover {
+  color: var(--tt-cc-text);
+}
+.tt-cc-brand img {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.38);
+  flex: 0 0 auto;
+}
+.tt-cc-brand .tt-cc-wordmark,
+.tt-cc-brand h1 {
+  font-size: 32px;
+  font-weight: 750;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  color: #fff;
+}
+.tt-cc header.tt-cc-hero {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 36px;
+  padding: 56px 0 16px;
+}
+.tt-cc-hero-copy .tt-cc-brand {
+  margin-bottom: 22px;
+}
+.tt-cc-hero-copy .tt-cc-brand h1 {
+  font-size: 36px;
+}
+.tt-cc-tagline {
+  font-size: 20px;
+  line-height: 1.45;
+  color: var(--tt-cc-muted);
+  font-weight: 430;
+  max-width: 22em;
+  margin: 0 0 28px !important;
+}
+.tt-cc-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+.tt-cc a.tt-cc-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--tt-cc-orange) !important;
+  color: #0B1B3F !important;
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  padding: 14px 28px;
+  border-radius: 999px;
+  text-decoration: none !important;
+  box-shadow: 0 8px 24px rgba(255, 154, 31, 0.28);
+  border: 0;
+  cursor: pointer;
+}
+.tt-cc a.tt-cc-cta:hover {
+  background: #FFB14A !important;
+  color: #0B1B3F !important;
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(255, 154, 31, 0.38);
+}
+.tt-cc a.tt-cc-cta:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+.tt-cc-trust {
+  font-size: 14px;
+  color: var(--tt-cc-dim);
+  letter-spacing: 0.01em;
+}
+.tt-cc-frame {
+  margin: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--tt-cc-line);
+  background: var(--tt-cc-card);
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.42),
+    0 0 80px rgba(18, 214, 208, 0.10);
+}
+.tt-cc-frame picture {
+  display: block;
+  width: 100%;
+}
+.tt-cc-frame img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.tt-cc-kicker {
+  color: var(--tt-cc-teal) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.16em !important;
+  text-transform: uppercase !important;
+  margin: 0 0 14px !important;
+  line-height: 1.3;
+}
+.tt-cc section.tt-cc-about {
+  padding: 88px 0 16px;
+  max-width: 760px;
+}
+.tt-cc-lead {
+  font-size: 18px;
+  line-height: 1.7;
+  color: var(--tt-cc-text);
+}
+.tt-cc section.tt-cc-steps {
+  padding: 88px 0 16px;
+}
+.tt-cc-step-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-top: 8px;
+  padding: 0;
+  list-style: none;
+}
+.tt-cc-step {
+  background: var(--tt-cc-card);
+  border: 1px solid var(--tt-cc-line);
+  border-radius: 16px;
+  padding: 24px 22px 26px;
+}
+.tt-cc-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid var(--tt-cc-teal);
+  color: var(--tt-cc-teal);
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+.tt-cc-step h2 {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin: 0 0 8px !important;
+  line-height: 1.25;
+}
+.tt-cc-step p {
+  color: var(--tt-cc-muted);
+  font-size: 16px;
+  line-height: 1.55;
+}
+.tt-cc section.tt-cc-shots {
+  padding: 88px 0 32px;
+}
+.tt-cc-shot-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+.tt-cc-shot-grid figure {
+  margin: 0;
+}
+.tt-cc-shot-grid figcaption {
+  margin-top: 12px;
+  font-size: 15px;
+  color: var(--tt-cc-muted);
+  font-weight: 500;
+}
+.tt-cc section.tt-cc-close {
+  margin: 48px 0 28px;
+  padding: 44px 28px 40px;
+  text-align: center;
+  background:
+    linear-gradient(180deg, rgba(18, 214, 208, 0.12), rgba(255, 154, 31, 0.07));
+  border: 1px solid rgba(18, 214, 208, 0.32);
+  border-radius: 24px;
+}
+.tt-cc-close h2 {
+  font-size: 28px;
+  font-weight: 750;
+  letter-spacing: -0.03em;
+  color: #fff;
+  line-height: 1.2;
+  margin: 0 0 10px !important;
+}
+.tt-cc-close > p {
+  color: var(--tt-cc-muted);
+  font-size: 17px;
+  max-width: 28em;
+  margin: 0 auto 24px !important;
+}
+.tt-cc-close .tt-cc-actions {
+  align-items: center;
+}
+.tt-cc footer.tt-cc-foot {
+  position: relative;
+  z-index: 1;
+  margin-top: 32px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 28px 0 40px;
+}
+.tt-cc-foot-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 28px;
+}
+.tt-cc-foot-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff !important;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-size: 16px;
+}
+.tt-cc-foot-brand img {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+}
+.tt-cc-foot nav {
+  display: flex;
+  gap: 22px;
+  align-items: center;
+}
+.tt-cc-foot nav a {
+  color: var(--tt-cc-muted);
+  font-size: 15px;
+}
+.tt-cc-foot nav a:hover {
+  color: var(--tt-cc-teal);
+}
+.tt-cc-page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 32px 0 8px;
+}
+.tt-cc-article {
+  padding: 36px 0 56px;
+  max-width: 720px;
+}
+.tt-cc-article h1 {
+  font-size: 36px;
+  font-weight: 750;
+  letter-spacing: -0.035em;
+  color: #fff;
+  line-height: 1.1;
+  margin: 0 0 10px !important;
+}
+.tt-cc-updated {
+  color: var(--tt-cc-dim);
+  font-size: 14px;
+  margin: 0 0 36px !important;
+}
+.tt-cc-article h2 {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin: 32px 0 10px !important;
+  line-height: 1.3;
+}
+.tt-cc-article p {
+  color: var(--tt-cc-muted);
+  font-size: 17px;
+  line-height: 1.7;
+  margin: 0 0 14px !important;
+}
+.tt-cc-article p a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+@media (min-width: 720px) {
+  .tt-cc {
+    --tt-cc-pad: 32px;
+  }
+  .tt-cc-step-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+  }
+  .tt-cc-shot-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px;
+  }
+  .tt-cc-hero-copy .tt-cc-brand h1 {
+    font-size: 42px;
+  }
+  .tt-cc-brand img {
+    width: 72px;
+    height: 72px;
+    border-radius: 18px;
+  }
+  .tt-cc section.tt-cc-close {
+    padding: 56px 40px;
+  }
+  .tt-cc-close h2 {
+    font-size: 36px;
+  }
+  .tt-cc-article h1 {
+    font-size: 48px;
+  }
+}
+@media (min-width: 960px) {
+  .tt-cc {
+    --tt-cc-pad: 40px;
+    font-size: 18px;
+  }
+  .tt-cc header.tt-cc-hero {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: 64px;
+    align-items: center;
+    padding: 72px 0 24px;
+  }
+  .tt-cc-hero-copy .tt-cc-brand h1 {
+    font-size: 56px;
+  }
+  .tt-cc-tagline {
+    font-size: 22px;
+  }
+  .tt-cc-lead {
+    font-size: 20px;
+    line-height: 1.7;
+  }
+  .tt-cc section.tt-cc-about,
+  .tt-cc section.tt-cc-steps,
+  .tt-cc section.tt-cc-shots {
+    padding-top: 104px;
+  }
+  .tt-cc section.tt-cc-shots {
+    padding-bottom: 40px;
+  }
+  .tt-cc section.tt-cc-close {
+    margin-top: 56px;
+    padding: 64px 48px 56px;
+  }
+  .tt-cc-frame {
+    border-radius: 20px;
+  }
+}
+@media (max-width: 520px) {
+  .tt-cc-foot-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tt-cc a,
+  .tt-cc a.tt-cc-cta {
+    transition: none;
+  }
+  .tt-cc a.tt-cc-cta:hover {
+    transform: none;
+  }
+}
+  </style>
+  <div class="tt-cc-glow" aria-hidden="true"></div>
+  <div class="tt-cc-inner">
+    <div class="tt-cc-page-head">
+      <div class="tt-cc-brand">
+        <a href="/circle-check">
+          <picture>
+          <source type="image/webp" srcset="https://therapytoaster.github.io/tt-live/circle-check/logo.webp?c=558e7e9">
+          <img src="https://therapytoaster.github.io/tt-live/circle-check/logo.jpg?c=558e7e9" alt="Circle Check" width="1024" height="1024" decoding="async">
+        </picture>
+          <span class="tt-cc-wordmark">Circle Check</span>
+        </a>
+      </div>
+    </div>
+    <article class="tt-cc-article">
+      <h1>Terms</h1>
+      <p class="tt-cc-updated">Last updated November 15, 2026</p>
+      <h2>What Circle Check is</h2>
+      <p>Circle Check is a private checkup for your X account. It is a read-only tool built on the X API. It snapshots your followers and following, then shows two lists: accounts you follow that stopped following you back, and accounts that liked, replied, reposted, or quoted your posts but that you don't follow yet.</p>
+      <h2>What it will not do</h2>
+      <p>Circle Check never posts, follows, unfollows, or blocks for you. You get two clear lists and decide who to follow or unfollow yourself. Every decision stays yours.</p>
+      <h2>Your data</h2>
+      <p>No data is sold or shared. Follower and following snapshots are stored only in your own Grok Bot. You can disconnect at any time.</p>
+      <h2>Contact</h2>
+      <p><!-- contact Twitter link (keep) -->Questions? Message <a href="https://x.com/TherapyToaster">@TherapyToaster</a> on Twitter.</p>
+    </article>
+  </div>
+  <footer class="tt-cc-foot">
+    <div class="tt-cc-inner tt-cc-foot-inner">
+      <a class="tt-cc-foot-brand" href="/circle-check">
+        <picture>
+            <source type="image/webp" srcset="https://therapytoaster.github.io/tt-live/circle-check/logo.webp?c=558e7e9">
+            <img src="https://therapytoaster.github.io/tt-live/circle-check/logo.jpg?c=558e7e9" alt="" width="1024" height="1024" decoding="async">
+          </picture>
+        Circle Check
+      </a>
+      <nav aria-label="Legal">
+        <a href="/privacy">Privacy</a>
+        <a href="/terms">Terms</a>
+      </nav>
+    </div>
+  </footer>
+</div>
