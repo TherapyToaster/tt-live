@@ -98,7 +98,7 @@ a { color: #00e8ff; }
 .hint kbd { margin: 0 2px; }
 
   </style>
-</head>
+<script src="https://therapytoaster.github.io/tt-live/arcade/hs-report-v1.js" data-slug="crumb-dungeon"></script></head>
 <body>
   <div id="bezel">
     <div id="crt">
@@ -9608,7 +9608,7 @@ window.GAME_DATA = {"heroes":{"collection_note":"Data-driven heroes from the Sku
     after(wait, function () {
       if (room.boss) {
         run.won = true;
-        G.screen = "VICTORY";
+        G.screen = "VICTORY"; try{window.__ttHS&&window.__ttHS(((G.run&&G.run.roomIndex)||0)+1)}catch(e){}
         beep(660, 0.2, "square", 0.06);
       } else {
         offerLoot();
@@ -9856,7 +9856,7 @@ window.GAME_DATA = {"heroes":{"collection_note":"Data-driven heroes from the Sku
         run.over = true;
         G.combatPhase = "dead";
         if (an) an.later(0.14, function () { an.heroAct("fall"); });
-        after(an ? 1.3 : 0.7, function () { G.screen = "DEATH"; });
+        after(an ? 1.3 : 0.7, function () { G.screen = "DEATH"; try{window.__ttHS&&window.__ttHS(((G.run&&G.run.roomIndex)||0)+1)}catch(e){} });
       }
     }
   }

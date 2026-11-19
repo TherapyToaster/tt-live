@@ -115,7 +115,7 @@ body.inMachine #rot{display:none!important}
 <script type="importmap">
 {"imports":{"three":"./vendor/three.module.js","three/addons/":"./vendor/jsm/","rapier":"./vendor/rapier.es.js"}}
 </script>
-</head>
+<script src="https://therapytoaster.github.io/tt-live/arcade/hs-report-v1.js" data-slug="prize-floor"></script></head>
 <body>
 <canvas id="c"></canvas>
 <div id="overlay">
@@ -1326,7 +1326,7 @@ const SLS=new Pusher({id:'sliceshelf',wing:'diner',name:'SLICE SHELF',unit:'slic
 
 // ================= NON-PUSHER MACHINES =================
 function charge(n,what){if(S.tokens<n){SFX.deny();msg(`${what} wants ${n} Tokens. Uncle Crust can help (lobby).`);return false}S.tokens-=n;hud();markSave();return true}
-function stubs(n,m,label,col='#FFD400',at=null){S.stubs+=n;S.stats.paid+=n;S.stats.plays[m.id]=(S.stats.plays[m.id]||0)+1;hud();markSave();if(n>0&&!FASTSIM){const p=at||m.screenPoint();popText(p,`+${n}`,col);burst(p,new THREE.Color(col).getHex(),Math.min(12+n*3,60),1.1);SFX.pay(n);if(n>=8)flashAt(p,new THREE.Color(col).getHex(),30)}if(label)msg(label,col)}
+function stubs(n,m,label,col='#FFD400',at=null){S.stubs+=n;S.stats.paid+=n;if(n>0&&!FASTSIM){try{window.__ttHS&&window.__ttHS(S.stats.paid)}catch(e){}}S.stats.plays[m.id]=(S.stats.plays[m.id]||0)+1;hud();markSave();if(n>0&&!FASTSIM){const p=at||m.screenPoint();popText(p,`+${n}`,col);burst(p,new THREE.Color(col).getHex(),Math.min(12+n*3,60),1.1);SFX.pay(n);if(n>=8)flashAt(p,new THREE.Color(col).getHex(),30)}if(label)msg(label,col)}
 function placeMachine(m,w,x,z,ry){const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=ry;w.g.add(g);g.updateMatrixWorld(true);m.g=g;m.w=w;m.wing=w.id;
  const L=(a,b,c)=>new THREE.Vector3(a,b,c).applyMatrix4(g.matrixWorld);m.L=L;m.worldPos=L(0,1,0);MACHINES[m.id]=m;
  m.target={p:L(0,1.2,.7),r:2.6,label:`E · Play ${m.name} (${m.cost} Token${m.cost>1?'s':''})`};return g}

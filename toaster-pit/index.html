@@ -23,7 +23,7 @@ html,body{margin:0;padding:0;background:#000;overflow:hidden;height:100%;width:1
 #c{z-index:0;background:#000;}
 #hud{z-index:1;pointer-events:auto;}
 </style>
-</head>
+<script src="https://therapytoaster.github.io/tt-live/arcade/hs-report-v1.js" data-slug="toaster-pit"></script></head>
 <body>
 <div id="wrap">
 <canvas id="c" aria-label="Toaster Pit"></canvas>
@@ -4053,6 +4053,7 @@ PIT.colorMat = function (hex, opts) {
   };
 
   PIT.payDeadline = function (state) {
+    try{window.__ttHS&&window.__ttHS(state.totalWon|0)}catch(e){}
     var total = state.banked + state.loose;
     if (total >= state.debt) {
       // spend from loose first, then bank

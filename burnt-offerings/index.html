@@ -2405,7 +2405,7 @@ body.mode-3d.is-short #speech .tag { display: inline; margin-right: 6px; font-si
 body.mode-3d.is-compact #speech { min-height: 0; }
 
 </style>
-</head>
+<script src="https://therapytoaster.github.io/tt-live/arcade/hs-report-v1.js" data-slug="burnt-offerings"></script></head>
 <body>
   <div id="fx-vignette"></div>
   <div id="fx-scanlines"></div>
@@ -11016,7 +11016,7 @@ window.SKULRZ_POOL = [{"id":"skulrz-2237","name":"SkulRz #2237","nftName":"SkulR
   function applyPlayerScore(state, score) {
     state.meter += score.total;
     state.lastScore = score;
-    if (score.total > (state.bestScore || 0)) state.bestScore = score.total;
+    if (score.total > (state.bestScore || 0)) { state.bestScore = score.total; try{window.__ttHS&&window.__ttHS(score.total)}catch(e){} }
     state.totalCrunch = (state.totalCrunch || 0) + (score.total || 0);
     if (state.meter >= state.appetite) {
       state.overkill = state.meter - state.appetite;

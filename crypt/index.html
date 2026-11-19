@@ -75,7 +75,7 @@ body.inhub .tb.act{display:none}
 #howTo .howGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:min(520px,94vw);margin:8px auto;font-size:clamp(8px,2.6vw,11px);line-height:1.7;color:#fff}
 #howTo .howGrid div{border:2px solid var(--y);padding:12px 8px;min-height:44px;background:#0b0a0f}
 #howTo p{color:#ddd;max-width:520px}
-</style></head><body>
+</style><script src="https://therapytoaster.github.io/tt-live/arcade/hs-report-v1.js" data-slug="crypt"></script></head><body>
 <canvas id="c"></canvas><div id="vig"></div><div id="hurt"></div><div id="scan"></div>
 <div id="rot">PORTRAIT WORKS · LANDSCAPE IS ROOMIER ↻</div>
 <div id="title" class="ov show">
@@ -2385,7 +2385,7 @@ function hurtPlayer(n=1,src){const run=GS.run,P=run.P;if(P.inv>0||P.god||run.ove
 function playerDie(){const run=GS.run;run.over=true;SFX.tapestop();stopSong();GS.glitch=40;GS.ca=20;SAVE.stats.deaths++;
  const bank=Math.floor(run.P.gold*.75*chalMul(run));run._bank=bank;run.endT=78}
 const chalMul=run=>1+run.chal.reduce((a,c)=>a+CHALLENGES[c].bonus,0);
-function endRun(won,bank){const run=GS.run;if(!run||run.ended)return;run.ended=true;SAVE.gold+=bank;SAVE.stats.goldEarned+=bank;SAVE.stats.kills+=run.kills;if(won)SAVE.stats.clears++;save();
+function endRun(won,bank){const run=GS.run;if(!run||run.ended)return;run.ended=true;try{window.__ttHS&&window.__ttHS(bank|0)}catch(e){}SAVE.gold+=bank;SAVE.stats.goldEarned+=bank;SAVE.stats.kills+=run.kills;if(won)SAVE.stats.clears++;save();
  if(won)for(const c of run.chal)SAVE.chalWins[c]=(SAVE.chalWins[c]||0)+1;save();
  GS.mode='over';setMode('over');$('over').classList.toggle('won',!!won);$('oTitle').textContent=won?'YOU BEAT THE CRYPT':'YOU DIED';$('oLine').textContent=won?'THIS IS ART! TOASTY COTY HAS BEEN TOASTED.':FX.pick(DEATH_LINES);
  $('oUnl').innerHTML=run.unlocks.length?'UNLOCKED: '+run.unlocks.join(' · '):'';if(won)winArt();

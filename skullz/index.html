@@ -186,7 +186,7 @@ body.lefty #bReload{right:auto;left:calc(var(--sl) + 22px + 88px*var(--bs,1))}
 #aknob.tap{animation:aktap .28s ease-out}@keyframes aktap{0%{transform:scale(1.45);background-color:#ff00c8;box-shadow:0 0 18px 6px #ff00c8}100%{box-shadow:0 0 0 0 #ff00c800}}
 #ajoy.firing #aknob{background-color:#ff00c8;box-shadow:0 0 14px 4px #ff00c8aa;animation:akhold .16s steps(2) infinite}@keyframes akhold{to{box-shadow:0 0 4px 1px #ff00c8}}
 #ajoy.firing{border-color:#ff00c8;opacity:1}
-</style></head><body>
+</style><script src="https://therapytoaster.github.io/tt-live/arcade/hs-report-v1.js" data-slug="skullz"></script></head><body>
 <canvas id="c" width="320" height="200"></canvas>
 <div id="msg"></div><div id="secban" aria-live="polite"></div><div id="egg" role="dialog" aria-label="Easter egg video"></div>
 <div id="hud"><canvas id="face" width="64" height="64"></canvas><div><b id="xname">MR. TOASTY</b><span id="hp">100</span></div><div><b>AMMO</b><span id="am">0</span></div><div><b>ARMOR</b><span id="ap">0</span></div><div class="hx"><b>WEAPON</b><span id="wn"></span></div><div><b>SKULLZ</b><span id="bn">0</span></div><div class="hx"><b>FLOOR</b><span id="fl">1</span></div><div><b>KILLS</b><span id="kl"></span></div></div>
@@ -1751,7 +1751,7 @@ function showFreed(){state='freed';SFX.win();$('frh').innerHTML=boss.fname+'<br>
 function toUpgrade(){if(state!='freed')return;state='play';nextFloor()}
 function score(){const t=(performance.now()-run.t0)/1000;return run.kills*10+run.elites*40+(run.floor-1)*150+run.freed.length*500+run.secrets*150+run.bonesTotal+run.cursed*250+(run.won?3000+Math.max(0,1800-t)*2:0)|0}
 function recordRun(){const M=meta();M.kills+=run.kills;M.elites+=run.elites;M.secrets+=run.secrets;M.bestFloor=Math.max(M.bestFloor,run.floor);if(run.won&&!run.counted){M.wins++;run.counted=1}
- const sc=score();let best=null,isNew=false;if(run.mode=='daily'){const D=M.daily[run.day]||{best:0,tries:0,history:[]};D.tries=(D.tries||0)+1;const entry={sc,floor:run.floor,kills:run.kills,t:(performance.now()-run.t0)/1000,won:!!run.won,bosses:(run.freed||[]).slice(),practice:!!run.practice,at:Date.now()};D.history=(D.history||[]).concat(entry).slice(-30);if(!run.practice){D.counted=1;if(sc>(D.best||0)){D.best=sc;D.floor=run.floor;D.won=run.won;D.kills=run.kills;isNew=true}}M.daily[run.day]=D;best=D.best||0;try{if(TT.dailySubmit)TT.dailySubmit(entry,D)}catch(e){}}
+ const sc=score();if(!run.practice){try{window.__ttHS&&window.__ttHS(sc)}catch(e){}}let best=null,isNew=false;if(run.mode=='daily'){const D=M.daily[run.day]||{best:0,tries:0,history:[]};D.tries=(D.tries||0)+1;const entry={sc,floor:run.floor,kills:run.kills,t:(performance.now()-run.t0)/1000,won:!!run.won,bosses:(run.freed||[]).slice(),practice:!!run.practice,at:Date.now()};D.history=(D.history||[]).concat(entry).slice(-30);if(!run.practice){D.counted=1;if(sc>(D.best||0)){D.best=sc;D.floor=run.floor;D.won=run.won;D.kills=run.kills;isNew=true}}M.daily[run.day]=D;best=D.best||0;try{if(TT.dailySubmit)TT.dailySubmit(entry,D)}catch(e){}}
  const fresh=checkUnlocks(M);saveMeta(M);return{sc,best,isNew,fresh}}
 function summary(r){const t=(performance.now()-run.t0)/1000;return `SCORE ${r.sc.toLocaleString()}${run.mode=='daily'?' · DAILY '+run.day+(run.practice?' · PRACTICE (NOT COUNTED)':' · COUNTED')+' BEST '+(r.best||0).toLocaleString()+(r.isNew?' ★ NEW BEST':''):''}<br>
  FLOOR ${run.floor} · KILLS ${run.kills} (${run.elites} ELITE) · SECRETS ${run.secrets} · CURSED ${run.cursed} · TIME ${fmt(t)}<br>
