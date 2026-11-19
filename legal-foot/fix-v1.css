@@ -1,0 +1,23 @@
+/* TT LEGAL FOOT CLEAR v1
+   Keep the sitewide .tt-leg-foot nav (Privacy · Terms · Shipping & Returns · Cookies)
+   visible and clickable:
+   - raise it above full-viewport page backgrounds (#ttsb, #ttbg-arcade, #tt-float-layer)
+   - when a fixed bottom dock is present (#ttmp Toaster Radio, #ttpa persist-audio, #ttcl Chipotle),
+     add bottom padding equal to the dock height + offset + a small gap so the links sit clear.
+   Does not change the links or their hrefs. */
+.tt-leg-foot{
+  position:relative;
+  z-index:9;
+}
+body:has(#ttmp) .tt-leg-foot,
+body:has(#ttpa:not([hidden])) .tt-leg-foot,
+body:has(#ttcl) .tt-leg-foot{
+  padding-bottom:108px; /* 16px dock offset + 76px #ttmp height + 16px gap */
+}
+@media (max-width:600px){
+  body:has(#ttmp) .tt-leg-foot,
+  body:has(#ttpa:not([hidden])) .tt-leg-foot,
+  body:has(#ttcl) .tt-leg-foot{
+    padding-bottom:86px; /* 12px dock offset + 59px #ttmp height + 15px gap */
+  }
+}
