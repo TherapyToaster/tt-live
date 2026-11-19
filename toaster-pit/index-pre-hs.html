@@ -1565,7 +1565,7 @@ class RoundedBoxGeometry extends BoxGeometry {
 // Palette is the shared Mr. Toasty universe set, all on black.
 var PIT = PIT || {};
 
-PIT.VERSION = "0.6.2";
+PIT.VERSION = "0.6.3";
 
 PIT.PAL = {
   black:    "#000000",
@@ -4476,8 +4476,8 @@ PIT.colorMat = function (hex, opts) {
     if (graffBack) {
       // Paint reads in the dark basement: a little emissive from the same map, plus brick bump.
       // v0.6.1: paint-only emissive map, so the pieces glow and the bricks stay gritty
-      backM = std({ map: graffBack.map, color: 0xf4ece4, roughness: 0.82, metalness: 0.02, bumpMap: graffBack.bump, bumpScale: 0.9, envMapIntensity: 0.35, emissive: 0xffffff, emissiveMap: graffBack.glow, emissiveIntensity: 0.62 });
-      sideM = std({ map: graffSide.map, color: 0xeee4da, roughness: 0.84, metalness: 0.02, bumpMap: graffSide.bump, bumpScale: 0.9, envMapIntensity: 0.35, emissive: 0xffffff, emissiveMap: graffSide.glow, emissiveIntensity: 0.55 });
+      backM = std({ map: graffBack.map, color: 0xf4ece4, roughness: 0.82, metalness: 0.02, bumpMap: graffBack.bump, bumpScale: 0.9, envMapIntensity: 0.35, emissive: 0xffffff, emissiveMap: graffBack.glow, emissiveIntensity: 0.46 });
+      sideM = std({ map: graffSide.map, color: 0xeee4da, roughness: 0.84, metalness: 0.02, bumpMap: graffSide.bump, bumpScale: 0.9, envMapIntensity: 0.35, emissive: 0xffffff, emissiveMap: graffSide.glow, emissiveIntensity: 0.41 });
     }
     mesh(new THREE.BoxGeometry(18, 6.2, 0.28), backM, scene, 0, 3.0, -8.05, false).name = "wall-back";
     mesh(new THREE.BoxGeometry(0.28, 6.2, 16), sideM, scene, -8.95, 3.0, -1, false).name = "wall-left";
@@ -4583,7 +4583,7 @@ PIT.colorMat = function (hex, opts) {
         : new THREE.CylinderGeometry(0.045, 0.045, len, 12);
       var m = mesh(geo, std({
         color: col, roughness: 0.25, metalness: 0.2,
-        emissive: col, emissiveIntensity: emit == null ? 1.15 : emit
+        emissive: col, emissiveIntensity: (emit == null ? 1.15 : emit) * 0.74
       }), scene, x, y, z, false);
       if (axis === "x") m.rotation.z = Math.PI / 2;
       if (axis === "z") m.rotation.x = Math.PI / 2;
@@ -4601,8 +4601,8 @@ PIT.colorMat = function (hex, opts) {
 
     // Hanging bare bulb + cord + shade
     mesh(new THREE.CylinderGeometry(0.018, 0.018, 1.25, 6), std({ color: 0x1a1a1a, roughness: 0.8, metalness: 0.3 }), scene, 0, 5.3, 0.55, false);
-    bulb = mesh(new THREE.SphereGeometry(0.11, 10, 8), std({ color: 0xFFD400, roughness: 0.25, metalness: 0.05, emissive: 0xFFD400, emissiveIntensity: 1.4 }), scene, 0, 4.58, 0.55, false);
-    var filament = mesh(new THREE.TorusGeometry(0.035, 0.006, 4, 8), std({ color: 0xffffff, emissive: 0xfff0c0, emissiveIntensity: 2 }), scene, 0, 4.58, 0.55, false);
+    bulb = mesh(new THREE.SphereGeometry(0.11, 10, 8), std({ color: 0xFFD400, roughness: 0.25, metalness: 0.05, emissive: 0xFFD400, emissiveIntensity: 1.0 }), scene, 0, 4.58, 0.55, false);
+    var filament = mesh(new THREE.TorusGeometry(0.035, 0.006, 4, 8), std({ color: 0xffffff, emissive: 0xfff0c0, emissiveIntensity: 1.45 }), scene, 0, 4.58, 0.55, false);
     filament.rotation.x = Math.PI / 2;
     var shade = new THREE.Mesh(new THREE.ConeGeometry(0.32, 0.24, 8, 1, true), std({ color: 0x2a1a10, roughness: 0.8, side: THREE.DoubleSide }));
     add(shade, scene, 0, 4.78, 0.55, false);
@@ -4798,8 +4798,8 @@ PIT.colorMat = function (hex, opts) {
     // Top toast slots with orange heat glow
     mesh(rbox(0.85, 0.1, 0.32, 2, 0.03), chrome(0x222226), machine, -0.52, 2.28, -0.05, true);
     mesh(rbox(0.85, 0.1, 0.32, 2, 0.03), chrome(0x222226), machine, 0.52, 2.28, -0.05, true);
-    var g1 = mesh(new THREE.BoxGeometry(0.72, 0.04, 0.12), std({ color: 0xff5a00, emissive: 0xff5a00, emissiveIntensity: 1.25, roughness: 0.4 }), machine, -0.52, 2.30, -0.05, false);
-    var g2 = mesh(new THREE.BoxGeometry(0.72, 0.04, 0.12), std({ color: 0xff5a00, emissive: 0xff5a00, emissiveIntensity: 1.25, roughness: 0.4 }), machine, 0.52, 2.30, -0.05, false);
+    var g1 = mesh(new THREE.BoxGeometry(0.72, 0.04, 0.12), std({ color: 0xff5a00, emissive: 0xff5a00, emissiveIntensity: 0.9, roughness: 0.4 }), machine, -0.52, 2.30, -0.05, false);
+    var g2 = mesh(new THREE.BoxGeometry(0.72, 0.04, 0.12), std({ color: 0xff5a00, emissive: 0xff5a00, emissiveIntensity: 0.9, roughness: 0.4 }), machine, 0.52, 2.30, -0.05, false);
     slotGlowMats.push(g1.material, g2.material);
 
     // Face plate: four bezels around an OPEN pay window (never a solid panel)
@@ -4853,7 +4853,7 @@ PIT.colorMat = function (hex, opts) {
     var marquee = mesh(rbox(2.25, 0.36, 0.16, 2, 0.04), goldMat(0.7), machine, 0, 2.08, 0.74, true);
     var labMesh = new THREE.Mesh(new THREE.PlaneGeometry(2.12, 0.30), std({
       map: labTex, color: 0xffffff, roughness: 0.35, metalness: 0.25,
-      emissive: (PIT.Graffiti && PIT.Graffiti.ready) ? 0xffffff : 0xFFD400, emissiveIntensity: (PIT.Graffiti && PIT.Graffiti.ready) ? 0.72 : 1.25, emissiveMap: labTex
+      emissive: (PIT.Graffiti && PIT.Graffiti.ready) ? 0xffffff : 0xFFD400, emissiveIntensity: (PIT.Graffiti && PIT.Graffiti.ready) ? 0.54 : 0.9, emissiveMap: labTex
     }));
     labMesh.position.set(0, 2.08, 0.84);
     labMesh.castShadow = false;
@@ -4939,7 +4939,7 @@ PIT.colorMat = function (hex, opts) {
       machine.add(rv);
     }
     // Emissive trim around the pay window
-    var trim = std({ color: 0xff5a00, emissive: 0xff5a00, emissiveIntensity: 0.85, roughness: 0.35, metalness: 0.4 });
+    var trim = std({ color: 0xff5a00, emissive: 0xff5a00, emissiveIntensity: 0.62, roughness: 0.35, metalness: 0.4 });
     mesh(new THREE.BoxGeometry(WINDOW_W + 0.38, 0.03, 0.04), trim, machine, 0, 1.18 + WINDOW_H / 2 + 0.34, 0.78, false);
     mesh(new THREE.BoxGeometry(WINDOW_W + 0.38, 0.03, 0.04), trim, machine, 0, 1.18 - WINDOW_H / 2 - 0.28, 0.78, false);
     // Marquee chaser lights
@@ -5012,8 +5012,8 @@ PIT.colorMat = function (hex, opts) {
     crackMesh.castShadow = false;
     mon.add(crackMesh);
     // cyan / magenta bezel accents (bloom)
-    mesh(new THREE.BoxGeometry(1.05, 0.045, 0.05), std({ color: 0x00f0ff, emissive: 0x00f0ff, emissiveIntensity: 0.85, roughness: 0.35 }), mon, 0, 0.9, 0.37, false);
-    mesh(new THREE.BoxGeometry(1.05, 0.045, 0.05), std({ color: 0xff00c8, emissive: 0xff00c8, emissiveIntensity: 0.7, roughness: 0.35 }), mon, 0, 0.12, 0.37, false);
+    mesh(new THREE.BoxGeometry(1.05, 0.045, 0.05), std({ color: 0x00f0ff, emissive: 0x00f0ff, emissiveIntensity: 0.62, roughness: 0.35 }), mon, 0, 0.9, 0.37, false);
+    mesh(new THREE.BoxGeometry(1.05, 0.045, 0.05), std({ color: 0xff00c8, emissive: 0xff00c8, emissiveIntensity: 0.52, roughness: 0.35 }), mon, 0, 0.12, 0.37, false);
 
     // Mr. Toasty figurine on the CRT
     var fig = new THREE.Group();
@@ -5095,7 +5095,7 @@ PIT.colorMat = function (hex, opts) {
     scene.add(hemi);
 
     // Key: warm toaster-orange spot from the hanging bulb, soft shadows
-    keyLight = new THREE.SpotLight(0xff5a00, 42, 20, Math.PI / 3.6, 0.5, 1.35);
+    keyLight = new THREE.SpotLight(0xff5a00, 32, 20, Math.PI / 3.6, 0.5, 1.35);
     keyLight.position.set(0.2, 5.1, 2.2);
     keyLight.target.position.set(0, 0.9, -0.4);
     scene.add(keyLight); scene.add(keyLight.target);
@@ -5108,7 +5108,7 @@ PIT.colorMat = function (hex, opts) {
     keyLight.shadow.camera.fov = 58;
 
     // Flickering bare-bulb point — wider reach
-    bulbLight = new THREE.PointLight(0xffc070, 28, 16, 1.35);
+    bulbLight = new THREE.PointLight(0xffc070, 20, 16, 1.35);
     bulbLight.position.set(0, 4.55, 0.55);
     scene.add(bulbLight);
 
@@ -5119,7 +5119,7 @@ PIT.colorMat = function (hex, opts) {
     scene.add(fill); scene.add(fill.target);
 
     // Back-wall wash and side fills so brick, pipes and the Skull Wall read
-    var wash = new THREE.SpotLight(0xffd4a0, 36, 22, Math.PI / 3.2, 0.65, 1.25);
+    var wash = new THREE.SpotLight(0xffd4a0, 30, 22, Math.PI / 3.2, 0.65, 1.25);
     wash.position.set(-1.5, 5.4, 1.2);
     wash.target.position.set(0, 2.2, -7.5);
     scene.add(wash); scene.add(wash.target);
@@ -5138,8 +5138,8 @@ PIT.colorMat = function (hex, opts) {
       scene.add(l); scene.add(l.target);
       return l;
     }
-    wallWash(0xff00c8, 30, -6.0, 0.25, -6.4, -6.0, 3.6, -8.0, Math.PI / 5);
-    wallWash(0x00f0ff, 30, 7.4, 0.25, -6.4, 7.4, 3.6, -8.0, Math.PI / 5);
+    wallWash(0xff00c8, 22, -6.0, 0.25, -6.4, -6.0, 3.6, -8.0, Math.PI / 5);
+    wallWash(0x00f0ff, 22, 7.4, 0.25, -6.4, 7.4, 3.6, -8.0, Math.PI / 5);
     wallWash(0xffd4a0, 26, 0, 5.7, -5.0, 0, 4.9, -8.0, Math.PI / 2.6);
     var floorFill = new THREE.SpotLight(0xffd8a8, 16, 14, Math.PI / 2.4, 0.8, 1.4);
     floorFill.position.set(1.2, 3.6, 3.4);
@@ -5147,10 +5147,10 @@ PIT.colorMat = function (hex, opts) {
     scene.add(floorFill); scene.add(floorFill.target);
 
     // Magenta and cyan rim lights
-    rimC = new THREE.PointLight(0x00f0ff, 9, 9, 1.6);
+    rimC = new THREE.PointLight(0x00f0ff, 6.8, 9, 1.6);
     rimC.position.set(-2.8, 2.4, 1.8);
     scene.add(rimC);
-    rimM = new THREE.PointLight(0xff00c8, 7.5, 9, 1.6);
+    rimM = new THREE.PointLight(0xff00c8, 5.6, 9, 1.6);
     rimM.position.set(2.8, 2.3, 1.6);
     scene.add(rimM);
 
@@ -5201,7 +5201,7 @@ PIT.colorMat = function (hex, opts) {
       color: 0xffe0a0,
       size: 0.045,
       transparent: true,
-      opacity: 0.55,
+      opacity: 0.42,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
       sizeAttenuation: true
@@ -5371,7 +5371,7 @@ PIT.colorMat = function (hex, opts) {
         g = winGlows[p[0]] && winGlows[p[0]][p[1]];
         if (g) {
           g.material.color.setHex(col);
-          g.material.opacity = 0.72;
+          g.material.opacity = 0.5;
           g.material.transparent = true;
         }
         if (cellMesh[p[0]] && cellMesh[p[0]][p[1]]) {
@@ -5408,7 +5408,7 @@ PIT.colorMat = function (hex, opts) {
         tr.userData.col = col;
       }
     });
-    if (PIT.Post && PIT.Post.pulseBloom) PIT.Post.pulseBloom(0.45);
+    if (PIT.Post && PIT.Post.pulseBloom) PIT.Post.pulseBloom(0.32);
   }
 
   function clearFx() {
@@ -5446,7 +5446,7 @@ PIT.colorMat = function (hex, opts) {
       mat = new THREE.MeshBasicMaterial({
         color: i === 1 ? 0xffc070 : 0xffa040,
         transparent: true,
-        opacity: 0.06,
+        opacity: 0.042,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
         side: THREE.DoubleSide,
@@ -5461,7 +5461,7 @@ PIT.colorMat = function (hex, opts) {
     }
     // A wider floor wash
     mat = new THREE.MeshBasicMaterial({
-      color: 0xffc070, transparent: true, opacity: 0.04,
+      color: 0xffc070, transparent: true, opacity: 0.028,
       depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false
     });
     m = new THREE.Mesh(new THREE.CircleGeometry(2.4, 24), mat);
@@ -5486,7 +5486,7 @@ PIT.colorMat = function (hex, opts) {
       renderer.setPixelRatio(1);
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.22;
+      renderer.toneMappingExposure = 1.15; // v0.6.3 (was 1.22)
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       renderer.autoClear = true;
@@ -5648,14 +5648,14 @@ PIT.colorMat = function (hex, opts) {
       // Camera is locked — punch is a post UV-shake, HUD shake, and a flash.
       var a = amt || 0.12;
       if (PIT.Post && PIT.Post.setShake) PIT.Post.setShake(a);
-      if (a >= 0.14 && PIT.Post && PIT.Post.setFlash) PIT.Post.setFlash(0xFFD400, Math.min(0.32, 0.1 + a * 0.45));
+      if (a >= 0.14 && PIT.Post && PIT.Post.setFlash) PIT.Post.setFlash(0xFFD400, Math.min(0.22, 0.07 + a * 0.32));
       if (PIT.HUD && PIT.HUD.shake) PIT.HUD.shake(a);
     },
 
     setToastyTalk: function (on) { if (toastyMesh) toastyMesh.userData.talk = on; },
 
     showWins: function (ev) { showWinLines(ev); },
-    flash: function (color, amt) { PIT.Post.setFlash(color || 0xFFD400, amt == null ? 0.4 : amt); },
+    flash: function (color, amt) { PIT.Post.setFlash(color || 0xFFD400, amt == null ? 0.28 : amt); },
     burnFx: function () {
       PIT.spawnSmoke();
       spawnFx("smoke", quality ? 16 : 6, { y: 1.55, z: 0.85, up: 1.0, vy: 0.7, vx: 1.1, life: 1.5, spread: 1.3 });
@@ -5669,8 +5669,8 @@ PIT.colorMat = function (hex, opts) {
     },
     jackpot: function () {
       PIT.spawnJackpot();
-      PIT.Post.setFlash(0xFFD400, 0.48);
-      if (PIT.Post.pulseBloom) PIT.Post.pulseBloom(0.4);
+      PIT.Post.setFlash(0xFFD400, 0.34);
+      if (PIT.Post.pulseBloom) PIT.Post.pulseBloom(0.28);
       if (PIT.Post.setShake) PIT.Post.setShake(0.34);
     },
     popToast: function (n) { PIT.spawnToastPop(n); },
@@ -5681,17 +5681,17 @@ PIT.colorMat = function (hex, opts) {
 
       // bulb flicker
       flicker = 0.88 + Math.sin(time * 7.7) * 0.07 + (Math.random() < 0.015 ? -0.18 : 0);
-      if (bulbLight) bulbLight.intensity = (quality ? 28 : 14) * flicker;
-      if (keyLight) keyLight.intensity = (quality ? 42 : 20) * (0.92 + flicker * 0.08);
-      if (bulb) bulb.material.emissiveIntensity = 1.1 + flicker * 0.6;
-      slotGlowMats.forEach(function (m) { m.emissiveIntensity = 0.9 + flicker * 0.4; });
-      if (marqueeMat) marqueeMat.emissiveIntensity = 1.15 + Math.sin(time * 3.2) * 0.25;
+      if (bulbLight) bulbLight.intensity = (quality ? 20 : 10) * flicker;
+      if (keyLight) keyLight.intensity = (quality ? 32 : 15) * (0.92 + flicker * 0.08);
+      if (bulb) bulb.material.emissiveIntensity = 0.8 + flicker * 0.45;
+      slotGlowMats.forEach(function (m) { m.emissiveIntensity = 0.65 + flicker * 0.3; });
+      if (marqueeMat) marqueeMat.emissiveIntensity = 0.84 + Math.sin(time * 3.2) * 0.18;
 
       // burn strobe tints the rims
       if (strobeLights > 0) {
         strobeLights = Math.max(0, strobeLights - dt);
         var pulse = ((Math.sin(time * 28) * 0.5 + 0.5) * strobeLights);
-        if (rimM) rimM.intensity = 5.5 + pulse * 18;
+        if (rimM) rimM.intensity = 4.2 + pulse * 13;
         if (keyLight) keyLight.color.setRGB(1, 0.08 + (1 - pulse) * 0.27, 0.05);
       } else if (keyLight) keyLight.color.set(0xff5a00);
 
@@ -5781,7 +5781,7 @@ PIT.colorMat = function (hex, opts) {
         g = winGlows[r] && winGlows[r][c];
         cm = cellMesh[r] && cellMesh[r][c];
         if (g && g.material.opacity > 0) {
-          var pulse = 0.5 + Math.sin(time * 8) * 0.32;
+          var pulse = 0.36 + Math.sin(time * 8) * 0.2;
           g.material.opacity = pulse;
         }
         if (cm && cm.userData.winning) {
@@ -5807,7 +5807,7 @@ PIT.colorMat = function (hex, opts) {
         tr.position.lerpVectors(a, b, local);
         var pulse = 0.85 + 0.15 * Math.sin(time * 14);
         tr.scale.setScalar(pulse * (quality ? 1 : 0.75));
-        if (tr.material) tr.material.opacity = 0.7 + 0.3 * pulse;
+        if (tr.material) tr.material.opacity = 0.55 + 0.25 * pulse;
       }
 
       tickFx(dt);
@@ -5819,12 +5819,12 @@ PIT.colorMat = function (hex, opts) {
       // Marquee chaser
       var ci;
       for (ci = 0; ci < chasers.length; ci++) {
-        chasers[ci].emissiveIntensity = 0.25 + 1.15 * Math.max(0, Math.sin(time * 8 - ci * 0.55));
+        chasers[ci].emissiveIntensity = 0.2 + 0.85 * Math.max(0, Math.sin(time * 8 - ci * 0.55));
       }
       // Light-shaft opacity breathes with the bulb
       for (ci = 0; ci < shafts.length; ci++) {
         if (shafts[ci].material) {
-          shafts[ci].material.opacity = (0.045 + flicker * 0.035) * (quality ? 1 : 0.45);
+          shafts[ci].material.opacity = (0.032 + flicker * 0.025) * (quality ? 1 : 0.45);
         }
       }
       if (PIT.Nfts) PIT.Nfts.tick(dt);
@@ -6094,7 +6094,7 @@ PIT.colorMat = function (hex, opts) {
   var strobe = { on: false, r: 1, g: 0, b: 0.25, amt: 0, t: 0 };
   var shake = { amt: 0, x: 0, y: 0 };
   var glitch = { rgb: 0, redVig: 0, charred: 0 };
-  var bloomPulse = 0, bloomBase = 0.58;
+  var bloomPulse = 0, bloomBase = 0.40; // v0.6.3 glare trim (was 0.58)
 
   var CRT_VERT = [
     "varying vec2 vUv;",
@@ -6155,7 +6155,7 @@ PIT.colorMat = function (hex, opts) {
     "  col += flashColor * flashAmt;",
     "  col = mix(col, strobeColor, strobeAmt * (0.10 + 0.28 * step(0.5, fract(time * 8.0))));",
     "  // slight warm lift so the basement doesn't go muddy",
-    "  col *= 1.06;",
+    "  col *= 1.03;",
     "  gl_FragColor = vec4(col, 1.0);",
     "}"
   ].join("\n");
@@ -6210,7 +6210,7 @@ PIT.colorMat = function (hex, opts) {
       renderPass = new THREE.RenderPass(scene, camera);
       composer.addPass(renderPass);
 
-      bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(w, h), 0.58, 0.62, 0.68);
+      bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(w, h), 0.40, 0.48, 0.76); // v0.6.3: was 0.58 / 0.62 / 0.68
       bloomPass.timestamp = 0;
       composer.addPass(bloomPass);
 
@@ -6248,7 +6248,7 @@ PIT.colorMat = function (hex, opts) {
     setFlash: function (color, amt) {
       if (!crtPass) return;
       if (color != null) crtPass.uniforms.flashColor.value.set(color);
-      flash.a = Math.max(flash.a, amt == null ? 0.35 : amt);
+      flash.a = Math.max(flash.a, amt == null ? 0.25 : amt);
     },
 
     setStrobe: function (on, color) {
@@ -6264,7 +6264,7 @@ PIT.colorMat = function (hex, opts) {
     setRgbSplit: function (amt) { glitch.rgb = Math.max(glitch.rgb, amt == null ? 0.8 : amt); },
     setRedVig: function (amt) { glitch.redVig = Math.max(glitch.redVig, amt == null ? 0.85 : amt); },
     setCharred: function (amt) { glitch.charred = Math.max(glitch.charred, amt == null ? 0.7 : amt); },
-    pulseBloom: function (amt) { bloomPulse = Math.max(bloomPulse, amt == null ? 0.4 : amt); },
+    pulseBloom: function (amt) { bloomPulse = Math.max(bloomPulse, amt == null ? 0.3 : amt); },
 
     render: function (dt) {
       if (!composer) return;
@@ -6284,7 +6284,7 @@ PIT.colorMat = function (hex, opts) {
       glitch.redVig = Math.max(0, glitch.redVig - dt * 0.55);
       glitch.charred = Math.max(0, glitch.charred - dt * 0.7);
       bloomPulse = Math.max(0, bloomPulse - dt * 1.6);
-      if (bloomPass) bloomPass.strength = bloomBase + bloomPulse * 0.85;
+      if (bloomPass) bloomPass.strength = bloomBase + bloomPulse * 0.6;
       if (crtPass) {
         crtPass.uniforms.time.value = time;
         crtPass.uniforms.flashAmt.value = flash.a;
@@ -7014,7 +7014,7 @@ PIT.colorMat = function (hex, opts) {
     var ledM = new THREE.MeshStandardMaterial({
       color: i % 2 ? 0x00f0ff : 0xff00c8,
       emissive: i % 2 ? 0x00f0ff : 0xff00c8,
-      emissiveIntensity: 0.95, roughness: 0.3
+      emissiveIntensity: 0.7, roughness: 0.3
     });
     [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(function (d) {
       var led = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 6), ledM);
@@ -7080,7 +7080,7 @@ PIT.colorMat = function (hex, opts) {
           f._acc = 0;
           paintFrame(f, time);
         }
-        if (f.ledM) f.ledM.emissiveIntensity = 0.7 + Math.sin(time * 5 + f.phase) * 0.4;
+        if (f.ledM) f.ledM.emissiveIntensity = 0.52 + Math.sin(time * 5 + f.phase) * 0.28;
         if (f.mat) f.mat.emissiveIntensity = 0.62 + Math.sin(time * 2.2 + f.phase) * 0.1;
       }
     },
@@ -7943,7 +7943,7 @@ PIT.colorMat = function (hex, opts) {
         PIT.Scene.showWins && PIT.Scene.showWins(ev);
         PIT.Scene.popToast && PIT.Scene.popToast(big ? 4 : 2);
         PIT.Scene.shake(shakeAmt);
-        if (big) PIT.Scene.flash && PIT.Scene.flash(0xFFD400, jack ? 0.7 : 0.4);
+        if (big) PIT.Scene.flash && PIT.Scene.flash(0xFFD400, jack ? 0.48 : 0.28);
         if (jack) PIT.Scene.jackpot && PIT.Scene.jackpot();
       } else {
         PIT.audio && PIT.audio.click();
@@ -8208,7 +8208,7 @@ PIT.colorMat = function (hex, opts) {
           PIT.Scene.showWins && PIT.Scene.showWins(ev);
           PIT.Scene.popToast && PIT.Scene.popToast(big ? 4 : 2);
           PIT.Scene.shake(shakeAmt);
-          if (big) PIT.Scene.flash(0xFFD400, jack ? 0.45 : 0.28);
+          if (big) PIT.Scene.flash(0xFFD400, jack ? 0.32 : 0.2);
           if (jack) PIT.Scene.jackpot && PIT.Scene.jackpot();
           PIT.spawnCrumbs && PIT.spawnCrumbs(big ? 22 : 10, big);
           if (big && PIT.spawnSparks) PIT.spawnSparks(14);
