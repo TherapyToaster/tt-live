@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#05070d">
 <meta name="format-detection" content="telephone=no">
 <title>BURNT OFFERINGS</title>
-<!-- bo-build: mobile-touch-v1 -->
+<!-- bo-build: mobile-touch-v1 glare-v1 -->
 <style>
 /* Vendored SIL OFL 1.1 latin subsets: Anton, Epilogue. See data/BRAND.md */
 @font-face {
@@ -127,7 +127,7 @@ h1, h2, .iname, .btn, #top h1, .menu-item, .score-panel .crunch-n {
 }
 #fx-flicker {
   z-index: 92;
-  background: radial-gradient(ellipse 80% 36% at 50% -4%, rgba(232, 220, 150, 0.18), transparent 62%);
+  background: radial-gradient(ellipse 80% 36% at 50% -4%, rgba(232, 220, 150, 0.12), transparent 62%);
   animation: fluorescent 5.4s infinite;
   mix-blend-mode: screen;
 }
@@ -6878,10 +6878,12 @@ three/build/three.module.js:
   var LANE_DX = 0.68;
   var PIXEL = 3;
 
+  /* Glare pass (Nov 19): bloom was 0.38 (phones 0.22), radius 0.55, threshold 0.82. */
+  var BLOOM = { wide: 0.26, phone: 0.15 };
   var PRESETS = {
-    high:  { name: "high",  pr: 1.25, shadows: true,  shadowSize: 1024, bloom: true,  ssao: true,  dof: true,  grain: 0.07, ca: 0.0020, crt: 0.09, scan: 0.10, vignette: 0.62, dust: true,  pbr: true,  ps1: false, exposure: 0.92 },
-    medium:{ name: "medium",pr: 1,    shadows: true,  shadowSize: 512,  bloom: true,  ssao: false, dof: false, grain: 0.06, ca: 0.0014, crt: 0.06, scan: 0.08, vignette: 0.55, dust: true,  pbr: true,  ps1: false, exposure: 0.95 },
-    lofi:  { name: "lofi",  pr: 1,    shadows: false, shadowSize: 0,    bloom: false, ssao: false, dof: false, grain: 0,    ca: 0,      crt: 0,    scan: 0,    vignette: 0.4,  dust: false, pbr: false, ps1: true,  exposure: 1.0, pixel: 3 }
+    high:  { name: "high",  pr: 1.25, shadows: true,  shadowSize: 1024, bloom: true,  ssao: true,  dof: true,  grain: 0.07, ca: 0.0020, crt: 0.09, scan: 0.10, vignette: 0.62, dust: true,  pbr: true,  ps1: false, exposure: 0.86 },
+    medium:{ name: "medium",pr: 1,    shadows: true,  shadowSize: 512,  bloom: true,  ssao: false, dof: false, grain: 0.06, ca: 0.0014, crt: 0.06, scan: 0.08, vignette: 0.55, dust: true,  pbr: true,  ps1: false, exposure: 0.89 },
+    lofi:  { name: "lofi",  pr: 1,    shadows: false, shadowSize: 0,    bloom: false, ssao: false, dof: false, grain: 0,    ca: 0,      crt: 0,    scan: 0,    vignette: 0.4,  dust: false, pbr: false, ps1: true,  exposure: 0.94, pixel: 3 }
   };
 
   var wrap, canvas, renderer, scene, camera, composer, bloomPass, compositePass, blitScene, blitCam, ditherMat, rt;
@@ -7440,7 +7442,7 @@ three/build/three.module.js:
     var tt = texTable();
     var top = new THREE.Mesh(
       track(new THREE.BoxGeometry(2.72, 0.065, 1.72)),
-      mat({ map: tt.map, normalMap: tt.normalMap, roughnessMap: tt.roughnessMap, roughness: 0.48, metalness: 0.08, color: 0xffffff, envMapIntensity: 0.55, normalScale: 0.85 })
+      mat({ map: tt.map, normalMap: tt.normalMap, roughnessMap: tt.roughnessMap, roughness: 0.64, metalness: 0.04, color: 0xffffff, envMapIntensity: 0.4, normalScale: 0.85 })
     );
     top.position.set(0, TABLE_Y, -0.06);
     top.castShadow = !!quality.shadows;
@@ -7461,8 +7463,8 @@ three/build/three.module.js:
     // lane mats (subtle recessed felt)
     var matP = mat({ color: 0x15241c, roughness: 0.9, metalness: 0, transparent: true, opacity: 0.55 });
     var matE = mat({ color: 0x1a1410, roughness: 0.9, metalness: 0, transparent: true, opacity: 0.5 });
-    var gp = mat({ color: 0xffd400, emissive: 0xffd400, emissiveIntensity: 0, transparent: true, opacity: 0.55 });
-    var ge = mat({ color: 0x00edff, emissive: 0x00edff, emissiveIntensity: 0, transparent: true, opacity: 0.5 });
+    var gp = mat({ color: 0x9a8212, emissive: 0xffd400, emissiveIntensity: 0, transparent: true, opacity: 0.45 });
+    var ge = mat({ color: 0x0a7f8a, emissive: 0x00edff, emissiveIntensity: 0, transparent: true, opacity: 0.42 });
     for (var i = 0; i < 4; i++) {
       var x = (i - 1.5) * LANE_DX;
       addBox(g, 0.52, 0.004, 0.72, matP, x, TABLE_Y + 0.034, 0.16);
@@ -7510,13 +7512,13 @@ three/build/three.module.js:
     shadeInner.scale.x = shadeInner.scale.z = 0.98;
     g.add(shadeInner);
     // inner disc so we don't see through
-    var disc = new THREE.Mesh(track(new THREE.CircleGeometry(0.17, 20)), mat({ color: 0x2a2a24, emissive: 0xffe8a0, emissiveIntensity: 0.25, side: THREE.DoubleSide }));
+    var disc = new THREE.Mesh(track(new THREE.CircleGeometry(0.17, 20)), mat({ color: 0x2a2a24, emissive: 0xffe8a0, emissiveIntensity: 0.18, side: THREE.DoubleSide }));
     tubeMats.push(disc.material);
     disc.rotation.x = Math.PI / 2;
     disc.position.y = 0.18;
     g.add(disc);
     // bulb, mostly hidden in the shade (small, warm, not facing us head-on)
-    var bulb = addSphere(g, 0.055, 12, mat({ color: 0xfff4c8, emissive: 0xffe8a0, emissiveIntensity: 1.1, roughness: 0.3, metalness: 0, transparent: true, opacity: 0.92 }), 0, 0.02, 0);
+    var bulb = addSphere(g, 0.055, 12, mat({ color: 0xfff4c8, emissive: 0xffe8a0, emissiveIntensity: 0.8, roughness: 0.3, metalness: 0, transparent: true, opacity: 0.92 }), 0, 0.02, 0);
     tubeMats.push(bulb.material);
     // cage rings
     var cage = mat({ color: 0x8a8a80, metalness: 0.85, roughness: 0.3 });
@@ -7552,7 +7554,7 @@ three/build/three.module.js:
     track(coneMat);
     tubeMats.push(coneMat);
     // Soft volumetric glow under the shade — short and wide, kept above the cards
-    coneMat.uniforms.uOpacity.value = 0.07;
+    coneMat.uniforms.uOpacity.value = 0.045;
     var cone = new THREE.Mesh(track(new THREE.ConeGeometry(0.7, 0.85, 20, 1, true)), coneMat);
     cone.position.y = -0.48;
     cone.rotation.x = Math.PI;
@@ -7570,7 +7572,7 @@ three/build/three.module.js:
     scene.add(lights.amb);
 
     // KEY — hanging pendant, shadows, realistic falloff
-    lights.key = new THREE.SpotLight(0xfff0c4, 28, 8, Math.PI / 3.4, 0.55, 2);
+    lights.key = new THREE.SpotLight(0xfff0c4, 21, 8, Math.PI / 3.4, 0.55, 2);
     lights.key.position.set(-0.25, pendantBaseY + 0.02, 0.05);
     lights.key.target.position.set(0, TABLE_Y, -0.1);
     lights.key.castShadow = !!quality.shadows;
@@ -7586,7 +7588,7 @@ three/build/three.module.js:
     scene.add(lights.key.target);
 
     // small warm fill under the shade so the table has a soft pool, not a blast
-    lights.pool = new THREE.PointLight(0xffe2a0, 4.5, 3.6, 2);
+    lights.pool = new THREE.PointLight(0xffe2a0, 3.2, 3.6, 2);
     lights.pool.position.set(-0.15, pendantBaseY - 0.2, 0.0);
     scene.add(lights.pool);
 
@@ -8895,14 +8897,14 @@ three/build/three.module.js:
       }
     }
     flicker += (flickerTarget - flicker) * Math.min(1, dt * 16);
-    if (lights.key) lights.key.intensity = 28 * flicker;
-    if (lights.pool) lights.pool.intensity = 4.5 * flicker;
+    if (lights.key) lights.key.intensity = 21 * flicker;
+    if (lights.pool) lights.pool.intensity = 3.2 * flicker;
     if (lights.hemi) lights.hemi.intensity = 0.16 + 0.08 * flicker;
     for (var i = 0; i < tubeMats.length; i++) {
       if (tubeMats[i].isShaderMaterial && tubeMats[i].uniforms && tubeMats[i].uniforms.uFlicker) {
         tubeMats[i].uniforms.uFlicker.value = flicker;
       } else if (tubeMats[i].emissiveIntensity != null) {
-        tubeMats[i].emissiveIntensity = 0.35 + 0.75 * flicker;
+        tubeMats[i].emissiveIntensity = 0.25 + 0.55 * flicker;
       }
     }
     for (i = 0; i < neonMats.length; i++) {
@@ -9123,7 +9125,7 @@ three/build/three.module.js:
       tDepth: { value: null },
       uTime: { value: 0 },
       uRes: { value: new THREE.Vector2(1, 1) },
-      uExposure: { value: 0.92 },
+      uExposure: { value: 0.86 },
       uGrain: { value: 0.07 },
       uCA: { value: 0.002 },
       uVignette: { value: 0.6 },
@@ -9222,7 +9224,7 @@ three/build/three.module.js:
       var rp = new POST.RenderPass(scene, camera);
       composer.addPass(rp);
       if (quality.bloom) {
-        bloomPass = new POST.UnrealBloomPass(new THREE.Vector2(w, h), 0.38, 0.55, 0.82);
+        bloomPass = new POST.UnrealBloomPass(new THREE.Vector2(w, h), BLOOM.wide, 0.4, 0.9);
         composer.addPass(bloomPass);
       }
       compositePass = new POST.ShaderPass(CompositeShader);
@@ -9275,7 +9277,7 @@ three/build/three.module.js:
     lastW = w; lastH = h;
     var lm = layoutFor(w, h);
     if (lm !== layoutMode) applyLayout(lm);
-    if (bloomPass) bloomPass.strength = layoutMode === "wide" ? 0.38 : 0.22;
+    if (bloomPass) bloomPass.strength = layoutMode === "wide" ? BLOOM.wide : BLOOM.phone;
     var pr = quality.ps1 ? 1 : (quality.pr || 1);
     canvas.style.width = w + "px";
     canvas.style.height = h + "px";
