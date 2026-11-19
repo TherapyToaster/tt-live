@@ -4024,7 +4024,10 @@ PIT.colorMat = function (hex, opts) {
         else grid[r][c] = rollSymbol(state, r, c);
       }
     }
-    return applyGlitch(state, grid);
+    grid = applyGlitch(state, grid);
+    // A locked reel is immutable even when Glitch Filter changes its neighbors.
+    if (held && state.lastGrid) for (c = 0; c < 5; c++) if (held[c]) for (r = 0; r < 3; r++) grid[r][c] = state.lastGrid[r][c];
+    return grid;
   };
   PIT._rng = rng;
   PIT._rollSymbol = rollSymbol;
@@ -4323,7 +4326,7 @@ PIT.colorMat = function (hex, opts) {
     state.tools.stickerGen = (state.tools.stickerGen || 0) + 1;
   }
   function rollLucky(state) {
-    state.tools.lucky = (rng(state) * T.NFT_FRAMES) | 0;
+    state.tools.lucky = (rng(state) * 6) | 0; // only the six unobstructed frames; two older frames sit behind the cabinet
     state.tools.luckyUsed = false;
   }
   function sessionRefill(state) {
@@ -7570,7 +7573,8 @@ PIT.colorMat = function (hex, opts) {
   var P = PIT.PAL;
   var S = null, items = [], byId = {}, time = 0, ready = false;
   var box = new THREE.Box3(), v3 = new THREE.Vector3();
-  var stickerGroups = [], stickerGen = -1, residue = [];
+  var stickerGroups = [], stickerGen = -1, residue = [], stickerRun = null;
+  var ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
   var dial, dialFace, dialPlate, dialCtx, dialTex, dialAngle = 0, dialKey = "";
   var plate, plateCtx, plateTex, plateKey = "";
   var trayPile, trayLabelCtx, trayLabelTex, trayKey = "", trayShown = 0, trayDrain = 0;
@@ -7666,7 +7670,9 @@ PIT.colorMat = function (hex, opts) {
     var t = st && st.tools;
     if (!t) return;
     var i;
-    if (t.stickerGen !== stickerGen) {
+    if (t.stickerGen !== stickerGen || stickerRun !== st) {
+      if (stickerRun !== st) { tvMsg = null; jolt = 0; }
+      stickerRun = st;
       stickerGen = t.stickerGen;
       for (i = 0; i < 3; i++) {
         var sg = stickerGroups[i], def = PIT.STICKER_BY_ID[t.stickers[i].id];
@@ -7950,6 +7956,25 @@ PIT.colorMat = function (hex, opts) {
       return out;
     },
 
+    // Raycast the physical 3D proxy meshes first. HUD keeps expanded >=44px rectangles
+    // as a fallback for thumbs outside a small prop's visible geometry.
+    raycast: function (x, y) {
+      if (!ready) return null;
+      var w = S.canvas.clientWidth || innerWidth, h = S.canvas.clientHeight || innerHeight;
+      var st = PIT.game && PIT.game.state;
+      ndc.set(x / w * 2 - 1, 1 - y / h * 2);
+      ray.setFromCamera(ndc, S.camera);
+      var hits = items.filter(function (it) {
+        if (it.off || !it.obj.visible) return false;
+        if (it.id.indexOf("ia:sticker:") === 0 && st && st.tools && st.tools.stickers[+it.id.slice(11)].peeled) return false;
+        return true;
+      }).map(function (it) { return it.hit; });
+      var intersections = ray.intersectObjects(hits, false);
+      if (!intersections.length) return null;
+      for (var i = 0; i < items.length; i++) if (items[i].hit === intersections[0].object) return items[i].id;
+      return null;
+    },
+
     setHover: function (id) { holdPreview = (id && id.indexOf("cell:") === 0) ? +id.split(",")[1] : -1; this._hover = id; },
 
     // Feedback for a tool result from 21-tools.js
@@ -8110,7 +8135,16 @@ PIT.colorMat = function (hex, opts) {
     var i, b;
     for (i = buttons.length - 1; i >= 0; i--) {
       b = buttons[i];
-      if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) return b;
+      if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) {
+        if (b.id.indexOf("ia:") === 0 && PIT.Interact && PIT.Interact.raycast) {
+          var picked = PIT.Interact.raycast(x, y);
+          if (picked) for (var j = buttons.length - 1; j >= 0; j--) {
+            var q = buttons[j];
+            if (q.id === picked && x >= q.x && x <= q.x + q.w && y >= q.y && y <= q.y + q.h) return q;
+          }
+        }
+        return b;
+      }
     }
     return null;
   }
