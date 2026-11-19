@@ -33,7 +33,7 @@
     ns: "therapytoaster",
     keyHead: "hiscore-",
     minDigits: 4,
-    timeoutMs: 8000,
+    timeoutMs: 12000,
     skipAutomation: true
   };
 
@@ -182,7 +182,9 @@
   function delay(ms){ return new Promise(function(res){ setTimeout(res, ms); }); }
   function getCount(key){
     return req("get", key).catch(function(){
-      return delay(600).then(function(){ return req("get", key); });
+      return delay(800).then(function(){ return req("get", key); });
+    }).catch(function(){
+      return delay(2500).then(function(){ return req("get", key); });
     });
   }
 

@@ -30,13 +30,14 @@
   function call(op, extra){
     var url = BASE + "/" + op + "/" + NS + "/" + key + (extra || "");
     var ctl = window.AbortController ? new AbortController() : null;
-    var t = setTimeout(function(){ try { if (ctl) ctl.abort(); } catch(e) {} }, 9000);
+    var t = setTimeout(function(){ try { if (ctl) ctl.abort(); } catch(e) {} }, 12000);
     return fetch(url, { method: op === "get" ? "GET" : "POST", mode: "cors", cache: "no-store", credentials: "omit", signal: ctl ? ctl.signal : undefined })
       .then(function(r){ clearTimeout(t); if (op === "get" && r.status === 404) return { value: 0 }; if (!r.ok) throw 0; return r.json(); })
       .then(function(j){ var v = j && typeof j.value === "number" ? Math.floor(j.value) : NaN; if (!isFinite(v)) throw 0; return v; },
             function(e){ clearTimeout(t); throw e; });
   }
-  function retry(fn){ return fn()["catch"](function(){ return new Promise(function(r){ setTimeout(r, 900); }).then(fn); }); }
+  function wait(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+  function retry(fn){ return fn()["catch"](function(){ return wait(1000).then(fn); })["catch"](function(){ return wait(3000).then(fn); }); }
   function pump(){
     if (busy || !want) return;
     var score = want; want = 0; busy = true;
