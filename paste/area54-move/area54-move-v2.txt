@@ -1,0 +1,40 @@
+<!-- TT AREA54 MOVE v2 -->
+<!-- Header Code Injection. Replaces TT AREA54 MOVE v1.
+     Hides the Home Area54 card and injects the player on /music.
+     Icons are inline SVG (no emoji) so a Squarespace paste cannot mojibake the heading. -->
+<style>
+body.homepage .tt-a54-hide,.tt-a54-hide{display:none!important}
+#tt-a54-music h2 svg{width:1em;height:1em;vertical-align:-.14em;margin-right:.2em}
+#tt-a54-music a svg.tti{width:16px;height:16px;vertical-align:-2px;margin-right:4px}
+#tt-a54-music a svg.a54-ext{width:14px;height:14px;vertical-align:-2px;margin-left:4px}
+</style>
+<script>
+(function(){
+var CARD="<div style=\"text-align:center;max-width:520px;margin:0 auto 50px;background:#111;border:2px solid #FFD400;border-radius:14px;padding:22px\"><h2 style=\"color:#FFD400;margin:0 0 6px\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 18v-6a9 9 0 0 1 18 0v6\"/><path d=\"M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z\"/></svg>Area54.fm Live</h2><p style=\"color:#dee3de;margin:0 0 14px\">America's Chill Radio. Press play.</p><audio controls preload=\"none\" style=\"width:100%\"><source src=\"https://s2.radio.co/sf146c37f4/listen\" type=\"audio/mpeg\"></audio><p style=\"margin:12px 0 0\"><a href=\"https://area54.fm/\" target=\"_blank\" rel=\"noopener\" style=\"color:#FFD400\"><svg class=\"tti\" viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" aria-hidden=\"true\" focusable=\"false\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M16.247 7.761a6 6 0 0 1 0 8.478\"/><path d=\"M19.075 4.933a10 10 0 0 1 0 14.134\"/><path d=\"M4.925 19.067a10 10 0 0 1 0-14.134\"/><path d=\"M7.753 16.239a6 6 0 0 1 0-8.478\"/><circle cx=\"12\" cy=\"12\" r=\"2\"/></svg>Visit Area54.fm<svg class=\"a54-ext\" viewBox=\"0 0 24 24\" width=\"14\" height=\"14\" aria-hidden=\"true\" focusable=\"false\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M7 17L17 7\"/><path d=\"M8 7h9v9\"/></svg></a></p></div>";
+function isHome(){return document.body&&(document.body.classList.contains('homepage')||location.pathname==='/'||location.pathname==='');}
+function isMusic(){return /^\/music\/?$/.test(location.pathname);}
+function main(){return document.getElementById('page')||document.querySelector('main')||document.body;}
+function run(){
+ var m=main(); if(!m) return;
+ if(isHome()){
+  m.querySelectorAll('h2').forEach(function(h){
+   if((h.textContent||'').indexOf('Area54.fm Live')<0||h.closest('#tt-a54-music')) return;
+   var d=h.parentElement; if(d&&d.tagName==='DIV'&&!d.classList.contains('tt-a54-hide')) d.classList.add('tt-a54-hide');
+  });
+ }
+ if(isMusic()&&!document.getElementById('tt-a54-music')){
+  var anchor=m.querySelector('#tt-mus section.tm-pl')||m.querySelector('#tt-mus')||m.querySelector('.sqs-block');
+  if(!anchor) return;
+  var w=document.createElement('div'); w.id='tt-a54-music'; w.style.margin='26px auto 0'; w.innerHTML=CARD;
+  anchor.parentNode.insertBefore(w,anchor.nextSibling);
+ }
+}
+var t;function soon(){clearTimeout(t);t=setTimeout(run,50);}
+function start(){run();
+ new MutationObserver(soon).observe(document.body,{childList:true,subtree:true});
+ window.addEventListener('popstate',soon);window.addEventListener('pageshow',soon);
+ ['pushState','replaceState'].forEach(function(k){var o=history[k];history[k]=function(){var r=o.apply(this,arguments);soon();return r;};});
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
+})();
+</script>
