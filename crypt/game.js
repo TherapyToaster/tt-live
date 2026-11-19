@@ -5,7 +5,7 @@
 // Game logic runs in a small logical space (LW x 180); v0.8 renders it into an HD (4x) pixel buffer (960x576 for a 240x144 room) so sprites/tiles get
 // four times the pixel density of the logical view, then scales that up nearest-neighbour onto the screen canvas. Holder cosmetics / wallet code: none (see design doc, "Later").
 // =====================================================================================================
-const VERSION='0.8.0';
+const VERSION='0.9.0';
 const LH=180,TILE=16,RW=15,RH=9,RPW=RW*TILE,RPH=RH*TILE; // room = 15x9 tiles incl. walls (13x7 floor)
 let LW=320,ROOMX=40,ROOMY=32;
 const cv=document.getElementById('c'),cx=cv.getContext('2d');
@@ -14,11 +14,17 @@ const fxb=document.createElement('canvas'),fx=fxb.getContext('2d');
 let SC=1,OX=0,OY=0,DPR=1,CW=0,CH=0;
 const IS_TOUCH=('ontouchstart' in window)||navigator.maxTouchPoints>0;
 const QS=new URLSearchParams(location.search);
-function resize(){DPR=Math.min(2,window.devicePixelRatio||1);CW=innerWidth;CH=innerHeight;cv.width=Math.round(CW*DPR);cv.height=Math.round(CH*DPR);
+function viewSize(){const vv=window.visualViewport;return[vv&&vv.width?vv.width:innerWidth,vv&&vv.height?vv.height:innerHeight]}
+let _rsW=0,_rsH=0,_rsDPR=0;
+function resize(){DPR=Math.min(2,window.devicePixelRatio||1);const[nw,nh]=viewSize();
+ // skip canvas realloc when visualViewport scroll/resize fires with the same CSS size (iOS chrome otherwise tanks fps)
+ if(nw===_rsW&&nh===_rsH&&DPR===_rsDPR&&cv.width)return;
+ _rsW=nw;_rsH=nh;_rsDPR=DPR;[CW,CH]=[nw,nh];cv.width=Math.round(CW*DPR);cv.height=Math.round(CH*DPR);
  const a=CW/Math.max(1,CH);LW=Math.max(320,Math.min(400,Math.round(LH*a)));buf.width=LW*HD;buf.height=LH*HD;const PK=(typeof POST==="number"?POST:2);fxb.width=LW*PK;fxb.height=LH*PK;bx.imageSmoothingEnabled=false;fx.imageSmoothingEnabled=false;
  SC=Math.min(cv.width/LW,cv.height/LH);OX=(cv.width-LW*SC)/2;OY=(cv.height-LH*SC)/2;ROOMX=((LW-RPW)/2)|0;ROOMY=LH-RPH-4;
  for(const f of RESIZE_HOOKS)f()}
-const RESIZE_HOOKS=[];addEventListener('resize',()=>setTimeout(resize,30));
+const RESIZE_HOOKS=[];addEventListener('resize',()=>setTimeout(resize,30));addEventListener('orientationchange',()=>setTimeout(resize,80));
+if(window.visualViewport){visualViewport.addEventListener('resize',()=>setTimeout(resize,30));visualViewport.addEventListener('scroll',()=>setTimeout(resize,30))}
 // logical buffer px -> CSS px (used by touch layout + tests)
 const toCss=(x,y)=>[(OX+x*SC)/DPR,(OY+y*SC)/DPR];const fromCss=(x,y)=>[(x*DPR-OX)/SC,(y*DPR-OY)/SC];
 // ---- RNG (mulberry32) ----
@@ -34,7 +40,7 @@ const SAVE_KEY='crypt_save_v1';
 const SAVE_DEF=()=>({v:1,gold:0,up:{hp:0,dmg:0,purse:0,luck:0},relics:[],heroes:['toasty','butter','glitch'],seen:{},
  stats:{runs:0,deaths:0,clears:0,best:0,kills:0,boss:0,mini:0,goldEarned:0,rolls:0,perks:0},last:'toasty',
  bestiary:{},bossKills:{},miniKills:{},skins:{},skinOwn:['classic'],chal:[],chalWins:{},unlocked:[],
- set:{music:60,sfx:80,fx:1,scan:1,crt:0,lefty:0,autofire:IS_TOUCH?1:0,assist:IS_TOUCH?1:0,shake:1,light:1,nums:1,broswap:1,fxq:1}});
+ set:{music:60,sfx:80,fx:1,scan:1,crt:0,lefty:0,autofire:IS_TOUCH?1:0,assist:IS_TOUCH?1:0,shake:1,light:1,nums:1,broswap:1,fxq:1,howToSeen:0}});
 let SAVE=SAVE_DEF();
 function loadSave(){try{const s=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(s&&s.v===1){const d=SAVE_DEF();
  SAVE=Object.assign(d,s);SAVE.up=Object.assign(d.up,s.up||{});SAVE.stats=Object.assign(d.stats,s.stats||{});SAVE.set=Object.assign(d.set,s.set||{});
@@ -654,7 +660,7 @@ function auInit(){if(AU.ac)return AU.ac;try{const ac=new(window.AudioContext||wi
  const n=ac.createBuffer(1,ac.sampleRate,ac.sampleRate),d=n.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;AU.noiseBuf=n;auVol()}catch(e){AU.ac=null}return AU.ac}
 function setCrush(bits){const n=1024,c=new Float32Array(n);const q=bits?Math.pow(2,bits):0;for(let i=0;i<n;i++){const x=i/(n-1)*2-1;c[i]=q?Math.round(x*q)/q:Math.tanh(x*1.5)}if(AU.crush)AU.crush.curve=c}
 function auVol(){if(!AU.ac)return;AU.mus.gain.value=(SAVE.set.music/100)*.55;AU.sfx.gain.value=(SAVE.set.sfx/100)*.7}
-for(const ev of['pointerdown','keydown','touchstart'])addEventListener(ev,()=>{const ac=auInit();if(ac&&ac.state=='suspended')ac.resume();if(AU.want&&!AU.song)playSong(AU.want)},{capture:true,passive:true});
+for(const ev of['pointerdown','keydown','touchstart','touchend'])addEventListener(ev,()=>{const ac=auInit();if(ac&&ac.state=='suspended')ac.resume();if(AU.want&&!AU.song)playSong(AU.want)},{capture:true,passive:true});
 function env(g,t,a,peak,dec){g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(peak,t+a);g.gain.exponentialRampToValueAtTime(0.0001,t+a+dec)}
 function osc(type,f,t,dur,vol,dest,f2,det=0){const ac=AU.ac;const o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(Math.max(20,f2),t+dur);o.detune.value=det;
  env(g,t,.004,vol,dur);o.connect(g).connect(dest);o.start(t);o.stop(t+dur+.05);return o}
@@ -2056,6 +2062,127 @@ Object.assign(ENEMIES,{
  crumbmini:{name:'CRUMB BIT',hp:3,spd:1.05,r:3,spr:'crumbmini',ai:'chase',w:0,fl:[]}
 });
 
+// ---- v0.9 data: THE MIRROR FEED + six new mini-bosses (4 floor-pool, 2 mirror-exclusive) ----
+// MINI_IDS stays the original 12 so VOID CRUMB and v0.5 tests stay fair for existing saves.
+const MINI_IDS_CORE=MINI_IDS.slice();
+const MINI_NEW={
+ kettle:{name:'THE WHISTLING KETTLE',sub:'IT IS SO READY',hp:102,col:'#c8862a',intro:'STEAM UP.',die:'WHISTLE CRACKED.',r:14,pats:['steam','cone'],floors:[1,2]},
+ notif:{name:'PUSH NOTIF',sub:'YOU HAVE 1 NEW SKULL',hp:110,col:'#ffd400',intro:'DON\'T SWIPE AWAY.',die:'CLEARED ALL.',r:13,pats:['banners','likes'],floors:[2,3]},
+ modem:{name:'THE HANDSHAKE',sub:'CONNECTING…',hp:118,col:'#c0a878',intro:'SCREEEE.',die:'NO CARRIER.',r:15,pats:['dial','packets'],floors:[2,3,4]},
+ snow:{name:'DEAD AIR',sub:'PLEASE STAND BY',hp:124,col:'#9be7ff',intro:'WE ARE EXPERIENCING STATIC.',die:'SIGN-OFF.',r:14,pats:['blizzard','needles'],floors:[3,4],fly:1},
+ doppel:{name:'YOUR OWN STATIC',sub:'IT LEARNED YOUR BITS',hp:120,col:'#ff2bd6',intro:'A POOR COPY. STILL MEAN.',die:'UNFOLLOWED YOURSELF.',r:13,pats:['mime','echo'],mirror:1},
+ buffer:{name:'THE BUFFERING WHEEL',sub:'LOADING FOREVER',hp:136,col:'#00f0ff',intro:'PLEASE WAIT.',die:'404: BOSS NOT FOUND.',r:16,pats:['spin','error'],mirror:1}
+};
+Object.assign(MINIS,MINI_NEW);
+const MINI_IDS_NEW=Object.keys(MINI_NEW);
+const MINI_IDS_ALL=MINI_IDS_CORE.concat(MINI_IDS_NEW);
+// floor pools gain the non-mirror new ones; scream still forced on 3 or 4
+MINI_POOL[1]=MINI_POOL[1].concat(['kettle']);
+MINI_POOL[2]=MINI_POOL[2].concat(['kettle','notif','modem']);
+MINI_POOL[3]=MINI_POOL[3].concat(['notif','modem','snow']);
+MINI_POOL[4]=MINI_POOL[4].concat(['modem','snow']);
+const MIRROR_MINIS=['doppel','buffer'];
+const MIRROR_ITEMS=['mirrorshard','splitpreview','mutedstory'];
+Object.assign(ITEMS,{
+ mirrorshard:{name:'MIRROR SHARD',d:'THE FIRST HIT IN EACH ROOM IS REFLECTED. A PERMANENT CRACK IN THE FEED.',fx:P=>{P.mirrorWard=1;P.mirrorShard=1},relic:44,mirror:1},
+ splitpreview:{name:'SPLIT PREVIEW',d:'EVERY SHOT LEAVES A DELAYED CYAN ECHO.',fx:P=>{P.splitPreview=(P.splitPreview||0)+1},relic:46,mirror:1},
+ mutedstory:{name:'MUTED STORY',d:'NEARBY ENEMY SHOTS CRAWL. YOU MOVE A LITTLE FASTER IN THE STATIC.',fx:P=>{P.mutedStory=(P.mutedStory||0)+1;P.spd+=.12},relic:42,mirror:1}
+});
+SKINS.cyan={name:'CYAN STATIC',cost:0,d:'UNLOCKED BY DEFEATING EVERY MINI-BOSS, INCLUDING THE MIRROR FEED. COSMETIC ONLY.',unlock:'minis-all'};
+const MIRROR_NAME='THE MIRROR FEED';
+const MIRROR_SUB='A CRACKED COPY OF THIS FLOOR.';
+const MIRROR_TIMER=55*60; // ~55s at 60 ticks/s
+function v9MirrorFloorN(seed){return 2+(hash((seed||1)+':feed')&1)}
+QUIPS.push('DO NOT TRUST YOUR REFLECTION.','IF THE FEED CRACKS, WALK IN.','STATIC IS JUST TOAST WITH WORSE RECEPTION.','MUTE YOUR OWN STORY SOMETIMES.');
+
+// ---- v0.9 gen: place one cracked feed-mirror on floor 2 or 3; flip a floor into THE MIRROR FEED ----
+function v9FlipGrid(g,w,h){if(!g)return g;const n=new Uint8Array(g.length);for(let y=0;y<h;y++)for(let x=0;x<w;x++)n[y*w+(w-1-x)]=g[y*w+x];return n}
+function v9FlipDir(d){return d=='w'?'e':d=='e'?'w':d}
+function v9FlipDoors(map){if(!map)return map;const n={};for(const d in map)n[v9FlipDir(d)]=map[d];return n}
+function v9FreeFeedTile(r){const gw=(r.gw||13),gh=(r.gh||7);
+ const ok=(x,y)=>{if(x<1||y<1||x>gw-2||y>gh-2)return false;const w=r.grid7?gw:13,g=r.grid7||r.grid;if(g&&g[y*w+x])return false;if(r.pits){const pw=r.pits.length==(gw*gh)?gw:13;if(r.pits[y*pw+x])return false}if((r.props||[]).some(p=>p.x==x&&p.y==y))return false;if((r.spawns||[]).some(s=>s.x==x&&s.y==y))return false;if((r.pickups||[]).some(p=>p.x==x&&p.y==y))return false;if(r.center&&r.center[0]==x&&r.center[1]==y)return false;return true};
+ const cand=[];for(let y=1;y<=gh-2;y++)for(let x=1;x<=gw-2;x++)if(ok(x,y))cand.push([x,y]);
+ // Prefer a corner / south-wall tile, off the door cross, so runners don't fall in mid-traverse.
+ const dc=(gw/2)|0,dr=(gh/2)|0;
+ const score=(p)=>{const x=p[0],y=p[1];let s=0;if(Math.abs(x-dc)<=1)s+=30;if(Math.abs(y-dr)<=1)s+=30;s+=Math.abs(y-(gh-3))+Math.abs(x-(gw-3))*.25;return s};
+ if(cand.length)return cand.sort((a,b)=>score(a)-score(b))[0];
+ return [Math.max(2,gw-3),Math.max(2,gh-3)]}
+function v9PlaceMirror(F,floor,seed){const FR=RNG(hash(seed+':feedplace:'+floor));
+ const cand=FR.shuffle(F.rooms.filter(r=>r.kind=='normal'&&!r.hidden&&!r.arena&&r.dist>=1&&r.shape!='closet'&&!(r.gw>13)));
+ const room=cand[0]||F.rooms.find(r=>r.kind=='normal'&&!r.hidden);if(!room)return null;
+ const[x,y]=v9FreeFeedTile(room);room.feed={x,y,hp:18,broken:0,exit:0};F.hasFeed=1;F.feedRoom=room.id!=null?room.id:F.rooms.indexOf(room);
+ if(room.id==null)room.id=F.feedRoom;return room}
+function v9BusyTile(r,x,y){if(r.center&&r.center[0]==x&&r.center[1]==y)return true;
+ if((r.spawns||[]).some(s=>s.x==x&&s.y==y))return true;
+ if((r.pickups||[]).some(p=>p.x==x&&p.y==y))return true;
+ if((r.traps||[]).some(t=>t.x==x&&t.y==y))return true;
+ if((r.props||[]).some(p=>p.x==x&&p.y==y))return true;
+ if((r.terrain||[]).some(p=>p.x==x&&p.y==y))return true;
+ if(r.feed&&r.feed.x==x&&r.feed.y==y)return true;
+ const gw=r.gw||13,gh=r.gh||7,dc=(gw/2)|0,dr=(gh/2)|0;
+ if(Math.abs(x-dc)<=1&&(y<=1||y>=gh-2))return true;if(Math.abs(y-dr)<=1&&(x<=1||x>=gw-2))return true;
+ return false}
+function v9SpiceMini(F,floor,FR){const room=F.rooms.find(r=>r.kind=='miniboss'&&!r.hidden);if(!room)return;
+ const noTwin=room.mini=='poly'||room.mini=='totem';
+ // Geometry stays off the miniboss room: v0.4 gen forbids terrain on non-normal rooms
+ // and a bad terrain key would crash initRoomProps (TERRAIN[k].hp). Champions only.
+ const mods=['','','enraged','shielded'].concat(noTwin?[]:['twin']);
+ const mod=FR.pick(mods);room.miniMod=mod}
+function v9FlipRoom(r,minGx,maxGx){const gw=r.gw||13,gh=r.gh||7;
+ r.gx=(minGx+maxGx)-r.gx;
+ if(r.cells)for(const c of r.cells){c.gx=(minGx+maxGx)-c.gx;if(c.ox!=null&&r.bw)c.ox=(r.bw-1)-c.ox}
+ if(r.grid&&r.grid.length==91)r.grid=v9FlipGrid(r.grid,13,7);
+ if(r.grid7)r.grid7=v9FlipGrid(r.grid7,gw,gh);
+ if(r.pits){const pw=r.pits.length==(gw*gh)?gw:13,ph=r.pits.length/pw;r.pits=v9FlipGrid(r.pits,pw,ph)}
+ if(r.pits13)r.pits13=v9FlipGrid(r.pits13,13,7);
+ r.doors=v9FlipDoors(r.doors);r.secretDoors=v9FlipDoors(r.secretDoors);r.secretOpen=v9FlipDoors(r.secretOpen)||{};
+ r.crack=v9FlipDoors(r.crack)||{};
+ const flipT=o=>{if(!o)return;if(o.x!=null){if(o.x<=20)o.x=(o._px?gw:/* tile */(o.x>12&&gw>13?gw: (o.x<=12||o.x<gw)? (o._world?gw: (o.x<=12?12:gw-1)) :gw-1))-o.x;}};
+ // tile-space lists
+ const flipTile=arr=>{if(!arr)return;for(const o of arr){if(o.x==null)continue;const w=(o.x>12||gw>13)&&r.grid7?gw:13;const ww=r.grid7&&o.x>=0?gw:13;o.x=(r.gw||13)-1-o.x;if(o.dir)o.dir=v9FlipDir(o.dir);if(o.linkX!=null)o.linkX=(r.gw||13)-1-o.linkX}};
+ flipTile(r.spawns);flipTile(r.pickups);flipTile(r.props);flipTile(r.traps);flipTile(r.terrain);
+ if(r.center)r.center=[(r.gw||13)-1-r.center[0],r.center[1]];
+ if(r.feed)r.feed.x=(r.gw||13)-1-r.feed.x;
+ // world-pixel decor: room width in px including walls
+ const W=((r.gw||13)+2)*TILE;
+ const flipPx=arr=>{if(!arr)return;for(const o of arr){if(o.x!=null)o.x=W-o.x-(o.w||0)}};
+ flipPx(r.art);flipPx(r.vents);flipPx(r.candles);flipPx(r.lights);flipPx(r.tvs);
+ r.bg=null;r.live=null;r.visited=false;r.seen=false;r.secretOpen={};r.cleared=false;r.alarmed=0;r.found=false}
+function v9DefaultPack(r,FR){const kinds=['glitchling','slop','burntend','staticskull','crumbswarm','lint'];const n=2+FR.int(3),out=[];
+ for(let i=0;i<n;i++){const x=2+FR.int(Math.max(1,(r.gw||13)-4)),y=2+FR.int(Math.max(1,(r.gh||7)-4));out.push({t:FR.pick(kinds),x,y,tint:'mirror'})}return out}
+function v9BuildMirrorFloor(F,seed,floor){const rooms=F.rooms.map((r,i)=>{const c={};for(const k in r)c[k]=r[k];
+  // deep-copy typed / arrays
+  if(r.grid)c.grid=r.grid.slice();if(r.grid7)c.grid7=r.grid7.slice();if(r.pits)c.pits=r.pits.slice();if(r.pits13)c.pits13=r.pits13.slice();
+  if(r.doors)c.doors=Object.assign({},r.doors);if(r.secretDoors)c.secretDoors=Object.assign({},r.secretDoors);
+  c.spawns=(r.spawns||[]).map(s=>Object.assign({},s));c.pickups=(r.pickups||[]).map(p=>Object.assign({},p));
+  c.props=(r.props||[]).map(p=>Object.assign({},p));c.traps=(r.traps||[]).map(t=>Object.assign({},t));
+  c.terrain=(r.terrain||[]).map(t=>Object.assign({},t));c.cells=r.cells&&r.cells.map(c=>Object.assign({},c));
+  c.art=r.art&&r.art.map(a=>Object.assign({},a));c.vents=r.vents&&r.vents.map(v=>Object.assign({},v));
+  c.candles=r.candles&&r.candles.map(v=>Object.assign({},v));c.lights=r.lights&&r.lights.map(v=>Object.assign({},v));c.tvs=r.tvs&&r.tvs.map(v=>Object.assign({},v));
+  if(r.feed)c.feed=Object.assign({},r.feed);if(r.center)c.center=r.center.slice();
+  c.id=i;c.bg=null;c.live=null;return c});
+ const vis=rooms.filter(r=>!r.hidden);const minGx=Math.min(...vis.map(r=>r.gx)),maxGx=Math.max(...vis.map(r=>r.gx));
+ const FR=RNG(hash(seed+':mbuild:'+floor));
+ const relic=FR.pick(MIRROR_ITEMS);
+ const mMini=FR.pick(MIRROR_MINIS);
+ for(const r of rooms){
+  v9FlipRoom(r,minGx,maxGx);
+  if(r.kind=='boss'){r.kind='reflect';r.spawns=[];r.arena=0;r.mini=null;r.secretBoss=0;
+   const cx=r.center?r.center[0]:((r.gw||13)/2|0),cy=r.center?r.center[1]:((r.gh||7)/2|0);
+   r.pickups=[{t:'item',id:relic,x:cx,y:cy}];r.feed={x:cx,y:Math.min((r.gh||7)-2,cy+2),hp:0,broken:1,exit:1};r.reflect=1;r.reflectItem=relic}
+  else if(r.kind=='miniboss'){r.mini=mMini;r.spawns=[{t:'mini',x:r.center?r.center[0]:6,y:r.center?r.center[1]:3,boss:mMini}];r.miniMod='';r.cleared=false}
+  else if(r.kind=='normal'){r.spawns=(r.spawns||[]).filter(s=>s.t!='boss'&&s.t!='mini').map(s=>Object.assign({},s,{tint:'mirror'}));if(!r.spawns.length)r.spawns=v9DefaultPack(r,FR);r.cleared=false}
+  else {r.cleared=!!(r.kind=='start'||r.kind=='shop'||r.kind=='treasure');if(r.kind=='normal')r.cleared=false}
+  if(r.feed&&!r.reflect){r.feed.broken=1;r.feed.exit=1;r.feed.hp=0} // entrance mirror in the entry room is already open as the way back? No: only the reflection room has the exit. The entry room's flipped feed should also work as a return door so you can leave early.
+  if(r.feed&&!r.exit&&!r.reflect){r.feed.broken=1;r.feed.exit=1;r.feed.hp=0}
+ }
+ const out={seed:F.seed,start:F.start,boss:F.boss,rooms,hasFeed:1,feedRoom:F.feedRoom,mirror:1,reflectItem:relic,mirrorMini:mMini,orig:F};
+ return out}
+{const _gf=genFloor;genFloor=function(seed,floor,pool,used){const F=_gf(seed,floor,pool,used);
+ if(floor==v9MirrorFloorN(seed))v9PlaceMirror(F,floor,seed);
+ const FR=RNG(hash(seed+':spice:'+floor));v9SpiceMini(F,floor,FR);
+ return F}}
+
 // ---- run state, player, combat, rooms ----
 function newPlayer(heroId){const H=HEROES[heroId],U=SAVE.up;const P={hero:heroId,x:RPW/2,y:RPH/2+20,vx:0,vy:0,r:5,face:1,aim:[0,1],
  maxhp:H.hp+U.hp*2,hp:0,dmg:H.dmg+U.dmg*.5,rate:H.rate,spd:H.spd,shotSpd:H.shotSpd,range:H.range,size:H.size,pierce:0,bounce:0,homing:0,poison:0,shots:1,
@@ -2242,7 +2369,7 @@ function updateEbul(){const run=GS.run,P=run.P;const orbs=orbPos(P);for(const b 
 // ---- pickups ----
 function updatePicks(){const run=GS.run,P=run.P;for(const p of run.picks){if(p.vx){p.x+=p.vx;p.y+=p.vy;p.vx*=.85;p.vy*=.85;if(boxHit(p.x,p.y,3,false)){p.x-=p.vx*2;p.y-=p.vy*2;p.vx=p.vy=0}if(Math.abs(p.vx)<.05)p.vx=p.vy=0}
   if(p.cool>0)p.cool--;const d=Math.hypot(P.x-p.x,P.y-p.y);if(p.t=='coin'&&d<30+45*P.magnet&&!p.price){const k=P.magnet?.12:.08;p.x+=(P.x-p.x)*k;p.y+=(P.y-p.y)*k}
-  if(d>(p.ped?10:8)){p.near=false;continue}
+  if(d>(p.ped?10:8)){if(!(TOUCH.interact&&d<22)){p.near=false;continue}TOUCH.interact=0}
   if(p.price){const price=priceOf(p);if(P.gold<price){if(!p.near){floatText(p.x,p.y-16,'NEED '+price+' GOLD','#ff2045');SFX.nope()}p.near=true;continue}P.gold-=price;SFX.buy();p.price=0}
   if(p.t=='coin'){P.gold+=p.v;run.goldGot+=p.v;SFX.coin();fxCoin(p.x,p.y);p.dead=true;floatText(p.x,p.y-8,'+'+p.v,'#ffd400')}
   else if(p.t=='heart'){if(P.hp>=P.maxhp&&!p.ped){continue}P.hp=Math.min(P.maxhp,P.hp+(p.v||2));SFX.coin();p.dead=true;floatText(p.x,p.y-8,'+HP','#ff2045')}
@@ -2669,7 +2796,7 @@ function enterHub(){GS.run=null;GS.slide=null;const P={x:RPW/2,y:RPH-34,vx:0,vy:
  else banner('THE CRYPT','TALK TO THE LOCALS. TAKE THE STAIRS TO DESCEND.','#f6d36b',130)}
 function updateHub(){const H=GS.hub,P=H.P;const[mx,my]=readMove();P.vx=lerp(P.vx,mx*1.4,.28);P.vy=lerp(P.vy,my*1.4,.28);moveBody(P,P.vx,P.vy,true);if(mx)P.face=mx>0?1:-1;if(mx||my)P.walk+=.3;
  for(const n of NPCS){const x=n.tx*TILE+8,y=n.ty*TILE+8,d=Math.hypot(P.x-x,P.y-y);if(d>28)H.cool[n.id]=0;
-  if(d<26&&!H.cool[n.id]){if(pressed('e')||KEYS.has('e')||pressed(' ')||pressed('Enter')||d<15){H.cool[n.id]=1;openPanel(n.id);return}}}
+  if(d<26&&!H.cool[n.id]){if(pressed('e')||KEYS.has('e')||pressed(' ')||pressed('Enter')||TOUCH.interact||d<15){H.cool[n.id]=1;TOUCH.interact=0;openPanel(n.id);return}}}
  if(P.y<TILE-2){P.y=TILE+6;P.vy=0;openSelect();return}updateParts()}
 // ---- mode + overlays ----
 const OVS=['title','select','panel','pause','over','settings','perk'];
@@ -3468,6 +3595,146 @@ function v8Ai(e,sp,dx,dy,d){const run=GS.run,P=run.P,ai=ENEMIES[e.t]&&ENEMIES[e.
    if(p.jam)P.slow=Math.max(P.slow||0,24);
    if((p.slide||p.butter)&&!P.roll){P.slideVx=lerp(P.slideVx||0,(P.vx||P.face)*2.2,.18);P.slideVy=lerp(P.slideVy||0,(P.vy||.3)*2.0,.18)}}}}}
 
+// ---- v0.9 game: enter/exit THE MIRROR FEED, static form, timer, new mini AI, champion mods, item hooks ----
+function v9WorldW(r){return ((r&&r.gw)||13+0)+2?(((r&&r.gw)||13)+2)*TILE:RPW}
+function v9RememberFeed(){if(!SAVE.unlocked.includes('mirrorfeed')){SAVE.unlocked.push('mirrorfeed');SAVE.seen=SAVE.seen||{};SAVE.seen.feed=1;save()}}
+function v9ApplyStatic(on){const P=GS.run&&GS.run.P;if(!P)return;P.staticForm=on?1:0;if(on){P._mirrorSpd=P.spd;P.spd+=.06}else if(P._mirrorSpd){P.spd=P._mirrorSpd;delete P._mirrorSpd}}
+function v9EnterMirror(){const run=GS.run;if(!run||run.mirror||run.over)return false;
+ const R=run.room;if(!R||!R.feed||!R.feed.broken)return false;
+ if(!run.mirrorF)run.mirrorF=v9BuildMirrorFloor(run.F,run.seed,run.floor);
+ run._realF=run.F;run._realRoom=R.id!=null?R.id:run.F.rooms.indexOf(R);run._realXY=[R.feed?v9WorldW(R)-( (R.feed.x+1)*TILE+8 ):Pxy(),run.P.y];
+ // store exact entrance at the mirror, flipped
+ const W=v9WorldW(R);const mx=(R.feed.x+1)*TILE+8,my=(R.feed.y+1)*TILE+8;
+ run._realXY=[mx,my];
+ run.F=run.mirrorF;run.mirror=1;run.mirrorT=MIRROR_TIMER;run.mirrorEject=0;
+ v9ApplyStatic(1);v9RememberFeed();
+ const dest=run.F.rooms[run._realRoom]||run.F.rooms[run.F.feedRoom]||run.F.rooms[run.F.start];
+ enterRoom(dest.id!=null?dest.id:run.F.rooms.indexOf(dest),null);GS.slide=null;
+ const d=run.room&&run.room.feed;if(d){run.P.x=(d.x+1)*TILE+8;run.P.y=Math.min(((run.room.gh||7)+1)*TILE-16,(d.y+1)*TILE+8+18)}else{run.P.x=W-mx;run.P.y=my+18}
+ run.P.inv=Math.max(run.P.inv,40);run._feedCd=40;
+ playSong('mirror');GS.glitch=Math.max(GS.glitch,24);GS.ca=Math.max(GS.ca,16);
+ banner(MIRROR_NAME,MIRROR_SUB+'  ·  STATIC FORM. TIMER TICKS.','#00f0ff',150);
+ SFX.glitch();return true}
+function Pxy(){return GS.run.P.x}
+function v9ExitMirror(why){const run=GS.run;if(!run||!run.mirror)return false;
+ const P=run.P,back=run._realF,rid=run._realRoom,xy=run._realXY||[RPW/2,RPH/2];
+ run.mirror=0;run.mirrorT=0;run.F=back||run.F;v9ApplyStatic(0);
+ if(why=='eject'){P.hp=Math.max(1,P.hp);P.inv=120}
+ enterRoom(rid!=null?rid:run.F.start,null);GS.slide=null;
+ if(xy){P.x=xy[0];P.y=xy[1]}
+ // stand just south of the entrance mirror so we don't immediately re-enter
+ if(run.room&&run.room.feed){P.x=(run.room.feed.x+1)*TILE+8;P.y=Math.min(RPH-20,(run.room.feed.y+1)*TILE+8+18)}
+ P.inv=Math.max(P.inv,50);run._feedCd=40;
+ playSong('f'+run.floor);GS.glitch=16;GS.ca=10;
+ const line=why=='eject'?'THE STATIC SPITS YOU OUT.':why=='timer'?'THE FEED TIMES OUT.':why=='clear'?'SIGNAL RESTORED.':'YOU STEPPED BACK.';
+ banner(why=='clear'?'MIRROR CLEARED':'LEFT THE FEED',line,'#00f0ff',110);
+ SFX.glitch();run._realF=null;return true}
+function v9HitFeed(n){const run=GS.run,R=run&&run.room;if(!R||!R.feed||R.feed.broken)return false;
+ R.feed.hp-=n||1;burst((R.feed.x+1)*TILE+8,(R.feed.y+1)*TILE+8,'#00f0ff',6,1.2);SFX.hit();
+ if(R.feed.hp<=0){R.feed.broken=1;R.feed.hp=0;banner('THE FEED CRACKS','WALK IN.','#00f0ff',90);SFX.shatter&&SFX.shatter()||SFX.glitch();GS.ca=8;GS.glitch=10}return true}
+function v9FeedPx(R){if(!R||!R.feed)return null;return{x:(R.feed.x+1)*TILE+8,y:(R.feed.y+1)*TILE+8}}
+function v9TickFeed(){const run=GS.run;if(!run||GS.mode!='play'||GS.heroIntro||GS.slide)return;
+ if(run._feedCd>0){run._feedCd--;return}
+ const R=run.room,P=run.P,pt=v9FeedPx(R);if(!pt)return;
+ // player shots crack the glass
+ if(!R.feed.broken){for(const s of run.shots){if(s.dead)continue;if(Math.hypot(s.x-pt.x,s.y-pt.y)<12){s.dead=true;v9HitFeed(s.dmg||1)}}}
+ const d=Math.hypot(P.x-pt.x,P.y-pt.y);
+ if(R.feed.broken&&d<14){if(run.mirror){if(R.feed.exit)v9ExitMirror(R.reflect?'clear':'leave')}
+  else if(R.cleared&&!(typeof BOT!=='undefined'&&BOT.on)){run._feedStay=(run._feedStay||0)+1;if(run._feedStay>22)v9EnterMirror()}
+ }else run._feedStay=0}
+function v9TickMirror(){const run=GS.run;if(!run||!run.mirror||GS.mode!='play'||GS.paused||GS.heroIntro)return;
+ if(run.P&&run.P.god)return; // tests / god mode shouldn't get yeeted mid-check
+ run.mirrorT=(run.mirrorT||0)-1;if(run.mirrorT<=0){run.mirrorT=0;v9ExitMirror('timer')}}
+// shots against the feed + enter/exit + timer
+{const _ur=updateRun;updateRun=function(){_ur();if(!GS.run||GS.mode!='play')return;v9TickFeed();v9TickMirror();v9TickEchoes();v9TickMute()}}
+// double damage + shard ward + eject instead of dying
+{const _hurt=hurtPlayer;hurtPlayer=function(n,src){const run=GS.run,P=run&&run.P;if(!run||!P)return _hurt(n,src);
+ if(P.mirrorShard&&P.mirrorWard&&!(P.inv>0||rolling(P)||P.god||run.over)){P.mirrorWard=0;P.inv=45;floatText(P.x,P.y-12,'REFLECTED','#00f0ff');burst(P.x,P.y,'#00f0ff',10,1.4);SFX.ding&&SFX.ding()||SFX.hit();return}
+ if(run.mirror&&!P.god){n=(n||1)*2;if(!(P.inv>0||rolling(P)||run.over)){const blocked=P.shield>0;if(!blocked){const dead=P.hp-n<=0;if(dead){if(P.revive>0)return _hurt(n,src);P.inv=90;v9ExitMirror('eject');return}}}}
+ return _hurt(n,src)}}
+// no hearts in the static
+{const _up=updatePicks;updatePicks=function(){const run=GS.run,P=run&&run.P;if(run&&run.mirror&&P){for(const p of run.picks){if(p.t=='heart'&&Math.hypot(P.x-p.x,P.y-p.y)<(p.ped?10:8)+4){if(!p._denied){floatText(p.x,p.y-12,'NO HEARTS IN THE STATIC','#00f0ff');p._denied=1}p.near=true}}
+  run.picks=run.picks.map(p=>p);const hearts=run.picks.filter(p=>p.t=='heart');
+  // temporarily mark hearts as far by bumping their y? simpler: skip via a flag
+  const hide=new WeakSet();for(const p of run.picks)if(p.t=='heart'){p._hx=p.x;p.x=9999;hide.add(p)}
+  _up();for(const p of run.picks){if(p._hx!=null){p.x=p._hx;delete p._hx}}}else _up()}}
+// first-hit ward resets each room
+{const _er=enterRoom;enterRoom=function(id,from){_er(id,from);const run=GS.run,P=run&&run.P;if(P&&P.mirrorShard)P.mirrorWard=1;
+ if(run&&run.mirror){GS.ca=Math.max(GS.ca,8);if(run.room&&run.room.reflect&&!run.room._bannered){run.room._bannered=1;banner('REFLECTION ROOM','A SHARD OF THE FEED. THE EXIT IS OPEN.','#00f0ff',110)}
+  if(run.room&&run.room.kind!='boss'&&run.room.kind!='reflect')playSong('mirror')}
+ // tint freshly spawned pack
+ if(run&&run.mirror)for(const e of run.ents){e.mirrorTint=1;e.col=e.col||'#ff2bd6'}}}
+// split preview: delayed cyan echo of player shots
+const V9_ECHOES=[];
+function v9TickEchoes(){const run=GS.run;if(!run||!V9_ECHOES.length)return;for(const q of V9_ECHOES){q.t--;if(q.t<=0&&!q.fired&&run.P&&run.P.splitPreview){q.fired=1;const s=mkShot(q.a,.55,false,'#00f0ff');if(s){s.x=q.x;s.y=q.y;s.echo=1;s.ghost=1}}}
+ for(let i=V9_ECHOES.length-1;i>=0;i--)if(V9_ECHOES[i].t<=-2)V9_ECHOES.splice(i,1)}
+{const _fire=fire;fire=function(dx,dy){_fire(dx,dy);const run=GS.run,P=run&&run.P;if(P&&P.splitPreview){const a=Math.atan2(dy,dx);V9_ECHOES.push({t:10,a,x:P.x,y:P.y-2,fired:0})}}}
+// muted story: nearby enemy bullets crawl
+function v9TickMute(){const run=GS.run,P=run&&run.P;if(!P||!P.mutedStory||!run.ebul)return;
+ for(const b of run.ebul){if(b.dead)continue;if(Math.hypot(b.x-P.x,b.y-P.y)<86){if(!b._ms){b._ms=1;b.vx*=.45;b.vy*=.45}}}}
+// unlock relic into the pool when first picked in the reflection room
+{const _gi=giveItem;giveItem=function(P,id,silent){_gi(P,id,silent);const it=ITEMS[id];if(it&&it.mirror&&SAVE.relics&&!SAVE.relics.includes(id)){SAVE.relics.push(id);if(GS.run)GS.run.unlocks.push(it.name);save()}}}
+// ---- champion / arena mods on spawn ----
+{const _sm=spawnMini;spawnMini=function(id,x,y,role){const e=_sm(id,x,y,role);if(!e)return e;const run=GS.run,mod=run&&run.room&&run.room.kind=='miniboss'&&run.room.miniMod;
+ if(mod=='enraged'&&e){e.spd=(e.spd||.45)*1.3;e.enraged=1;e.max=Math.round(e.max*1.1);e.hp=e.max}
+ if(mod=='shielded'&&e&&!role){e.crystals=Math.max(e.crystals||0,3);e.shielded=1}
+ if(mod=='twin'&&e&&!role&&!e._twin&&id!='poly'&&id!='totem'){const o=_sm(id,x+22,y-8,role);if(o){o._twin=1;o.hp=Math.round(o.hp*.55);o.max=o.hp;e.hp=Math.round(e.hp*.55);e.max=e.hp;e._twin=1}}
+ return e}}
+{const _se=spawnEnemy;spawnEnemy=function(t,x,y,champ,bossId){const e=_se(t,x,y,champ,bossId);if(e&&GS.run&&GS.run.mirror)e.mirrorTint=1;return e}}
+// ---- new mini-boss patterns ----
+function v9MiniMove(e,tx,ty,sp){if(typeof miniMove==='function')return miniMove(e,tx,ty,sp);const dx=tx-e.x,dy=ty-e.y,d=Math.hypot(dx,dy)||1;e.x+=dx/d*(sp||.5);e.y+=dy/d*(sp||.5)}
+{const _um=updateMini;updateMini=function(e){const M=MINIS[e.mini];if(!M||MINI_IDS_CORE.indexOf(e.mini)>=0)return _um(e);
+ const run=GS.run,P=run.P,dx=P.x-e.x,dy=P.y-e.y,d=Math.hypot(dx,dy)||1,aim=Math.atan2(dy,dx);e.anim++;if(e.flash>0)e.flash--;e.face=dx>0?1:-1;
+ const done=(cd)=>{e.st='idle';e.cd=cd;e.stt=0;e.k=0;e.lane=null;e.mark=null};
+ const p2=e.hp/e.max<.4;const en=e.enraged?0.8:1;
+ switch(e.st){
+ case'intro':if(e.stt==(e.stt||100)){if(e.stt==100||e.stt==undefined){e.stt=e.stt||100}}if(e.stt==null)e.stt=100;if(e.stt==100)miniIntro(e);if(--e.stt<=0){e.st='idle';e.cd=30}break;
+ case'idle':v9MiniMove(e,RPW/2+Math.cos(e.anim*.02)*36,RPH/2-6+Math.sin(e.anim*.025)*14,.4*(e.enraged?1.25:1));
+  if(--e.cd<=0){let pk=FX.pick(M.pats);if(pk==e.last)pk=FX.pick(M.pats);e.last=pk;e.st=pk;e.stt=0;e.k=0;if(['cone','dial','banners','error'].includes(pk))SFX.warn()}break;
+ // WHISTLING KETTLE: steam puddles, then a telegraph cone of scalding spray
+ case'steam':{if(e.stt==0){for(let i=0;i<4;i++){const a=FX()*TAU,rr=18+FX()*28;run.puddles.push({x:e.x+Math.cos(a)*rr,y:e.y+Math.sin(a)*rr,r:10,t:140,steam:1,col:'#e8e0d0'})}SFX.warn()}
+  e.stt++;if(e.stt%8==0)burst(e.x,e.y-12,'#e8e0d0',3,.6);if(e.stt>44)done(50*en);break}
+ case'cone':{if(!e.lane)e.lane={a:aim};e.stt++;e.lane.a+=clamp(angDiff(e.lane.a,aim),-.05,.05);
+  if(e.stt>18&&e.stt%3==0){const a=e.lane.a+(FX()-.5)*.15;ebullet(e.x+Math.cos(a)*10,e.y+Math.sin(a)*8,Math.cos(a)*2.4,Math.sin(a)*2.4,{col:'#ffd400',r:3,life:50});if(e.stt%6==0)SFX.shoot(.5)}
+  if(e.stt>55){e.lane=null;done(55*en)}break}
+ // PUSH NOTIF: vertical banners slam, then a burst of like-shots
+ case'banners':{if(e.stt==0){e.marks=[];for(let i=0;i<(p2?4:3);i++){const x=clamp(P.x+(i-1)*36+(FX()-.5)*10,TILE+16,RPW-TILE-16);e.marks.push({x,y:TILE+8,t:22,w:22,h:RPH-2*TILE})}SFX.warn()}
+  e.stt++;if(e.stt==22){for(const m of e.marks){if(P.x>m.x-m.w/2&&P.x<m.x+m.w/2&&P.y>TILE&&P.y<RPH-TILE)hurtPlayer(1,e);fxAdd({k:'ring',x:m.x,y:RPH/2,r:8,life:12,col:'#ffd400',big:20});shake(4)}e.marks=null}
+  if(e.stt>40)done(55*en);break}
+ case'likes':{if(e.stt++%10==1){fan(e.x,e.y,aim,p2?6:4,.55,2.0,{col:'#ffd400',r:2.6});e.k++;SFX.shoot(.7)}if(e.k>=3)done(50*en);break}
+ // THE HANDSHAKE: dial-up telegraph then a thick packet beam + bouncing packets
+ case'dial':{if(e.stt==0){e.lane={a:aim,x:e.x,y:e.y};GS.glitch=Math.max(GS.glitch,8);SFX.tapestop&&SFX.tapestop()||SFX.warn()}
+  e.stt++;e.lane.a+=clamp(angDiff(e.lane.a,aim),-.02,.02);
+  if(e.stt>28&&e.stt<=70&&e.stt%2==0){const a=e.lane.a;ebullet(e.x,e.y,Math.cos(a)*3.4,Math.sin(a)*3.4,{col:'#c0a878',r:3.2,life:70});if(e.stt%8==0)SFX.shoot(1.2)}
+  if(e.stt>80){e.lane=null;done(60*en)}break}
+ case'packets':{if(e.stt++%16==1){const a=aim+(FX()-.5)*.4;const b=ebullet(e.x,e.y,Math.cos(a)*1.5,Math.sin(a)*1.5,{col:'#48e070',r:3.4,life:200});if(b)b.bounce=2;e.k++;SFX.shoot(.5)}if(e.k>=4)done(55*en);break}
+ // DEAD AIR: snow blinds, then needles from the edges
+ case'blizzard':{if(e.stt==0){GS.blind=Math.max(GS.blind||0,70);GS.glitch=Math.max(GS.glitch,14);SFX.glitch()}
+  e.stt++;if(e.stt%10==0)burst(TILE+FX()*(RPW-2*TILE),TILE+FX()*(RPH-2*TILE),'#9be7ff',2,.4);if(e.stt>50)done(50*en);break}
+ case'needles':{if(e.stt++%8==1){const side=e.k%4,x=side==0?TILE+4:side==1?RPW-TILE-4:TILE+FX()*(RPW-2*TILE),y=side==2?TILE+4:side==3?RPH-TILE-4:TILE+FX()*(RPH-2*TILE);
+   const a=Math.atan2(P.y-y,P.x-x);ebullet(x,y,Math.cos(a)*2.1,Math.sin(a)*2.1,{col:'#00f0ff',r:2.2,life:160});e.k++;SFX.shoot(.4)}if(e.k>=(p2?8:6))done(50*en);break}
+ // YOUR OWN STATIC: delayed mimic + fires your last aim back
+ case'mime':{if(!e.trail)e.trail=[];e.trail.push({x:P.x,y:P.y});if(e.trail.length>28)e.trail.shift();
+  const t=e.trail[0];if(t)v9MiniMove(e,t.x,t.y,.9);e.stt++;if(e.stt>70)done(20*en);break}
+ case'echo':{if(e.stt==0){e.aimBack=Math.atan2(P.aim?P.y-e.y:dy,P.aim?P.x-e.x:dx)}
+  e.stt++;if(e.stt%8==1){const a=Math.atan2(P.y-e.y,P.x-e.x);fan(e.x,e.y,a,3,.3,2.2,{col:'#ff2bd6',r:2.5});e.k++;SFX.shoot(.8)}if(e.k>=4)done(50*en);break}
+ // BUFFERING WHEEL: rotating safe-gap ring, then a 404 burst
+ case'spin':{if(e.stt==0){e.gap=FX()*TAU;e.rad=28}e.stt++;e.gap+=.07*(e.enraged?1.3:1);e.rad=28+6*Math.sin(e.stt*.1);
+  const ang=Math.atan2(P.y-e.y,P.x-e.x),ad=Math.abs(angDiff(ang,e.gap)),dist=Math.hypot(P.x-e.x,P.y-e.y);
+  if(dist<e.rad+8&&dist>e.rad-8&&ad>.45)hurtPlayer(1,e);
+  if(e.stt>90)done(40*en);break}
+ case'error':{if(e.stt==0){ring(e.x,e.y,16,1.5,FX(),{col:'#00f0ff',r:3,life:200});floatText(e.x,e.y-20,'404','#00f0ff');SFX.glitch();GS.ca=8}
+  e.stt++;if(e.stt==8){for(let i=0;i<12;i++){const a=i*TAU/12;ebullet(e.x,e.y,Math.cos(a)*1.8,Math.sin(a)*1.8,{col:'#ff2bd6',r:2.6,life:180})}}
+  if(e.stt>40)done(60*en);break}
+ default:if(e.st!='idle'&&e.st!='intro'){e.stt=(e.stt||0)+1;if(e.stt>90)done(40)}}
+ if(e.st!='intro'&&Math.hypot(P.x-e.x,P.y-e.y)<e.r+P.r-2)hurtPlayer(1,e)}}
+// puddles: steam tick already uses generic damage in updateRun; mark steam as butter-slow + light damage via crumb? existing loop: p.crumb / p.ghost / p.butter / else damage. steam can be else (damage).
+// VOID CRUMB stays on the original 12; CYAN STATIC for beating every mini including new
+{const _md=miniDefeated;miniDefeated=function(e){const run=GS.run;_md(e);
+ const allNew=MINI_IDS_ALL.every(k=>SAVE.miniKills[k]);
+ if(allNew&&!SAVE.skinOwn.includes('cyan')){SAVE.skinOwn.push('cyan');if(run)run.unlocks.push('CYAN STATIC SKIN');setTimeout(()=>{if(GS.run!==run)return;banner('SKIN UNLOCKED','CYAN STATIC — COSMETIC ONLY','#00f0ff',140);SFX.secret()},3800);save()}}}
+{const _de=damageEnemy;damageEnemy=function(e,dm,s){if(e&&e.shielded&&e.crystals>0&&e.mini!='pyrite'){e.crystals--;dm*=.3;e.flash=5;burst(e.x,e.y-12,'#00f0ff',6);if(e.crystals==0)floatText(e.x,e.y-16,'SHIELD OUT','#00f0ff')}return _de(e,dm,s)}}
+
 // ---- rendering: world (HD), soft lighting, juice, HUD, minimap, map, banners, hub, title, glitch post-fx ----
 const hd=v=>Math.round(v*HD)/HD; // snap to the native pixel grid
 function sprTint(src,col){const k=col;if(src._tint&&src._tint[k])return src._tint[k];const t=mkc(src.width,src.height),g=t.getContext('2d');g.drawImage(src,0,0);g.globalCompositeOperation='source-atop';g.fillStyle=col;g.globalAlpha=.38;g.fillRect(0,0,t.width,t.height);(src._tint=src._tint||{})[k]=t;return t}
@@ -3575,7 +3842,9 @@ function drawBoss(e,lights){if(e.v==null)return drawBoss3(e,lights);const name='
  if(e.st=='stun')for(let i=0;i<4;i++){const a=GS.t*.12+i*TAU/4;miniSkull(bx,hd(e.x+Math.cos(a)*16-3),hd(e.y-38+Math.sin(a)*3),'#ffd400')}}
 // ---- HUD ----
 function hudLayout(){const touch=IS_TOUCH;const side=ROOMX;const mmW=40,mmH=25;const hx=touch?28:4;
- const mm=touch&&side>=mmW+6?{x:LW-mmW-((side-mmW)/2|0),y:20,w:mmW,h:mmH}:{x:LW-mmW-(touch?26:4),y:3,w:mmW,h:mmH};
+ // 44px MAP button sits in the top-right bezel; keep the minimap clear of it
+ const reserve=touch?22:0;
+ const mm=touch&&side>=mmW+6?{x:LW-mmW-reserve-((side-mmW)/2|0),y:20,w:mmW,h:mmH}:{x:LW-mmW-(touch?26:4)-reserve,y:3,w:mmW,h:mmH};
  const ix=hx+52,iend=touch?Math.min(mm.x,LW-26)-4:mm.x-4;return{hearts:{x:hx,y:3,w:48,h:16},gold:{x:hx,y:21,w:40,h:7},items:{x:ix,y:3,w:Math.max(20,iend-ix),h:12},gear:{x:ix,y:17,w:Math.max(20,iend-ix),h:10},mm}}
 function hudBar(accent){const h=ROOMY-2;const g=bx.createLinearGradient(0,0,0,h);g.addColorStop(0,'rgba(10,6,16,.92)');g.addColorStop(1,'rgba(10,6,16,.6)');bx.fillStyle=g;bx.fillRect(0,0,LW,h);
  bx.fillStyle=accent;bx.globalAlpha=.55;bx.fillRect(0,h-.5,LW,.5);bx.globalAlpha=.25;for(let x=(GS.t*.2)%12;x<LW;x+=12)bx.fillRect(x,h-1,4,.5);bx.globalAlpha=1}
@@ -4355,45 +4624,218 @@ function v8DrawExtras(run){if(!run)return;
    bx.beginPath();bx.moveTo(e.x,e.y);bx.lineTo(e.x+Math.cos(ang)*92,e.y+Math.sin(ang)*92);bx.stroke();bx.restore()}}
  for(const p of run.puddles||[]){if(!p.jam)continue;bx.globalAlpha=.5*Math.min(1,p.t/40);bx.fillStyle='#c81040';bx.beginPath();bx.ellipse(p.x,p.y,p.r,p.r*.62,0,0,TAU);bx.fill();bx.fillStyle='#ff6a90';bx.fillRect(hd(p.x-2),hd(p.y-1),3,1);bx.globalAlpha=1}}
 
+// ---- v0.9 art: six new minis, cracked feed-mirror, item icons ----
+function paintKettle(g,o){const f=o.f||0,atk=o.m=='a',cx=48,cy=54;
+ v5Rim(g,cx,cy,28,30);_E(g,cx,cy,26,28,'#8a5a2b');_E(g,cx-6,cy-8,14,12,'#c8862a');_E(g,cx+8,cy,8,8,'#e0a050');
+ // spout
+ _P(g,[cx-26,cy-4,cx-38,cy-18-(atk?6:0),cx-22,cy-8],'#c8862a');_E(g,cx-38,cy-20-(atk?6:0),5,4,'#e0a050');
+ // handle
+ g.strokeStyle='#5a3a18';g.lineWidth=4;g.beginPath();g.arc(cx+26,cy,10, -1.2,1.2);g.stroke();
+ v5Sockets(g,cx,cy-2,1,'#ff8a00');v5Nose(g,cx,cy+10,1);v5Teeth(g,cx-14,cy+20,6,3.5,5,1,'#f4e8c8');
+ if(atk||f){g.fillStyle='rgba(232,224,208,.7)';for(let i=0;i<3;i++)_E(g,cx-36+(i%2)*4,cy-28-i*6-f*2,5+i,4,'#e8e0d0')}}
+function paintNotif(g,o){const f=o.f||0,atk=o.m=='a',cx=48,cy=50;
+ // rounded plaque, not a skull body first
+ _RR(g,10,14,76,70,10,atk?'#fff2a8':'#f4e8c8');_RR(g,14,18,68,62,8,'#1a1030');
+ v5Rim(g,cx,cy+4,22,24);_E(g,cx,cy+4,20,22,'#2a2040');
+ v5Sockets(g,cx,cy,0.9,'#ffd400');v5Nose(g,cx,cy+12,.8);v5Teeth(g,cx-12,cy+22,5,3.5,5,1,'#ffd400');
+ // bell
+ _E(g,cx,18,8,7,'#ffd400');_RR(g,cx-1,8,2,6,1,'#ffd400');
+ // badge
+ _E(g,70,22,10,10,'#ff2045');g.fillStyle='#fff';g.font='bold 12px sans-serif';g.fillText('1',66,26+f)}
+function paintModem(g,o){const f=o.f||0,atk=o.m=='a',cx=48,cy=50;
+ _RR(g,8,28,80,50,4,'#c0a878');_RR(g,12,32,72,42,3,'#8a7050');
+ // LED row
+ for(let i=0;i<5;i++)_E(g,20+i*12,40,3,3,(atk||(f+i)%2==0)?'#48e070':'#3a2010');
+ v5Rim(g,cx,cy+8,20,18);_E(g,cx,cy+8,18,16,'#3a2a18');
+ v5Sockets(g,cx,cy+4,0.75,'#48e070');v5Nose(g,cx,cy+14,.7);v5Teeth(g,cx-10,cy+22,5,3,4,1,'#e8d0a8');
+ // coiled cord
+ g.strokeStyle='#2a2010';g.lineWidth=3;g.beginPath();g.moveTo(12,70);for(let i=0;i<6;i++)g.quadraticCurveTo(6,74+i*4,12,78+i*4);g.lineTo(20,96);g.stroke()}
+function paintSnow(g,o){const f=o.f||0,atk=o.m=='a',cx=48,cy=50;
+ v5Rim(g,cx,cy,30,32);
+ _E(g,cx,cy,28,30,'#1a2830');
+ for(let i=0;i<40;i++){const a=i*1.7+f,rr=8+((i*7)%18);g.fillStyle=i%2?'#00f0ff':'#ff2bd6';g.globalAlpha=.7;g.fillRect(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr,2,2)}
+ g.globalAlpha=1;v5Sockets(g,cx,cy-2,1.1,'#00f0ff');v5Nose(g,cx,cy+10,1);
+ if(atk){_E(g,cx,cy,30,32,'#9be7ff');g.globalAlpha=.35;_E(g,cx,cy,30,32,'#ff2bd6');g.globalAlpha=1}}
+function paintDoppel(g,o){const f=o.f||0,atk=o.m=='a',cx=48,cy=52;
+ v5Rim(g,cx,cy,22,26);
+ // toast body, inverted
+ _RR(g,cx-20,cy-24,40,44,6,atk?'#00f0ff':'#1a1030');_RR(g,cx-16,cy-20,32,36,4,'#ff2bd6');
+ v5Sockets(g,cx,cy-4,0.9,'#00f0ff');_E(g,cx-8,cy-6,3,3,'#ffffff');_E(g,cx+8,cy-6,3,3,'#ffffff');
+ v5Nose(g,cx,cy+6,.7);_RR(g,cx-10,cy+14,20,3,1,'#00f0ff');
+ // scanlines
+ g.fillStyle='rgba(0,240,255,.45)';for(let y=cy-20;y<cy+20;y+=4)g.fillRect(cx-16,y+f,32,1)}
+function paintBuffer(g,o){const f=o.f||0,atk=o.m=='a',cx=48,cy=50;
+ // ring
+ g.strokeStyle='#00f0ff';g.lineWidth=10;g.beginPath();g.arc(cx,cy,30,f*.4,f*.4+Math.PI*1.4);g.stroke();
+ g.strokeStyle='#ff2bd6';g.lineWidth=6;g.beginPath();g.arc(cx,cy,30,f*.4+Math.PI*1.45,f*.4+Math.PI*1.85);g.stroke();
+ v5Rim(g,cx,cy,16,18);_E(g,cx,cy,14,16,'#0a1220');
+ v5Sockets(g,cx,cy-2,0.7,'#00f0ff');v5Nose(g,cx,cy+6,.6);v5Teeth(g,cx-8,cy+12,4,3,4,1,'#9be7ff');
+ if(atk){g.strokeStyle='#ffffff';g.lineWidth=3;g.beginPath();g.arc(cx,cy,34,0,TAU);g.stroke()}}
+function v9MiniArt(){
+ const frames=(id,paint,W,H)=>{miniHD('mb_'+id+'_0',paint,{m:'i',f:0},W,H);miniHD('mb_'+id+'_1',paint,{m:'i',f:1},W,H);miniHD('mb_'+id+'_a',paint,{m:'a',f:0},W,H)};
+ frames('kettle',paintKettle,96,96);frames('notif',paintNotif,96,96);frames('modem',paintModem,96,96);
+ frames('snow',paintSnow,96,96);frames('doppel',paintDoppel,96,96);frames('buffer',paintBuffer,96,96);
+}
+v9MiniArt();
+// cracked feed-mirror prop (two frames: intact, broken)
+icon('feed_0',32,40,P=>{P.box(4,2,24,34,'#1a1030',3);P.box(7,5,18,28,'#9be7ff',2);P.rect(8,6,16,4,'#e8ffff');P.rect(9,12,4,8,'#00f0ff');P.rect(18,18,5,8,'#ff2bd6');P.rect(14,36,4,4,'#4a4458')});
+icon('feed_1',32,40,P=>{P.box(4,2,24,34,'#1a1030',3);P.box(7,5,18,28,'#2a1848',2);P.tri(8,8,24,20,10,32,'#00f0ff');P.tri(22,6,28,16,16,28,'#ff2bd6');P.rect(8,6,16,2,'#ff2bd6');P.rect(14,36,4,4,'#4a4458')});
+II('mirrorshard',P=>{P.tri(8,4,20,6,12,22,'#9be7ff');P.tri(12,8,22,18,6,20,'#ff2bd6');P.set(14,10,'#ffffff')});
+II('splitpreview',P=>{P.box(4,6,8,14,'#ff2bd6',1);P.box(12,8,8,14,'#00f0ff',1);P.rect(8,4,8,2,'#ffffff')});
+II('mutedstory',P=>{P.ell(12,12,8,8,'#1a1030');P.rect(6,10,6,4,'#00f0ff');P.tri(14,8,20,12,14,16,'#00f0ff');P.rect(18,6,2,12,'#ff2bd6')});
+
+// ---- v0.9 render: feed-mirror prop, static hero, timer HUD, flipped/marked minimap, magenta-cyan palette ----
+function v9DrawFeed(R){if(!R||!R.feed)return;const p=v9FeedPx(R);if(!p)return;const on=R.feed.broken?1:0;
+ shadow(p.x,p.y+10,6);spr('feed_'+on,p.x,p.y-6);if(!on&&GS.t%40<20){bx.globalAlpha=.5;bx.fillStyle='#00f0ff';bx.fillRect(hd(p.x-1),hd(p.y-16),1,6);bx.globalAlpha=1}
+ if(on){const t=IS_TOUCH?(R.feed.exit?'WALK IN':'WALK IN'):(R.feed.exit?'WALK IN':'WALK IN');const d=GS.run&&GS.run.P?Math.hypot(GS.run.P.x-p.x,GS.run.P.y-p.y):99;
+  if(d<28)text5o(bx,R.feed.exit?'EXIT THE FEED':'ENTER THE FEED',p.x-text5w(R.feed.exit?'EXIT THE FEED':'ENTER THE FEED')/2,p.y+16,'#00f0ff')}}
+{const _dr=typeof drawRun==='function'?drawRun:null}
+// hook into the run drawer after room: wrap render's play path is heavy; instead wrap a known inner. drawHUD already wraps. Use drawRun if present later.
+{const _dpr=typeof drawProps==='function'?drawProps:null}
+// After room bg is drawn, we need the mirror in world space. Hook drawRoomEmissive or the end of drawRun.
+{const _ren=render;render=function(){_ren();/* HUD bits drawn in drawHUD wrap */}}
+{const _dh=drawHUD;drawHUD=function(){_dh();const run=GS.run;if(!run||GS.mode!='play')return;
+ if(run.mirror){const sec=Math.max(0,Math.ceil((run.mirrorT||0)/60));const lab='FEED '+sec+'s';const L=hudLayout();
+  text5o(bx,lab,(LW-text5w(lab))/2|0,ROOMY-10,'#00f0ff');
+  text5s(bx,'STATIC',L.gold.x,L.gold.y+9,'#ff2bd6')}
+ if(run.room&&run.room.miniMod&&run.room.kind=='miniboss'&&!run.room.cleared){const m=run.room.miniMod.toUpperCase();if(m)text5s(bx,m+' MINI',LW-text5w(m+' MINI')-(IS_TOUCH?50:8),ROOMY-10,'#ff8a00')}}}
+{const _rc=roomColor;roomColor=function(r){if(r&&r.kind=='reflect')return '#00f0ff';if(r&&r.feed)return '#00f0ff';return _rc(r)}}
+{const _dm=drawMinimap;drawMinimap=function(m){_dm(m);const run=GS.run,cur=run&&run.room;if(!run||!cur)return;
+ const cw=7,ch=4;for(const r of run.F.rooms){if(!r.feed&&r.kind!='reflect')continue;if(r.hidden||(!r.visited&&!r.seen))continue;
+  const gx=r.gx-cur.gx+2,gy=r.gy-cur.gy+2;if(gx<0||gy<0||gx>4||gy>4)continue;
+  const x=m.x+gx*(cw+1),y=m.y+gy*(ch+1);bx.fillStyle='#00f0ff';bx.fillRect(x+1,y,cw-2,1);bx.fillRect(x+2,y+1,3,2)}}}
+{const _db=drawBigMap;drawBigMap=function(){_db();const run=GS.run;if(!run||!GS.map)return;
+ if(run.mirror){const tt=MIRROR_NAME;text5o(bx,tt,(LW-text5w(tt))/2|0,18,'#00f0ff')}
+ for(const r of run.F.rooms){if(!(r.feed||r.kind=='reflect'))continue;if(r.hidden||(!r.visited&&!r.seen))continue;
+  /* marks already via roomColor cyan */ }
+ const tag='MIRROR';const w=text5w(tag)+14;text5s(bx,tag,8,LH-12,'#00f0ff');bx.fillStyle='#00f0ff';bx.fillRect(8-8,LH-12,5,5)}}
+// draw the feed prop and mini telegraphs in the room
+{const _droom=typeof drawRun==='function'?null:null}
+function v9DrawWorldFX(){const run=GS.run;if(!run||!run.room||GS.mode!='play')return;
+ bx.save();const cam=GS.cam||{x:0,y:0,z:1};bx.translate(ROOMX,ROOMY);if(cam.z&&cam.z!=1){bx.translate(RPW/2,RPH/2);bx.scale(cam.z,cam.z);bx.translate(-RPW/2-cam.x,-RPH/2-cam.y)}
+ v9DrawFeed(run.room);
+ for(const e of run.ents){if(e.dead||!e.mini)continue;
+  if(e.marks){bx.globalAlpha=.45;bx.fillStyle='#ffd400';for(const m of e.marks)bx.fillRect(m.x-m.w/2,TILE,m.w,Math.min(m.h,RPH-2*TILE));bx.globalAlpha=1}
+  if(e.st=='spin'&&e.rad){bx.strokeStyle='#00f0ff';bx.lineWidth=3;bx.beginPath();bx.arc(e.x,e.y,e.rad,e.gap+.5,e.gap+TAU-.5);bx.stroke();bx.strokeStyle='#0a0a0f';bx.beginPath();bx.arc(e.x,e.y,e.rad,e.gap-.45,e.gap+.45);bx.stroke()}
+  if(e.shielded&&e.crystals>0){bx.globalAlpha=.5;bx.strokeStyle='#00f0ff';bx.beginPath();bx.arc(e.x,e.y,e.r+8,0,TAU);bx.stroke();bx.globalAlpha=1}
+  if(e.mirrorTint||run.mirror){bx.globalAlpha=.35;bx.fillStyle='#ff2bd6';bx.fillRect(hd(e.x-1),hd(e.y-10),1,12);bx.fillStyle='#00f0ff';bx.fillRect(hd(e.x+1),hd(e.y-10),1,12);bx.globalAlpha=1}}
+ if(run.P&&run.P.staticForm){const P=run.P;bx.globalAlpha=.5;bx.fillStyle='#00f0ff';bx.fillRect(hd(P.x-6),hd(P.y-10),1,14);bx.fillStyle='#ff2bd6';bx.fillRect(hd(P.x+5),hd(P.y-10),1,14);bx.globalAlpha=1}
+ bx.restore()}
+{const _ren2=render;render=function(){_ren2();if(GS.v5sheet)return;if(GS.run&&(GS.mode=='play'||GS.mode=='pause')){
+  // world FX were requested after the room blit; they must sit in the logical buffer before present. Re-call into buf if we missed it.
+ }}}
+// Inject world FX into the logical buffer by wrapping drawRun (defined in 70-render)
+{const _drn=drawRun;drawRun=function(){_drn();v9DrawWorldFX()}}
+// palette: keep Effects Low respected, but always a cheap tint in the feed
+{const _pb=presentBuf;presentBuf=function(){
+ const run=GS.run,inM=run&&run.mirror&&GS.mode=='play';
+ if(inM){GS.ca=Math.max(GS.ca||0, SAVE.set.fx?10:4);GS.glitch=Math.max(GS.glitch||0, SAVE.set.fx?6:2)}
+ _pb();
+ if(inM){const W=cv.width,H=cv.height;cx.save();cx.globalCompositeOperation='screen';cx.globalAlpha=SAVE.set.fx?.16:.10;cx.fillStyle='#ff2bd6';cx.fillRect(0,0,W,H);
+  cx.globalAlpha=SAVE.set.fx?.14:.08;cx.fillStyle='#00f0ff';cx.fillRect(6,0,W,H);cx.restore()}
+}}
+
+{const _ds=drawMiniSheet;drawMiniSheet=function(){const ids=(typeof MINI_IDS_ALL!=='undefined'?MINI_IDS_ALL:MINI_IDS);
+ bx.fillStyle='#0a0614';bx.fillRect(0,0,LW,LH);
+ const cols=6,rows=Math.ceil(ids.length/cols),cw=LW/cols,ch=(LH-16)/rows;
+ text5o(bx,'THE SKULL COLLECTION',(LW-text5w('THE SKULL COLLECTION'))/2|0,4,'#ffd400');
+ ids.forEach((id,i)=>{const M=MINIS[id],cx=(i%cols)*cw+cw/2,cy=16+((i/cols)|0)*ch+ch/2+2;
+  const n=id=='poly'?'mb_poly_lead_0':id=='totem'?'mb_totem_0':'mb_'+id+'_0';
+  if(SPR[n])spr(n,cx,cy-8,false,{sx:.52,sy:.52});const nm=M.name;text5s(bx,nm,cx-text5w(nm)/2,cy+ch/2-9,M.col)})}}
+
 // ---- touch: floating twin sticks (left MOVE, right AIM + FIRE; tap or hold the right stick to shoot) ----
-const TOUCH={l:{on:false,id:null,ox:0,oy:0,vx:0,vy:0,mag:0},r:{on:false,id:null,ox:0,oy:0,vx:0,vy:0,mag:0,t0:0,moved:0,hold:false},tapFire:0,roll:0,blank:0,
- reset(){for(const s of[this.l,this.r]){s.on=false;s.id=null;s.vx=s.vy=s.mag=0;s.hold=false}this.tapFire=0;this.roll=this.blank=0;layoutSticks()}};
+const TOUCH={l:{on:false,id:null,ox:0,oy:0,vx:0,vy:0,mag:0,t0:0,moved:0},r:{on:false,id:null,ox:0,oy:0,vx:0,vy:0,mag:0,t0:0,moved:0,hold:false},tapFire:0,interact:0,roll:0,blank:0,bomb:0,spec:0,
+ reset(){for(const s of[this.l,this.r]){s.on=false;s.id=null;s.vx=s.vy=s.mag=0;s.hold=false}this.tapFire=0;this.interact=0;this.roll=this.blank=0;this.spec=0;this.bomb=0;layoutSticks()}};
 const JR=50;
-function idlePos(side){const m=Math.min(84,Math.max(64,CW*.09));const left=(side=='l')!=!!SAVE.set.lefty;return left?[m,CH-m]:[CW-m,CH-m]}
+function cssInsets(){const s=getComputedStyle(document.documentElement);
+ const n=k=>parseFloat(s.getPropertyValue(k))||0;
+ return{t:n('--sat'),b:n('--sab'),l:n('--sal'),r:n('--sar')}}
+function idlePos(side){const ins=cssInsets();
+ const m=Math.min(84,Math.max(64,CW*.09));
+ const left=(side=='l')!=!!SAVE.set.lefty;
+ const x=left?m+ins.l:CW-m-ins.r;
+ const y=CH-m-ins.b;
+ return[x,y]}
 // action buttons sit on the AIM thumb's side, just inside/above its stick (mirrored in left-handed mode)
 function layoutButtons(){const[ax,ay]=idlePos('r'),s=SAVE.set.lefty?1:-1,rb=$('tRoll'),bb=$('tBlank');if(!rb)return;
- const big=Math.min(64,Math.max(52,CW*.06));rb.style.width=rb.style.height=big+'px';bb.style.width=bb.style.height=(big*.78|0)+'px';
+ const big=Math.min(64,Math.max(52,CW*.06)),sm=Math.max(44,big*.78|0);
+ rb.style.width=rb.style.height=big+'px';bb.style.width=bb.style.height=sm+'px';
  const place=(el,x,y)=>{el.style.left=(x-el.offsetWidth/2)+'px';el.style.top=(y-el.offsetHeight/2)+'px'};
- const ry=ay-JR-big*.75;place(rb,ax,ry);place(bb,ax+s*big*.95,ry-big*.85);
+ const ry=ay-JR-big*.75;place(rb,ax,ry);place(bb,ax+s*Math.max(big*.95,48),ry-Math.max(big*.9,56));
  const b=GS.run&&GS.run.P;bb.textContent='BLANK'+(b?' '+b.blanks:'');bb.classList.toggle('dim',!!b&&b.blanks<=0);rb.classList.toggle('dim',!!b&&b.rollCd>0)}
 function layoutSticks(){for(const side of['l','r']){const s=TOUCH[side],el=$('j'+side);const[x,y]=s.on?[s.ox,s.oy]:idlePos(side);el.style.left=x+'px';el.style.top=y+'px';el.classList.toggle('on',s.on);el.style.opacity=s.on?1:.5;
  const k=el.firstElementChild;k.style.transform=`translate(${s.vx*JR}px,${s.vy*JR}px)`}layoutButtons()}
 RESIZE_HOOKS.push(layoutSticks);
-function tStart(e){if(!document.body.classList.contains('playing')||GS.mode=='panel')return;let used=false;for(const t of e.changedTouches){if(t.target.closest&&t.target.closest('.tb,.ov'))continue;used=true;
- const side=((t.clientX<CW/2)!=!!SAVE.set.lefty)?'l':'r',s=TOUCH[side];if(s.on)continue;s.on=true;s.id=t.identifier;
- const m=60;s.ox=clamp(t.clientX,m,CW-m);s.oy=clamp(t.clientY,m,CH-m);s.vx=s.vy=s.mag=0;if(side=='r'){s.t0=performance.now();s.moved=0;s.hold=false}}
+function pressTB(id){const map={tRoll:'roll',tBlank:'blank',tBomb:'bomb',tSpec:'spec'};const k=map[id];if(!k)return false;
+ if(GS.mode=='play'||GS.mode=='hub'){TOUCH[k]=1;const el=$(id);if(el){el.classList.add('hit');setTimeout(()=>el.classList.remove('hit'),120)}}return true}
+function touchHitEl(t){const pt=document.elementFromPoint(t.clientX,t.clientY);if(pt)return pt;return t.target||null}
+function tStart(e){if(GS.howTo){if(e.cancelable)e.preventDefault();return}
+ if(!document.body.classList.contains('playing')||GS.mode=='panel'||GS.mode=='pause'||GS.mode=='settings'||GS.mode=='perk'||GS.mode=='over'||GS.mode=='select'||GS.mode=='title')return;let used=false;
+ for(const t of e.changedTouches){
+  const hit=touchHitEl(t);const btn=hit&&hit.closest&&hit.closest('.tb');
+  if(btn){used=true;if(btn.id=='tPause'){pause();continue}if(btn.id=='tMap'){if(GS.mode=='play')GS.map=!GS.map;continue}pressTB(btn.id);continue}
+  if(hit&&hit.closest&&hit.closest('.ov'))continue;used=true;
+  const side=((t.clientX<CW/2)!=!!SAVE.set.lefty)?'l':'r',s=TOUCH[side];if(s.on)continue;s.on=true;s.id=t.identifier;
+  const ins=cssInsets(),m=60+Math.max(ins.l,ins.r,0);s.ox=clamp(t.clientX,m,CW-m);s.oy=clamp(t.clientY,m,CH-m);s.vx=s.vy=s.mag=0;if(side=='r'){s.t0=performance.now();s.moved=0;s.hold=false}else{s.t0=performance.now();s.moved=0}}
  layoutSticks();if(used&&e.cancelable)e.preventDefault()}
 function tMove(e){for(const t of e.changedTouches){for(const side of['l','r']){const s=TOUCH[side];if(!s.on||s.id!==t.identifier)continue;let dx=(t.clientX-s.ox)/JR,dy=(t.clientY-s.oy)/JR;const m=Math.hypot(dx,dy);
  if(m>1){// drag the base along so the stick never "runs out"
-  s.ox+=(dx/m)*(m-1)*JR;s.oy+=(dy/m)*(m-1)*JR;dx/=m;dy/=m}const mm=Math.min(1,m);s.mag=mm<.12?0:mm;s.vx=s.mag?dx:0;s.vy=s.mag?dy:0;if(side=='r')s.moved=Math.max(s.moved,Math.hypot(t.clientX-s.ox,t.clientY-s.oy))}}
- layoutSticks();if(e.cancelable)e.preventDefault()}
-function tEnd(e){for(const t of e.changedTouches){for(const side of['l','r']){const s=TOUCH[side];if(!s.on||s.id!==t.identifier)continue;
- if(side=='r'&&performance.now()-s.t0<230&&s.moved<16)TOUCH.tapFire=1;s.on=false;s.id=null;s.vx=s.vy=s.mag=0;s.hold=false}}layoutSticks()}
-addEventListener('touchstart',tStart,{passive:false});addEventListener('touchmove',tMove,{passive:false});addEventListener('touchend',tEnd);addEventListener('touchcancel',tEnd);
-function touchTick(){const r=TOUCH.r;if(r.on&&r.mag<=.28&&performance.now()-r.t0>230)r.hold=true}
+  s.ox+=(dx/m)*(m-1)*JR;s.oy+=(dy/m)*(m-1)*JR;dx/=m;dy/=m}const mm=Math.min(1,m);s.mag=mm<.12?0:mm;s.vx=s.mag?dx:0;s.vy=s.mag?dy:0;if(side=='r')s.moved=Math.max(s.moved,Math.hypot(t.clientX-s.ox,t.clientY-s.oy));else s.moved=Math.max(s.moved||0,Math.hypot(t.clientX-s.ox,t.clientY-s.oy))}}
+ layoutSticks();const used=TOUCH.l.on||TOUCH.r.on;const onOv=e.target&&e.target.closest&&e.target.closest('.ov');
+ if((used||(document.body.classList.contains('playing')&&!onOv))&&e.cancelable)e.preventDefault()}
+function tEnd(e){let used=false;for(const t of e.changedTouches){for(const side of['l','r']){const s=TOUCH[side];if(!s.on||s.id!==t.identifier)continue;
+ used=true;
+ const quick=performance.now()-(s.t0||0)<230&&(s.moved||0)<16;
+ if(side=='r'&&quick)TOUCH.tapFire=1;
+ if(side=='l'&&quick)TOUCH.interact=1;
+ s.on=false;s.id=null;s.vx=s.vy=s.mag=0;s.hold=false}}layoutSticks();
+ const onMenu=e.target&&e.target.closest&&e.target.closest('.ov')&&(e.target.closest('button')||e.target.closest('.card')||e.target.closest('.row'));
+ if((used||(document.body.classList.contains('playing')&&!onMenu))&&e.cancelable)e.preventDefault()}
+addEventListener('touchstart',tStart,{passive:false});addEventListener('touchmove',tMove,{passive:false});addEventListener('touchend',tEnd,{passive:false});addEventListener('touchcancel',tEnd,{passive:false});
+addEventListener('contextmenu',e=>e.preventDefault());
+addEventListener('gesturestart',e=>{if(e.cancelable)e.preventDefault()});
+addEventListener('gesturechange',e=>{if(e.cancelable)e.preventDefault()});
+addEventListener('dblclick',e=>{if(document.body.classList.contains('playing')&&e.cancelable)e.preventDefault()},{passive:false});
+function touchTick(){const r=TOUCH.r;if(r.on&&r.mag<=.28&&performance.now()-r.t0>230)r.hold=true;if(TOUCH.interact){TOUCH._intHold=(TOUCH._intHold||0)+1;if(TOUCH._intHold>2){TOUCH.interact=0;TOUCH._intHold=0}}else TOUCH._intHold=0}
 $('tPause').addEventListener('click',e=>{e.stopPropagation();pause()});
 $('tMap').addEventListener('click',e=>{e.stopPropagation();if(GS.mode=='play')GS.map=!GS.map});
 if(IS_TOUCH)document.body.classList.add('touch');
-const tAct=(id,k)=>{const el=$(id),f=e=>{e.stopPropagation();if(e.cancelable)e.preventDefault();if(GS.mode=='play'){TOUCH[k]=1;el.classList.add('hit');setTimeout(()=>el.classList.remove('hit'),120)}};el.addEventListener('touchstart',f,{passive:false});el.addEventListener('mousedown',f)};
+const tAct=(id,k)=>{const el=$(id);if(!el)return;const f=e=>{e.stopPropagation();if(e.cancelable)e.preventDefault();if(GS.mode=='play'||GS.mode=='hub'){TOUCH[k]=1;el.classList.add('hit');setTimeout(()=>el.classList.remove('hit'),120)}};el.addEventListener('touchstart',f,{passive:false});el.addEventListener('mousedown',f)};
 tAct('tRoll','roll');tAct('tBlank','blank');
 
 // ---- v0.4 touch: SPECIAL button on the aim thumb's side (mirrored in left-handed mode), clear of ROLL / BLANK / sticks; cooldown ring ----
-{const _lb=layoutButtons;layoutButtons=function(){_lb();const sb=$('tSpec');if(!sb)return;const[ax,ay]=idlePos('r'),s=SAVE.set.lefty?1:-1,big=Math.min(64,Math.max(52,CW*.06)),w=big*.86|0;
+{const _lb=layoutButtons;layoutButtons=function(){_lb();const sb=$('tSpec');if(!sb)return;const[ax,ay]=idlePos('r'),s=SAVE.set.lefty?1:-1,big=Math.min(64,Math.max(52,CW*.06)),w=Math.max(44,big*.86|0);
  sb.style.width=sb.style.height=w+'px';const ry=ay-JR-big*.75;sb.style.left=(ax+s*big*1.95-w/2)+'px';sb.style.top=(ry+big*.15-w/2)+'px';specButtonTick(GS.run&&GS.run.P,true)}}
 let SPEC_UI='';
 function specButtonTick(P,force){const sb=$('tSpec');if(!sb)return;const S=P&&SPECIALS[P.hero];const p=S&&P.specCd>0?1-P.specCd/Math.round(S.cd*(P.specMul||1)):1;const key=(S?S.short:'SPECIAL')+'|'+(p*20|0);if(key==SPEC_UI&&!force)return;SPEC_UI=key;
  sb.textContent=S?S.short:'SPECIAL';sb.style.setProperty('--p',p.toFixed(2));sb.classList.toggle('dim',p<1)}
 tAct('tSpec','spec');
+
+for(const n of[document.documentElement,document.body]){try{n.style.webkitTouchCallout="none";n.style.webkitUserSelect="none";n.style.userSelect="none"}catch(e){}}
+// ---- v0.8.1 how-to overlay + first-run on touch, reachable from pause/settings ----
+function showHowTo(){const el=$('howTo');if(!el)return;el.classList.add('show');GS.howTo=1}
+function hideHowTo(){const el=$('howTo');if(!el)return;el.classList.remove('show');GS.howTo=0;if(SAVE&&SAVE.set){SAVE.set.howToSeen=1;save()}}
+function maybeShowHowTo(){if((navigator.webdriver&&!window.FORCE_HOWTO)||(window.BOT&&BOT.on))return;if(!IS_TOUCH||(SAVE.set&&SAVE.set.howToSeen)||GS.howTo)return;showHowTo()}
+function bindHowTo(){const go=$('bHowGo'),hp=$('bHowPause'),hs=$('bHowSet'),el=$('howTo');
+ const dismiss=e=>{if(e){e.stopPropagation();if(e.cancelable)e.preventDefault()}hideHowTo()};
+ if(go){go.addEventListener('click',dismiss);go.addEventListener('touchend',dismiss,{passive:false})}
+ if(el){el.addEventListener('click',e=>{if(e.target===el||e.target===el.querySelector('h2')||e.target.tagName=='P')dismiss(e)});
+  el.addEventListener('touchend',e=>{if(e.target===el||(e.target&&e.target.closest&&e.target.closest('#howTo')&&!e.target.closest('#bHowGo'))){/* allow tap anywhere on the card */dismiss(e)}},{passive:false})}
+ if(hp)hp.onclick=e=>{e.stopPropagation();if(GS.mode=='pause'){PREV_MODE=PREV_MODE||'play';setMode(PREV_MODE)}showHowTo()};
+ if(hs)hs.onclick=e=>{e.stopPropagation();showHowTo()}}
+bindHowTo();
+{const _go=openSelect;openSelect=function(){const r=_go.apply(this,arguments);return r}}
+{const _eh=enterHub;enterHub=function(){const r=_eh.apply(this,arguments);maybeShowHowTo();return r}}
+// show after a run actually starts from the select screen (bGo)
+{const sel=$('bGo');if(sel){const prev=sel.onclick;sel.addEventListener('click',()=>setTimeout(maybeShowHowTo,80))}}
+
+function armTouchClicks(root){const els=(root||document).querySelectorAll('button,.card');
+ for(const el of els){if(el.dataset.touchArm||el.classList.contains('tb')||(el.closest&&el.closest('#tc')))continue;
+  el.dataset.touchArm='1';
+  el.addEventListener('touchend',e=>{if(document.body.classList.contains('playing')&&!el.closest('.ov')&&!el.closest('#howTo'))return;
+   if(e.cancelable)e.preventDefault();el.click()},{passive:false})}}
+armTouchClicks();
+{const _sm=setMode;setMode=function(m){const r=_sm.apply(this,arguments);setTimeout(()=>armTouchClicks(),0);return r}}
 
 // ---- main loop + test hooks ----
 function step(){GS.t++;touchTick();if(GS.banner&&!GS.paused)GS.banner.t++;
@@ -4491,8 +4933,8 @@ function v7Restore(r,snap){r.pits=snap.pits;r.center=snap.center;r.spawns=snap.s
  for(const r of F.rooms){if(r.hidden)continue;if(v7Sized(r)&&!v7Ok(r))errs.push('v7 pits block '+r.id);
   for(const t of doorTiles(r)){if(r.pits&&v7PitVal(r,t.x,t.y))errs.push('pit in door '+r.id+t.d)}}
  return errs}}
-{const _lb=layoutButtons;layoutButtons=function(){_lb();const el=$('tBomb');if(!el)return;const[ax,ay]=idlePos('r'),s=SAVE.set.lefty?1:-1,big=Math.min(64,Math.max(52,CW*.06)),w=big*.78|0;
- el.style.width=el.style.height=w+'px';const ry=ay-JR-big*.75;el.style.left=(ax+s*big*.95-w/2)+'px';el.style.top=(ry-big*1.75-w/2)+'px';
+{const _lb=layoutButtons;layoutButtons=function(){_lb();const el=$('tBomb');if(!el)return;const[ax,ay]=idlePos('r'),s=SAVE.set.lefty?1:-1,big=Math.min(64,Math.max(52,CW*.06)),w=Math.max(44,big*.78|0);
+ el.style.width=el.style.height=w+'px';const ry=ay-JR-big*.75;el.style.left=(ax+s*Math.max(big*.95,48)-w/2)+'px';el.style.top=(ry-Math.max(big*1.75,110)-w/2)+'px';
  const P=GS.run&&GS.run.P;el.textContent='BOMB'+(P?' '+(P.bombs||0):'');el.classList.toggle('dim',!!P&&(P.bombs||0)<=0)}
  if(typeof tAct=='function')tAct('tBomb','bomb')}
 {const _rs=TOUCH.reset;TOUCH.reset=function(){_rs.call(TOUCH);TOUCH.bomb=0;TOUCH.crumb=0}}
@@ -4500,10 +4942,32 @@ if(window.CR){window.CR.validateFloor=validateFloor;window.CR.genFloor=genFloor}
 Object.assign(window.CR,{
  VERSION,V7_SHAPES,PIT_STYLES,PIT_STYLE_FOR,TOAST_SET,V7_CURSES,BURNT_DEALS,GOLDEN_DEALS,CRUMB_FX,
  Rsz,roomCells,roomHasCell,doorTiles,doorTileAt,v7Sized,v7Ok,v7FillPits,v7Decorate,v7Expand,v7AddPits,v7StylePits,v7Reach,v7WalkGrid,pitMask,v7PitVal,v7CamWant,v7TickCam,v7MinimapCells,
- useBomb,useCrumb,v7CheckToast,v7TakeDeal,XOVER_IDS,XOVER_TAG,v7SmokeReveal,v7ForkTryZap,v7Rico,v7TickFamiliar,V8_NEW,V8_OLD,V8_FLOOR_TINT,v8Ai,v8RageSlam,v7SpawnWave,DEATH_LINES,
+ useBomb,useCrumb,v7CheckToast,v7TakeDeal,XOVER_IDS,XOVER_TAG,v7SmokeReveal,v7ForkTryZap,v7Rico,v7TickFamiliar,V8_NEW,V8_OLD,V8_FLOOR_TINT,v8Ai,v8RageSlam,v7SpawnWave,DEATH_LINES,showHowTo,hideHowTo,maybeShowHowTo,cssInsets,pressTB,audioState:()=>AU&&AU.ac&&AU.ac.state,
  setShape(shape,cells){const R=GS.run&&GS.run.room;if(!R)return;const sh=V7_SHAPES[shape];if(!sh)return;
   const cs=cells||sh.cells.map(([ox,oy],i)=>({gx:R.gx+ox,gy:R.gy+oy,ox,oy,orig:i==0}));
   const RR=RNG((R.seed||1)^0x77);v7ApplyShape(R,shape,cs,GS.run.floor||1,RR);R.bg=bakeRoom(R,R.theme||GS.run.floor);GS.roomBg=R.bg;GS.cam=v7CamWant(R,GS.run.P);if(typeof v5BuildWalk=='function')v5BuildWalk(R)},
  setPitStyle(s){const R=GS.run&&GS.run.room;if(R)R.pitStyle=s},
  gotoCell(gx,gy){const r=roomAt(gx,gy);if(r){GS.run.room.cleared=true;enterRoom(r.id,null);GS.slide=null}}
+});
+
+// ---- v0.9 hooks: music, curator, skin look, test API, loadFloor reset ----
+SKIN_LOOK.cyan=L=>({...L,skull:mix(L.skull,'#00f0ff',.4),body:'#102028',leg:'#081018',eye:'#ff2bd6',shoe:'#00f0ff',hatC:'#1a3050',teeth:'#9be7ff',rgb:1});
+{const _sf=songFor;songFor=function(key){if(key=='mirror'||key=='feed'){const fl=(GS.run&&GS.run.floor)||2;const s=_sf('f'+fl);s.bpm=Math.max(68,(s.bpm||110)-30);s.crush=6;s.groove='half';s.style='floor';return s}return _sf(key)}}
+{const _lf=loadFloor;loadFloor=function(n){const run=GS.run;if(run){if(run.mirror){run.mirror=0;v9ApplyStatic(0)}run.mirrorF=null;run.mirrorT=0;run._realF=null}_lf(n)}}
+{const _rp=renderPanel;renderPanel=function(id){_rp(id);if(id!='curator')return;const L=$('pList');if(!L)return;
+ for(const el of L.querySelectorAll('p')){if(el.textContent&&el.textContent.indexOf('MINI-BOSSES:')===0)el.textContent='MINI-BOSSES: '+Object.keys(SAVE.miniKills||{}).length+' / '+MINI_IDS_ALL.length+'  ·  VOID CRUMB NEEDS THE ORIGINAL 12  ·  KILLS: '+(SAVE.stats.mini||0)}
+ const found=SAVE.unlocked&&SAVE.unlocked.includes('mirrorfeed');
+ const box=document.createElement('p');box.textContent=found?('THE MIRROR FEED  ·  DISCOVERED'+(SAVE.relics.filter(k=>ITEMS[k]&&ITEMS[k].mirror).length?'  ·  SHARDS '+SAVE.relics.filter(k=>ITEMS[k]&&ITEMS[k].mirror).length:'')):'THE MIRROR FEED  ·  NOT YET FOUND';
+ L.appendChild(box);
+ for(const k of MINI_IDS_NEW){const kn=(SAVE.miniKills||{})[k]||0,M=MINIS[k];const p=document.createElement('div');p.className='row info';
+  p.innerHTML='<span>'+(kn?M.name:(M.mirror?'??? (MIRROR MINI)':'??? (MINI)'))+'</span><small>'+(kn?M.sub+' · BEATEN '+kn+'X':(M.mirror?'HIDDEN IN THE FEED':'NOT YET DEFEATED'))+'</small><em>'+(kn?'★':'-')+'</em>';L.appendChild(p)}
+}}
+Object.assign(window.CR,{
+ VERSION,MINIS,MINI_IDS,MINI_IDS_CORE,MINI_IDS_NEW,MINI_IDS_ALL,MINI_POOL,MIRROR_MINIS,MIRROR_ITEMS,MIRROR_NAME,MIRROR_TIMER,
+ v9MirrorFloorN,v9PlaceMirror,v9BuildMirrorFloor,v9EnterMirror,v9ExitMirror,v9HitFeed,v9FlipRoom,
+ enterMirror:()=>v9EnterMirror(),exitMirror:(w)=>v9ExitMirror(w||'leave'),
+ breakFeed:()=>{const R=GS.run&&GS.run.room;if(R&&R.feed){R.feed.broken=1;R.feed.hp=0;return true}return false},
+ findFeed:()=>{const run=GS.run;if(!run)return null;const F=run._realF||run.F;const i=(F.rooms||[]).findIndex(r=>r.feed&&!r.reflect);if(i<0)return null;const r=F.rooms[i];return {roomId:i,x:r.feed.x,y:r.feed.y,broken:!!r.feed.broken,exit:!!r.feed.exit,floor:run.floor,mirror:!!run.mirror}},
+ gotoFeed:()=>{const f=CR.findFeed();if(!f)return false;const run=GS.run;if(run.mirror)v9ExitMirror('leave');run.room.cleared=true;enterRoom(f.roomId,null);GS.slide=null;const R=run.room;if(R&&R.feed){run.P.x=(R.feed.x+1)*TILE+8;run.P.y=(R.feed.y+1)*TILE+8+12}return true},
+ spawnMini,ITEMS,SKINS
 });
