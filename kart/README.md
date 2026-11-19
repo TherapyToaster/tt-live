@@ -1,4 +1,4 @@
-# CyberToaster Kart v0.3.2
+# CyberToaster Kart v0.4.0
 
 A free, just-for-fun cartoon kart racer. Drive Mr. Toasty's Cybertruck on Monday Errands, Toaster Tide Run, or Skullz Graveyard, drift, fire items, smash the Monday Motors dealership, and jump Toasty Lake.
 
@@ -19,6 +19,18 @@ Open `index.html` in a desktop browser (no server required). The game is a singl
 - **Skullz Graveyard** — purple dirt, RIP stones, and jumps
 
 ## Changelog
+
+### v0.4.0
+
+- Graphics pass: punchier 3-band cel shading, thicker navy outlines, a cheap bloom on bright pixels, a richer day sky with chunkier clouds, and sparkly Tide water
+- Cartoon motion: a soft contact blob under each kart (shrinks and fades in the air), stronger squash and stretch, tier-colored drift sparks, boost flames, speed lines, and dust, sand, and puddle splash
+- HUD now calls out MINI, SUPER, and ULTRA boosts
+- Denser Monday Errands tufts and palms, and a fuller Skullz Graveyard
+- Toaster Tide Run: trapezoid jersey barriers, dressed roundabout infields, water-only pier footings, tucked cap beams, and no low pylon shafts in the grass
+- Physics pass: three-tier drift at 0.28 / 0.72 / 1.28s, tighter grip, milder off-road, stronger gravity, a landing bounce with an optional clean-landing boost and air trick, stick-to-ground on the Tide crest, capped mass bumps, and a wall glance that keeps most of your speed
+- AI stays competitive
+- Fixed the dark half-disc smear under the truck during jumps — only the soft blob remains
+- Removed the flat olive rectangle from Tide Run's mainland grass
 
 ### v0.3.2
 
@@ -54,7 +66,7 @@ Open `index.html` in a desktop browser (no server required). The game is a singl
 
 - First ARTcade release: two tracks, items, dealership shortcut, and the Toasty Lake jump
 
-A dated snapshot of this build lives in `v0.3.2/`. Previous snapshots are kept in `v0.3.1/`, `v0.3.0/`, `v0.2.1/`, `v0.2.0/` and `v0.1.0/`. To put the card on the ARTcade page, add:
+A dated snapshot of this build lives in `v0.4.0/`. Previous snapshots are kept in `v0.3.2/`, `v0.3.1/`, `v0.3.0/`, `v0.2.1/`, `v0.2.0/` and `v0.1.0/`. To put the card on the ARTcade page, add:
 
 ```html
 <script src="https://therapytoaster.github.io/tt-live/kart/arcade-card.js"></script>

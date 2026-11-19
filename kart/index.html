@@ -1571,9 +1571,11 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     /* Negative steer / driftDir is a screen-left turn; +local Z roll leans left. */
     const leanSrc = k.drifting ? k.driftDir : (k.steer || 0);
     mesh.rotation.z = G.clamp(-leanSrc * (k.drifting ? 0.32 : 0.18), -0.38, 0.38);
+    /* World-space contact blobs stay flat and shrink with height.
+       This parented disc pitches with the truck and smears a dark
+       half-moon on the road during jumps, so keep it off in-race. */
     if (mesh.userData.groundShadow) {
-      mesh.userData.groundShadow.position.y = 0.05 - (k.alt || 0);
-      mesh.userData.groundShadow.rotation.z = -mesh.rotation.z;
+      mesh.userData.groundShadow.visible = false;
     }
   };
 
@@ -4113,7 +4115,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
     /* palm grove along the beach so the coast shot isn't an empty lawn */
     if (!G._palms) G._palms = [];
-    for (let i = 0; i < 22; i++) {
+    for (let i = 0; i < 32; i++) {
       const palm = G.buildPalm(mats, 200 + i);
       const px = cx - 420 + (i * 55) + ((i * 17) % 40);
       const pz = cz + 880 + ((i * 29) % 160);
@@ -4411,7 +4413,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       if (ix < 0 || iy < 0 || ix >= SIZE || iy >= SIZE) return 0;
       return typ[iy * SIZE + ix];
     }
-    for (let i = 0; i < 900; i++) {
+    for (let i = 0; i < 1500; i++) {
       const x = 80 + rnd() * (SIZE - 160);
       const z = 80 + rnd() * (SIZE - 160);
       const t = typAt(x, z);
@@ -4423,14 +4425,14 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       };
       (i % 3 === 0 ? tuftsB : tufts).push(item);
     }
-    for (let i = 0; i < 80; i++) {
+    for (let i = 0; i < 160; i++) {
       const x = 80 + rnd() * (SIZE - 160);
       const z = 80 + rnd() * (SIZE - 160);
       const t = typAt(x, z);
       if (t === 1 || t === 2 || t === 5) continue;
       rocks.push({
         x: x, y: 0.2, z: z, ry: rnd() * 6,
-        sx: 0.4 + rnd() * 0.8, sy: 0.25 + rnd() * 0.35, sz: 0.4 + rnd() * 0.7,
+        sx: 0.7 + rnd() * 1.1, sy: 0.45 + rnd() * 0.55, sz: 0.7 + rnd() * 1.0,
       });
     }
     function inst(geo, mat, list) {
@@ -5111,7 +5113,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       }
     }
     /* infield + outfield scatter */
-    for (let i = 0; i < 180; i++) {
+    for (let i = 0; i < 230; i++) {
       const pct = (i * 0.017 + 0.05) % 1;
       const side = i % 2 ? 1 : -1;
       const dist = 95 + (i % 11) * 16 + rndS() * 10;
@@ -5204,7 +5206,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     /* ---- bare twisty trees ---- */
     const bark = toon(0x8a5a6e);
     const treeBuckets = [[], [], []];
-    for (let i = 0; i < 64; i++) {
+    for (let i = 0; i < 80; i++) {
       const pct = (i + 0.4) / 64;
       const side = i % 2 ? -1 : 1;
       const a = along(pct, side, 110 + (i % 7) * 16);
@@ -6203,11 +6205,21 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
           k.x += nx * push;
           k.y += ny * push;
           const vn = (k.vx || 0) * nx + (k.vy || 0) * ny;
-          if (vn < 0) {
-            k.vx -= vn * nx * 1.15;
-            k.vy -= vn * ny * 1.15;
+          if (vn < -0.5) {
+            k.vx -= vn * nx;
+            k.vy -= vn * ny;
             const hx = Math.cos(k.ang), hy = Math.sin(k.ang);
-            if (k.speed * (hx * nx + hy * ny) < 0) k.speed *= 0.4;
+            const headOn = Math.max(0, -(hx * nx + hy * ny));
+            const tx = -ny, ty = nx;
+            const tSign = (hx * tx + hy * ty) >= 0 ? 1 : -1;
+            const blend = 0.18 + 0.50 * headOn;
+            k.ang = Math.atan2(hy + ty * tSign * blend, hx + tx * tSign * blend);
+            const keep = headOn > 0.82 ? 0.80 : 0.97;
+            const spd = Math.hypot(k.vx, k.vy);
+            k.speed = Math.max(spd, Math.abs(k.speed)) * keep;
+            const s = Math.hypot(k.vx, k.vy) || 1;
+            k.vx = k.vx / s * k.speed;
+            k.vy = k.vy / s * k.speed;
           }
         }
       }
@@ -6306,7 +6318,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
        dotNL < 0      -> shadow (0)
        0 .. 0.5       -> mid    (0.5)
        > 0.5          -> lit    (1) */
-    const vals = [0, 0, 0, 0, 140, 140, 255, 255];
+    const vals = [18, 18, 72, 72, 168, 168, 255, 255];
     const c = document.createElement("canvas");
     c.width = vals.length; c.height = 1;
     const ctx = c.getContext("2d");
@@ -6484,7 +6496,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   /* v=0 zenith, 0.5 horizon. Same band count in both so we interpolate band
      COLORS and edges; every band stays a flat fill (crisp cel steps). */
   const SKY_BANDS = {
-    day:    [[0.00, "#2f8fe8"], [0.15, "#3a9cf2"], [0.26, "#52b0fa"], [0.35, "#78c6ff"], [0.42, "#a6dcff"], [0.465, "#d4f0ff"], [0.49, "#fff2b8"], [0.56, "#9fd87a"]],
+    day:    [[0.00, "#2486e8"], [0.14, "#2f9af8"], [0.25, "#4ab0ff"], [0.34, "#74c8ff"], [0.41, "#a8e2ff"], [0.46, "#def4ff"], [0.49, "#fff4c0"], [0.56, "#96e06a"]],
     golden: [[0.00, "#3f7ee0"], [0.155, "#5a94ec"], [0.265, "#86aef2"], [0.355, "#c4bce8"], [0.425, "#ffc8a8"], [0.468, "#ffdc96"], [0.495, "#fff0b0"], [0.56, "#9fd87a"]],
     sunset: [[0.00, "#5a4cb8"], [0.16, "#8a5cc8"], [0.27, "#c86ab8"], [0.36, "#f27a98"], [0.425, "#ff9a78"], [0.47, "#ffc070"], [0.50, "#ffe49a"], [0.56, "#9fd87a"]],
     graveyard: [[0.00, "#8a5cd0"], [0.18, "#a670dc"], [0.30, "#c784e0"], [0.39, "#ea98d8"], [0.455, "#ffb6d8"], [0.50, "#ffd4e6"], [0.56, "#c08ab8"]],
@@ -6647,7 +6659,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     /* Bigger, chunkier, a little lower so they read as cartoon puffs. */
     g.children.forEach(function (m, i) {
       if (m.material) m.material.userData.cloudVariant = i % 3;
-      const s = 2.1 + (i % 3) * 0.35;
+      const s = 2.45 + (i % 3) * 0.4;
       m.scale.set(s, s, 1);
       /* Lift coast clouds above the high-rise deck (~70) so they stay in the sky. */
       m.position.y = 70 + (theme === "coast" ? 90 : 0) + (i % 4) * 22;
@@ -6660,12 +6672,12 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   if (G.TRACK_PALETTES) {
     /* fog toward the horizon band so far things fade into the sky, lighter */
     G.TRACK_PALETTES.suburb.fog = 0xc8e8ff; G.TRACK_PALETTES.suburb.fogDensity = 0.00030;
-    G.TRACK_PALETTES.suburb.clear = 0x8fd0ff;
+    G.TRACK_PALETTES.suburb.clear = 0x74c8ff;
     G.TRACK_PALETTES.graveyard.fog = 0xf2c4e6; G.TRACK_PALETTES.graveyard.fogDensity = 0.00030;
     G.TRACK_PALETTES.graveyard.clear = 0xea98d8;
     G.TRACK_PALETTES.coast = G.TRACK_PALETTES.coast || {};
     G.TRACK_PALETTES.coast.fog = 0xc8e8ff; G.TRACK_PALETTES.coast.fogDensity = 0.00028;
-    G.TRACK_PALETTES.coast.clear = 0x8fd0ff;
+    G.TRACK_PALETTES.coast.clear = 0x74c8ff;
     G.TRACK_PALETTES.coast.hemiSky = 0xe8f6ff; G.TRACK_PALETTES.coast.hemiGround = 0x8a9a88;
     G.TRACK_PALETTES.coast.amb = 0xeef6ff; G.TRACK_PALETTES.coast.grassTint = 0xffffff;
   }
@@ -8055,9 +8067,9 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     grp.name = "surfcity-world";
     root.add(grp);
 
-    const waterMat = toon(0x2f8fbe, { transparent: true, opacity: 0.94 });
-    const oceanMat = toon(0x1c6a9c, { transparent: true, opacity: 0.95 });
-    const foamMat = toon(0xe8f4ff, { transparent: true, opacity: 0.85 });
+    const waterMat = toon(0x3aa7d6, { transparent: true, opacity: 0.92 });
+    const oceanMat = toon(0x1e78b4, { transparent: true, opacity: 0.94 });
+    const foamMat = toon(0xf4fbff, { transparent: true, opacity: 0.88 });
     const marshMat = toon(0x7ea34a);
     const mudMat = toon(0x8a7a48);
     const sandMat = toon(0xf0dca0);
@@ -8142,9 +8154,22 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     }
 
     /* Marsh islands around the span — sides and approaches, not a grass carpet mid-channel. */
+    function nearRoad(x, z, padR) {
+      if (T.onRoad && T.onRoad(x, z)) return true;
+      if (T.nearestS && T.pointAt) {
+        const s = T.nearestS(x, z);
+        const pt = T.pointAt(s);
+        const half = (T.roadW || 88) * 0.5 + 44 + (padR || 16);
+        if (Math.hypot(x - pt.x, z - pt.y) < half) return true;
+      }
+      return false;
+    }
     function marshPad(x, z, r, tall) {
-      const pad = cyl(r, tall || 1.15, marshMat, x, (tall || 1.15) * 0.45, z, 7);
-      pad.scale.z = 0.72 + ((x + z) % 5) * 0.05;
+      if (nearRoad(x, z, r)) return;
+      const pad = cyl(r, tall || 1.15, marshMat, x, (tall || 1.15) * 0.45, z, 16);
+      pad.scale.z = 0.88 + ((x + z) % 5) * 0.03;
+      pad.castShadow = false;
+      pad.receiveShadow = false;
       grp.add(pad);
     }
     if (median.length) {
@@ -8162,8 +8187,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         }
       }
     }
-    /* Mainland marsh around the hairpin (kept off the circulating roadway). */
-    const marshClear = (T.rabR || 230) + 50;
+    /* Mainland marsh around the hairpin, well clear of the circulating roadway. */
+    const marshClear = (T.rabR || 230) + (T.roadW || 88) * 0.55 + 70;
     for (let i = 0; i < 10; i++) {
       const ang = (i / 10) * Math.PI * 2;
       const r = marshClear + 40 + (i % 4) * 22;
@@ -8467,15 +8492,34 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         m.position.set(c.x, 0, c.y);
         m.scale.setScalar(1.15);
         grp.add(addInk(m, 0.07));
-        for (let k = 0; k < 2; k++) {
-          const a = i * 1.2 + k * 2.3;
-          const r = ri * 0.52;
-          const p2 = G.buildPalm(mats, 80 + i * 3 + k);
+        for (let k = 0; k < 5; k++) {
+          const a = i * 1.2 + k * 1.26;
+          const r = ri * (0.28 + (k % 3) * 0.16);
+          const p2 = G.buildPalm(mats, 80 + i * 5 + k);
           p2.position.set(c.x + Math.cos(a) * r, 0, c.y + Math.sin(a) * r);
-          p2.scale.setScalar(0.78);
+          p2.scale.setScalar(0.62 + (k % 3) * 0.12);
           grp.add(addInk(p2, 0.07));
         }
       }
+      /* Chunkier infield: grassy mounds, flower tufts, a little plaza fountain. */
+      for (let k = 0; k < 7; k++) {
+        const a = i * 0.7 + k * 0.9;
+        const r = ri * (0.22 + (k % 4) * 0.12);
+        const mound = cyl(10 + (k % 3) * 3, 2.2 + (k % 2), toon(k % 2 ? 0x7ed15a : 0x5eaa3a),
+          c.x + Math.cos(a) * r, 1.2, c.y + Math.sin(a) * r, 8);
+        mound.scale.set(1.3, 1, 0.9);
+        grp.add(mound);
+      }
+      const bushCols = [0xff7aa8, 0xffef7a, 0x7ad0ff, 0xff9a4a];
+      for (let k = 0; k < 14; k++) {
+        const a = i + k * 0.45;
+        const r = ri * (0.18 + (k % 5) * 0.11);
+        grp.add(cyl(1.6, 1.8, toon(bushCols[k % 4]), c.x + Math.cos(a) * r, 2.2, c.y + Math.sin(a) * r, 6));
+      }
+      const fountain = cyl(8.5, 2.4, concrete, c.x + ri * 0.08, 2.0, c.y - ri * 0.08, 12);
+      grp.add(fountain);
+      grp.add(cyl(4.5, 3.6, toon(0x4ec4e8), c.x + ri * 0.08, 4.4, c.y - ri * 0.08, 10));
+      grp.add(cyl(1.2, 5.2, toon(0xe8f8ff), c.x + ri * 0.08, 6.4, c.y - ri * 0.08, 8));
     });
 
     dressBridge(grp, T, { concrete: concrete, pierCap: pierCap, railMat: railMat, rust: rust, deckMat: deckMat, lampMat: lampMat });
@@ -8483,10 +8527,39 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
     G._surfCityRoot = grp;
     G._tideBoats = G._tideBoats || [];
+    /* Sparkly cartoon water highlights over the ICW and ocean pads. */
+    (function () {
+      const n = 220;
+      const pos = new Float32Array(n * 3);
+      const mid = (median && median[(median.length * 0.5) | 0]) || { x: isl.x, y: isl.y };
+      for (let i = 0; i < n; i++) {
+        const along = (i / n - 0.5) * 900;
+        const side = ((i * 17) % 80) - 40;
+        const nx = -(mid.dy || 0), ny = mid.dx || 1;
+        pos[i * 3] = mid.x + (mid.dx || 0) * along + nx * side * 6;
+        pos[i * 3 + 1] = 0.4 + (i % 5) * 0.05;
+        pos[i * 3 + 2] = mid.y + (mid.dy || 0) * along + ny * side * 6;
+      }
+      const geo = new (THREE().BufferGeometry)();
+      geo.setAttribute("position", new (THREE().BufferAttribute)(pos, 3));
+      const pts = new (THREE().Points)(geo, new (THREE().PointsMaterial)({
+        color: 0xe8fbff, size: 3.2, transparent: true, opacity: 0.75,
+        depthWrite: false, sizeAttenuation: false,
+      }));
+      pts.userData.noOutline = true;
+      pts.frustumCulled = false;
+      grp.add(pts);
+      G._tideSparkle = pts;
+    })();
+
     G.tickTideWorld = function (dt, time) {
+      const t = time != null ? time : 0;
+      if (G._tideSparkle && G._tideSparkle.material) {
+        G._tideSparkle.material.opacity = 0.45 + Math.sin(t * 3.2) * 0.28;
+        G._tideSparkle.material.size = 2.6 + Math.sin(t * 5.1) * 0.7;
+      }
       const boats = G._tideBoats;
       if (!boats || !boats.length) return;
-      const t = time != null ? time : 0;
       boats.forEach(function (b) {
         const u = Math.sin(t * b.spd + b.phase) * b.amp;
         b.mesh.position.x = b.cx + b.nx * u;
@@ -8601,7 +8674,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     for (let i = 0; i < median.length; i++) {
       const m = median[i];
       const h = m.h != null ? m.h : (T.heightAt ? T.heightAt(m.x, m.y) : 0);
-      if (h < 8) continue;
+      /* Skip the low approach so a thick pylon does not sit in the lawn. */
+      if (h < 22) continue;
       const s = m.s != null ? m.s : i;
       /* Wider spacing so the span does not read as a forest of pillars. */
       if (s - lastPierS < 96 && lastPierS >= 0) continue;
@@ -8616,13 +8690,16 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         const shaft = box(thick, shaftH, thick, mats.concrete, px, shaftH * 0.5, pz);
         shaft.rotation.y = Math.atan2(m.dx, m.dy);
         grp.add(shaft);
-        /* waterline footing, kept low so it does not stack into the opposite lane */
-        grp.add(box(14, 2.2, 14, mats.pierCap, px, 1.0, pz));
+        /* Waterline footing only when the shaft is actually standing in the channel,
+           so low approach piers do not dump a concrete block in the grass. */
+        if (h > 28) grp.add(box(12, 1.6, 12, mats.pierCap, px, 0.7, pz));
       }
-      /* Cap beam sits under the deck, not poking up between the carriageways. */
-      const cap = box(span + 14, 1.6, 9, mats.pierCap, m.x, h - 0.9, m.y);
-      cap.rotation.y = Math.atan2(m.dx, m.dy);
-      grp.add(cap);
+      /* Cap beam tucked fully under the deck so it does not speck the span from a wide cam. */
+      if (h > 22) {
+        const cap = box(span + 10, 1.2, 8, mats.pierCap, m.x, h - 1.6, m.y);
+        cap.rotation.y = Math.atan2(m.dx, m.dy);
+        grp.add(cap);
+      }
     }
 
     /* Substantial outer railings on the elevated span. */
@@ -8687,15 +8764,19 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       last = { x: rx, z: rz, h: h };
     }
 
-    /* Slim jersey-barrier median: a narrow wall with a red/white cap, not chunky slabs. */
+    /* Jersey barrier: a trapezoid stack (wide foot, slim mid, candy cap) so it
+       does not read as a row of boxes along the median. */
     for (let i = 0; i < median.length; i += 2) {
       const m = median[i];
       const h = m.h != null ? m.h : (T.heightAt ? T.heightAt(m.x, m.y) : 0);
       const yaw = Math.atan2(m.dx, m.dy);
-      const body = box(2.2, 3.6, 14, mats.concrete, m.x, h + 1.85, m.y);
+      const foot = box(2.8, 1.1, 13.6, mats.concrete, m.x, h + 0.55, m.y);
+      foot.rotation.y = yaw;
+      grp.add(foot);
+      const body = box(1.9, 2.1, 13.6, mats.concrete, m.x, h + 2.05, m.y);
       body.rotation.y = yaw;
       grp.add(body);
-      const lip = box(2.5, 0.32, 14, toon((i / 2 | 0) % 2 ? 0xe0342c : 0xf4f4f0), m.x, h + 3.7, m.y);
+      const lip = box(2.15, 0.34, 13.6, toon((i / 2 | 0) % 2 ? 0xe0342c : 0xf4f4f0), m.x, h + 3.22, m.y);
       lip.rotation.y = yaw;
       grp.add(lip);
     }
@@ -8782,15 +8863,27 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         ny = (k.y - wy) / d;
         push = r - d;
       }
+
       if (push > 0) {
         k.x += nx * push;
         k.y += ny * push;
         const vn = (k.vx || 0) * nx + (k.vy || 0) * ny;
-        if (vn < 0) {
-          k.vx -= vn * nx * 1.15;
-          k.vy -= vn * ny * 1.15;
+        if (vn < -0.5) {
+          /* Kill only the inward normal, yaw toward the tangent, keep most speed. */
+          k.vx -= vn * nx;
+          k.vy -= vn * ny;
           const hx = Math.cos(k.ang), hy = Math.sin(k.ang);
-          if (k.speed * (hx * nx + hy * ny) < 0) k.speed *= 0.4;
+          const headOn = Math.max(0, -(hx * nx + hy * ny));
+          const tx = -ny, ty = nx;
+          const tSign = (hx * tx + hy * ty) >= 0 ? 1 : -1;
+          const blend = 0.18 + 0.50 * headOn;
+          k.ang = Math.atan2(hy + ty * tSign * blend, hx + tx * tSign * blend);
+          const keep = headOn > 0.82 ? 0.80 : 0.97;
+          const spd = Math.hypot(k.vx, k.vy);
+          k.speed = Math.max(spd, Math.abs(k.speed)) * keep;
+          const s = Math.hypot(k.vx, k.vy) || 1;
+          k.vx = k.vx / s * k.speed;
+          k.vy = k.vy / s * k.speed;
         }
       }
     }
@@ -9292,7 +9385,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     const t2 = T.pointAt(k.s + 140);
     const aheadAng = Math.atan2(t2.y - target.y, t2.x - target.x);
     const bend = Math.abs(G.angWrap(aheadAng - Math.atan2(target.y - k.y, target.x - k.x)));
-    const driftBtn = k.speed > 140 && bend > 0.45 && Math.abs(err) > 0.15;
+    const driftBtn = k.speed > 125 && bend > 0.38 && Math.abs(err) > 0.12;
     let accel = true, brake = false;
     if (bend > 0.85 && k.speed > 180) { accel = false; brake = true; }
 
@@ -9361,25 +9454,28 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         k.driftDir = c.left ? -1 : 1;
         k.driftTime = 0;
         k.driftTier = 0;
+        k._driftBlend = 0;
       }
+      k._driftBlend = Math.min(1, (k._driftBlend || 0) + dt * 6.2);
       k.driftTime += dt;
-      if (k.driftTime > 1.35) k.driftTier = 3;
-      else if (k.driftTime > 0.78) k.driftTier = 2;
-      else if (k.driftTime > 0.32) k.driftTier = 1;
+      /* 3-tier turbo: mini / super / ultra */
+      if (k.driftTime > 1.28) k.driftTier = 3;
+      else if (k.driftTime > 0.72) k.driftTier = 2;
+      else if (k.driftTime > 0.28) k.driftTier = 1;
       else k.driftTier = 0;
     } else if (k.drifting) {
-      /* release turbo */
       if (k.driftTier > 0) {
-        const dur = [0, 0.42, 0.72, 1.15][k.driftTier];
+        const dur = [0, 0.48, 0.82, 1.28][k.driftTier];
         k.boostT = Math.max(k.boostT, dur);
-        k.boostKind = "turbo";
+        k.boostKind = k.driftTier >= 3 ? "ultra" : (k.driftTier >= 2 ? "super" : "mini");
         G.audio.turbo(k.driftTier);
-        _burst(k, k.driftTier >= 3 ? "glitch" : "spark", 6 + k.driftTier * 4);
+        _burst(k, k.driftTier >= 3 ? "glitch" : "spark", 8 + k.driftTier * 5);
       }
       k.drifting = false;
       k.driftTime = 0;
       k.driftTier = 0;
     }
+    if (!k.drifting) k._driftBlend = Math.max(0, (k._driftBlend || 0) - dt * 8);
 
     /* Left must decrease heading. +ang is CCW in x/z, and a Y-up chase camera
        looking along the heading has a right-vector of (-sin(ang), cos(ang)), so
@@ -9389,9 +9485,10 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       /* allow tightening / widening */
     }
     const spdN = G.clamp(Math.abs(k.speed) / 240, 0, 1);
-    const turn = st.turn * (k.drifting ? 1.55 : 1) * (0.45 + 0.7 * (1 - Math.abs(spdN - 0.45)));
-    k.steer = G.lerp(k.steer, steerIn, 1 - Math.pow(0.001, dt));
-    k.ang += k.steer * turn * (k.speed >= 0 ? 1 : -1) * dt * (0.35 + spdN);
+    const dBlend = k._driftBlend || 0;
+    const turn = st.turn * (1 + 0.62 * dBlend) * (0.48 + 0.68 * (1 - Math.abs(spdN - 0.42)));
+    k.steer = G.lerp(k.steer, steerIn, 1 - Math.pow(0.0004, dt));
+    k.ang += k.steer * turn * (k.speed >= 0 ? 1 : -1) * dt * (0.38 + spdN);
 
     if (k.rouletteT > 0) k.rouletteT -= dt;
     if (k.boostT > 0) k.boostT -= dt;
@@ -9403,29 +9500,36 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   }
 
   function _integrate(k, dt, T, field) {
-    const slip = k.drifting ? 0.72 : 0.12;
     const hx = Math.cos(k.ang), hy = Math.sin(k.ang);
-    /* blend velocity toward facing, drifting keeps some lateral */
+    const dBlend = k._driftBlend || 0;
+    /* Tight on-road grip; slide ramps in with the drift so entry is smooth. */
     const wantVx = hx * k.speed, wantVy = hy * k.speed;
-    const grip = (k.stats.grip || 1) * (k.drifting ? 0.35 : 1);
-    k.vx = G.lerp(k.vx, wantVx, 1 - Math.pow(1 - grip * 0.85, dt * 60));
-    k.vy = G.lerp(k.vy, wantVy, 1 - Math.pow(1 - grip * 0.85, dt * 60));
-    /* extra lateral in drift */
-    if (k.drifting) {
+    const grip = (k.stats.grip || 1) * (1 - 0.60 * dBlend);
+    const gK = 1 - Math.pow(1 - grip * 0.9, dt * 60);
+    k.vx = G.lerp(k.vx, wantVx, gK);
+    k.vy = G.lerp(k.vy, wantVy, gK);
+    if (dBlend > 0.02 && k.driftDir) {
       const lx = -hy, ly = hx;
-      k.vx += lx * k.driftDir * k.speed * 0.55 * dt;
-      k.vy += ly * k.driftDir * k.speed * 0.55 * dt;
+      k.vx += lx * k.driftDir * k.speed * 0.58 * dBlend * dt;
+      k.vy += ly * k.driftDir * k.speed * 0.58 * dBlend * dt;
     }
     k.x += k.vx * dt;
     k.y += k.vy * dt;
 
     const ground = T.heightAt ? T.heightAt(k.x, k.y) : 0;
+    /* Teleports (playtest placeAt, respawn) must not look like a cliff drop. */
+    if (k._px != null && (Math.abs(k.x - k._px) + Math.abs(k.y - k._py) > 60)) {
+      k._prevGround = ground;
+      if ((k.jumpId == null || k.jumpId < 0) && (k.vz || 0) <= 2) { k.alt = ground; k.vz = 0; }
+    }
+    k._px = k.x; k._py = k.y;
     /* off-road slowdown — not while airborne over a gap, lake, or off a deck */
     if ((k.alt || 0) <= ground + 0.2 && !T.onRoad(k.x, k.y) && !(T.isWater && T.isWater(k.x, k.y))) {
-      k.speed = Math.min(k.speed, 95);
-      k.speed *= 1 - 1.6 * dt;
-      if (Math.random() < 8 * dt) _burst(k, "dirt", 1);
-    }
+      k.speed = Math.min(k.speed, 108);
+      k.speed *= 1 - 1.35 * dt;
+      if (Math.random() < 14 * dt) _burst(k, "dirt", 2);
+      k._offRoad = true;
+    } else k._offRoad = false;
     /* boost pads */
     if (T.isBoost(k.x, k.y) && k.boostT < 0.7) {
       k.boostT = 0.85;
@@ -9448,9 +9552,11 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     k.alt = k.alt || 0;
     k.vz = k.vz || 0;
     const landFromJump = function () {
+      const impact = Math.max(0, -(k.vz || 0));
+      const wasShortcut = !!k._onShortcutJump;
       k.alt = ground;
-      k.vz = 0;
       k.jumpId = -1;
+      k._landImpact = impact;
       if (k.isPlayer && G.shakeT < 0.2) G.shakeT = 0.18;
       if (k._onShortcutJump) {
         k._onShortcutJump = false;
@@ -9463,11 +9569,32 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
           if (k.isPlayer && G.audio && G.audio.boost) G.audio.boost();
         }
       } else {
-        _burst(k, "dirt", 4);
+        _burst(k, impact > 18 ? "splash" : "dirt", impact > 18 ? 8 : 4);
+      }
+      /* Clean landing: a little hop and a short boost if you land straight. */
+      const heading = Math.atan2(k.vy || 0, k.vx || 0);
+      const clean = Math.abs(G.angWrap(heading - k.ang)) < 0.65 && k.spinT <= 0 && impact > 5 && impact < 80;
+      if (clean && !wasShortcut) {
+        k.boostT = Math.max(k.boostT, 0.20 + Math.min(0.14, impact * 0.003));
+        if (!k.boostKind || k.boostKind === "land") k.boostKind = "land";
+        k._cleanLand = 0.35;
+        if (k._airTrick) {
+          k.boostT = Math.max(k.boostT, 0.38);
+          k._airTrick = false;
+        }
+      }
+      if (!wasShortcut && impact > 16) {
+        k.vz = Math.min(14, impact * 0.18);
+        k.alt = ground + 0.12;
+        k._bounceLeft = 1;
+      } else {
+        k.vz = 0;
       }
     };
-    if (k.alt > ground + 0.15 || k.vz > 0) {
-      k.vz -= 78 * dt;
+    /* Optional jump trick: holding drift in the air gives a slightly juicier landing. */
+    if ((k.jumpId != null && k.jumpId >= 0) || (k.vz || 0) > 2 || (k.alt || 0) > ground + 1.0) {
+      if (k.drifting || (k.isPlayer && G.input && G.input.down("drift"))) k._airTrick = true;
+      k.vz -= 86 * dt;
       k.alt += k.vz * dt;
       if (k.alt <= ground) {
         landFromJump();
@@ -9531,11 +9658,20 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         }
       }
     }
-    /* Stick to the local deck / ground unless actually jumping. */
-    /* Stick to a falling deck (Tide Run downhill) as well as flat ground.
-       A 2.4-unit window covers one physics step on a ~0.26 slope at race speed. */
-    const stick = (G.track && G.track.heightAt) ? 2.4 : 0.2;
-    if ((k.jumpId == null || k.jumpId < 0) && (k.vz || 0) <= 0 && (k.alt || 0) <= ground + stick) k.alt = ground;
+    /* Follow the deck on slopes and over the crest so we do not launch
+       unless we hit a marked ramp or walk off a real gap. */
+    const drop = (k._prevGround != null) ? (k._prevGround - ground) : 0;
+    k._prevGround = ground;
+    const flying = (k.jumpId != null && k.jumpId >= 0) || (k.vz || 0) > 1.2 || (k.alt || 0) > ground + 1.2;
+    if (!flying) {
+      if (drop >= 8) {
+        k.vz = Math.min(k.vz || 0, 0) - 8;
+      } else {
+        k.alt = ground;
+        k.vz = 0;
+        k._bounceLeft = 0;
+      }
+    }
     const total = T.total;
     /* progress: laps * total + s, with wrap care vs nextCheck handled in _laps */
     k.progress = k.laps * total + k.s;
@@ -9604,9 +9740,20 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
           a.y -= ny * overlap * (mb / (ma + mb));
           b.x += nx * overlap * (ma / (ma + mb));
           b.y += ny * overlap * (ma / (ma + mb));
-          const bump = 30;
-          a.vx -= nx * bump / ma; a.vy -= ny * bump / ma;
-          b.vx += nx * bump / mb; b.vy += ny * bump / mb;
+          const rel = ((b.vx || 0) - (a.vx || 0)) * nx + ((b.vy || 0) - (a.vy || 0)) * ny;
+          if (rel < 0) {
+            const rest = 0.16;
+            let jImp = -(1 + rest) * rel / (1 / ma + 1 / mb);
+            /* A bump should shove you, not slam the brakes. */
+            const cap = 58;
+            if (jImp > cap) jImp = cap;
+            if (jImp < -cap) jImp = -cap;
+            a.vx = (a.vx || 0) - (jImp / ma) * nx; a.vy = (a.vy || 0) - (jImp / ma) * ny;
+            b.vx = (b.vx || 0) + (jImp / mb) * nx; b.vy = (b.vy || 0) + (jImp / mb) * ny;
+            a.speed = Math.hypot(a.vx, a.vy) * Math.sign(a.speed || 1);
+            b.speed = Math.hypot(b.vx, b.vy) * Math.sign(b.speed || 1);
+            a._bumped = 0.2; b._bumped = 0.2;
+          }
           if (a.id === "trig") a.rage = Math.min(1, a.rage + 0.08);
           if (b.id === "trig") b.rage = Math.min(1, b.rage + 0.08);
           const ids = a.id + " " + b.id;
@@ -9782,6 +9929,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       });
     }
   }
+  G.burstAt = _burstAt;
   function _particles(field, dt) {
     field.particles = field.particles.filter((p) => {
       p.x += p.vx * dt; p.y += p.vy * dt;
@@ -10786,12 +10934,18 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     const gnd = (G.track && G.track.heightAt) ? G.track.heightAt(k.x, k.y) : 0;
     const alt = (k.alt || 0) - gnd;
     const now = performance.now() / 1000;
-    if (u.prevAlt != null && u.prevAlt > 1.2 && alt <= 0.3) { u.sqT0 = now; u.sqAmp = Math.min(0.32, 0.12 + u.prevAirT * 0.25); }
+    if (k._landImpact > 0) {
+      u.sqT0 = now;
+      u.sqAmp = Math.min(0.48, 0.16 + k._landImpact * 0.009);
+      k._landImpact = 0;
+    } else if (u.prevAlt != null && u.prevAlt > 1.2 && alt <= 0.3) {
+      u.sqT0 = now; u.sqAmp = Math.min(0.36, 0.14 + u.prevAirT * 0.28);
+    }
     if ((k.spinT || 0) > 0 && !(u.prevSpin > 0)) { u.sqT0 = now; u.sqAmp = 0.26; }
     u.prevAirT = alt > 0.6 ? (u.prevAirT || 0) + 1 / 60 : 0;
     u.prevAlt = alt; u.prevSpin = k.spinT || 0;
     let sy = 1, sx = 1;
-    if (alt > 1.2) { sy = 1.07; sx = 0.96; } /* stretch in the air */
+    if (alt > 1.2) { sy = 1.14; sx = 0.90; } /* stretch in the air */
     if (u.sqT0 != null) {
       const e = now - u.sqT0;
       if (e < 0.45) {
@@ -10825,16 +10979,53 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         m.userData.rageLight.material.emissiveIntensity = 0.6 + (k.rage || 0) * 2.5;
       }
       if (m.userData.roofBar && k.isPlayer) {
-        m.userData.roofBar.material.emissiveIntensity = k.boostT > 0 && k.boostKind === "lightbar" ? 8 : 4;
+        const lb = k.boostT > 0 && k.boostKind === "lightbar";
+        m.userData.roofBar.material.emissiveIntensity = lb ? 16 : 5;
+        if (!m.userData.barHalo) {
+          const halo = new (THREE().Mesh)(
+            new (THREE().SphereGeometry)(2.4, 10, 8),
+            new (THREE().MeshBasicMaterial)({ color: 0xb8e8ff, transparent: true, opacity: 0, depthWrite: false, fog: false })
+          );
+          halo.userData.noOutline = true;
+          m.userData.roofBar.add(halo);
+          m.userData.barHalo = halo;
+        }
+        m.userData.barHalo.material.opacity = lb ? 0.42 : 0.0;
+        m.userData.barHalo.scale.setScalar(lb ? 1.5 + Math.sin(t * 22) * 0.18 : 0.2);
       }
       const fl = flameMeshes.get(k.id);
       if (fl) {
         const on = !!(k.boostT > 0.05);
         fl.visible = on;
         if (!on) fl.scale.set(0, 0, 0);
-        else fl.scale.set(1, 1, 1);
-        if (on) fl.scale.z = 0.8 + Math.sin(t * 30) * 0.25 + (k.boostKind === "lightbar" ? 0.5 : 0);
+        else {
+          const kindBoost = k.boostKind === "ultra" ? 0.85 : k.boostKind === "super" ? 0.45 : k.boostKind === "lightbar" ? 0.7 : 0.15;
+          fl.scale.set(1.05 + kindBoost * 0.15, 1, 0.9 + Math.sin(t * 32) * 0.28 + kindBoost);
+        }
       }
+      /* Soft cartoon contact blob under every kart. */
+      let sh = contactShadows.get(k.id);
+      if (!sh) {
+        sh = new (THREE().Mesh)(
+          new (THREE().CircleGeometry)(7.2, 18),
+          new (THREE().MeshBasicMaterial)({ color: 0x1a1430, transparent: true, opacity: 0.34, depthWrite: false, fog: false })
+        );
+        sh.rotation.x = -Math.PI / 2;
+        sh.userData.noOutline = true;
+        sh.frustumCulled = false;
+        scene.add(sh);
+        contactShadows.set(k.id, sh);
+      }
+      const gndS = (G.track && G.track.heightAt) ? G.track.heightAt(k.x, k.y) : 0;
+      const airS = Math.max(0, (k.alt || 0) - gndS);
+      /* Shrink and fade with height; gone by ~14 units of air. */
+      const ss = Math.max(0, 1 - airS * 0.07);
+      sh.position.set(k.x, gndS + 0.1, k.y);
+      sh.scale.set(Math.max(0.18, ss) * 1.15, Math.max(0.18, ss) * 0.72, 1);
+      sh.material.opacity = (m.visible === false ? 0 : 0.34 * ss);
+      sh.castShadow = false;
+      sh.receiveShadow = false;
+      sh.visible = m.visible !== false && ss > 0.05;
       if (m.userData.tag) {
         /* Tiny labels only; hide the player's own and keep rivals off during tight chase. */
         m.userData.tag.visible = false;
@@ -11270,9 +11461,9 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       drawShortcut(ctx, G.shortcutT);
     }
     /* comic speed lines — ink streaks from the frame edges */
-    if (camMode !== "freeze" && !G._hideHud && field && field.player && (field.player.speed > 170 || field.player.boostT > 0) && phase === "race") {
+    if (camMode !== "freeze" && !G._hideHud && field && field.player && (field.player.speed > 155 || field.player.boostT > 0) && phase === "race") {
       const boost = field.player.boostT > 0;
-      const n = boost ? 22 : 14;
+      const n = boost ? 28 : 16;
       ctx.save();
       ctx.lineCap = "round";
       for (let i = 0; i < n; i++) {
@@ -11331,14 +11522,22 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
     if (p.drifting || p.driftTier) {
       const cols = ["#6a6a70", "#00f0ff", "#ff8a00", "#ff2bd6"];
+      const names = ["", "MINI", "SUPER", "ULTRA"];
       const dy = G.showTouch ? 100 : (HH - 70);
       panel(ctx, HW / 2 - 126, dy, 252, 20, "rgba(12,8,14,0.85)", "#0a0a0c", 4);
       ctx.fillStyle = cols[p.driftTier] || "#00f0ff";
-      ctx.fillRect(HW / 2 - 120, dy + 6, G.clamp(p.driftTime / 1.35, 0, 1) * 240, 12);
+      ctx.fillRect(HW / 2 - 120, dy + 6, G.clamp(p.driftTime / 1.28, 0, 1) * 240, 12);
+      if (p.driftTier) G.drawText(ctx, names[p.driftTier], HW / 2, dy - 18, cols[p.driftTier], 2, "center", true);
     }
     if (p.boostT > 0) {
       panel(ctx, HW / 2 - 170, 52, 340, 36, "rgba(12,8,14,0.88)", "#ffd400", 5);
-      G.drawText(ctx, p.boostKind === "lightbar" ? "850HP LIGHTBAR" : "BOOST", HW / 2, 60, "#ffd400", 2, "center", true);
+      const bLab = p.boostKind === "lightbar" ? "850HP LIGHTBAR"
+        : p.boostKind === "ultra" ? "ULTRA BOOST"
+        : p.boostKind === "super" ? "SUPER BOOST"
+        : p.boostKind === "mini" ? "MINI BOOST"
+        : (p.boostKind === "landing" || p.boostKind === "land" || p.boostKind === "trick") ? "NICE LANDING"
+        : "BOOST";
+      G.drawText(ctx, bLab, HW / 2, 60, "#ffd400", 2, "center", true);
     }
     if (race.phase === "countdown") {
       const n = race.count;
@@ -11746,6 +11945,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
   let dustPool = [], smokePool = [], skidPool = [], fireflies = null, lampLights = [];
   let comicBurstPool = [];
+  let contactShadows = new Map();
 
   function _initExtras(mats) {
     /* dust puffs */
@@ -11814,6 +12014,12 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       comicBurstPool.push(m);
     }
   }
+
+  G.splashPuddle = function (wx, wz, scale) {
+    const n = G.quality === "low" ? 4 : 10;
+    G.spawnDust(wx, 1.4, wz, n);
+    if (G.field && G.burstAt) G.burstAt(G.field, wx, wz, "splash", Math.ceil(6 * (scale || 1)));
+  };
 
   G.spawnDust = function (wx, wy, wz, n) {
     let used = 0;
@@ -11897,10 +12103,20 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     } else if (fireflies) fireflies.visible = G.quality !== "low";
     if (field && field.karts) {
       field.karts.forEach((k) => {
-        if (k.drifting && k.speed > 80) {
-          if (Math.random() < dt * 18) G.spawnSmoke(k);
-          if (Math.random() < dt * 10) G.spawnSkid(k);
-          if (k.driftTier > 0 && Math.random() < dt * 34) _spawnDriftSpark(k);
+        if (k.drifting && k.speed > 70) {
+          if (Math.random() < dt * 22) G.spawnSmoke(k);
+          if (Math.random() < dt * 12) G.spawnSkid(k);
+          if (Math.random() < dt * (28 + k.driftTier * 22)) _spawnDriftSpark(k);
+        }
+        if (k._offRoad && k.speed > 40 && Math.random() < dt * 24) {
+          G.spawnDust(k.x, (k.alt || 0) + 1.4, k.y, 8);
+        }
+        if (G.track && G.track.isPuddle && G.track.isPuddle(k.x, k.y) && k.speed > 50 && Math.random() < dt * 16) {
+          if (G.splashPuddle) G.splashPuddle(k.x, k.y, 0.55);
+        }
+        if (k._bumped) {
+          G.spawnDust(k.x, (k.alt || 0) + 2, k.y, 10);
+          k._bumped = 0;
         }
       });
     }
@@ -11928,7 +12144,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     if (!driftSparkPool) {
       driftSparkPool = [];
       const geo = G.makeStarGeometry ? G.makeStarGeometry() : new (THREE().PlaneGeometry)(1, 1);
-      for (let i = 0; i < 36; i++) {
+      for (let i = 0; i < 64; i++) {
         const m = new (THREE().Mesh)(geo, new (THREE().MeshBasicMaterial)({ color: 0xffffff, side: THREE().DoubleSide, fog: false }));
         m.visible = false; m.userData.life = 0; m.userData.noOutline = true; m.frustumCulled = false;
         scene.add(m);
@@ -11942,7 +12158,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     const back = k.isPlayer ? 9 : 7, w = k.isPlayer ? 4.6 : 3.6;
     m.position.set(k.x - ca * back - sa * w * side, 1.2, k.y - sa * back + ca * w * side);
     m.userData.v = [-ca * 14 + (Math.random() - 0.5) * 18 - sa * side * 10, 10 + Math.random() * 10, -sa * 14 + (Math.random() - 0.5) * 18 + ca * side * 10];
-    m.userData.life = 0.32; m.userData.max = 0.32;
+    m.userData.life = 0.42; m.userData.max = 0.42;
     m.material.color.setHex(DRIFT_SPARK_COLS[Math.min(3, k.driftTier)]);
     m.visible = true;
   }
@@ -12293,6 +12509,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     "uniform float camNear;",
     "uniform float camFar;",
     "uniform float inkPx;",
+    "uniform float bloomAmt;",
     "varying vec2 vUv;",
     "float luma(vec3 c){ return dot(c, vec3(0.299,0.587,0.114)); }",
     /* 1/viewZ is affine across a plane in screen space, so its Laplacian is
@@ -12333,13 +12550,16 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     "  vec2 px = inkPx / res;",
     "  float e = max(edgeAt(uv, px), edgeAt(uv, px * 0.5));",
     "  float zc = 1.0 / max(invZ(uv), 1e-6);",
-    "  e *= inkAmt * (1.0 - smoothstep(170.0, 420.0, zc));",
-    "  vec3 ink = vec3(0.086, 0.102, 0.22);",
-    "  col = mix(col, ink, clamp(e, 0.0, 1.0) * 0.95);",
+    "  e *= inkAmt * (1.0 - smoothstep(190.0, 480.0, zc));",
+    "  vec3 ink = vec3(0.075, 0.090, 0.20);",
+    "  col = mix(col, ink, clamp(e, 0.0, 1.0) * 0.97);",
     /* Clean cartoon grade: a bit brighter and more saturated, no grain. */
     "  float l2 = luma(col);",
-    "  col = mix(vec3(l2), col, 1.06);",
-    "  col *= 1.04;",
+    "  col = mix(vec3(l2), col, 1.08);",
+    "  col *= 1.05;",
+    /* Subtle bloom on very bright pixels (lightbar, lamps) — cheap threshold glow. */
+    "  float glow = smoothstep(0.88, 1.05, l2);",
+    "  col += col * glow * 0.22 * bloomAmt;",
     "  if (poster > 0.01) col = mix(col, col * vec3(1.0, 0.97, 0.88), 0.12 * poster);",
     "  gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);",
     "}"
@@ -12382,7 +12602,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       inkAmt: { value: 1 },
       camNear: { value: 0.8 },
       camFar: { value: 4200 },
-      inkPx: { value: 1.6 },
+      inkPx: { value: 1.85 },
+      bloomAmt: { value: 0.55 },
     };
     const mat = new (T.ShaderMaterial)({
       uniforms: uniforms,
@@ -12468,7 +12689,10 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     P.uniforms.inkAmt.value = G._inkOff ? 0 : 1;
     P.uniforms.camNear.value = camera.near || 0.8;
     P.uniforms.camFar.value = camera.far || 4200;
-    P.uniforms.inkPx.value = Math.max(1.1, 1.45 * (h / 720));
+    P.uniforms.inkPx.value = Math.max(1.2, 1.7 * (h / 720));
+    const pl = G.field && G.field.player;
+    P.uniforms.bloomAmt.value = (pl && pl.boostT > 0 && pl.boostKind === "lightbar") ? 1.0 : 0.45;
+
 
     /* Present without a second sRGB encode — the scene target is already display-referred. */
     const prev = renderer.outputColorSpace;
