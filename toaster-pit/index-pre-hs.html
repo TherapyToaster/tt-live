@@ -1565,7 +1565,7 @@ class RoundedBoxGeometry extends BoxGeometry {
 // Palette is the shared Mr. Toasty universe set, all on black.
 var PIT = PIT || {};
 
-PIT.VERSION = "0.6.3";
+PIT.VERSION = "0.7.0";
 
 PIT.PAL = {
   black:    "#000000",
@@ -3564,6 +3564,61 @@ PIT.colorMat = function (hex, opts) {
     osc("square", 140, ac().currentTime, 0.16, 0.12, 0.005, sfxBus, 90);
   }
 
+  // ---------- v0.7 interactable SFX (procedural, original) ----------
+  function peel() {
+    var t = ac().currentTime;
+    noise(0.26, 0.22, 3200, 0.6, t, sfxBus);          // tape rip
+    noise(0.12, 0.14, 5200, 1.4, t + 0.12, sfxBus);
+    osc("triangle", 900, t + 0.2, 0.12, 0.08, 0.004, sfxBus, 1500);
+  }
+  function smack() {
+    var t = ac().currentTime;
+    noise(0.12, 0.42, 160, 0.7, t, sfxBus, "brown");  // palm thump
+    osc("sine", 72, t, 0.18, 0.4, 0.002, sfxBus, 40);
+    osc("triangle", 430, t + 0.01, 0.42, 0.09, 0.002, sfxBus);   // sheet-metal ring
+    osc("triangle", 655, t + 0.01, 0.36, 0.06, 0.002, sfxBus);
+  }
+  function foam() {
+    var t = ac().currentTime;
+    noise(0.75, 0.3, 2600, 0.5, t, sfxBus);           // hiss
+    noise(0.5, 0.18, 900, 0.6, t + 0.05, sfxBus);
+    osc("sine", 220, t, 0.3, 0.06, 0.02, sfxBus, 160);
+  }
+  function dialTick() {
+    var t = ac().currentTime;
+    noise(0.02, 0.18, 2600, 2, t, sfxBus);
+    noise(0.02, 0.12, 2000, 2, t + 0.06, sfxBus);
+    osc("square", 520, t, 0.03, 0.05, 0.001, sfxBus);
+  }
+  function hold(on) {
+    var t = ac().currentTime;
+    osc("square", on ? 440 : 330, t, 0.06, 0.08, 0.002, sfxBus);
+    osc("square", on ? 660 : 247, t + 0.06, 0.07, 0.08, 0.002, sfxBus);
+  }
+  function trayCash(n) {
+    var k, c = Math.min(10, 3 + ((n || 0) / 3) | 0);
+    for (k = 0; k < c; k++) setTimeout(function () { if (!muted && ac()) coin(); }, k * 55);
+    noise(0.3, 0.16, 1800, 0.7, ac().currentTime, sfxBus);   // crumbs sliding
+  }
+  function tvFlip(won) {
+    var t = ac().currentTime, k;
+    for (k = 0; k < 8; k++) osc("square", k % 2 ? 660 : 494, t + k * 0.09, 0.05, 0.05, 0.002, sfxBus);
+    setTimeout(function () {
+      if (muted || !ac()) return;
+      var t2 = ac().currentTime;
+      if (won) medJingle(t2);
+      else { osc("sawtooth", 330, t2, 0.5, 0.12, 0.01, sfxBus, 90); noise(0.2, 0.1, 400, 0.6, t2, sfxBus); }
+    }, 780);
+  }
+  function glint() {
+    var t = ac().currentTime;
+    [1046, 1318, 1568, 2093].forEach(function (f, i) { osc("sine", f, t + i * 0.06, 0.25, 0.08, 0.004, sfxBus); });
+  }
+  function chatter() {
+    var t = ac().currentTime, k;
+    for (k = 0; k < 4; k++) { noise(0.03, 0.16, 1500 + k * 200, 2.5, t + k * 0.07, sfxBus); osc("square", 180 + k * 30, t + k * 0.07, 0.03, 0.05, 0.001, sfxBus); }
+  }
+
   function deadline() {
     var c = ac(); if (!c || muted) return;
     var t = c.currentTime;
@@ -3654,7 +3709,16 @@ PIT.colorMat = function (hex, opts) {
     deny: function () { if (!muted && ac()) deny(); },
     deadline: function () { if (!muted && ac()) deadline(); },
     bank: function () { if (!muted && ac()) bank(); },
-    hum: hum
+    hum: hum,
+    peel: function () { if (!muted && ac()) peel(); },
+    smack: function () { if (!muted && ac()) smack(); },
+    foam: function () { if (!muted && ac()) foam(); },
+    dial: function () { if (!muted && ac()) dialTick(); },
+    hold: function (on) { if (!muted && ac()) hold(on); },
+    trayCash: function (n) { if (!muted && ac()) trayCash(n); },
+    tvFlip: function (won) { if (!muted && ac()) tvFlip(won); },
+    glint: function () { if (!muted && ac()) glint(); },
+    chatter: function () { if (!muted && ac()) chatter(); }
   };
 })();
 
@@ -3675,11 +3739,11 @@ PIT.colorMat = function (hex, opts) {
   SYM.forEach(function (s) { PIT.SYM_BY_ID[s.id] = s; });
 
   PIT.CHARMS = [
-    { id: "crumbTray",    name: "Crumb Tray",         cost: 15, desc: "+1 crumb for every Plain Toast in a winning line." },
-    { id: "butterKnife",  name: "Butter Knife",       cost: 25, desc: "Butter Skull lines pay double." },
+    { id: "crumbTray",    name: "Crumb Tray",         cost: 15, desc: "+1 crumb for every Plain Toast in a winning line. The cabinet tray also catches +1 crumb a pull." },
+    { id: "butterKnife",  name: "Butter Knife",       cost: 25, desc: "Butter Skull lines pay double. +2 butter pats for the dial now and every deadline." },
     { id: "rubberSkull",  name: "Rubber Skull",       cost: 60, desc: "Toasty Skulls count as wild." },
-    { id: "smokeDetector",name: "Smoke Detector",     cost: 40, desc: "Blocks the first Burn each session." },
-    { id: "popupTimer",   name: "Pop-Up Timer",       cost: 50, desc: "+1 pull per session." },
+    { id: "smokeDetector",name: "Smoke Detector",     cost: 40, desc: "Blocks the first Burn each session. +1 Crumb Foam charge now and every deadline." },
+    { id: "popupTimer",   name: "Pop-Up Timer",       cost: 50, desc: "+1 pull per session. +1 reel hold per session." },
     { id: "therapyCouch", name: "Therapy Couch",      cost: 35, desc: "+5% interest on banked crumbs." },
     { id: "glitchFilter", name: "Glitch Filter",      cost: 70, desc: "Some tiles glitch into a copy of the best symbol next to them." },
     { id: "crustCollector",name:"Crust Collector",    cost: 45, desc: "+1 multiplier for good every time a pull pays nothing." },
@@ -3687,7 +3751,7 @@ PIT.colorMat = function (hex, opts) {
     { id: "okayestMug",   name: "World's Okayest Mug",cost: 20, desc: "The first pull of each session pays double." },
     { id: "forkOutlet",   name: "Fork in the Outlet", cost: 80, desc: "All payouts are tripled, but Burnt Toast shows up twice as often." },
     { id: "sourdough",    name: "Sourdough Starter",  cost: 30, desc: "Plain Toast is worth +1 more every session." },
-    { id: "triggeredBtn", name: "Triggered Button",   cost: 40, desc: "One free re-pull per deadline." },
+    { id: "triggeredBtn", name: "Triggered Button",   cost: 40, desc: "One free re-pull per deadline. +1 cabinet smack per session." },
     { id: "jamSession",   name: "Jam Session",        cost: 50, desc: "Jam Skulls also count as Avocado Toast." },
     { id: "goldenCrumbs", name: "Golden Crumbs",      cost: 65, desc: "The center slot is 10% more likely to land Golden Skull." }
   ];
@@ -3759,6 +3823,8 @@ PIT.colorMat = function (hex, opts) {
     for (i = 0; i < SYM.length; i++) {
       s = SYM[i];
       w[s.id] = s.weight * (fork && s.cursed ? 2 : 1);
+      // v0.7: sticker / butter dial / lucky-frame buffs for this pull
+      if (state.pullBuff && state.pullBuff.w && state.pullBuff.w[s.id] != null) w[s.id] *= state.pullBuff.w[s.id];
     }
     return w;
   }
@@ -3941,6 +4007,7 @@ PIT.colorMat = function (hex, opts) {
       pay *= (state.crustMult || 1);
       if (PIT.hasCharm(state, "forkOutlet")) pay *= 3;
       if (PIT.hasCharm(state, "okayestMug") && state.pullsThisSession === 0) pay *= 2;
+      if (state.pullBuff && state.pullBuff.pay) pay *= state.pullBuff.pay; // v0.7 Hot Crust sticker
       pay = Math.floor(pay);
     }
     return { pay: pay, burned: burned, blocked: blocked, wins: wins, lines: lines };
@@ -3948,17 +4015,25 @@ PIT.colorMat = function (hex, opts) {
 
   PIT.spinGrid = function (state) {
     var grid = [], r, c;
+    var held = (state.pullBuff && state.pullBuff.held) || null;
     for (r = 0; r < 3; r++) {
       grid[r] = [];
-      for (c = 0; c < 5; c++) grid[r][c] = rollSymbol(state, r, c);
+      for (c = 0; c < 5; c++) {
+        // v0.7 reel holds: a held reel keeps last pull's symbols
+        if (held && held[c] && state.lastGrid) grid[r][c] = state.lastGrid[r][c];
+        else grid[r][c] = rollSymbol(state, r, c);
+      }
     }
     return applyGlitch(state, grid);
   };
+  PIT._rng = rng;
+  PIT._rollSymbol = rollSymbol;
 
   // Apply a finished pull to the run. `isRepull` does not spend a pull and replaces the last result.
   PIT.applyPull = function (state, isRepull) {
     if (state.status !== "play") return null;
     if (!isRepull && state.pullsLeft <= 0) return null;
+    if (PIT.Tools) PIT.Tools.beginPull(state, !!isRepull);
     var grid = PIT.spinGrid(state);
     var ev = PIT.evaluate(state, grid);
     if (ev.burned && ev.blocked) state.smokeUsed = true;
@@ -3977,6 +4052,7 @@ PIT.colorMat = function (hex, opts) {
       state.pullsThisSession += 1;
     }
     if (isRepull) state.triggeredUsed = true;
+    if (PIT.Tools) PIT.Tools.afterPull(state, ev);
     if (state.pullsLeft <= 0) state.status = "shop";
     return ev;
   };
@@ -4018,6 +4094,7 @@ PIT.colorMat = function (hex, opts) {
     state.loose -= c.cost;
     state.charms[id] = true;
     state.shopOffers = state.shopOffers.filter(function (x) { return x !== id; });
+    if (PIT.Tools) PIT.Tools.onCharm(state, id);
     // Pop-Up Timer bought mid-run doesn't add a pull to a finished session,
     // but will apply starting next session via pullsThisSession().
     return { ok: true, charm: c };
@@ -4049,6 +4126,7 @@ PIT.colorMat = function (hex, opts) {
     state.lastResult = null;
     state.status = "play";
     state._interestEarned = earned;
+    if (PIT.Tools) PIT.Tools.onSession(state);
     return "play";
   };
 
@@ -4072,10 +4150,27 @@ PIT.colorMat = function (hex, opts) {
     state.session = 0; // startSession increments
     state.triggeredUsed = false;
     state.smokeUsed = false;
+    if (PIT.Tools) PIT.Tools.onDeadline(state);
     PIT.startSession(state);
     // After startSession, session is 1, pulls reset. Good.
     // But sessionsCleared and sourdough keep growing across deadlines — intended.
     return state;
+  };
+
+  // v0.7 lines for the interactables. Same rules: jam and crumbs, nothing crude.
+  PIT.TOOL_LINES = {
+    peel: ["Peel it slow. The good ones leave glue.", "Sticker power. Use it before the deadline does.", "That one was stuck on with butter."],
+    dial: ["Butter on the dial. Smooth odds.", "A little butter turns any reel.", "Dial it in. Butter's not free."],
+    "smack:reroll": ["Percussive maintenance. It works.", "One good smack and the reel listens.", "The cabinet felt that one."],
+    "smack:dud": ["Thunk. The toaster ignored you.", "All palm, no luck.", "That's just a sore hand."],
+    "smack:burnt": ["Too hard. Something got toasted.", "Easy. You knocked the crumbs into the coils.", "Smack it gentle next time."],
+    foam: ["Foam's out. Burn's gone. Plain toast again.", "Crumb foam. Smells like a bakery.", "Fire's out. Score it again."],
+    tray: ["Crumbs off the tray, into the pocket.", "Patience pays. The tray agrees.", "Cleaned the tray. Felt good."],
+    "tv:won": ["The TV likes you. Double crumbs.", "Static says yes.", "Double. Don't get used to it."],
+    "tv:lost": ["The TV took it. Static says sorry.", "Nothing. The screen just laughed.", "Lost the flip. Shake it off."],
+    lucky: ["You found the lucky skull. Golden odds next pull.", "That frame was glowing for you.", "Lucky skull. The wall approves."],
+    egg: ["The skulls say hi.", "Wall art likes attention.", "Rattle rattle. That's Coty's crew."],
+    hold: ["Holding that reel. Choose the rest.", "Lock it in.", "Hold it. Let the others spin."]
   };
 
   // Mr. Toasty's lines. Jam and crumbs, never gore, never politics, never crude.
@@ -4183,8 +4278,355 @@ PIT.colorMat = function (hex, opts) {
 })();
 
 
+/* ==== 21-tools.js ==== */
+// Toaster Pit v0.7 — interactable rules (pure, no DOM / Three). Every on-screen clickable has a
+// cost, a cooldown or limited uses, so the player has to choose. Original Mr. Toasty content only.
+(function () {
+  var T = PIT.TOOL = {
+    BUTTER_START: 3, BUTTER_DEADLINE: 2, BUTTER_CAP: 9, DIAL_MUL: 2.5,
+    HOLDS: 2, MAX_HELD: 2,
+    SMACKS: 3, SMACK_REROLL: 0.55, SMACK_DUD: 0.80,   // 55% re-roll a reel, 25% dud, 20% Burnt Toast
+    FOAM: 2,
+    TRAY_CAP: 24,
+    TV_PER_SESSION: 1,
+    LUCKY_MUL: 1.6, LUCKY_CRUMBS: 3,
+    STICKERS: 3, NFT_FRAMES: 8
+  };
+
+  PIT.STICKERS = [
+    { id: "goldLeaf",  name: "Gold Leaf",     short: "GOLD x2",  kind: "skull", bg: "#e3b303", desc: "Next pull: Golden Skull shows up twice as often.", w: { golden: 2 } },
+    { id: "jamJar",    name: "Jam Jar",       short: "JAM x2",   kind: "word",  bg: "#ff00c8", word: "JAM", desc: "Next pull: Jam Skull shows up twice as often.", w: { jam: 2 } },
+    { id: "avoSmash",  name: "Avo Smash",     short: "AVO x2",   kind: "toast", bg: "#5a7a20", desc: "Next pull: Avocado Toast shows up twice as often.", w: { avocado: 2 } },
+    { id: "xEyes",     name: "X Eyes",        short: "SKULL x2", kind: "x",     bg: "#000000", desc: "Next pull: Toasty Skull shows up twice as often.", w: { skull: 2 } },
+    { id: "coolRack",  name: "Cooling Rack",  short: "NO BURN",  kind: "word",  bg: "#00f0ff", word: "COOL", desc: "Next pull: Burnt Toast is a third as likely.", w: { burnt: 0.33 } },
+    { id: "hotCrust",  name: "Hot Crust",     short: "PAY x1.5", kind: "word",  bg: "#ff5a00", word: "HOT", desc: "Next pull pays 1.5x.", pay: 1.5 },
+    { id: "extraPop",  name: "Extra Pop",     short: "+1 PULL",  kind: "toast", bg: "#FFD400", desc: "+1 pull this session, right now.", pull: 1 },
+    { id: "crumbBomb", name: "Crumb Bomb",    short: "TRAY +6",  kind: "word",  bg: "#d4a05a", word: "+6", desc: "Dumps 6 crumbs into the crumb tray.", tray: 6 }
+  ];
+  PIT.STICKER_BY_ID = {};
+  PIT.STICKERS.forEach(function (s) { PIT.STICKER_BY_ID[s.id] = s; });
+
+  PIT.DIAL = ["off", "butter", "jam", "avocado", "golden", "skull"];
+  function dialCost(id) { var s = PIT.SYM_BY_ID[id]; return s && s.tier >= 4 ? 2 : 1; }
+
+  function rng(state) { return PIT._rng(state); }
+  function has(state, id) { return PIT.hasCharm(state, id); }
+  function freshBuff() { return { w: {}, pay: 1, tags: [] }; }
+  function mulW(buff, id, m) { buff.w[id] = (buff.w[id] == null ? 1 : buff.w[id]) * m; }
+
+  function rollStickers(state) {
+    var pool = PIT.STICKERS.slice(), out = [], i, j, tmp;
+    for (i = pool.length - 1; i > 0; i--) { j = (rng(state) * (i + 1)) | 0; tmp = pool[i]; pool[i] = pool[j]; pool[j] = tmp; }
+    for (i = 0; i < T.STICKERS; i++) out.push({ id: pool[i].id, peeled: false });
+    state.tools.stickers = out;
+    state.tools.stickerGen = (state.tools.stickerGen || 0) + 1;
+  }
+  function rollLucky(state) {
+    state.tools.lucky = (rng(state) * T.NFT_FRAMES) | 0;
+    state.tools.luckyUsed = false;
+  }
+  function sessionRefill(state) {
+    var t = state.tools;
+    t.holdsLeft = T.HOLDS + (has(state, "popupTimer") ? 1 : 0);
+    t.held = [false, false, false, false, false];
+    t.smacksLeft = T.SMACKS + (has(state, "triggeredBtn") ? 1 : 0);
+    t.tvLeft = T.TV_PER_SESSION;
+    t.smacked = false; t.tvUsed = false;
+    rollLucky(state);
+  }
+
+  function heldCount(t) { var n = 0, i; for (i = 0; i < 5; i++) if (t.held[i]) n++; return n; }
+  function gridHas(grid, id) {
+    var r, c;
+    if (!grid) return false;
+    for (r = 0; r < 3; r++) for (c = 0; c < 5; c++) if (grid[r][c] === id) return true;
+    return false;
+  }
+  function trayValue(n) { return n + Math.floor(n * n / 24); }
+
+  // Re-score the current pull after a tool changed the grid. Pays (or takes back) the difference.
+  function regrade(state, grid) {
+    var pb = state.pullBuff || freshBuff();
+    var old = state.lastResult ? (state.lastResult.pay || 0) : 0;
+    var wasBurn = !!(state.lastResult && state.lastResult.burned && !state.lastResult.blocked);
+    var saveP = state.pullsThisSession;
+    state.pullsThisSession = pb.pts != null ? pb.pts : saveP;
+    state.smokeUsed = !!pb.smoke;
+    var ev = PIT.evaluate(state, grid);
+    state.pullsThisSession = saveP;
+    state.smokeUsed = !!pb.smoke || (ev.burned && ev.blocked);
+    var delta = ev.pay - old;
+    state.loose = Math.max(0, state.loose + delta);
+    state.totalWon = Math.max(0, state.totalWon + delta);
+    state.lastGrid = grid;
+    state.lastResult = ev;
+    var spilled = 0;
+    if (ev.burned && !ev.blocked && !wasBurn && state.tools.tray > 0) { spilled = state.tools.tray; state.tools.tray = 0; }
+    ev.tools = { spilled: spilled };
+    return { ev: ev, delta: delta, spilled: spilled };
+  }
+
+  PIT.Tools = {
+    init: function (state) {
+      state.tools = { butter: T.BUTTER_START, dial: "off", foam: T.FOAM, tray: 0, stickers: [], stickerGen: 0 };
+      state.nextBuff = freshBuff();
+      state.pullBuff = null;
+      rollStickers(state);
+      sessionRefill(state);
+    },
+    onSession: function (state) { if (state.tools) sessionRefill(state); },
+    onDeadline: function (state) {
+      var t = state.tools; if (!t) return;
+      t.butter = Math.min(T.BUTTER_CAP, t.butter + T.BUTTER_DEADLINE + (has(state, "butterKnife") ? 2 : 0));
+      t.foam = Math.max(t.foam, T.FOAM + (has(state, "smokeDetector") ? 1 : 0));
+      rollStickers(state);
+    },
+    onCharm: function (state, id) {
+      var t = state.tools; if (!t) return;
+      if (id === "butterKnife") t.butter = Math.min(T.BUTTER_CAP, t.butter + 2);
+      if (id === "smokeDetector") t.foam += 1;
+      if (id === "popupTimer") t.holdsLeft += 1;
+      if (id === "triggeredBtn") t.smacksLeft += 1;
+    },
+
+    // Called by applyPull before the grid is rolled.
+    beginPull: function (state, isRepull) {
+      var t = state.tools; if (!t) return;
+      if (isRepull && state.pullBuff) { state.pullBuff.held = null; return; } // a re-pull keeps the same buffs, no holds
+      var pb = state.nextBuff || freshBuff();
+      state.nextBuff = freshBuff();
+      pb.pts = state.pullsThisSession;
+      pb.smoke = !!state.smokeUsed;
+      pb.butterSpent = 0;
+      if (t.dial !== "off") {
+        var cost = dialCost(t.dial);
+        if (t.butter >= cost) {
+          t.butter -= cost;
+          mulW(pb, t.dial, T.DIAL_MUL);
+          pb.butterSpent = cost;
+          pb.tags.push("BUTTERED " + PIT.SYM_BY_ID[t.dial].name.toUpperCase());
+        } else pb.tags.push("NO BUTTER");
+      }
+      var n = heldCount(t);
+      if (n && state.lastGrid) {
+        pb.held = t.held.slice();
+        t.holdsLeft = Math.max(0, t.holdsLeft - n);
+      } else pb.held = null;
+      t.held = [false, false, false, false, false];
+      t.smacked = false; t.tvUsed = false;
+      state.pullBuff = pb;
+    },
+    // Called by applyPull after scoring.
+    afterPull: function (state, ev) {
+      var t = state.tools; if (!t) return;
+      var info = { trayGain: 0, spilled: 0, butterGain: 0 };
+      if (ev.burned && !ev.blocked) { info.spilled = t.tray; t.tray = 0; }
+      else {
+        var g = 1 + (ev.wins ? ev.wins.length : 0) + (has(state, "crumbTray") ? 1 : 0);
+        info.trayGain = Math.min(T.TRAY_CAP - t.tray, g);
+        t.tray += info.trayGain;
+      }
+      var bl = (ev.wins || []).filter(function (w) { return w.symbol === "butter"; }).length;
+      if (bl) { info.butterGain = Math.min(T.BUTTER_CAP - t.butter, bl); t.butter += info.butterGain; }
+      ev.tools = info;
+    },
+
+    canAct: function (state) { return !!(state && state.status === "play" && state.tools); },
+    heldCount: function (state) { return heldCount(state.tools); },
+    trayValue: trayValue,
+    dialCost: dialCost,
+
+    // ---- actions. Each returns { ok, kind, msg, color, ... } ----
+    peel: function (state, i) {
+      var t = state.tools, st = t && t.stickers[i];
+      if (!this.canAct(state) || !st) return { ok: false, msg: "NOT NOW" };
+      if (st.peeled) return { ok: false, msg: "ALREADY PEELED" };
+      var def = PIT.STICKER_BY_ID[st.id], k;
+      st.peeled = true;
+      var nb = state.nextBuff || (state.nextBuff = freshBuff());
+      if (def.w) for (k in def.w) mulW(nb, k, def.w[k]);
+      if (def.pay) nb.pay *= def.pay;
+      if (def.w || def.pay) nb.tags.push(def.short);
+      if (def.pull) {
+        state.pullsLeft += def.pull;
+        state._shopReady = false;
+      }
+      if (def.tray) t.tray = Math.min(T.TRAY_CAP, t.tray + def.tray);
+      return { ok: true, kind: "peel", index: i, sticker: def, msg: def.short, color: PIT.PAL.magenta };
+    },
+
+    turnDial: function (state) {
+      var t = state.tools;
+      if (!this.canAct(state)) return { ok: false, msg: "NOT NOW" };
+      var i = PIT.DIAL.indexOf(t.dial);
+      t.dial = PIT.DIAL[(i + 1) % PIT.DIAL.length];
+      var label = t.dial === "off" ? "BUTTER OFF" : "BUTTER: " + PIT.SYM_BY_ID[t.dial].name.toUpperCase();
+      return { ok: true, kind: "dial", dial: t.dial, msg: label, color: PIT.PAL.yellow };
+    },
+
+    toggleHold: function (state, c) {
+      var t = state.tools;
+      if (!this.canAct(state) || !state.lastGrid) return { ok: false, msg: "PULL FIRST" };
+      if (t.held[c]) { t.held[c] = false; return { ok: true, kind: "hold", col: c, on: false, msg: "RELEASED", color: PIT.PAL.bone }; }
+      var n = heldCount(t);
+      if (n >= T.MAX_HELD) return { ok: false, msg: "MAX " + T.MAX_HELD + " HELD" };
+      if (t.holdsLeft - n <= 0) return { ok: false, msg: "NO HOLDS LEFT" };
+      t.held[c] = true;
+      return { ok: true, kind: "hold", col: c, on: true, msg: "HOLD", color: PIT.PAL.cyan };
+    },
+
+    smack: function (state) {
+      var t = state.tools;
+      if (!this.canAct(state) || !state.lastGrid) return { ok: false, msg: "PULL FIRST" };
+      if (t.smacksLeft <= 0) return { ok: false, msg: "HAND HURTS. NEXT SESSION" };
+      if (t.smacked) return { ok: false, msg: "ONE SMACK A PULL" };
+      if (t.tvUsed) return { ok: false, msg: "TV ALREADY BET THIS PULL" };
+      t.smacksLeft -= 1; t.smacked = true;
+      var x = rng(state), grid = state.lastGrid.map(function (row) { return row.slice(); }), res;
+      if (x < T.SMACK_REROLL) {
+        var col = (rng(state) * 5) | 0, r;
+        for (r = 0; r < 3; r++) grid[r][col] = PIT._rollSymbol(state, r, col);
+        res = regrade(state, grid);
+        return { ok: true, kind: "smack", outcome: "reroll", col: col, delta: res.delta, ev: res.ev, spilled: res.spilled,
+          msg: "REEL " + (col + 1) + " JUMPED", color: PIT.PAL.yellow };
+      }
+      if (x < T.SMACK_DUD) return { ok: true, kind: "smack", outcome: "dud", delta: 0, msg: "THUNK. NOTHING", color: PIT.PAL.bone };
+      var cells = [], rr, cc;
+      for (rr = 0; rr < 3; rr++) for (cc = 0; cc < 5; cc++) if (grid[rr][cc] !== "burnt") cells.push([rr, cc]);
+      var pick = cells.length ? cells[(rng(state) * cells.length) | 0] : [1, 2];
+      grid[pick[0]][pick[1]] = "burnt";
+      res = regrade(state, grid);
+      return { ok: true, kind: "smack", outcome: "burnt", cell: pick, delta: res.delta, ev: res.ev, spilled: res.spilled,
+        msg: "TOO HARD. BURNT TOAST", color: PIT.PAL.glitch };
+    },
+
+    foam: function (state) {
+      var t = state.tools;
+      if (!this.canAct(state) || !state.lastGrid) return { ok: false, msg: "PULL FIRST" };
+      if (t.foam <= 0) return { ok: false, msg: "FOAM EMPTY" };
+      if (!gridHas(state.lastGrid, "burnt")) return { ok: false, msg: "NOTHING BURNT" };
+      if (t.tvUsed) return { ok: false, msg: "TV ALREADY BET THIS PULL" };
+      t.foam -= 1;
+      var n = 0, grid = state.lastGrid.map(function (row) {
+        return row.map(function (id) { if (id === "burnt") { n++; return "plain"; } return id; });
+      });
+      var res = regrade(state, grid);
+      return { ok: true, kind: "foam", cleared: n, delta: res.delta, ev: res.ev, msg: "FOAMED " + n + " BURNT", color: PIT.PAL.cyan };
+    },
+
+    cashTray: function (state) {
+      var t = state.tools;
+      if (!this.canAct(state)) return { ok: false, msg: "NOT NOW" };
+      if (t.tray <= 0) return { ok: false, msg: "TRAY EMPTY" };
+      var n = t.tray, v = trayValue(n);
+      t.tray = 0;
+      state.loose += v;
+      state.totalWon += v;
+      return { ok: true, kind: "tray", pile: n, value: v, delta: v, msg: "+" + v + " FROM THE TRAY", color: PIT.PAL.yellow };
+    },
+
+    tv: function (state) {
+      var t = state.tools, lr = state.lastResult;
+      if (!this.canAct(state) || !lr) return { ok: false, msg: "PULL FIRST" };
+      if (t.tvLeft <= 0) return { ok: false, msg: "TV'S DONE THIS SESSION" };
+      if (t.tvUsed) return { ok: false, msg: "ONE BET A PULL" };
+      if (!(lr.pay > 0)) return { ok: false, msg: "NEEDS A PAYING PULL" };
+      t.tvLeft -= 1; t.tvUsed = true;
+      var stake = lr.pay;
+      if (rng(state) < 0.5) {
+        state.loose += stake; state.totalWon += stake; lr.pay += stake;
+        return { ok: true, kind: "tv", won: true, delta: stake, msg: "DOUBLE! +" + stake, color: PIT.PAL.yellow };
+      }
+      state.loose = Math.max(0, state.loose - stake); state.totalWon = Math.max(0, state.totalWon - stake); lr.pay = 0;
+      return { ok: true, kind: "tv", won: false, delta: -stake, msg: "NOTHING. -" + stake, color: PIT.PAL.glitch };
+    },
+
+    frame: function (state, i) {
+      var t = state.tools;
+      if (!this.canAct(state)) return { ok: false, msg: "NOT NOW" };
+      if (i === t.lucky && !t.luckyUsed) {
+        t.luckyUsed = true;
+        var nb = state.nextBuff || (state.nextBuff = freshBuff());
+        mulW(nb, "golden", T.LUCKY_MUL); mulW(nb, "skull", T.LUCKY_MUL);
+        nb.tags.push("LUCKY");
+        state.loose += T.LUCKY_CRUMBS; state.totalWon += T.LUCKY_CRUMBS;
+        return { ok: true, kind: "lucky", index: i, delta: T.LUCKY_CRUMBS, msg: "LUCKY SKULL +" + T.LUCKY_CRUMBS, color: PIT.PAL.yellow };
+      }
+      return { ok: true, kind: "egg", index: i, delta: 0, msg: PIT.pick(["RATTLE", "BONE JOKE", "GLITCH", "X EYES", "HI"]), color: PIT.PAL.bone };
+    },
+
+    // ---- one entry point for HUD ids ----
+    use: function (state, id) {
+      var p = id.split(":");
+      if (p[0] === "hold") return this.toggleHold(state, +p[1]);
+      if (p[0] !== "ia") return { ok: false };
+      switch (p[1]) {
+        case "sticker": return this.peel(state, +p[2]);
+        case "dial": return this.turnDial(state);
+        case "smack": return this.smack(state);
+        case "foam": return this.foam(state);
+        case "tray": return this.cashTray(state);
+        case "tv": return this.tv(state);
+        case "nft": return this.frame(state, +p[2]);
+      }
+      return { ok: false };
+    },
+
+    // Tooltip / inspect info: { title, lines: [..], status, ready }
+    info: function (state, id) {
+      var t = state && state.tools, p = id.split(":"), P = PIT.PAL;
+      if (!t) return null;
+      if (p[0] === "cell") {
+        var rc = p[1].split(","), c = +rc[1], sid = state.lastGrid ? state.lastGrid[+rc[0]][c] : "plain";
+        var n = heldCount(t), on = t.held[c];
+        return { title: "REEL " + (c + 1) + (on ? " · HELD" : ""), lines: ["TAP TO HOLD THIS REEL FOR THE NEXT PULL.", "HOLDS LEFT THIS SESSION: " + Math.max(0, t.holdsLeft - n) + " · MAX " + T.MAX_HELD + " AT ONCE.", "SYMBOL: " + PIT.SYM_BY_ID[sid].name.toUpperCase() + ". LONG-PRESS FOR INFO."],
+          status: on ? "TAP TO RELEASE" : (t.holdsLeft - n > 0 && n < T.MAX_HELD ? "READY" : "NO HOLDS"), ready: on || (t.holdsLeft - n > 0 && n < T.MAX_HELD && !!state.lastGrid), color: P.cyan };
+      }
+      if (p[0] !== "ia") return null;
+      var lr = state.lastResult, burnt = gridHas(state.lastGrid, "burnt");
+      switch (p[1]) {
+        case "sticker":
+          var st = t.stickers[+p[2]], d = st && PIT.STICKER_BY_ID[st.id];
+          if (!d) return null;
+          return { title: d.name.toUpperCase() + " STICKER", lines: [d.desc.toUpperCase(), "PEEL ONCE PER DEADLINE. NEW STICKERS EVERY DEADLINE."], status: st.peeled ? "PEELED" : "TAP TO PEEL", ready: !st.peeled, color: P.magenta };
+        case "dial":
+          var dn = t.dial === "off" ? "OFF" : PIT.SYM_BY_ID[t.dial].name.toUpperCase();
+          return { title: "BUTTER DIAL · " + dn, lines: ["TAP TO TURN. THE NEXT PULL SPENDS BUTTER TO MAKE THAT SYMBOL 2.5X MORE LIKELY.", "1 PAT (GOLDEN / TOASTY SKULL: 2). BUTTER SKULL LINES EARN PATS."], status: "BUTTER " + t.butter + "/" + T.BUTTER_CAP, ready: true, color: P.yellow };
+        case "smack":
+          return { title: "SMACK THE CABINET", lines: ["FREE HIT AFTER A PULL: 55% ONE REEL RE-ROLLS, 25% NOTHING, 20% A TILE TURNS TO BURNT TOAST.", "ONE PER PULL. " + (T.SMACKS) + " PER SESSION."], status: "SMACKS " + t.smacksLeft, ready: t.smacksLeft > 0 && !t.smacked && !t.tvUsed && !!state.lastGrid, color: P.toast };
+        case "foam":
+          return { title: "CRUMB FOAM", lines: ["SPRAY AFTER A PULL: EVERY BURNT TOAST ON THE REELS TURNS INTO PLAIN TOAST AND THE PULL IS RE-SCORED.", "REFILLS EVERY DEADLINE."], status: "CHARGES " + t.foam + (burnt ? "" : " · NO BURNT"), ready: t.foam > 0 && burnt && !t.tvUsed, color: P.cyan };
+        case "tray":
+          return { title: "CRUMB TRAY · " + t.tray, lines: ["CRUMBS PILE UP EVERY PULL (+1, +1 PER PAYING LINE). CASH IN ANYTIME. BIGGER PILES PAY A BONUS.", "A BURN SPILLS THE WHOLE TRAY."], status: "CASH IN: " + trayValue(t.tray), ready: t.tray > 0, color: P.gold };
+        case "tv":
+          return { title: "TOASTY TV", lines: ["DOUBLE OR NOTHING ON THE LAST PULL'S PAYOUT. 50 / 50.", "ONCE PER SESSION. AFTER BETTING, NO SMACK OR FOAM THAT PULL."], status: (lr && lr.pay > 0 ? "STAKE " + lr.pay : "NEEDS A WIN") + " · " + t.tvLeft + " LEFT", ready: t.tvLeft > 0 && !t.tvUsed && !!(lr && lr.pay > 0), color: P.cyan };
+        case "nft":
+          var i = +p[2], lucky = i === t.lucky && !t.luckyUsed, man = PIT.Nfts && PIT.Nfts.list ? PIT.Nfts.list()[i] : null;
+          return { title: man ? man.title.toUpperCase() : "SKULL FRAME", lines: lucky ? ["THIS ONE IS GLOWING. TAP FOR +" + T.LUCKY_CRUMBS + " CRUMBS AND LUCKIER GOLDEN / TOASTY SKULLS NEXT PULL."] : ["COTY'S SKULL. ONE FRAME GLOWS EACH SESSION. FIND IT."], status: lucky ? "LUCKY" : "SAY HI", ready: lucky, color: lucky ? P.yellow : P.bone };
+      }
+      return null;
+    },
+
+    // Tags for the HUD "NEXT PULL" line
+    nextTags: function (state) {
+      var t = state.tools, out = [];
+      if (!t) return out;
+      if (state.nextBuff) out = out.concat(state.nextBuff.tags);
+      if (t.dial !== "off") out.push((t.butter >= dialCost(t.dial) ? "BUTTER " : "NO BUTTER ") + PIT.SYM_BY_ID[t.dial].name.split(" ")[0].toUpperCase());
+      var n = heldCount(t);
+      if (n) out.push(n + " HELD");
+      return out;
+    }
+  };
+
+  // Every new run gets its tools.
+  var baseNewRun = PIT.newRun;
+  PIT.newRun = function (seed) { var s = baseNewRun(seed); PIT.Tools.init(s); return s; };
+})();
+
+
 /* ==== 30-scene.js ==== */
-// Toaster Pit v0.6 — locked camera, procedural audio-driven juice, richer VFX.
+// Toaster Pit v0.7 — locked camera, procedural audio-driven juice, richer VFX.
 (function () {
   var P = PIT.PAL;
   var scene, camera, renderer, canvas3;
@@ -4979,6 +5421,22 @@ PIT.colorMat = function (hex, opts) {
       var y = (Math.random() * h) | 0, hh = 2 + (Math.random() * 8) | 0;
       ctx.drawImage(faceCanvas, 0, y, w, hh, (Math.random() * 8 - 4) | 0, y, w, hh);
     }
+    // v0.7: Toasty TV double-or-nothing overlay / ready badge
+    var ov = PIT.Interact && PIT.Interact.tvFace && PIT.Interact.tvFace(time);
+    if (ov) {
+      if (ov.full) { ctx.fillStyle = "rgba(0,0,0,0.72)"; ctx.fillRect(0, 0, w, h); }
+      ctx.save();
+      ctx.font = (ov.size || 22) + "px " + ((PIT.Graffiti && PIT.Graffiti.ready) ? PIT.Graffiti.FONT_STENCIL : "monospace");
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.lineWidth = 4; ctx.strokeStyle = "#000";
+      var oy = ov.full ? h / 2 : h - 16;
+      if (!ov.full) { ctx.fillStyle = "rgba(0,0,0,0.75)"; ctx.fillRect(0, h - 30, w, 30); }
+      ctx.strokeText(ov.text, w / 2, oy);
+      ctx.fillStyle = ov.color || P.yellow;
+      ctx.fillText(ov.text, w / 2, oy);
+      if (ov.sub) { ctx.font = "14px " + ((PIT.Graffiti && PIT.Graffiti.ready) ? PIT.Graffiti.FONT_STENCIL : "monospace"); ctx.strokeText(ov.sub, w / 2, oy + 26); ctx.fillStyle = P.boneLt; ctx.fillText(ov.sub, w / 2, oy + 26); }
+      ctx.restore();
+    }
     // scanline
     ctx.fillStyle = "rgba(0,240,255,0.05)";
     ctx.fillRect(0, (time * 40) % h, w, 3);
@@ -5505,6 +5963,7 @@ PIT.colorMat = function (hex, opts) {
       PIT.Post.init(renderer, scene, camera);
       if (PIT.Nfts) PIT.Nfts.init(scene);
       buildShafts();
+      if (PIT.Interact) PIT.Interact.init({ scene: scene, machine: machine, camera: camera, canvas: canvas3, cellAnchor: cellAnchor, CW: CW, CH: CH, GAPY: GAPY });
 
       var r, c, g = [];
       for (r = 0; r < 3; r++) { g[r] = []; for (c = 0; c < 5; c++) g[r][c] = "plain"; }
@@ -5563,7 +6022,8 @@ PIT.colorMat = function (hex, opts) {
 
     setGrid: function (grid) { spin = null; setReelGrid(grid); clearWinGlows(); },
 
-    spinTo: function (grid, onDone) {
+    // v0.7: `held` = [bool x5]; held reels stay put (reel holds, and the smack re-rolls one reel)
+    spinTo: function (grid, onDone, held) {
       clearWinGlows();
       var c, ids, painted, tex;
       for (c = 0; c < 5; c++) {
@@ -5582,11 +6042,18 @@ PIT.colorMat = function (hex, opts) {
         reels[c].delay = c * 0.16;
         reels[c].dur = 1.25 + c * 0.16;
         reels[c].done = false;
+        if (held && held[c]) { reels[c].to = 0; reels[c].delay = 0; reels[c].dur = 0; reels[c].done = true; }
+      }
+      if (held) {
+        // compress timing so a single re-rolled reel doesn't wait for the others
+        var k = 0;
+        for (c = 0; c < 5; c++) if (!(held[c])) { reels[c].delay = k * 0.16; reels[c].dur = 1.05 + k * 0.16; k++; }
       }
       setCellIcons(grid);
       showAllCells(false);
+      if (held) for (c = 0; c < 5; c++) if (held[c]) showCellCol(c, true);
       spin = { grid: grid, t: 0, onDone: onDone };
-      leverT = 1;
+      if (!held || held.filter(function (h) { return !h; }).length > 1) leverT = 1; // a smack re-roll doesn't pull the lever
       PIT.spawnSteam(4, 0);
       PIT.spawnSteam(4, 1);
       if (PIT.audio && PIT.audio.spinStart) PIT.audio.spinStart();
@@ -5828,6 +6295,7 @@ PIT.colorMat = function (hex, opts) {
         }
       }
       if (PIT.Nfts) PIT.Nfts.tick(dt);
+      if (PIT.Interact) PIT.Interact.tick(dt);
 
       PIT.Post.render(dt);
     }
@@ -7086,13 +7554,523 @@ PIT.colorMat = function (hex, opts) {
     },
 
     list: function () { return MANIFEST.slice(); },
+    groups: function () { return frames.map(function (f) { return f.group; }); },
+    slots: function () { return SLOTS.slice(0, frames.length); },
     count: function () { return frames.length; }
   };
 })();
 
 
+/* ==== 36-interact.js ==== */
+// Toaster Pit v0.7 — on-screen interactables: 3D props on the cabinet and in the room that the
+// player taps / clicks. Hover + tap highlight, screen-space hit proxies (>= 44 px), juicy feedback.
+// Rules live in 21-tools.js; this file only builds, highlights and animates.
+(function () {
+  var P = PIT.PAL;
+  var S = null, items = [], byId = {}, time = 0, ready = false;
+  var box = new THREE.Box3(), v3 = new THREE.Vector3();
+  var stickerGroups = [], stickerGen = -1, residue = [];
+  var dial, dialFace, dialPlate, dialCtx, dialTex, dialAngle = 0, dialKey = "";
+  var plate, plateCtx, plateTex, plateKey = "";
+  var trayPile, trayLabelCtx, trayLabelTex, trayKey = "", trayShown = 0, trayDrain = 0;
+  var foamGroup, foamLeds = [], foamParts = [];
+  var holdFrames = [], holdPreview = -1;
+  var nftGroups = [], nftBase = [], luckyHalo;
+  var tvMsg = null, jolt = 0, haloTexCache = null;
+  var MIN = 44;
+
+  function canvasTex(cv) {
+    var t = new THREE.CanvasTexture(cv);
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = 4;
+    t.needsUpdate = true;
+    return t;
+  }
+  function cnv(w, h) { var c = document.createElement("canvas"); c.width = w; c.height = h; return { c: c, x: c.getContext("2d") }; }
+  function font(px) { return px + "px " + ((PIT.Graffiti && PIT.Graffiti.ready) ? PIT.Graffiti.FONT_STENCIL : "monospace"); }
+  function std(o) { return new THREE.MeshStandardMaterial(o); }
+  function chromeM(col) { return std({ color: col || 0xc8ccd4, metalness: 0.9, roughness: 0.28, envMapIntensity: 1.0 }); }
+  function m(geo, mat, parent, x, y, z) { var me = new THREE.Mesh(geo, mat); me.position.set(x || 0, y || 0, z || 0); parent.add(me); return me; }
+  function hitBox(parent, w, h, d, x, y, z) {
+    var me = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshBasicMaterial({ visible: false }));
+    me.position.set(x || 0, y || 0, z || 0); parent.add(me); return me;
+  }
+
+  function haloTex() {
+    if (haloTexCache) return haloTexCache;
+    var k = cnv(128, 128), g = k.x.createRadialGradient(64, 64, 10, 64, 64, 62);
+    g.addColorStop(0, "rgba(255,255,255,0.0)");
+    g.addColorStop(0.55, "rgba(255,255,255,0.55)");
+    g.addColorStop(0.75, "rgba(255,255,255,0.9)");
+    g.addColorStop(1, "rgba(255,255,255,0)");
+    k.x.fillStyle = g; k.x.fillRect(0, 0, 128, 128);
+    haloTexCache = canvasTex(k.c);
+    return haloTexCache;
+  }
+  function makeHalo(parent, w, h, color, x, y, z) {
+    var me = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({
+      map: haloTex(), color: color, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false
+    }));
+    me.position.set(x || 0, y || 0, z || 0);
+    me.renderOrder = 6;
+    parent.add(me);
+    return me;
+  }
+
+  function addItem(id, obj, hit, halo, opt) {
+    var it = { id: id, obj: obj, hit: hit || obj, halo: halo, prio: (opt && opt.prio) || 0, punch: 0, hov: 0,
+      baseScale: obj.scale.x, color: (opt && opt.color) || 0xffd400, bias: (opt && opt.bias) || null, off: false };
+    items.push(it); byId[id] = it;
+    return it;
+  }
+
+  // ---------- stickers ----------
+  function drawSticker(k, def, seed) {
+    var ctx = k.x, rng = PIT.makeRng(seed);
+    ctx.clearRect(0, 0, 256, 256);
+    if (PIT.Graffiti && PIT.Graffiti.sticker) {
+      PIT.Graffiti.sticker(ctx, 128, 104, def.kind === "word" ? 216 : 176, 176, def.kind, rng, { bg: def.bg, word: def.word, rot: 0 });
+    } else { ctx.fillStyle = def.bg; ctx.fillRect(30, 20, 196, 170); }
+    // tape strip with the effect name
+    ctx.save();
+    ctx.translate(128, 218); ctx.rotate(-0.04);
+    ctx.fillStyle = "rgba(0,0,0,0.88)"; ctx.fillRect(-118, -24, 236, 48);
+    ctx.strokeStyle = P.yellow; ctx.lineWidth = 3; ctx.strokeRect(-115, -21, 230, 42);
+    ctx.font = font(40); ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillStyle = P.yellow; ctx.fillText(def.short, 0, 2);
+    ctx.restore();
+  }
+  function buildStickers() {
+    var xs = [-0.78, 0.02, 0.78], i;
+    for (i = 0; i < 3; i++) {
+      var g = new THREE.Group();
+      g.position.set(xs[i], 0.43, 0.805);
+      g.rotation.z = [0.09, -0.06, 0.11][i];
+      S.machine.add(g);
+      var k = cnv(256, 256), tex = canvasTex(k.c);
+      var mat = std({ map: tex, transparent: true, alphaTest: 0.05, roughness: 0.55, metalness: 0.05, emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.22, depthWrite: false });
+      var me = m(new THREE.PlaneGeometry(0.36, 0.36), mat, g, 0, 0, 0);
+      me.renderOrder = 4;
+      var halo = makeHalo(g, 0.56, 0.56, 0xff00c8, 0, 0, -0.004);
+      var hb = hitBox(g, 0.36, 0.3, 0.02, 0, 0.03, 0);
+      // glue residue left behind after peeling
+      var res = m(new THREE.PlaneGeometry(0.27, 0.25), new THREE.MeshBasicMaterial({ color: 0x2a2420, transparent: true, opacity: 0, depthWrite: false }), S.machine, xs[i], 0.43, 0.802);
+      res.rotation.z = g.rotation.z; res.renderOrder = 3;
+      residue[i] = res;
+      stickerGroups[i] = { g: g, k: k, tex: tex, mat: mat, mesh: me, peelT: -1, rot: g.rotation.z };
+      addItem("ia:sticker:" + i, g, hb, halo, { prio: 5, color: 0xff00c8, bias: "up" });
+    }
+  }
+  function syncStickers(st) {
+    var t = st && st.tools;
+    if (!t) return;
+    var i;
+    if (t.stickerGen !== stickerGen) {
+      stickerGen = t.stickerGen;
+      for (i = 0; i < 3; i++) {
+        var sg = stickerGroups[i], def = PIT.STICKER_BY_ID[t.stickers[i].id];
+        drawSticker(sg.k, def, 1000 + stickerGen * 7 + i);
+        sg.tex.needsUpdate = true;
+        sg.peelT = -1;
+        sg.g.visible = true; sg.g.position.set(sg.g.position.x, 0.43, 0.805); sg.g.rotation.set(0, 0, sg.rot);
+        sg.mat.opacity = 1;
+        residue[i].material.opacity = 0;
+      }
+    }
+    for (i = 0; i < 3; i++) {
+      var s2 = stickerGroups[i];
+      if (t.stickers[i].peeled && s2.peelT < 0) { s2.g.visible = false; residue[i].material.opacity = 0.55; }
+    }
+  }
+  function tickStickers(dt) {
+    var i, sg, u, xs = [-0.78, 0.02, 0.78];
+    for (i = 0; i < stickerGroups.length; i++) {
+      sg = stickerGroups[i];
+      if (sg.peelT >= 0) {
+        sg.peelT += dt / 0.7;
+        u = Math.min(1, sg.peelT);
+        sg.g.rotation.x = -u * 1.4;
+        sg.g.rotation.z = sg.rot + u * 2.2;
+        sg.g.position.set(xs[i] + u * 0.25, 0.43 + u * 0.55 - u * u * 0.2, 0.805 + u * 0.9);
+        sg.mat.opacity = 1 - u * u;
+        residue[i].material.opacity = 0.55 * u;
+        if (u >= 1) { sg.peelT = -1; sg.g.visible = false; }
+      }
+    }
+  }
+
+  // ---------- butter dial ----------
+  function drawDial(t) {
+    var ctx = dialCtx, i, n = PIT.DIAL.length;
+    ctx.clearRect(0, 0, 256, 128);
+    ctx.fillStyle = "rgba(0,0,0,0.9)"; ctx.fillRect(0, 0, 256, 128);
+    ctx.strokeStyle = P.yellow; ctx.lineWidth = 5; ctx.strokeRect(4, 4, 248, 120);
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.font = font(36); ctx.fillStyle = P.yellow; ctx.fillText("BUTTER " + t.butter, 128, 38);
+    var name = t.dial === "off" ? "OFF" : PIT.SYM_BY_ID[t.dial].name.toUpperCase();
+    ctx.font = font(name.length > 11 ? 26 : 30);
+    ctx.fillStyle = t.dial === "off" ? P.boneDk : (t.butter >= PIT.Tools.dialCost(t.dial) ? P.cyan : P.glitch);
+    ctx.fillText(name, 128, 90);
+    dialTex.needsUpdate = true;
+  }
+  function buildDial() {
+    dial = new THREE.Group();
+    dial.position.set(-1.82, 1.28, 0.44);
+    S.machine.add(dial);
+    m(new THREE.BoxGeometry(0.2, 0.62, 0.26), chromeM(0x8a8a94), dial, 0.12, -0.08, -0.16);       // bracket into the cheek
+    var butterM = std({ color: 0xffd76a, roughness: 0.38, metalness: 0.25, emissive: 0xffd400, emissiveIntensity: 0.18 });
+    var body = m(new THREE.CylinderGeometry(0.17, 0.19, 0.1, 28), butterM, dial, 0, 0.06, 0);
+    body.rotation.x = Math.PI / 2;
+    dialFace = new THREE.Group(); dialFace.position.set(0, 0.06, 0.055); dial.add(dialFace);
+    var notch = m(new THREE.BoxGeometry(0.04, 0.12, 0.03), std({ color: 0x111111, roughness: 0.5 }), dialFace, 0, 0.09, 0);
+    m(new THREE.SphereGeometry(0.035, 10, 8), std({ color: 0xff5a00, emissive: 0xff5a00, emissiveIntensity: 0.5 }), dialFace, 0, 0, 0.01);
+    notch.castShadow = false;
+    // tick marks
+    var i, n = PIT.DIAL.length;
+    for (i = 0; i < n; i++) {
+      var a = -i * (Math.PI * 2 / n), tk = m(new THREE.BoxGeometry(0.02, 0.05, 0.02), std({ color: i ? 0x111111 : 0x7a0070 }), dial, Math.sin(-a) * 0.215, 0.06 + Math.cos(a) * 0.215, 0.02);
+      tk.rotation.z = a;
+    }
+    var k = cnv(256, 128); dialCtx = k.x; dialTex = canvasTex(k.c);
+    dialPlate = m(new THREE.PlaneGeometry(0.4, 0.2), std({ map: dialTex, emissive: 0xffffff, emissiveMap: dialTex, emissiveIntensity: 0.3, roughness: 0.6 }), dial, 0, -0.27, 0.0);
+    var halo = makeHalo(dial, 0.7, 0.8, 0xffd400, 0, -0.05, -0.01);
+    var hb = hitBox(dial, 0.44, 0.66, 0.15, 0, -0.06, 0);
+    addItem("ia:dial", dial, hb, halo, { prio: 3, color: 0xffd400 });
+  }
+
+  // ---------- smack plate ----------
+  function drawPlate(t) {
+    var ctx = plateCtx;
+    ctx.clearRect(0, 0, 200, 230);
+    var g = ctx.createLinearGradient(0, 0, 200, 230); g.addColorStop(0, "#9aa0aa"); g.addColorStop(0.5, "#d7dbe2"); g.addColorStop(1, "#7c818a");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, 200, 230);
+    ctx.fillStyle = "rgba(0,0,0,0.25)"; // dents
+    [[60, 90, 16], [130, 70, 12], [104, 132, 20], [70, 160, 10]].forEach(function (d) { ctx.beginPath(); ctx.arc(d[0], d[1], d[2], 0, 7); ctx.fill(); });
+    // spray hand print (our own)
+    ctx.fillStyle = "rgba(255,90,0,0.92)";
+    ctx.beginPath(); ctx.ellipse(100, 120, 34, 40, 0, 0, 7); ctx.fill();
+    [[-30, -44, -0.35], [-12, -58, -0.1], [8, -60, 0.05], [27, -50, 0.28], [44, -6, 1.0]].forEach(function (f) {
+      ctx.save(); ctx.translate(100 + f[0], 120 + f[1]); ctx.rotate(f[2]); ctx.fillRect(-7, -26, 14, 40); ctx.beginPath(); ctx.arc(0, -26, 7, 0, 7); ctx.fill(); ctx.restore();
+    });
+    ctx.fillStyle = "rgba(0,0,0,0.85)"; ctx.fillRect(0, 186, 200, 44);
+    ctx.font = font(30); ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillStyle = t.smacksLeft > 0 ? P.yellow : P.boneDk; ctx.fillText("SMACK x" + t.smacksLeft, 100, 209);
+    ctx.fillStyle = "#000"; ctx.font = font(28); ctx.fillText("HIT ME", 100, 26);
+    plateTex.needsUpdate = true;
+  }
+  function buildPlate() {
+    plate = new THREE.Group();
+    plate.position.set(1.8, 0.8, 0.42);
+    S.machine.add(plate);
+    m(new THREE.BoxGeometry(0.2, 0.5, 0.24), chromeM(0x8a8a94), plate, -0.12, 0, -0.14);
+    var k = cnv(200, 230); plateCtx = k.x; plateTex = canvasTex(k.c);
+    m(new THREE.BoxGeometry(0.34, 0.4, 0.04), chromeM(0xb8bcc4), plate, 0, 0, 0);
+    m(new THREE.PlaneGeometry(0.31, 0.36), std({ map: plateTex, roughness: 0.4, metalness: 0.35, emissive: 0xffffff, emissiveMap: plateTex, emissiveIntensity: 0.2 }), plate, 0, 0, 0.021);
+    var halo = makeHalo(plate, 0.6, 0.66, 0xff5a00, 0, 0, 0.0);
+    var hb = hitBox(plate, 0.38, 0.44, 0.08, 0, 0, 0);
+    addItem("ia:smack", plate, hb, halo, { prio: 3, color: 0xff5a00 });
+  }
+
+  // ---------- crumb tray ----------
+  function buildTray() {
+    var g = new THREE.Group(); g.position.set(0, 0.22, 0.72); S.machine.add(g);
+    var crumbM = std({ color: 0xd4a05a, roughness: 0.85, emissive: 0x6a3a18, emissiveIntensity: 0.25 });
+    trayPile = new THREE.InstancedMesh(new THREE.BoxGeometry(0.1, 0.06, 0.08), crumbM, PIT.TOOL.TRAY_CAP);
+    var mx = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), rng = PIT.makeRng(77), i;
+    for (i = 0; i < PIT.TOOL.TRAY_CAP; i++) {
+      var col = i % 8, row = (i / 8) | 0;
+      e.set(rng() * 3, rng() * 3, rng() * 3); q.setFromEuler(e);
+      var sc = 0.7 + rng() * 0.8;
+      mx.compose(new THREE.Vector3(-0.7 + col * 0.2 + (rng() - 0.5) * 0.08, 0.07 + row * 0.045, 0.02 + row * 0.07 + (rng() - 0.5) * 0.05), q, new THREE.Vector3(sc, sc, sc));
+      trayPile.setMatrixAt(i, mx);
+    }
+    trayPile.count = 0;
+    g.add(trayPile);
+    var k = cnv(256, 48); trayLabelCtx = k.x; trayLabelTex = canvasTex(k.c);
+    m(new THREE.PlaneGeometry(0.62, 0.11), std({ map: trayLabelTex, emissive: 0xffffff, emissiveMap: trayLabelTex, emissiveIntensity: 0.32, roughness: 0.5 }), g, 0, 0.0, 0.262);
+    var halo = makeHalo(g, 2.3, 0.5, 0xe3b303, 0, 0.04, 0.27);
+    halo.scale.set(1, 1, 1);
+    var hb = hitBox(g, 1.9, 0.2, 0.55, 0, -0.07, 0.05); // stays below the stickers
+    addItem("ia:tray", g, hb, halo, { prio: 1, color: 0xe3b303, bias: "down" });
+  }
+  function drawTrayLabel(t) {
+    var ctx = trayLabelCtx;
+    ctx.clearRect(0, 0, 256, 48);
+    ctx.fillStyle = "rgba(0,0,0,0.9)"; ctx.fillRect(0, 0, 256, 48);
+    ctx.font = font(30); ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillStyle = t.tray ? P.yellow : P.boneDk;
+    ctx.fillText(t.tray ? "TRAY " + t.tray + " > " + PIT.Tools.trayValue(t.tray) : "TRAY EMPTY", 128, 25);
+    trayLabelTex.needsUpdate = true;
+  }
+
+  // ---------- crumb foam extinguisher ----------
+  function buildFoam() {
+    foamGroup = new THREE.Group();
+    foamGroup.position.set(-1.98, 0, 0.62);
+    S.scene.add(foamGroup);
+    var bodyM = std({ color: 0x00c8d8, roughness: 0.35, metalness: 0.35, emissive: 0x00f0ff, emissiveIntensity: 0.12 });
+    m(new THREE.CylinderGeometry(0.125, 0.13, 0.6, 18), bodyM, foamGroup, 0, 0.34, 0);
+    m(new THREE.SphereGeometry(0.125, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), bodyM, foamGroup, 0, 0.64, 0);
+    m(new THREE.CylinderGeometry(0.04, 0.05, 0.08, 10), chromeM(), foamGroup, 0, 0.78, 0);
+    var handle = m(new THREE.BoxGeometry(0.2, 0.03, 0.05), chromeM(0x2a2a2e), foamGroup, 0.06, 0.84, 0);
+    handle.rotation.z = -0.25;
+    var hose = m(new THREE.TorusGeometry(0.12, 0.018, 6, 14, Math.PI * 1.2), std({ color: 0x111111, roughness: 0.7 }), foamGroup, -0.12, 0.6, 0.02);
+    hose.rotation.z = Math.PI * 0.4;
+    m(new THREE.CylinderGeometry(0.025, 0.035, 0.1, 8), chromeM(0x333338), foamGroup, -0.24, 0.48, 0.03);
+    // label band
+    var k = cnv(256, 128), x = k.x;
+    x.fillStyle = "#f3eee6"; x.fillRect(0, 0, 256, 128);
+    x.fillStyle = "#0a0a0a"; x.font = font(54); x.textAlign = "center"; x.textBaseline = "middle"; x.fillText("FOAM", 128, 46);
+    x.font = font(22); x.fillStyle = "#7a0070"; x.fillText("CRUMB-SAFE", 128, 98);
+    var lt = canvasTex(k.c);
+    var lab = m(new THREE.CylinderGeometry(0.128, 0.128, 0.22, 18, 1, true, -Math.PI * 0.45, Math.PI * 0.9), std({ map: lt, roughness: 0.6, emissive: 0xffffff, emissiveMap: lt, emissiveIntensity: 0.18 }), foamGroup, 0, 0.36, 0);
+    lab.rotation.y = 0;
+    var i;
+    for (i = 0; i < 3; i++) {
+      var led = m(new THREE.SphereGeometry(0.022, 8, 6), std({ color: 0x00f0ff, emissive: 0x00f0ff, emissiveIntensity: 0.8 }), foamGroup, -0.06 + i * 0.06, 0.18, 0.125);
+      foamLeds.push(led);
+    }
+    var halo = makeHalo(foamGroup, 0.6, 1.1, 0x00f0ff, 0, 0.42, 0.14);
+    var hb = hitBox(foamGroup, 0.36, 0.9, 0.3, -0.03, 0.44, 0);
+    addItem("ia:foam", foamGroup, hb, halo, { prio: 3, color: 0x00f0ff });
+  }
+  function sprayFoam() {
+    var origin = new THREE.Vector3(-2.22, 0.46, 0.7), i;
+    for (i = 0; i < 42; i++) {
+      var me = new THREE.Mesh(new THREE.SphereGeometry(0.035 + Math.random() * 0.05, 6, 5), new THREE.MeshBasicMaterial({ color: Math.random() < 0.7 ? 0xf3fbff : 0x9ff8ff, transparent: true, opacity: 0.85, depthWrite: false }));
+      me.position.copy(origin);
+      me.userData = { v: new THREE.Vector3(1.6 + Math.random() * 1.4, 0.9 + Math.random() * 1.6, 0.15 + Math.random() * 0.4), life: 0.9 + Math.random() * 0.5, t: -i * 0.012 };
+      S.scene.add(me); foamParts.push(me);
+    }
+  }
+  function tickFoam(dt, t) {
+    var i, p;
+    for (i = foamParts.length - 1; i >= 0; i--) {
+      p = foamParts[i]; p.userData.t += dt;
+      if (p.userData.t < 0) { p.visible = false; continue; }
+      p.visible = true;
+      p.position.addScaledVector(p.userData.v, dt);
+      p.userData.v.multiplyScalar(1 - dt * 1.6); p.userData.v.y -= dt * 0.8;
+      var u = p.userData.t / p.userData.life;
+      p.scale.setScalar(1 + u * 2.2);
+      p.material.opacity = 0.85 * (1 - u);
+      if (u >= 1) { S.scene.remove(p); p.geometry.dispose(); p.material.dispose(); foamParts.splice(i, 1); }
+    }
+    for (i = 0; i < foamLeds.length; i++) {
+      var on = t && i < t.foam;
+      foamLeds[i].material.emissiveIntensity = on ? 0.7 + Math.sin(time * 4 + i) * 0.15 : 0.02;
+      foamLeds[i].material.color.set(on ? 0x00f0ff : 0x222222);
+    }
+  }
+
+  // ---------- reel holds ----------
+  function buildHolds() {
+    var k = cnv(64, 192), x = k.x;
+    x.strokeStyle = "#00f0ff"; x.lineWidth = 6; x.strokeRect(4, 4, 56, 184);
+    x.fillStyle = "rgba(0,0,0,0.85)"; x.fillRect(4, 164, 56, 24);
+    x.fillStyle = "#00f0ff"; x.font = font(20); x.textAlign = "center"; x.textBaseline = "middle"; x.fillText("HOLD", 32, 177);
+    var tex = canvasTex(k.c), c, colH = 3 * S.CH + 2 * S.GAPY + 0.08;
+    for (c = 0; c < 5; c++) {
+      var a = S.cellAnchor[1][c];
+      var me = m(new THREE.PlaneGeometry(S.CW * 1.1, colH), new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0, depthWrite: false, toneMapped: true }), S.machine, a.x, a.y, 0.86);
+      me.renderOrder = 7;
+      holdFrames[c] = me;
+    }
+  }
+
+  // ---------- TV + NFT frames ----------
+  function buildTv() {
+    var g = new THREE.Group(); g.position.set(0, 3.02, 0.36); S.machine.add(g);
+    var halo = makeHalo(g, 1.5, 1.15, 0x00f0ff, 0, 0, 0.04);
+    var hb = hitBox(g, 1.0, 0.76, 0.06, 0, 0, 0);
+    addItem("ia:tv", g, hb, halo, { prio: 2, color: 0x00f0ff });
+  }
+  function buildNftHits() {
+    if (!PIT.Nfts || !PIT.Nfts.groups) return;
+    nftGroups = PIT.Nfts.groups();
+    nftGroups.forEach(function (g, i) {
+      nftBase[i] = { x: g.position.x, y: g.position.y, z: g.position.z, rz: g.rotation.z };
+      var halo = makeHalo(g, 1.7, 1.9, 0xffd400, 0, -0.06, 0.13);
+      var hb = hitBox(g, 1.2, 1.35, 0.1, 0, -0.06, 0.05);
+      addItem("ia:nft:" + i, g, hb, halo, { prio: 0, color: 0xffd400 });
+    });
+  }
+
+  function itemReady(st, id) {
+    if (!st || !st.tools || !PIT.Tools) return false;
+    var inf = PIT.Tools.info(st, id);
+    return !!(inf && inf.ready);
+  }
+
+  PIT.Interact = {
+    init: function (opts) {
+      S = opts;
+      items = []; byId = {};
+      buildStickers(); buildDial(); buildPlate(); buildTray(); buildFoam(); buildHolds(); buildTv(); buildNftHits();
+      ready = true;
+    },
+
+    // Screen-space hit proxies (CSS px) for the HUD's button list. Min 44 x 44, centered.
+    rects: function () {
+      if (!ready) return [];
+      var st = PIT.game && PIT.game.state;
+      var w = S.canvas.clientWidth || window.innerWidth, h = S.canvas.clientHeight || window.innerHeight;
+      S.camera.updateMatrixWorld();
+      var out = [], i, it, k, xs, ys, x0, x1, y0, y1;
+      for (i = 0; i < items.length; i++) {
+        it = items[i];
+        if (it.off) continue;
+        if (it.id.indexOf("ia:sticker:") === 0 && st && st.tools) {
+          var si = +it.id.slice(11);
+          if (st.tools.stickers[si] && st.tools.stickers[si].peeled) continue;
+        }
+        it.hit.updateWorldMatrix(true, false);
+        box.setFromObject(it.hit);
+        x0 = 1e9; y0 = 1e9; x1 = -1e9; y1 = -1e9;
+        for (k = 0; k < 8; k++) {
+          v3.set(k & 1 ? box.max.x : box.min.x, k & 2 ? box.max.y : box.min.y, k & 4 ? box.max.z : box.min.z);
+          v3.project(S.camera);
+          if (v3.z > 1) continue;
+          var sx = (v3.x + 1) / 2 * w, sy = (1 - v3.y) / 2 * h;
+          if (sx < x0) x0 = sx; if (sx > x1) x1 = sx; if (sy < y0) y0 = sy; if (sy > y1) y1 = sy;
+        }
+        if (x1 < 0 || y1 < 0 || x0 > w || y0 > h || x0 > x1) continue;
+        var bw = x1 - x0, bh = y1 - y0, cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+        var rw = Math.max(MIN, bw), rh = Math.max(MIN, bh);
+        if (it.bias === "down" && rh > bh) cy += (rh - bh) / 2 - 4;
+        if (it.bias === "up" && rh > bh) cy -= (rh - bh) / 2 - 4;
+        var r = { id: it.id, x: cx - rw / 2, y: cy - rh / 2, w: rw, h: rh, prio: it.prio };
+        // keep proxies on-screen
+        if (r.x < 0) r.x = 0; if (r.y < 0) r.y = 0;
+        if (r.x + r.w > w) r.x = w - r.w; if (r.y + r.h > h) r.y = h - r.h;
+        out.push(r);
+      }
+      out.sort(function (a, b) { return a.prio - b.prio; }); // low prio first; HUD hit-tests last-first
+      return out;
+    },
+
+    setHover: function (id) { holdPreview = (id && id.indexOf("cell:") === 0) ? +id.split(",")[1] : -1; this._hover = id; },
+
+    // Feedback for a tool result from 21-tools.js
+    fx: function (res) {
+      if (!res) return;
+      var it;
+      if (res.kind === "peel") {
+        var sg = stickerGroups[res.index];
+        if (sg) { sg.peelT = 0; sg.g.visible = true; }
+        it = byId["ia:sticker:" + res.index];
+      } else if (res.kind === "dial") it = byId["ia:dial"];
+      else if (res.kind === "smack") { it = byId["ia:smack"]; jolt = 1; }
+      else if (res.kind === "foam") { it = byId["ia:foam"]; sprayFoam(); }
+      else if (res.kind === "tray") { it = byId["ia:tray"]; trayDrain = 1; }
+      else if (res.kind === "tv") {
+        it = byId["ia:tv"];
+        tvMsg = { t: 0, life: 2.2, won: res.won, delta: res.delta };
+      } else if (res.kind === "lucky" || res.kind === "egg") {
+        it = byId["ia:nft:" + res.index];
+        if (it) it.wob = 1;
+      } else if (res.kind === "hold") {
+        if (holdFrames[res.col]) holdFrames[res.col].userData.pop = 1;
+      }
+      if (it) it.punch = 1;
+    },
+    deny: function (id) { var it = byId[id]; if (it) it.shakeT = 0.35; },
+
+    tvFace: function (t) {
+      if (tvMsg) {
+        var u = tvMsg.t;
+        if (u < 0.8) {
+          var flip = Math.floor(u * 14) % 2;
+          return { full: true, text: flip ? "DOUBLE" : "NOTHING", color: flip ? P.yellow : P.glitch, size: 34, sub: "FLIPPING..." };
+        }
+        return { full: true, text: tvMsg.won ? "DOUBLE!" : "NOTHING", color: tvMsg.won ? P.yellow : P.glitch, size: 40, sub: (tvMsg.delta >= 0 ? "+" : "") + tvMsg.delta + " CRUMBS" };
+      }
+      var st = PIT.game && PIT.game.state;
+      if (PIT.game && PIT.game.screen === "play" && itemReady(st, "ia:tv") && Math.sin(t * 5) > -0.3) {
+        return { full: false, text: "x2 OR 0? TAP ME", color: P.cyan, size: 20 };
+      }
+      return null;
+    },
+
+    tick: function (dt) {
+      if (!ready) return;
+      time += dt;
+      var st = PIT.game && PIT.game.state, scr = PIT.game && PIT.game.screen;
+      var hov = PIT.HUD && PIT.HUD.hoverId ? PIT.HUD.hoverId() : null;
+      this.setHover(hov);
+      var live = scr === "play" && !(PIT.Scene.isSpinning && PIT.Scene.isSpinning()) && !(PIT.HUD.modal && PIT.HUD.modal());
+      var t = st && st.tools;
+      if (t) {
+        syncStickers(st);
+        var dk = t.butter + "|" + t.dial;
+        if (dk !== dialKey) { dialKey = dk; drawDial(t); }
+        var pk = "" + t.smacksLeft;
+        if (pk !== plateKey) { plateKey = pk; drawPlate(t); }
+        var tk = "" + t.tray;
+        if (tk !== trayKey) { trayKey = tk; drawTrayLabel(t); }
+        // dial angle
+        var want = -PIT.DIAL.indexOf(t.dial) * (Math.PI * 2 / PIT.DIAL.length);
+        dialAngle += (want - dialAngle) * Math.min(1, dt * 12);
+        if (dialFace) dialFace.rotation.z = dialAngle;
+        // tray pile
+        if (trayDrain > 0) { trayDrain = Math.max(0, trayDrain - dt * 2.2); trayShown = Math.round(trayShown * trayDrain); }
+        else trayShown += (t.tray - trayShown) > 0 ? 1 : (t.tray - trayShown) < 0 ? -1 : 0;
+        trayPile.count = Math.max(0, Math.min(PIT.TOOL.TRAY_CAP, trayShown));
+        // holds
+        for (var c = 0; c < 5; c++) {
+          var hf = holdFrames[c], held = t.held[c] && scr !== "title";
+          hf.userData.pop = Math.max(0, (hf.userData.pop || 0) - dt * 3);
+          var target = held ? 0.85 + Math.sin(time * 6) * 0.12 : (live && holdPreview === c && st.lastGrid ? 0.35 : 0);
+          hf.material.opacity += (target - hf.material.opacity) * Math.min(1, dt * 14);
+          hf.scale.set(1 + hf.userData.pop * 0.08, 1 + hf.userData.pop * 0.04, 1);
+        }
+      } else {
+        holdFrames.forEach(function (hf) { hf.material.opacity = 0; });
+      }
+      tickStickers(dt);
+      tickFoam(dt, t);
+      // smack jolt: the cabinet itself rattles (camera stays locked)
+      if (jolt > 0) {
+        jolt = Math.max(0, jolt - dt * 3.2);
+        S.machine.position.x = Math.sin(time * 70) * 0.035 * jolt;
+        S.machine.rotation.z = Math.sin(time * 55) * 0.012 * jolt;
+      } else if (S.machine.position.x !== 0) { S.machine.position.x = 0; S.machine.rotation.z = 0; }
+      if (tvMsg) { tvMsg.t += dt; if (tvMsg.t > tvMsg.life) tvMsg = null; }
+
+      // highlight: hovered = bright halo + scale pop; usable = faint breathing halo
+      var i, it;
+      for (i = 0; i < items.length; i++) {
+        it = items[i];
+        var isH = live && hov === it.id;
+        var rdy = live && itemReady(st, it.id);
+        it.hov += ((isH ? 1 : 0) - it.hov) * Math.min(1, dt * 12);
+        it.punch = Math.max(0, it.punch - dt * 3.5);
+        var op = it.hov * 0.5 + (rdy ? 0.07 + 0.05 * Math.sin(time * 3 + i) : 0) + it.punch * 0.4;
+        if (it.id.indexOf("ia:nft:") === 0 && t && +it.id.slice(7) === t.lucky && !t.luckyUsed && live) op = Math.max(op, 0.32 + 0.18 * Math.sin(time * 4));
+        if (it.halo) it.halo.material.opacity = Math.min(0.75, op);
+        var sc = it.baseScale * (1 + it.hov * 0.06 + Math.sin(it.punch * Math.PI) * 0.1);
+        if (it.id.indexOf("ia:sticker:") === 0) { if (stickerGroups[+it.id.slice(11)].peelT < 0) it.obj.scale.setScalar(sc); }
+        else if (it.id !== "ia:tray" && it.id !== "ia:tv") it.obj.scale.setScalar(sc);
+        if (it.shakeT > 0) {
+          it.shakeT = Math.max(0, it.shakeT - dt);
+          it.obj.rotation.y = Math.sin(time * 60) * 0.12 * (it.shakeT / 0.35);
+        } else if (it.obj.rotation.y && it.id.indexOf("ia:nft:") !== 0 && it.id.indexOf("ia:sticker:") !== 0) it.obj.rotation.y = 0;
+        if (it.wob > 0) {
+          it.wob = Math.max(0, it.wob - dt * 1.4);
+          var ni = +it.id.slice(7), b = nftBase[ni];
+          if (b) { it.obj.rotation.z = b.rz + Math.sin(time * 24) * 0.12 * it.wob; it.obj.position.z = b.z + it.wob * 0.3; }
+        }
+      }
+    },
+
+    _items: function () { return items.map(function (it) { return it.id; }); },
+    _holdOpacity: function () { return holdFrames.map(function (h) { return +h.material.opacity.toFixed(2); }); }
+  };
+})();
+
+
 /* ==== 40-hud.js ==== */
-// Toaster Pit v0.6.2 — 2D HUD, graffiti/stencil chrome, touch-first controls (Pointer Events,
+// Toaster Pit v0.7 — 2D HUD (v0.7: on-screen interactables, tooltips, tools strip), graffiti/stencil chrome, touch-first controls (Pointer Events,
 // thumb-zone control bar, tap / long-press inspect, menu, how-to overlay, safe areas, hi-DPI). RGB-split, payout pops, mute button, crumb ticks.
 (function () {
   var hud, ctx, W, H, dpr = 1;
@@ -7113,6 +8091,7 @@ PIT.colorMat = function (hex, opts) {
   var probe = null;
   var lastBtnsAt = 0;
   var LONG_MS = 450;
+  var frameStart = 0;         // performance.now() at the top of the game frame
   var isTouch = false;        // coarse pointer / touch device
   var BAR_BTN = 48;           // >= 44 px tap targets
   var L = {};                 // layout for this frame
@@ -7304,6 +8283,7 @@ PIT.colorMat = function (hex, opts) {
     var a = 1 - flash.t / flash.life;
     if (a < 0.15 && (flash.t * 16 | 0) % 2 === 0) return;
     var scale = (s + 2) + (flash.rgb ? 1 : 0);
+    while (scale > 2 && PIT.textWidth(flash.text, scale) > W - 24) scale--; // v0.7: fit long tool messages on phones
     var tw = PIT.textWidth(flash.text, scale);
     var x = (W - tw) >> 1, y = H * 0.28;
     if (flash.rgb) PIT.drawRgbText(ctx, flash.text, x, y, scale, flash.color, 2);
@@ -7370,8 +8350,43 @@ PIT.colorMat = function (hex, opts) {
     return y + h;
   }
 
+  // v0.7 tools strip: butter, holds, smacks, foam, tray + what the next pull carries
+  function toolsStrip(state, bottom) {
+    var t = state.tools;
+    if (!t) return bottom;
+    var nH = PIT.Tools.heldCount(state);
+    var tags = PIT.Tools.nextTags(state);
+    var items = [["BUTTER", t.butter, PIT.PAL.yellow], ["HOLDS", Math.max(0, t.holdsLeft - nH), PIT.PAL.cyan], ["SMACKS", t.smacksLeft, PIT.PAL.toast],
+      ["FOAM", t.foam, PIT.PAL.cyan], ["TRAY", t.tray, PIT.PAL.gold]];
+    var t2 = 2, x = L.padL, y = bottom + 6, i;
+    if (L.narrow) {
+      var w = W - L.padL - L.padR, rowH = 7 * t2 + 10;
+      var line = items.map(function (it) { return (it[0] === "BUTTER" ? "BTR" : it[0] === "SMACKS" ? "SMK" : it[0] === "HOLDS" ? "HLD" : it[0]) + " " + it[1]; });
+      var nextTxt = tags.length ? "NEXT: " + tags.join(" · ") : "";
+      var nextRows = nextTxt ? wrapLines(nextTxt, t2, w - 16) : [];
+      var h = rowH + nextRows.length * rowH + 4;
+      panel(x, y, w, h, "rgba(0,0,0,0.74)", PIT.PAL.cyan);
+      var cx = x + 8, gap = Math.max(6, (w - 16 - line.reduce(function (a, b) { return a + PIT.textWidth(b, t2); }, 0)) / 4);
+      for (i = 0; i < line.length; i++) { PIT.drawText(ctx, line[i], cx, y + 6, t2, items[i][2]); cx += PIT.textWidth(line[i], t2) + gap; }
+      for (i = 0; i < nextRows.length; i++) PIT.drawText(ctx, nextRows[i], x + 8, y + 6 + rowH * (i + 1), t2, PIT.PAL.magenta);
+      return y + h;
+    }
+    var rows = items.map(function (it) { return it[0] + " " + it[1]; });
+    var nx = tags.length ? ["NEXT PULL:"].concat(tags) : [];
+    var all = rows.concat(nx), ww = 0;
+    all.forEach(function (r) { ww = Math.max(ww, PIT.textWidth(r, t2)); });
+    ww += 20;
+    var hh = all.length * (7 * t2 + 7) + 10;
+    panel(x, y, ww, hh, "rgba(0,0,0,0.72)", PIT.PAL.cyan);
+    for (i = 0; i < all.length; i++) {
+      var col = i < rows.length ? items[i][2] : PIT.PAL.magenta;
+      PIT.drawText(ctx, all[i], x + 10, y + 7 + i * (7 * t2 + 7), t2, col);
+    }
+    return bottom; // desktop: charm bar keeps its old spot
+  }
+
   function drawPlayHud(state, s) {
-    var bottom = statPanel(state, s);
+    var bottom = toolsStrip(state, statPanel(state, s));
     // Charm bar: tap or long-press an icon for info (44 px hit areas)
     var owned = Object.keys(state.charms);
     if (owned.length) {
@@ -7399,7 +8414,43 @@ PIT.colorMat = function (hex, opts) {
         var lv = R.lever, lw = Math.max(44, lv.w), lh = Math.max(44, lv.h);
         buttons.unshift({ id: "pull", x: lv.x + lv.w / 2 - lw / 2, y: lv.y + lv.h / 2 - lh / 2, w: lw, h: lh, label: "", style: "gold" });
       }
+      // v0.7: 3D interactables (stickers, dial, smack plate, tray, foam, TV, NFT frames) under every other target
+      if (PIT.Interact && state.status === "play" && PIT.game && PIT.game.screen === "play") {
+        var ia = PIT.Interact.rects().map(function (q) { return { id: q.id, x: q.x, y: q.y, w: q.w, h: q.h, label: "", style: "gold" }; });
+        Array.prototype.unshift.apply(buttons, ia);
+      }
     }
+  }
+
+  // v0.7 desktop hover tooltip for interactables and reels
+  function drawTooltip(state, id) {
+    var inf = PIT.Tools && PIT.Tools.info(state, id);
+    if (!inf) return;
+    var maxW = Math.min(400, W - 24), t2 = 2, body = [];
+    inf.lines.forEach(function (ln) { wrapLines(ln, 2, maxW - 20).forEach(function (w) { body.push(w); }); });
+    var ts = fitScale(inf.title, 3, maxW - 20);
+    var h = 12 + 7 * ts + 8 + body.length * 19 + 8 + 7 * t2 + 12;
+    var x = pointer.x + 18, y = pointer.y + 18;
+    if (x + maxW > W - 8) x = pointer.x - maxW - 12;
+    if (y + h > L.barY - 4) y = Math.max(L.top, pointer.y - h - 12);
+    if (x < 8) x = 8;
+    panel(x, y, maxW, h, "rgba(6,4,10,0.94)", inf.color || PIT.PAL.cyan);
+    PIT.drawRgbText(ctx, inf.title, x + 10, y + 10, ts, inf.color || PIT.PAL.yellow, 1);
+    var yy = y + 18 + 7 * ts;
+    body.forEach(function (b) { PIT.drawText(ctx, b, x + 10, yy, 2, PIT.PAL.boneLt); yy += 19; });
+    PIT.drawText(ctx, inf.status, x + 10, yy + 6, t2, inf.ready ? PIT.PAL.yellow : PIT.PAL.boneDk);
+    L.tip = { id: id, x: x, y: y, w: maxW, h: h };
+  }
+
+  function openInspectTool(id) {
+    var st = PIT.game && PIT.game.state, inf = st && PIT.Tools && PIT.Tools.info(st, id);
+    if (!inf) return;
+    var verb = id.indexOf("ia:sticker") === 0 ? "PEEL" : id === "ia:dial" ? "TURN" : id === "ia:smack" ? "SMACK" : id === "ia:tray" ? "CASH IN" : id === "ia:foam" ? "SPRAY" : id === "ia:tv" ? "BET" : id.indexOf("cell:") === 0 ? (st.tools.held[+id.split(",")[1]] ? "RELEASE" : "HOLD") : "TAP";
+    var useId = id.indexOf("cell:") === 0 ? "hold:" + id.split(",")[1] : id;
+    var lines = inf.lines.map(function (t) { return { t: t }; });
+    lines.push({ t: inf.status, c: inf.ready ? PIT.PAL.yellow : PIT.PAL.boneDk });
+    modal = { kind: "inspect", title: inf.title, lines: lines, use: useId, verb: verb, canUse: !!inf.ready, symbol: id.indexOf("cell:") === 0 && st.lastGrid ? st.lastGrid[+id.slice(5).split(",")[0]][+id.split(",")[1]] : null };
+    PIT.audio && PIT.audio.click && PIT.audio.click();
   }
 
   function drawTitle(s) {
@@ -7557,7 +8608,9 @@ PIT.colorMat = function (hex, opts) {
     var m = modal, B, i, y, t2 = 2;
     buttons = []; // only modal buttons are live
     if (m.kind === "howto") {
-      var lines = ["TAP PULL TO SPIN.", "PAY THE BREADLORD BEFORE THE DEADLINE.", "BUY CHARMS AT THE FRIDGE.", "LONG-PRESS ANYTHING FOR INFO."];
+      var lines = ["TAP PULL TO SPIN. PAY THE BREADLORD BEFORE THE DEADLINE.", "TAP A REEL TO HOLD IT FOR THE NEXT PULL.",
+        "PEEL STICKERS, TURN THE BUTTER DIAL, SMACK THE CABINET, CASH THE CRUMB TRAY, SPRAY FOAM ON BURNS, BET ON THE TV.",
+        "EACH HAS LIMITED USES. FIND THE GLOWING SKULL FRAME.", "BUY CHARMS AT THE FRIDGE. LONG-PRESS ANYTHING FOR INFO."];
       var wrapped = [];
       var maxW = Math.min(W - L.padL - L.padR, 460) - 56;
       lines.forEach(function (ln) { wrapLines(ln, t2, maxW).forEach(function (w, k) { wrapped.push({ t: w, first: k === 0 }); }); });
@@ -7596,7 +8649,11 @@ PIT.colorMat = function (hex, opts) {
       y = B.y + 16 + icon + 16;
       for (i = 0; i < body.length; i++) { PIT.drawText(ctx, body[i].t, B.x + 16, y, 2, body[i].c || PIT.PAL.boneLt); y += 22; }
       var by = B.y + B.h - BAR_BTN - 14;
-      if (m.buy) {
+      if (m.use) {
+        var half2 = (B.w - 40) >> 1;
+        btn(m.canUse ? "inspect-use" : "close", B.x + 16, by, half2, BAR_BTN, m.canUse ? m.verb : "NOT NOW", m.canUse ? "gold" : "dim");
+        btn("close", B.x + 24 + half2, by, half2, BAR_BTN, "CLOSE", "cyan");
+      } else if (m.buy) {
         var half = (B.w - 40) >> 1;
         btn(m.canBuy ? "inspect-buy" : "close", B.x + 16, by, half, BAR_BTN, m.canBuy ? "BUY " + m.cost : "TOO PRICEY", m.canBuy ? "gold" : "dim");
         btn("close", B.x + 24 + half, by, half, BAR_BTN, "CLOSE", "cyan");
@@ -7631,7 +8688,7 @@ PIT.colorMat = function (hex, opts) {
   function howtoSeen() { try { return localStorage.getItem("tp_howto_seen") === "1"; } catch (e) { return false; } }
 
   // Info targets support long-press; everything else activates on release.
-  function isInfoId(id) { return id && (id.indexOf("charm:") === 0 || id.indexOf("offer:") === 0 || id.indexOf("cell:") === 0); }
+  function isInfoId(id) { return id && (id.indexOf("charm:") === 0 || id.indexOf("offer:") === 0 || id.indexOf("cell:") === 0 || id.indexOf("ia:") === 0); }
 
   function activate(id, viaLong) {
     if (!id) return;
@@ -7647,7 +8704,20 @@ PIT.colorMat = function (hex, opts) {
     if (id.indexOf("offer:") === 0) { openInspectCharm(id.slice(6), true); return; }
     if (id.indexOf("cell:") === 0) {
       var rc = id.slice(5).split(",");
-      if (st && st.lastGrid) openInspectSymbol(st.lastGrid[+rc[0]][+rc[1]]);
+      // v0.7: tap a reel = hold it for the next pull; long-press = symbol info
+      if (viaLong) { if (st && st.lastGrid) openInspectSymbol(st.lastGrid[+rc[0]][+rc[1]]); }
+      else if (PIT.HUD.onClick) PIT.HUD.onClick("hold:" + rc[1]);
+      return;
+    }
+    if (id.indexOf("ia:") === 0) {
+      if (viaLong) openInspectTool(id);
+      else if (PIT.HUD.onClick) PIT.HUD.onClick(id);
+      return;
+    }
+    if (id === "inspect-use") {
+      var uid = modal && modal.use;
+      modal = null;
+      if (uid && PIT.HUD.onClick) PIT.HUD.onClick(uid);
       return;
     }
     if (id === "inspect-buy") {
@@ -7775,6 +8845,13 @@ PIT.colorMat = function (hex, opts) {
     inspectCharm: openInspectCharm,
     inspectSymbol: openInspectSymbol,
     isTouch: function () { return isTouch; },
+    hoverId: function () { return (isTouch && !pointer.down) ? null : hoverId; },
+    inspectTool: openInspectTool,
+    beginFrame: function () { frameStart = performance.now(); },
+    // test hook: headless software-GL boxes deliver input ~1 s late, so playtests raise the long-press threshold
+    _setLongMs: function (ms) { LONG_MS = ms || 450; },
+    _tip: function () { return L.tip || null; },
+    _cursor: function () { return hud ? hud.style.cursor : ""; },
 
     draw: function (screen, state, dt) {
       if (!ctx) return;
@@ -7821,10 +8898,14 @@ PIT.colorMat = function (hex, opts) {
 
       buttons.forEach(function (b) { if (b.label) drawBtn(b, s); });
 
+      L.tip = null;
+      if (!modal && !isTouch && state && screen === "play" && hoverId && (hoverId.indexOf("ia:") === 0 || hoverId.indexOf("cell:") === 0)) drawTooltip(state, hoverId);
+
       if (modal) { drawModal(s); buttons.forEach(function (b) { if (b.label) drawBtn(b, s); }); }
 
-      // Long-press to inspect
-      if (press && press.btn && !press.long && isInfoId(press.btn.id) && performance.now() - press.t > LONG_MS) {
+      // Long-press to inspect. v0.7: measured at the START of the frame (before the 3D render),
+      // after the browser has flushed queued pointerups, so a slow frame can't turn a tap into a long-press.
+      if (press && press.btn && !press.long && isInfoId(press.btn.id) && frameStart - press.t > LONG_MS) {
         press.long = true;
         activate(press.btn.id, true);
         if (navigator.vibrate) { try { navigator.vibrate(12); } catch (e) {} }
@@ -7849,7 +8930,7 @@ PIT.colorMat = function (hex, opts) {
 
 
 /* ==== 50-game.js ==== */
-// Toaster Pit v0.6.2 — main loop, input (pointer + keyboard), screen flow, and juice wiring.
+// Toaster Pit v0.7 — main loop, input (pointer + keyboard), screen flow, and juice wiring.
 (function () {
   var state = null;
   var screen = "title"; // title | play | spin | shop | deadline | paid | burnt
@@ -7911,6 +8992,7 @@ PIT.colorMat = function (hex, opts) {
     var gained = ev.pay;
     state.loose -= gained;
     screen = "spin";
+    var heldCols = (!isRepull && state.pullBuff && state.pullBuff.held) || null;
     PIT.Scene.spinTo(grid, function () {
       state.loose += gained;
       PIT.HUD.setCrumbs(state.loose);
@@ -7921,7 +9003,7 @@ PIT.colorMat = function (hex, opts) {
         PIT.spawnCrumbs && PIT.spawnCrumbs(6);
         PIT.Scene.showWins && PIT.Scene.showWins(ev);
       } else if (ev.burned) {
-        PIT.HUD.flash("BURN", PIT.PAL.glitch, true, 1.4);
+        PIT.HUD.flash(ev.tools && ev.tools.spilled ? "BURN · TRAY SPILLED" : "BURN", PIT.PAL.glitch, true, 1.4);
         PIT.HUD.burnPulse();
         PIT.audio && PIT.audio.burn();
         PIT.Scene.burnFx && PIT.Scene.burnFx();
@@ -7948,6 +9030,7 @@ PIT.colorMat = function (hex, opts) {
       } else {
         PIT.audio && PIT.audio.click();
       }
+      if (ev.tools && ev.tools.butterGain && !ev.burned) PIT.HUD.flash("+" + ev.tools.butterGain + " BUTTER", PIT.PAL.yellow, false, 0.9);
       // After last pull, stay on the result a beat, then the PULL button becomes FRIDGE.
       screen = "play";
       if (state.status === "shop") {
@@ -7956,7 +9039,97 @@ PIT.colorMat = function (hex, opts) {
         state.status = "play"; // temporarily, pullsLeft is 0 so next click opens shop
         state._shopReady = true;
       }
-    });
+    }, heldCols);
+  }
+
+  // v0.7 interactables: stickers, butter dial, smack plate, crumb tray, foam, TV, NFT frames, reel holds
+  function afterRegrade(res) {
+    var ev = res.ev;
+    PIT.Scene.showWins && PIT.Scene.showWins(ev);
+    if (ev.burned && !ev.blocked) {
+      PIT.HUD.burnPulse();
+      PIT.audio && PIT.audio.burn();
+      PIT.Scene.burnFx && PIT.Scene.burnFx();
+      PIT.HUD.flash(res.spilled ? "BURN · TRAY SPILLED" : "BURN", PIT.PAL.glitch, true, 1.3);
+    } else if (res.delta > 0) {
+      PIT.audio && PIT.audio.win && PIT.audio.win(res.delta);
+      PIT.spawnCrumbs && PIT.spawnCrumbs(res.delta >= 40 ? 18 : 8, res.delta >= 40);
+      PIT.Scene.popToast && PIT.Scene.popToast(2);
+    }
+    if (res.delta) PIT.HUD.popPay && PIT.HUD.popPay(res.delta, res.delta >= 40);
+    PIT.HUD.setCrumbs(state.loose);
+  }
+
+  function useTool(id) {
+    if (!state || !PIT.Tools) return;
+    if (PIT.Scene && PIT.Scene.isSpinning()) return;
+    var res = PIT.Tools.use(state, id);
+    if (!res || !res.ok) {
+      PIT.audio && PIT.audio.deny();
+      if (res && res.msg) PIT.HUD.flash(res.msg, PIT.PAL.bone, false, 0.9);
+      PIT.Interact && PIT.Interact.deny(id);
+      return;
+    }
+    PIT.Interact && PIT.Interact.fx(res);
+    var A = PIT.audio || {};
+    var line = PIT.TOOL_LINES[res.kind + (res.outcome ? ":" + res.outcome : "") + (res.kind === "tv" ? (res.won ? ":won" : ":lost") : "")] || PIT.TOOL_LINES[res.kind];
+    if (line) PIT.HUD.setLine(PIT.pick(line));
+    switch (res.kind) {
+      case "hold": A.hold && A.hold(res.on); return;
+      case "dial": A.dial && A.dial(); PIT.HUD.flash(res.msg, res.color, false, 0.8); return;
+      case "peel":
+        A.peel && A.peel();
+        PIT.spawnSparks && PIT.spawnSparks(8);
+        PIT.HUD.flash(res.msg, res.color, true, 1.0);
+        return;
+      case "tray":
+        A.trayCash && A.trayCash(res.pile);
+        PIT.spawnCrumbs && PIT.spawnCrumbs(Math.min(24, 6 + res.pile), res.pile >= 12);
+        PIT.HUD.popPay && PIT.HUD.popPay(res.value, res.value >= 40);
+        PIT.HUD.setCrumbs(state.loose);
+        PIT.HUD.flash(res.msg, res.color, true, 1.0);
+        return;
+      case "tv":
+        A.tvFlip && A.tvFlip(res.won);
+        screen = "spin"; // brief lock while the TV flips
+        setTimeout(function () {
+          if (screen === "spin") screen = "play";
+          PIT.HUD.popPay && PIT.HUD.popPay(res.delta, res.won && res.delta >= 40);
+          PIT.HUD.setCrumbs(state.loose);
+          PIT.HUD.flash(res.msg, res.color, true, 1.1);
+          if (res.won) { PIT.Scene.flash && PIT.Scene.flash(0xFFD400, 0.12); PIT.spawnCrumbs && PIT.spawnCrumbs(10); }
+          else PIT.Scene.shake && PIT.Scene.shake(0.08);
+        }, 800);
+        return;
+      case "lucky":
+        A.glint && A.glint();
+        PIT.Scene.flash && PIT.Scene.flash(0xFFD400, 0.1);
+        PIT.HUD.popPay && PIT.HUD.popPay(res.delta, false);
+        PIT.HUD.setCrumbs(state.loose);
+        PIT.HUD.flash(res.msg, res.color, true, 1.1);
+        return;
+      case "egg": A.chatter && A.chatter(); PIT.HUD.flash(res.msg, res.color, false, 0.7); return;
+      case "foam":
+        A.foam && A.foam();
+        PIT.HUD.flash(res.msg, res.color, true, 1.0);
+        PIT.Scene.setGrid(state.lastGrid);
+        afterRegrade(res);
+        return;
+      case "smack":
+        A.smack && A.smack();
+        PIT.Scene.shake && PIT.Scene.shake(0.1);
+        PIT.HUD.flash(res.msg, res.color, true, 1.0);
+        if (res.outcome === "reroll") {
+          var held = [true, true, true, true, true];
+          held[res.col] = false;
+          screen = "spin";
+          PIT.Scene.spinTo(state.lastGrid, function () { screen = "play"; afterRegrade(res); }, held);
+        } else if (res.outcome === "burnt") {
+          PIT.Scene.setGrid(state.lastGrid);
+          afterRegrade(res);
+        }
+        return;
+    }
   }
 
   function openShop() {
@@ -7994,7 +9167,7 @@ PIT.colorMat = function (hex, opts) {
   // restart a run or double-fire an action after the screen has changed.
   var VALID = {
     title: { start: 1 },
-    play: { pull: 1, repull: 1 },
+    play: { pull: 1, repull: 1, ia: 1, hold: 1 },
     spin: {},
     shop: { bank: 1, restock: 1, buy: 1 },
     deadline: { pay: 1, burnt: 1 },
@@ -8005,7 +9178,7 @@ PIT.colorMat = function (hex, opts) {
     PIT.audio && PIT.audio.resume();
     if (id === "restart") { startRun(); return; }
     if (id !== "mute") {
-      var key = id.indexOf("buy:") === 0 ? "buy" : id;
+      var key = id.indexOf("buy:") === 0 ? "buy" : id.indexOf("ia:") === 0 ? "ia" : id.indexOf("hold:") === 0 ? "hold" : id;
       if (!(VALID[screen] && VALID[screen][key])) return;
     }
     if (id === "mute") {
@@ -8022,6 +9195,7 @@ PIT.colorMat = function (hex, opts) {
       return;
     }
     if (id === "repull") { doPull(true); return; }
+    if (id.indexOf("ia:") === 0 || id.indexOf("hold:") === 0) { useTool(id); return; }
     if (id === "bank") { leaveShop(); return; }
     if (id === "restock") {
       if (PIT.restockShop(state)) PIT.audio && PIT.audio.buy();
@@ -8125,6 +9299,7 @@ PIT.colorMat = function (hex, opts) {
   function frame(t) {
     var dt = last ? Math.min(0.05, (t - last) / 1000) : 0.016;
     last = t;
+    if (PIT.HUD && PIT.HUD.beginFrame) PIT.HUD.beginFrame();
     if (state && PIT.audio && PIT.audio.setTension) {
       var lastSess = state.session >= (PIT.SESSIONS_PER_DEADLINE || 3);
       var maxP = PIT.pullsThisSession ? PIT.pullsThisSession(state) : (PIT.PULLS_PER_SESSION || 7);
@@ -8191,6 +9366,7 @@ PIT.colorMat = function (hex, opts) {
     openShop: openShop,
     leaveShop: leaveShop,
     click: onClick,
+    use: useTool,
     // Force a grid (for screenshots) — still uses official evaluate.
     forceGrid: function (grid, juice) {
       if (!state) startRun();

@@ -1,4 +1,4 @@
-# Toaster Pit v0.6.2
+# Toaster Pit v0.7.0
 
 A Mr. Toasty slot-machine roguelike. You're in the basement for a therapy session, and you owe crumbs to the Breadlord. Pull the cursed 3×5 Toaster Slot, buy charms from the vending fridge, and pay each deadline — or get burnt.
 
@@ -9,6 +9,25 @@ Rebuild after editing `src/` or `vendor/`:
     python3 build.py
 
 CloverPit is a gameplay-loop reference only. Every name, symbol, charm, and line is original. This is not real-money gambling.
+
+## v0.7.0 — tap the machine
+
+Coty asked for on-screen clickables with real purpose. Every one has a cost, a cooldown or limited uses, so you have to choose. Hover for a tooltip on desktop; tap to use and long-press for an info card on a phone (all hit areas are at least 44px).
+
+- **Stickers (3 on the cabinet):** peel once per deadline, with new ones every deadline. Possible stickers: Gold Leaf, Jam Jar, Avo Smash and X Eyes (that symbol is 2x as likely next pull), Cooling Rack (Burnt Toast is 1/3 as likely), Hot Crust (next pull pays 1.5x), Extra Pop (+1 pull now) and Crumb Bomb (+6 crumbs into the tray).
+- **Butter Dial:** tap to cycle through Off, Butter, Jam, Avocado, Golden and Toasty. The next pull spends 1 butter pat (2 for Golden or Toasty) to make that symbol 2.5x as likely. You start with 3 pats and get +2 each deadline; Butter Skull lines earn more. The Butter Knife charm adds +2 pats.
+- **Smack plate:** a free hit after a pull, once per pull, 3 per session. There's a 55% chance one reel re-rolls, 25% nothing happens, and 20% a tile turns to Burnt Toast. The Triggered Button charm adds +1 smack.
+- **Crumb tray:** gains +1 crumb a pull, plus 1 per paying line. Cash it in anytime for the pile plus a bonus of pile²/24. A Burn spills the whole tray. The Crumb Tray charm adds +1 crumb a pull.
+- **Crumb Foam extinguisher:** 2 charges, refilled every deadline. Spraying it turns every Burnt Toast on the reels into Plain Toast and re-scores the pull. The Smoke Detector charm adds +1 charge.
+- **Toasty TV:** double or nothing on the last pull's payout, a 50/50 bet, once per session. After a bet you can't smack or foam that pull.
+- **Reel holds:** tap a reel to keep it for the next pull. You get 2 holds a session, with at most 2 reels held at once. The Pop-Up Timer charm adds +1 hold.
+- **Skull NFT frames:** one frame glows each session. Tapping it gives +3 crumbs and makes Golden and Toasty Skulls 1.6x as likely next pull. The other frames just react when tapped.
+
+The HUD shows a tools strip with butter, holds, smacks, foam, tray and what the next pull carries. The rules are in `src/21-tools.js` and the props are in `src/36-interact.js`. Shots are in `shots/v0.7/`.
+
+## v0.6.3 — less glare
+
+Coty asked for less light glare. Bloom strength 0.58→0.40, threshold 0.68→0.76, radius 0.62→0.48, bloom pulses ×0.85→×0.6; tone-mapping exposure 1.22→1.15; CRT lift 1.06→1.03. Lights, neon tubes, bezels, marquee, wall-paint glow and light shafts trimmed about 25–30%. Win and jackpot flashes softened (big win 0.4→0.28, jackpot 0.7→0.48, Scene jackpot 0.48→0.34) and the win-tile glow 0.72→0.5. Colors, neon outlines, locked camera, audio, VFX and touch controls are unchanged. Before/after shots are in `shots/v0.6.3/`.
 
 ## v0.6.2 — mobile and touch controls
 
