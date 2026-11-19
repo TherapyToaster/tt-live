@@ -1,0 +1,304 @@
+<style>.fe-block:has(#toasty-skullz){grid-column:2/-2 !important}</style><style>#toasty-skullz{--bg:#05070d;--bg2:#0b0f1a;--gold:#C5A834;--red:#b00000;--red2:#ff3b3b;--cy:#00e5ff;--tx:#dee3de;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;width:100%;max-width:100%;overflow:hidden;box-sizing:border-box;border:1px solid #2a2a1a;border-radius:12px;line-height:1.5}
+#toasty-skullz *{box-sizing:border-box}
+#toasty-skullz a{color:var(--gold)}
+#toasty-skullz img{max-width:100%;display:block}
+#toasty-skullz .ts-wrap{max-width:1200px;margin:0 auto;padding:0 20px}
+#toasty-skullz .ts-sec{padding:48px 0;border-top:1px solid #1b1f2b}
+#toasty-skullz .ts-h{font-family:"Courier New",ui-monospace,monospace;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:var(--gold);margin:0 0 18px;font-size:clamp(22px,3.2vw,34px);text-shadow:-2px 0 rgba(0,229,255,.7),2px 0 rgba(176,0,0,.85)}
+#toasty-skullz .ts-glitch{position:relative;display:inline-block;z-index:0}
+#toasty-skullz .ts-glitch::before,#toasty-skullz .ts-glitch::after{content:attr(data-t);position:absolute;left:0;top:0;width:100%;overflow:hidden;pointer-events:none;z-index:-1}
+#toasty-skullz .ts-glitch::before{color:var(--cy);transform:translate(-3px,0);clip-path:inset(0 0 55% 0);opacity:.75;animation:tsg1 3.2s infinite steps(1)}
+#toasty-skullz .ts-glitch::after{color:var(--red2);transform:translate(3px,0);clip-path:inset(55% 0 0 0);opacity:.8;animation:tsg2 2.7s infinite steps(1)}
+@keyframes tsg1{0%,86%,100%{transform:translate(-3px,0);clip-path:inset(0 0 55% 0)}88%{transform:translate(-9px,-2px);clip-path:inset(10% 0 70% 0)}92%{transform:translate(6px,1px);clip-path:inset(40% 0 30% 0)}}
+@keyframes tsg2{0%,80%,100%{transform:translate(3px,0);clip-path:inset(55% 0 0 0)}83%{transform:translate(10px,2px);clip-path:inset(70% 0 5% 0)}90%{transform:translate(-7px,0);clip-path:inset(25% 0 50% 0)}}
+#toasty-skullz .ts-hero{position:relative;min-height:400px;display:flex;align-items:center;justify-content:center;text-align:center;padding:70px 20px;background:var(--bg) center/cover no-repeat}
+#toasty-skullz .ts-hero{background:radial-gradient(ellipse at 50% 40%,rgba(176,0,0,.22),transparent 60%),radial-gradient(ellipse at 20% 80%,rgba(0,229,255,.08),transparent 50%),var(--bg)}
+#toasty-skullz .ts-hero::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.35) 0 2px,transparent 2px 4px)}
+#toasty-skullz .ts-hero>div{position:relative;z-index:1}
+#toasty-skullz .ts-kick{font-family:"Courier New",monospace;color:var(--red2);letter-spacing:.35em;font-size:13px;margin:0 0 10px;text-transform:uppercase}
+#toasty-skullz .ts-title{font-family:"Courier New",ui-monospace,monospace;font-weight:900;color:var(--gold);font-size:clamp(38px,8.5vw,104px);line-height:.95;margin:0;letter-spacing:.02em;text-shadow:0 0 24px rgba(197,168,52,.35)}
+#toasty-skullz .ts-sub{margin:16px auto 26px;max-width:620px;font-size:clamp(15px,2vw,19px);opacity:.9}
+#toasty-skullz .ts-skull{font-size:44px;line-height:1;margin-bottom:6px;filter:drop-shadow(-2px 0 var(--cy)) drop-shadow(2px 0 var(--red))}
+#toasty-skullz .ts-btn{display:inline-block;background:var(--gold);color:#05070d!important;text-decoration:none;font-family:"Courier New",monospace;font-weight:900;letter-spacing:.12em;font-size:clamp(20px,3vw,28px);padding:16px 44px;border-radius:8px;border:2px solid var(--gold);box-shadow:-4px 0 0 rgba(0,229,255,.7),4px 0 0 rgba(176,0,0,.9),0 0 30px rgba(197,168,52,.35);transition:transform .15s,box-shadow .15s}
+#toasty-skullz .ts-btn:hover{transform:translateY(-2px) scale(1.03);box-shadow:-6px 0 0 rgba(0,229,255,.8),6px 0 0 rgba(176,0,0,1),0 0 40px rgba(197,168,52,.55)}
+#toasty-skullz .ts-btn.ts-sm{font-size:15px;padding:10px 22px}
+#toasty-skullz .ts-live{display:grid;grid-template-columns:minmax(0,320px) 1fr;gap:28px;align-items:center;background:var(--bg2);border:1px solid #2a2a1a;border-radius:12px;padding:24px;box-shadow:inset 0 0 0 1px rgba(197,168,52,.12)}
+#toasty-skullz .ts-cover{border-radius:10px;border:1px solid #333;width:100%;aspect-ratio:1/1;object-fit:cover;background:#111}
+#toasty-skullz .ts-badge{display:inline-flex;align-items:center;gap:8px;font-family:"Courier New",monospace;font-weight:700;font-size:13px;letter-spacing:.15em;text-transform:uppercase;padding:4px 10px;border:1px solid var(--red2);color:var(--red2);border-radius:999px}
+#toasty-skullz .ts-badge i{width:9px;height:9px;border-radius:50%;background:var(--red2);box-shadow:0 0 10px var(--red2);animation:tsp 1.4s infinite}
+#toasty-skullz .ts-badge.ts-off{border-color:#777;color:#999}#toasty-skullz .ts-badge.ts-off i{background:#777;box-shadow:none;animation:none}
+@keyframes tsp{50%{opacity:.25}}
+#toasty-skullz .ts-count{font-family:"Courier New",monospace;font-weight:900;font-size:clamp(40px,6vw,64px);color:var(--gold);margin:10px 0 2px;line-height:1}
+#toasty-skullz .ts-count small{font-size:.45em;color:var(--tx);opacity:.75}
+#toasty-skullz .ts-pb{display:flex;align-items:center;gap:14px;margin:14px 0 4px}
+#toasty-skullz .ts-bar{flex:1;height:44px;background:#000;overflow:hidden;position:relative}
+#toasty-skullz .ts-bar i{display:block;height:100%;width:0;min-width:16px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='7' r='6.6' fill='%23111'/%3E%3Crect x='4.4' y='10' width='7.2' height='5.2' rx='1.4' fill='%23111'/%3E%3Ccircle cx='5.5' cy='7.2' r='1.75' fill='%23FFD400'/%3E%3Ccircle cx='10.5' cy='7.2' r='1.75' fill='%23FFD400'/%3E%3Cpath d='M8 9.4L7.1 11H8.9Z' fill='%23FFD400'/%3E%3Cpath d='M5.2 12.9H10.8M6.6 12.1V13.9M8 12.1V13.9M9.4 12.1V13.9' stroke='%23FFD400' stroke-width='.7'/%3E%3C/svg%3E") right 7px top 19px/16px 16px no-repeat,#FFD400;position:relative;overflow:hidden;clip-path:polygon(0 0,100% 0,calc(100% - 9px) 100%,0 100%)}#toasty-skullz .ts-bar i::before,#toasty-skullz .ts-bar i::after{content:"";position:absolute;left:0;right:0;top:0;height:16px;background-repeat:repeat-x;pointer-events:none;will-change:background-position}#toasty-skullz .ts-bar i::after{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='16'%3E%3Cpath d='M0 11Q40 3 80 11T160 11V0H0Z' fill='%23D9B300'/%3E%3C/svg%3E");background-size:160px 16px;opacity:.85;animation:tswv2 4.2s linear infinite}#toasty-skullz .ts-bar i::before{z-index:1;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='16'%3E%3Cpath d='M0 7Q30 0 60 7T120 7V0H0Z' fill='%23000'/%3E%3C/svg%3E");background-size:120px 16px;animation:tswv 2.6s linear infinite}@keyframes tswv{to{background-position:-120px 0}}@keyframes tswv2{from{background-position:-160px 0}to{background-position:0 0}}@media (prefers-reduced-motion:reduce){#toasty-skullz .ts-bar i::before,#toasty-skullz .ts-bar i::after{animation:none}}
+#toasty-skullz .ts-pct{font-family:"Arial Narrow","Roboto Condensed","Helvetica Neue",Arial,sans-serif;font-stretch:condensed;font-weight:800;font-size:28px;color:#fff;white-space:nowrap;min-width:3.4em;text-align:right}
+#toasty-skullz .ts-pbl{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-size:13px;color:#fff}
+#toasty-skullz .ts-pbl b{font-weight:800}
+#toasty-skullz .ts-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0 20px}
+#toasty-skullz .ts-stat{background:#05070d;border:1px solid #232838;border-radius:8px;padding:10px 12px}
+#toasty-skullz .ts-stat b{display:block;font-family:"Courier New",monospace;font-size:20px;color:var(--gold)}
+#toasty-skullz .ts-stat span{font-size:12px;opacity:.7;text-transform:uppercase;letter-spacing:.08em}
+#toasty-skullz .ts-note{font-size:12px;opacity:.6;margin:12px 0 0}
+#toasty-skullz .ts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
+#toasty-skullz .ts-card{position:relative;background:#0b0f1a;border:1px solid #232838;border-radius:10px;overflow:hidden;text-decoration:none;color:var(--tx);transition:transform .15s,border-color .15s}
+#toasty-skullz a.ts-card:hover{transform:translateY(-3px);border-color:var(--gold)}
+#toasty-skullz .ts-card img{width:100%;aspect-ratio:1/1;object-fit:cover;background:#111}
+#toasty-skullz .ts-card span{display:block;padding:8px 10px;font-family:"Courier New",monospace;font-weight:700;font-size:14px;color:var(--gold)}
+#toasty-skullz .ts-ph{aspect-ratio:1/1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:2px dashed #3a3520;background:repeating-linear-gradient(45deg,#0b0f1a 0 10px,#0d1220 10px 20px);color:#8a7a3a;font-family:"Courier New",monospace;font-size:13px;text-align:center;padding:10px}
+#toasty-skullz .ts-ph b{font-size:34px;color:#5a5020}
+#toasty-skullz .ts-about{display:grid;grid-template-columns:1.4fr 1fr;gap:28px}
+#toasty-skullz .ts-about p{margin:0 0 12px}
+#toasty-skullz .ts-facts{list-style:none;margin:0;padding:0;background:var(--bg2);border:1px solid #232838;border-radius:10px}
+#toasty-skullz .ts-facts li{display:flex;justify-content:space-between;gap:12px;padding:9px 14px;border-bottom:1px solid #1b1f2b;font-size:14px}
+#toasty-skullz .ts-facts li:last-child{border-bottom:0}
+#toasty-skullz .ts-facts li span{opacity:.7}
+#toasty-skullz .ts-facts li b{color:var(--gold);text-align:right;word-break:break-all}
+#toasty-skullz .ts-traits{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 14px}
+#toasty-skullz .ts-traits em{font-style:normal;font-size:12px;border:1px solid #3a3520;border-radius:999px;padding:2px 9px;color:#d8c77a}
+#toasty-skullz .ts-edit{border:2px dashed #b00000;border-radius:10px;padding:14px;color:#ffb3b3;background:rgba(176,0,0,.07);font-size:14px}
+#toasty-skullz .ts-links{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+#toasty-skullz .ts-links a{display:block;padding:14px 16px;background:var(--bg2);border:1px solid #2a2a1a;border-radius:8px;text-decoration:none;font-weight:700;transition:border-color .15s,transform .15s}
+#toasty-skullz .ts-links a:hover{border-color:var(--gold);transform:translateY(-2px)}
+#toasty-skullz .ts-links a small{display:block;font-weight:400;color:var(--tx);opacity:.6;font-size:12px}
+#toasty-skullz .ts-foot{text-align:center;padding:40px 20px 50px;border-top:1px solid #1b1f2b}
+@media (max-width:820px){#toasty-skullz .ts-live,#toasty-skullz .ts-about{grid-template-columns:1fr}#toasty-skullz .ts-cover{max-width:340px;margin:0 auto}}
+@media (max-width:480px){#toasty-skullz .ts-wrap{padding:0 14px}#toasty-skullz .ts-sec{padding:36px 0}#toasty-skullz .ts-hero{min-height:360px;padding:50px 14px}#toasty-skullz .ts-stats{gap:6px}#toasty-skullz .ts-stat{padding:8px}#toasty-skullz .ts-stat b{font-size:14px}#toasty-skullz .ts-stat span{font-size:10px}#toasty-skullz .ts-kick{font-size:11px;letter-spacing:.2em}#toasty-skullz .ts-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}#toasty-skullz .ts-btn{padding:14px 26px;width:100%;max-width:340px}#toasty-skullz .ts-live{padding:16px}}
+@media (prefers-reduced-motion:reduce){#toasty-skullz .ts-glitch::before,#toasty-skullz .ts-glitch::after,#toasty-skullz .ts-badge i{animation:none}}</style>
+<style>#toasty-skullz .ts-title{font-family:Anton,'Anton',Impact,'Arial Black',sans-serif!important;font-weight:400;letter-spacing:.03em;line-height:1;text-transform:none}
+#toasty-skullz .ts-vid{position:relative;width:100%;max-width:min(480px,100%);margin:6px auto 22px;border:2px solid #FFD400;border-radius:14px;overflow:hidden;background:#000;box-shadow:0 0 0 1px #000,0 0 24px rgba(255,212,0,.18)}
+#toasty-skullz .ts-vid video{display:block;width:100%;height:auto;background:#000}
+#toasty-skullz .ts-snd{position:absolute;right:10px;bottom:10px;z-index:2;background:rgba(0,0,0,.75);color:#FFD400;border:1px solid #FFD400;border-radius:999px;font:700 12px/1 "Courier New",monospace;letter-spacing:.1em;padding:8px 12px;cursor:pointer}
+@media (max-width:480px){#toasty-skullz .ts-title{letter-spacing:.01em;font-size:clamp(34px,11vw,52px)}#toasty-skullz .ts-vid{margin:4px auto 16px;border-radius:10px}}</style>
+<div id="toasty-skullz">
+<header class="ts-hero"><div>
+<div class="ts-skull" aria-hidden="true">&#128128;</div>
+<p class="ts-kick">Solana &middot; Core NFT &middot; 100 Skulls</p>
+<div class="ts-vid"><video id="tsVid" autoplay muted loop playsinline preload="metadata" poster="https://therapytoaster.github.io/tt-live/skullz/skullz-poster.jpg"><source src="https://therapytoaster.github.io/tt-live/skullz/skullz-video.mp4" type="video/mp4"></video><button type="button" class="ts-snd" aria-label="Tap for sound" onclick="var v=document.getElementById('tsVid');v.muted=!v.muted;if(!v.muted){v.volume=1;v.play();}this.textContent=v.muted?'&#128263; TAP FOR SOUND':'&#128266; SOUND ON';">&#128263; TAP FOR SOUND</button></div>
+<h1 class="ts-title ts-glitch" data-t="MR. TOASTY&#39;S SKULLZ">MR. TOASTY&#39;S SKULLZ</h1>
+<p class="ts-sub">The First Skulls. Glitched crystal skulls by Mr. Toasty, minting live on SolOnChain.</p>
+</div></header>
+
+<style>#toasty-skullz .tsm-sec{padding:36px 0 8px}
+#toasty-skullz .tsm-card{display:block;position:relative;text-decoration:none;color:#fff;background:#000;border:3px solid #FFD400;border-radius:14px;padding:28px 26px;box-shadow:-5px 5px 0 #00e5ff,5px -5px 0 #ff2a3c,0 0 0 1px #000;overflow:hidden;transition:box-shadow .2s ease}
+#toasty-skullz .tsm-card::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,212,0,.05) 0 2px,transparent 2px 5px);pointer-events:none}
+#toasty-skullz .tsm-card:hover,#toasty-skullz .tsm-card:focus-visible{box-shadow:-7px 7px 0 #00e5ff,7px -7px 0 #ff2a3c,0 0 0 1px #000;outline:none}
+#toasty-skullz .tsm-in{position:relative;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
+#toasty-skullz .tsm-txt{flex:1 1 360px;min-width:0}
+#toasty-skullz .tsm-kick{display:inline-block;background:#FFD400;color:#000;font:800 12px/1 "Courier New",ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase;padding:6px 10px;border-radius:4px;margin:0 0 12px}
+#toasty-skullz .tsm-h{margin:0 0 10px;color:#FFD400;font:900 clamp(28px,4.6vw,48px)/1.02 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;letter-spacing:-.01em;text-transform:uppercase;text-shadow:-2px 0 rgba(0,229,255,.85),2px 0 rgba(255,42,60,.85)}
+#toasty-skullz .tsm-p{margin:0;color:#f2f2f2;font-size:clamp(15px,1.8vw,18px);font-weight:600;line-height:1.4}
+#toasty-skullz .tsm-act{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:8px}
+#toasty-skullz .tsm-btn{display:inline-block;background:#FFD400;color:#000;border:3px solid #FFD400;border-radius:999px;padding:18px 34px;font:900 clamp(18px,2.2vw,22px)/1 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;text-transform:uppercase;letter-spacing:.03em;white-space:nowrap;box-shadow:-3px 3px 0 #00e5ff,3px -3px 0 #ff2a3c}
+#toasty-skullz .tsm-card:hover .tsm-btn{background:#ffe033}
+#toasty-skullz .ts-hero .ts-sub{margin-bottom:0}
+#toasty-skullz .tsm-solo{display:inline-flex;margin-top:4px}
+#toasty-skullz a.tsm-btn{text-decoration:none;color:#000!important;transition:background .2s ease}
+#toasty-skullz a.tsm-btn:hover,#toasty-skullz a.tsm-btn:focus-visible{background:#ffe033}
+#toasty-skullz .tsm-note{font:700 12px/1.2 "Courier New",ui-monospace,monospace;color:#FFD400;opacity:.8}
+@media (max-width:600px){#toasty-skullz .tsm-sec{padding:28px 0 4px}#toasty-skullz .tsm-card{padding:22px 18px;box-shadow:-4px 4px 0 #00e5ff,4px -4px 0 #ff2a3c,0 0 0 1px #000}#toasty-skullz .tsm-act{width:100%}#toasty-skullz .tsm-btn{display:block;width:100%;text-align:center;padding:16px 14px;white-space:normal}}
+@media (prefers-reduced-motion:reduce){#toasty-skullz .tsm-card{transition:none}}</style>
+<section class="tsm-sec" id="ts-mintcard"><div class="ts-wrap">
+<a class="tsm-card" href="https://www.solonchain.io/mint/mrtoastyskullz" target="_blank" rel="noopener" aria-label="Mint Mr. Toasty&#39;s Skullz on SolOnChain (opens in a new tab)"><div class="tsm-in">
+<div class="tsm-txt"><span class="tsm-kick">Solana &middot; Live mint</span><h2 class="tsm-h">Mint Mr. Toasty&#39;s Skullz</h2><p class="tsm-p">100 glitched crystal skulls on Solana. Every one signed Mr Toasty.</p></div>
+<div class="tsm-act"><span class="tsm-btn">Mint on SolOnChain &#8599;</span><span class="tsm-note">Opens SolOnChain in a new tab</span></div>
+</div></a>
+</div></section>
+<section class="ts-sec" id="ts-mint"><div class="ts-wrap">
+<h2 class="ts-h ts-glitch" data-t="LIVE MINT">LIVE MINT</h2>
+<div class="ts-live">
+<img class="ts-cover" src="https://www.solonchain.io/api/launchpad/image/bWFpbm5ldC9sYXVuY2hwYWQtbmZ0cy9BSHlDZXd4dzN4OXE0dUM1NDI1cEx6TWJ1QkhtTXB6aGNXWTRnekdNcHkzQS9tcnRvYXN0eXNrdWxsei90aHVtYm5haWwuanBn?v=1792120700690" alt="Mr. Toasty&#39;s Skullz cover" loading="lazy">
+<div>
+<span class="ts-badge" data-k="badge"><i></i><b data-k="status">Minting now</b></span>
+<div class="ts-count"><span data-k="minted">12</span><small> / <span data-k="supply">100</span> minted</small></div>
+<div class="ts-pb"><div class="ts-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="12"><i data-k="bar" style="width:12%"></i></div><span class="ts-pct" data-k="pct">12 %</span></div>
+<div class="ts-pbl"><b data-k="bmint">12</b> / <span data-k="bsup">100</span> Minted &middot; <span data-k="left">88</span> left</div>
+<div class="ts-stats">
+<div class="ts-stat"><b data-k="price">0.215 SOL</b><span>Price</span></div>
+<div class="ts-stat"><b data-k="max">5</b><span>Max / wallet</span></div>
+<div class="ts-stat"><b data-k="ends">Dec 31</b><span data-k="endslbl">Sale ends</span></div>
+</div>
+<div class="tsm-act tsm-solo"><a class="tsm-btn" href="https://www.solonchain.io/mint/mrtoastyskullz" target="_blank" rel="noopener">Mint on SolOnChain &#8599;</a><span class="tsm-note">Opens SolOnChain in a new tab</span></div>
+<p class="ts-note">Live from SolOnChain &middot; refreshes every 30s &middot; <span data-k="upd">last checked: loading&hellip;</span></p>
+</div></div>
+</div></section>
+
+<section class="ts-sec" id="ts-gallery"><div class="ts-wrap">
+<h2 class="ts-h ts-glitch" data-t="THE SKULLZ">THE SKULLZ</h2>
+<p style="margin:-6px 0 18px;opacity:.8">Minted so far, pulled live from the Solana collection. Tap a skull to see it on Solscan.</p>
+<div class="ts-grid" data-k="grid"></div>
+<h3 class="ts-h" style="font-size:20px;margin-top:36px">MORE SKULL CONTENT</h3>
+<!-- EDIT ME: replace each placeholder <div class="ts-card ts-ph">...</div> with:
+<a class="ts-card" href="LINK" target="_blank" rel="noopener"><img src="IMAGE_URL" alt="TITLE" loading="lazy"><span>TITLE</span></a> -->
+<div class="ts-grid">
+<div class="ts-card ts-ph"><b>&#9760;</b>PLACEHOLDER<br>Add skull art / video</div>
+<div class="ts-card ts-ph"><b>&#9760;</b>PLACEHOLDER<br>Add skull art / video</div>
+<div class="ts-card ts-ph"><b>&#9760;</b>PLACEHOLDER<br>Add skull art / video</div>
+<div class="ts-card ts-ph"><b>&#9760;</b>PLACEHOLDER<br>Add skull art / video</div>
+</div>
+</div></section>
+
+<section class="ts-sec" id="ts-about"><div class="ts-wrap">
+<h2 class="ts-h ts-glitch" data-t="ABOUT THE COLLECTION">ABOUT THE COLLECTION</h2>
+<div class="ts-about"><div>
+<p><b style="color:#C5A834">The First Skulls.</b> Mr. Toasty&#39;s Skullz is a 100-piece collection of glitched crystal skulls on Solana, minted through SolOnChain as Metaplex Core NFTs.</p>
+<p>Every skull is signed &ldquo;Mr Toasty&rdquo; and mixes five traits:</p>
+<div class="ts-traits"><em>Background</em><em>Skull Color</em><em>Crystal Tint</em><em>Glitch Color</em><em>Signature</em></div>
+<p style="opacity:.85">Spotted so far: Chrome Phantom, Cobalt Core, Crimson Cyborg, Gunmetal Ghost, Rose Gold Requiem and Toxic Ooze skulls, with Amethyst Bloom, Ice Shard, Raw Quartz and Smoke Quartz crystal tints and glitches like Neon Rift, Matrix Bleed, Redline and Reactor Leak.</p>
+<h3 class="ts-h" style="font-size:clamp(18px,2.4vw,24px);margin:22px 0 12px">The Story Behind the Skullz</h3>
+<p>Mr. Toasty&#39;s Skullz is dedicated to my wife. She&#39;s the artist in our house, but these days she spends her time taking care of our kids and doesn&#39;t get to make art like she used to. Years ago she drew me three guys, and I got them tattooed on my arm with her signature. Wearing her art every day is what pushed me to find my own.</p>
+<p>So I bought real art skulls and started running them through my glitch style. Every Skull starts as a physical piece, then gets torn, fringed and corrupted into the Toasty look you see here.</p>
+<p>This whole thing grew out of @TherapyToaster. On March 30, 2026, I came back to Twitter for the first time in 15 years, in the middle of my recovery, and jumped on Spaces for the first time ever. The people I met there, especially the SolOnChain community, are a big part of why I kept going, and it&#39;s why I chose SolOnChain to launch these as NFTs.</p>
+<p><b>What&#39;s next:</b> limited runs of different skulls, each released as its own edition under the Mr. Toasty&#39;s Skullz name. Follow <a href="https://x.com/TherapyToaster" target="_blank" rel="noopener">@TherapyToaster</a> to catch each drop first.</p>
+<div class="ts-skullis" style="margin:22px 0 4px;padding:18px 20px;background:#05070d;border:2px solid #FFD400;border-radius:10px;box-shadow:-4px 0 0 rgba(0,229,255,.7),4px 0 0 rgba(176,0,0,.9)">
+<h3 class="ts-h ts-glitch" data-t="Where the Skulls Come From" style="font-size:clamp(18px,2.4vw,24px);margin:0 0 10px;color:#FFD400">Where the Skulls Come From</h3>
+<p style="margin:0 0 14px">Most of my real skulls come from <b style="color:#FFD400">Skullis</b> &mdash; big love and respect to those good, fine people in China for the craftsmanship. Show them some support.</p>
+<a class="ts-btn ts-sm" href="https://www.skullis.com/" target="_blank" rel="noopener" style="background:#FFD400;border-color:#FFD400">VISIT SKULLIS &rarr;</a>
+</div>
+</div>
+<ul class="ts-facts">
+<li><span>Supply</span><b>100</b></li>
+<li><span>Mint price</span><b>0.215 SOL</b></li>
+<li><span>Max per wallet</span><b>5</b></li>
+<li><span>Public sale</span><b>Oct 10 &ndash; Dec 31, 2026</b></li>
+<li><span>Standard</span><b>Metaplex Core</b></li>
+<li><span>Symbol</span><b>TSTK</b></li>
+<li><span>Royalty</span><b>5%</b></li>
+<li><span>Collection</span><b><a href="https://solscan.io/account/4dRyECgjakeW2t3JoLWVUDu54XxcVBqZEhqjKSt6MC7q" target="_blank" rel="noopener">4dRy&hellip;MC7q</a></b></li>
+</ul></div>
+</div></section>
+
+<style>
+#toasty-skullz .ttrm-sec{background:#000}
+#toasty-skullz .ttrm-h{color:#FFD400;text-shadow:-2px 0 rgba(0,229,255,.6),2px 0 rgba(255,59,59,.7)}
+#toasty-skullz .ttrm-lead{margin:0 0 26px;max-width:760px;line-height:1.6;color:var(--tx)}
+#toasty-skullz .ttrm-perks{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin:0 0 34px}
+#toasty-skullz .ttrm-card{background:#05070d;border:2px solid #FFD400;border-radius:10px;padding:18px;box-shadow:-3px 0 0 rgba(0,229,255,.45),3px 0 0 rgba(255,59,59,.45)}
+#toasty-skullz .ttrm-num{font-family:"Courier New",ui-monospace,monospace;font-weight:900;color:#000;background:#FFD400;display:inline-block;padding:2px 9px;border-radius:4px;font-size:13px;letter-spacing:.08em}
+#toasty-skullz .ttrm-card h3{font-family:"Courier New",ui-monospace,monospace;text-transform:uppercase;letter-spacing:.06em;color:#FFD400;font-size:18px;margin:12px 0 8px}
+#toasty-skullz .ttrm-card p{margin:0;line-height:1.55;font-size:15px}
+#toasty-skullz .ttrm-sub{font-family:"Courier New",ui-monospace,monospace;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:#FFD400;font-size:clamp(17px,2.2vw,22px);margin:0 0 16px}
+#toasty-skullz .ttrm-steps{list-style:none;margin:0 0 30px;padding:0 0 0 22px;border-left:2px solid #FFD400;position:relative}
+#toasty-skullz .ttrm-steps li{position:relative;margin:0 0 18px;padding-left:8px}
+#toasty-skullz .ttrm-steps li::before{content:"";position:absolute;left:-31px;top:4px;width:14px;height:14px;background:#FFD400;border-radius:2px;box-shadow:-2px 0 0 #00e5ff,2px 0 0 #ff3b3b}
+#toasty-skullz .ttrm-steps b{display:block;color:#FFD400;font-family:"Courier New",ui-monospace,monospace;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+#toasty-skullz .ttrm-steps span{line-height:1.5;font-size:15px}
+#toasty-skullz .ttrm-fine{margin:6px 0 0;padding:14px 16px;border-left:3px solid #FFD400;background:#05070d;font-size:14px;line-height:1.55;opacity:.9}
+@media (max-width:600px){#toasty-skullz .ttrm-card{padding:15px}}
+</style>
+<section class="ts-sec ttrm-sec" id="ttrm-roadmap"><div class="ts-wrap">
+<h2 class="ts-h ttrm-h">FUTURE ROADMAP</h2>
+<p class="ttrm-lead">Hold a skull and you get store perks, TSTR drops, holder-only access and rarity rewards.</p>
+<div class="ttrm-perks">
+<div class="ttrm-card"><span class="ttrm-num">PERK 01</span><h3>Store perks</h3><p>A holder discount at the Mr. Toasty&#39;s Skullz store, plus holder-only merch printed with your own skull: prints, shirts and stickers.</p></div>
+<div class="ttrm-card"><span class="ttrm-num">PERK 02</span><h3>TSTR drops</h3><p>Holders get Therapy Toaster (TSTR) on a monthly schedule, with a bonus for Legendary skulls.</p></div>
+<div class="ttrm-card"><span class="ttrm-num">PERK 03</span><h3>Holder-only access</h3><p>A private holder space with sneak peeks of what&#39;s next and a vote on traits for the next drop.</p></div>
+<div class="ttrm-card"><span class="ttrm-num">PERK 04</span><h3>Rarity rewards</h3><p>Pull a Legendary and you&#39;re in line for something extra, like a custom 1/1 piece or a bigger drop.</p></div>
+</div>
+<h3 class="ttrm-sub">How to claim</h3>
+<ol class="ttrm-steps">
+<li><b>01 &middot; Store perks</b><span>Coming soon. Holder codes and your-skull merch go live with the store.</span></li>
+<li><b>02 &middot; TSTR drops</b><span>Keep your skull in your Solana wallet. Holders are counted once a month and drops go straight to that wallet. Amounts and start date coming soon.</span></li>
+<li><b>03 &middot; Holder-only access</b><span>Coming soon: connect your wallet to verify and get in.</span></li>
+<li><b>04 &middot; Rarity rewards</b><span>Automatic for Legendary holders. Details coming soon.</span></li>
+<li><b>05 &middot; Next up: chrome skulls</b><span>A second drop is on the way: 200 animated chrome skulls. Skullz holders get early access. More soon.</span></li>
+</ol>
+<p class="ttrm-fine"><b>The fine print:</b> Perks follow whoever holds the skull. Claims never need your seed phrase or private key. TSTR is a community token for fun, not an investment, and comes with no promise of value or returns. Perks, amounts and timing may change.</p>
+</div></section>
+
+<section class="ts-sec" id="ts-links"><div class="ts-wrap">
+<h2 class="ts-h ts-glitch" data-t="LINKS">LINKS</h2>
+<div class="ts-links">
+<a href="https://www.solonchain.io/mint/mrtoastyskullz" target="_blank" rel="noopener">&#128128; Mint on SolOnChain<small>solonchain.io/mint/mrtoastyskullz</small></a>
+<a href="https://solscan.io/account/4dRyECgjakeW2t3JoLWVUDu54XxcVBqZEhqjKSt6MC7q" target="_blank" rel="noopener">&#128269; Collection on Solscan<small>On-chain collection account</small></a>
+<a href="https://discord.gg/5vgAAuwjRs" target="_blank" rel="noopener">&#128172; Discord<small>Join the community</small></a>
+<a href="https://x.com/TherapyToaster" target="_blank" rel="noopener">&#120143; @TherapyToaster<small>Follow on X</small></a>
+<a href="https://www.therapytoaster.com/" target="_blank" rel="noopener">&#127838; TherapyToaster.com<small>Back to the home page</small></a>
+</div>
+</div></section>
+
+<div class="ts-foot"><div class="tsm-act tsm-solo"><a class="tsm-btn" href="https://www.solonchain.io/mint/mrtoastyskullz" target="_blank" rel="noopener">Mint on SolOnChain &#8599;</a><span class="tsm-note">Opens SolOnChain in a new tab</span></div><p class="ts-note" style="margin-top:16px">Not financial advice. Mint at your own risk. Always check the URL is solonchain.io.</p></div>
+</div>
+<script>
+(function(){
+var R=document.getElementById('toasty-skullz');if(!R||R.getAttribute('data-ready'))return;R.setAttribute('data-ready','1');
+var API='https://www.solonchain.io/api/launchpad/collection/mrtoastyskullz',DAS='https://www.solonchain.io/api/das/getAssetsByGroup',COLL='4dRyECgjakeW2t3JoLWVUDu54XxcVBqZEhqjKSt6MC7q',MINT='https://www.solonchain.io/mint/mrtoastyskullz';
+var FB=[["#4","https://gateway.irys.xyz/FNVZWc6LDyD2wKRNWZEutTnGLdrq3iBZ3UGQCfemDeNN","6tLLcVuLijwrgCCVtbWWzVjePwwtefPSSpMvi6e3v1tY"],["#8","https://gateway.irys.xyz/5fMtpfTxkdgxGF7ctsBVUqxmVrYvBL8JXfU8irosfoUh","59uGquPhCjaYXTVKvF6ySMGvrb5XTe7CJJ53qhRwmJzg"],["#41","https://gateway.irys.xyz/7LuGzeaLyCqK9FSp9wx1aCRJvL6yiD1tDnjc4FQr1rRJ","4tp5PqLDNHUix4CPSLtnP5sqdQGYkKsLGusGF4M6Eabn"],["#43","https://solonchain.io/api/launchpad/image/bWFpbm5ldC9sYXVuY2hwYWQtbmZ0cy9BSHlDZXd4dzN4OXE0dUM1NDI1cEx6TWJ1QkhtTXB6aGNXWTRnekdNcHkzQS9tcnRvYXN0eXNrdWxsei80My5wbmc","8XAT5eFF5PWHxy1YrWsgrqF2StVQ4rnCuxV1zpQxXnpw"],["#47","https://gateway.irys.xyz/AUb6RyYKJuyMWp1uzziegbgWyCt97hd6WwvmhPbRdGUx","J9ssSB5dqQNzpuGLU9jY5fNx9XG4KjcRUrtzjS1xg6Nw"],["#64","https://gateway.irys.xyz/hmnpnaM7BEqo4QA6obsb5Hk3SDhTTzMicnwroPwuNh9","Fj7dePwFeCNjE4TEpnvy1TC7XLhF3FdXwcEnVyX7CFTT"],["#71","https://gateway.irys.xyz/6zEkRewzQzkhKkKo1Mgyc1WuPUSVT3mzNccBxj1PXNRA","4m2syZStVueFcXfFVEXLvVCchYnsGJCXCyp3mUtNGqLR"],["#83","https://gateway.irys.xyz/5Vmj1JUeWHLKSBoRSQ6DHub5Qo4uvH2gjojDV9iUnYVD","H8qMCKVmQnXH8ySnQU2etk66eBzNQKnSmBCChgjTqdfc"],["#91","https://gateway.irys.xyz/CQkTcMs6nvd7DTFQvu792fGQntdsu1vk3W37ib3pyt4A","9gknoAND8wChfVivQXm69RMm7CtGSiKhLqd61nV3FiSb"],["#92","https://gateway.irys.xyz/3Ti1G8MwMw9cwzoQcmjNenXFVgr7gVU2GjGj82Dm6jak","MuSBEnz83CpKAPKp66igmVPvE79Y5R9qedsEGhaSiEo"],["#94","https://gateway.irys.xyz/8tsJLHAb1Nn9LUqxNVyX3ADoyz1d9ujPjmBXk6G9GAaz","6yfaVMoRPJzbvkfNYE1UU1QXyTtnXDPokL9PPhxC2C1F"],["#96","https://gateway.irys.xyz/DJtuYSxxKVH5diz5hvVVuUWRbdb1KFSXmvTWa7AawdbJ","G7fNksvLt2SmRFztCkibNXHz5t4iuLbXia8JRLaRvDjQ"]];
+function q(k){return R.querySelector('[data-k="'+k+'"]');}
+function set(k,v){var e=q(k);if(e)e.textContent=v;}
+var MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function d(ms){var x=new Date(ms);return MO[x.getMonth()]+' '+x.getDate();}
+function stats(){
+fetch(API,{cache:'no-store'}).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(c){
+var tot=+c.totalSupply||100,m=+(c.minted!=null?c.minted:c.currentSupply)||0,pct=Math.min(100,Math.round(m/tot*1000)/10);
+set('minted',m);set('supply',tot);set('bmint',m);set('bsup',tot);set('pct',pct+' %');set('left',Math.max(0,tot-m));
+q('bar').style.width=pct+'%';R.querySelector('.ts-bar').setAttribute('aria-valuenow',pct);
+var now=Date.now(),ph=(c.phases||[]).filter(function(p){return now<(p.endTime||9e15);}).sort(function(a,b){return a.startTime-b.startTime;})[0]||(c.phases||[])[0];
+var live=false,st='Minting now';
+if(ph){set('price',(+ph.price)+' SOL');set('max',ph.maxPerWallet||'\u221e');
+if(now<ph.startTime){st='Starts '+d(ph.startTime);set('ends',d(ph.startTime));set('endslbl','Sale starts');}
+else if(ph.endTime&&now>ph.endTime){st='Sale ended';set('ends',d(ph.endTime));set('endslbl','Sale ended');}
+else{live=true;set('ends',ph.endTime?d(ph.endTime):'Open');set('endslbl','Sale ends');}}
+if(m>=tot){st='Sold out';live=false;}else if(c.isPaused){st='Paused';live=false;}
+set('status',st);q('badge').className='ts-badge'+(live?'':' ts-off');
+set('upd','last checked: '+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit',second:'2-digit'}));
+}).catch(function(){set('upd','live data unavailable, showing last known numbers');});}
+function img(u){return 'https://cdn.helius-rpc.com/cdn-cgi/image/width=400/'+u;}
+function draw(list){var g=q('grid');g.innerHTML='';
+list.forEach(function(it){var a=document.createElement('a');a.className='ts-card';a.href='https://solscan.io/token/'+it[2];a.target='_blank';a.rel='noopener';
+var i=document.createElement('img');i.loading='lazy';i.alt="Mr. Toasty's Skullz "+it[0];i.src=img(it[1]);i.onerror=function(){if(this.src!==it[1])this.src=it[1];};
+var s=document.createElement('span');s.textContent='SKULL '+it[0];a.appendChild(i);a.appendChild(s);g.appendChild(a);});}
+function num(n){var m=/#(\d+)/.exec(n||'');return m?+m[1]:9999;}
+function gallery(){
+fetch(DAS,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({groupKey:'collection',groupValue:COLL,page:1,limit:100})}).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(j){
+var L=(j.items||[]).map(function(x){var c=x.content||{},f=(c.files||[])[0]||{},u=f.uri||(c.links||{}).image;return u?['#'+num((c.metadata||{}).name),u,x.id]:null;}).filter(Boolean);
+if(!L.length)throw 0;L.sort(function(a,b){return num(a[0])-num(b[0]);});draw(L);}).catch(function(){});}
+draw(FB);stats();gallery();
+setInterval(stats,30000);setInterval(gallery,120000);
+})();
+</script>
+<style id="tsbg-css">
+body{background:#000}
+#page .section-background,#page .section-background *{background:transparent!important}
+#page .section-border,#page .page-section,#page #sections,#page main,#page article{background-color:transparent!important;background-image:none!important}
+#page .section-background img,#page .section-background video{opacity:0!important}
+#toasty-skullz{background:rgba(5,7,13,.88)!important;position:relative;z-index:1}
+#tsbg-scan{position:fixed;left:0;top:-8px;width:100vw;height:calc(100vh + 16px);z-index:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.28) 0 1px,transparent 1px 4px);opacity:.55;animation:tsbgScan 9s linear infinite}
+@keyframes tsbgScan{from{transform:translateY(0)}to{transform:translateY(8px)}}
+@media (prefers-reduced-motion:reduce){#tsbg-scan{animation:none}}
+</style>
+<script>
+(function(){
+if(document.getElementById('tsbg'))return;
+var cv=document.createElement('canvas');cv.id='tsbg';cv.setAttribute('aria-hidden','true');
+cv.style.cssText='position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:0;pointer-events:none;display:block;background:#000';
+var sc=document.createElement('div');sc.id='tsbg-scan';sc.setAttribute('aria-hidden','true');
+document.body.insertBefore(sc,document.body.firstChild);document.body.insertBefore(cv,document.body.firstChild);
+var pg=document.getElementById('page');if(pg){var pc=getComputedStyle(pg);if(pc.position==='static')pg.style.position='relative';if(pc.zIndex==='auto'||+pc.zIndex<1)pg.style.zIndex='1';}
+for(var el=pg&&pg.parentElement;el&&el!==document.documentElement;el=el.parentElement){el.style.setProperty('background-color','transparent','important');el.style.setProperty('background-image','none','important');}
+var x=cv.getContext('2d'),W=0,H=0,D=1,t0=performance.now(),raf=0,last=0,ST=[],SK=[];
+var RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)');
+var SKP=new Path2D('M50 4C24 4 6 22 6 46c0 14 6 24 14 30v14c0 4 3 6 6 6h6v-10h6v10h8v-10h8v10h8v-10h6v10h6c3 0 6-2 6-6V76c8-6 14-16 14-30C94 22 76 4 50 4zM32 40c7 0 12 5 12 11s-5 9-12 9-11-3-11-9 4-11 11-11zm36 0c7 0 11 5 11 11s-4 9-11 9-12-3-12-9 5-11 12-11zM50 62l6 10H44z');
+function R(a,b){return a+Math.random()*(b-a);}
+function init(){ST=[];var n=Math.round(W*H/2300);for(var i=0;i<n;i++){var r=Math.random();ST.push({x:R(0,W),y:R(0,H),s:r<.85?1:(r<.97?1.6:2.2),c:r>.985?'200,140,255':(r>.9?'140,150,120':'210,215,220'),a:R(.25,.9),p:R(0,6.3),f:R(.3,1.2)});}
+SK=[];var m=Math.max(5,Math.min(11,Math.round(W/170)));for(var j=0;j<m;j++)SK.push({x:R(0,W),y:R(0,H),z:R(.35,.95),vy:R(4,9),vx:R(-3,3),r:R(-.3,.3),vr:R(-.03,.03),h:Math.random()<.5?'176,0,0':'0,229,255'});}
+function rs(){D=Math.min(window.devicePixelRatio||1,1.5);W=innerWidth;H=innerHeight;cv.width=W*D|0;cv.height=H*D|0;x.setTransform(D,0,0,D,0,0);init();draw(RM&&RM.matches?0:(performance.now()-t0)/1000);}
+function draw(t){
+x.globalCompositeOperation='source-over';x.fillStyle='#000';x.fillRect(0,0,W,H);
+for(var i=0;i<ST.length;i++){var s=ST[i],a=s.a*(.65+.35*Math.sin(t*s.f+s.p));x.fillStyle='rgba('+s.c+','+a.toFixed(3)+')';x.fillRect(s.x,s.y,s.s,s.s);}
+for(var j=0;j<SK.length;j++){var k=SK[j],sz=56+90*k.z,yy=((k.y-t*k.vy*k.z)%(H+sz*2)+H+sz*2)%(H+sz*2)-sz,xx=((k.x+t*k.vx)%(W+sz*2)+W+sz*2)%(W+sz*2)-sz,rot=k.r+Math.sin(t*.2+j)*.15;
+x.save();x.translate(xx,yy);x.rotate(rot);x.scale(sz/100,sz/100);x.translate(-50,-50);
+x.globalAlpha=.035+.05*k.z;x.fillStyle='rgb(255,59,59)';x.translate(2.5,0);x.fill(SKP,'evenodd');x.fillStyle='rgb(0,229,255)';x.translate(-5,0);x.fill(SKP,'evenodd');x.translate(2.5,0);x.fillStyle='rgb(70,72,80)';x.globalAlpha=.06+.07*k.z;x.fill(SKP,'evenodd');x.restore();}
+x.globalAlpha=1;x.globalCompositeOperation='lighter';
+for(var b=0;b<3;b++){var by=((t*(14+b*9)+b*H/3)%(H+120))-60,bh=18+b*14,o=4+3*Math.sin(t*.5+b);
+var g=x.createLinearGradient(0,by,0,by+bh);g.addColorStop(0,'rgba(255,40,40,0)');g.addColorStop(.5,'rgba(255,40,40,.07)');g.addColorStop(1,'rgba(255,40,40,0)');x.fillStyle=g;x.fillRect(o,by,W,bh);
+var g2=x.createLinearGradient(0,by+3,0,by+bh+3);g2.addColorStop(0,'rgba(0,229,255,0)');g2.addColorStop(.5,'rgba(0,229,255,.06)');g2.addColorStop(1,'rgba(0,229,255,0)');x.fillStyle=g2;x.fillRect(-o,by+3,W,bh);}
+x.globalCompositeOperation='source-over';
+var v=x.createRadialGradient(W/2,H/2,Math.min(W,H)*.3,W/2,H/2,Math.max(W,H)*.75);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,.55)');x.fillStyle=v;x.fillRect(0,0,W,H);}
+function loop(n){raf=requestAnimationFrame(loop);if(n-last<33)return;last=n;draw((n-t0)/1000);}
+function go(){cancelAnimationFrame(raf);raf=0;sc.style.animationPlayState=document.hidden?'paused':'';if(document.hidden||(RM&&RM.matches)){if(!document.hidden)draw(0);return;}raf=requestAnimationFrame(loop);}
+addEventListener('resize',rs);document.addEventListener('visibilitychange',go);if(RM){if(RM.addEventListener)RM.addEventListener('change',go);else if(RM.addListener)RM.addListener(go);}
+rs();go();
+})();
+</script>
