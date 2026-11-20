@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.21.0"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.21.1"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <link rel="icon" href="data:,"><title>MR. TOASTY'S NO SIGNAL SKULLZ — Therapy Toaster</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Anton&family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
@@ -224,8 +224,8 @@ body.lefty #bReload{right:auto;left:calc(var(--sl) + 22px + 88px*var(--bs,1))}
 (function(){
   try{
     var b=location.href.replace(/[#?].*/,'').replace(/[^\/]+$/,'');
-    window.ENEMYATLAS_URL=b+'enemies_v0210.webp';
-    window.ENEMYMETA_URL=b+'enemies_v0210.json';
+    window.ENEMYATLAS_URL=b+'enemies_v0211.webp';
+    window.ENEMYMETA_URL=b+'enemies_v0211.json';
     var im=new Image();
     im.decoding='async';
     im.src=window.ENEMYATLAS_URL;
@@ -16477,7 +16477,7 @@ body.touch.playing #hud{
 })();
 
 // v0.21.0 — Direction B illustrated enemy cutouts.
-// Sidecar webp atlas (enemies_v0210.webp), never base64'd into index.html.
+// Sidecar webp atlas (enemies_v0211.webp), never base64'd into index.html.
 // Falls back to the existing code-drawn sprites if the atlas fails to load.
 // 5 key poses per regular/figurine/minion; walk-bob + side flips are engine-side.
 // Boss overhaul (Fat/Toasty/Triggered/Blankey/NIT/Glitch/Cybertoaster) is slated for v0.21.1.
@@ -16492,8 +16492,8 @@ body.touch.playing #hud{
     const u=(typeof location!=='undefined'&&location.href||'').replace(/[#?].*/,'').replace(/[^/]+$/,'');
     return u;
   }
-  const ATLAS_URL=(typeof window!=='undefined'&&window.ENEMYATLAS_URL)||(baseDir()+'enemies_v0210.webp');
-  const META_URL=(typeof window!=='undefined'&&window.ENEMYMETA_URL)||(baseDir()+'enemies_v0210.json');
+  const ATLAS_URL=(typeof window!=='undefined'&&window.ENEMYATLAS_URL)||(baseDir()+'enemies_v0211.webp');
+  const META_URL=(typeof window!=='undefined'&&window.ENEMYMETA_URL)||(baseDir()+'enemies_v0211.json');
 
   function texFromCanvas(c){
     const w=c.width,h=c.height,g=c.getContext('2d');
@@ -16649,7 +16649,7 @@ body.touch.playing #hud{
       }
     }
     // Pale Signal boss shares wspale frames
-    if(typeof B7TEX!=='undefined'&&typeof ANIM!=='undefined'&&ANIM.wspale){
+    if(typeof B7TEX!=='undefined'&&typeof ANIM!=='undefined'&&ANIM.wspale&&!(typeof TT==='object'&&TT.bossPale)){
       const pack=ANIM.wspale;
       const set={idle:pack.idle,move:pack.walk,atk:pack.atk,hurt:pack.hurt,death:pack.dead};
       B7TEX.pale={base:set,rage:set};
@@ -16699,7 +16699,7 @@ body.touch.playing #hud{
         if(d&&d.spr&&src[d.spr]) d._atlasOn=1;
       }
     }
-    if(typeof B7TEX!=='undefined'&&typeof ANIM!=='undefined'&&ANIM.wspale){
+    if(typeof B7TEX!=='undefined'&&typeof ANIM!=='undefined'&&ANIM.wspale&&!(typeof TT==='object'&&TT.bossPale)){
       const pack=ANIM.wspale;
       const set={idle:pack.idle,move:pack.walk,atk:pack.atk,hurt:pack.hurt,death:pack.dead};
       B7TEX.pale={base:set,rage:set};
@@ -16766,6 +16766,278 @@ body.touch.playing #hud{
     };
     loadAtlas._v0210=1;
   }
+})();
+
+// v0.21.1 — Direction B illustrated boss cutouts + figurine soft-spot fixes.
+// Sidecar bosses_v0211.webp is lazy-loaded when a boss floor (or toaster / White Static) starts.
+// Never base64'd into index.html. Falls back to the existing code-drawn bosses if the atlas fails.
+// Regular/figurine enemy atlas is enemies_v0211.webp (same pack as 0.21.0 with four fixed figures).
+(function(){
+  const VER='0.21.1';
+  if(typeof TT==='object'){ TT.ver=VER; TT.liveVer=VER; TT.bossVer=VER; }
+
+  function baseDir(){
+    const u=(typeof location!=='undefined'&&location.href||'').replace(/[#?].*/,'').replace(/[^/]+$/,'');
+    return u;
+  }
+  const ATLAS_URL=baseDir()+'bosses_v0211.webp';
+  const META_URL=baseDir()+'bosses_v0211.json';
+
+  function texFromCanvas(c){
+    const w=c.width,h=c.height,g=c.getContext('2d');
+    const d=g.getImageData(0,0,w,h);
+    const u=new Uint32Array(d.data.buffer.slice(0));
+    for(let i=0;i<u.length;i++) u[i]=(u[i]>>>24)<128?0:(u[i]|0xff000000)>>>0;
+    u.ts=Math.max(w,h); u.tw=w; u.th=h;
+    return u;
+  }
+  function downTex(T){
+    if(!T) return T;
+    const tw=T.tw||T.ts||64, th=T.th||T.ts||tw;
+    const nw=Math.max(8, tw>>1), nh=Math.max(8, th>>1);
+    const c=document.createElement('canvas'); c.width=nw; c.height=nh;
+    const g=c.getContext('2d');
+    const src=document.createElement('canvas'); src.width=tw; src.height=th;
+    const sg=src.getContext('2d');
+    const id=sg.createImageData(tw,th);
+    new Uint32Array(id.data.buffer).set(T);
+    sg.putImageData(id,0,0);
+    g.imageSmoothingEnabled=false;
+    g.drawImage(src,0,0,tw,th,0,0,nw,nh);
+    return texFromCanvas(c);
+  }
+  function sliceToTex(img, fr){
+    const c=document.createElement('canvas');
+    c.width=fr.w; c.height=fr.h;
+    const g=c.getContext('2d');
+    g.imageSmoothingEnabled=false;
+    g.drawImage(img, fr.x, fr.y, fr.w, fr.h, 0, 0, fr.w, fr.h);
+    return texFromCanvas(c);
+  }
+  function rep(tex, n){
+    const a=new Array(Math.max(1,n||1));
+    for(let i=0;i<a.length;i++) a[i]=tex;
+    return a;
+  }
+  function texSet(img, frs){
+    const t={};
+    for(const p in frs) t[p]=sliceToTex(img, frs[p]);
+    return t;
+  }
+  function b7pack(t){
+    const idle=t.idle||t.walk, walk=t.walk||idle, atk=t.atk||idle, hurt=t.hurt||idle, dead=t.dead||hurt||idle;
+    if(!idle) return null;
+    return {
+      idle: rep(idle,4),
+      move: rep(walk,4),
+      atk:  rep(atk,3),
+      hurt: hurt&&idle?[hurt,idle]:rep(hurt||idle,2),
+      death:rep(dead,3)
+    };
+  }
+  function loPack(pack){
+    const lo={};
+    for(const k in pack){
+      lo[k]=Array.isArray(pack[k])?pack[k].map(downTex):pack[k];
+    }
+    return lo;
+  }
+  function useHi(){ return !(typeof fxHigh==='function'&&!fxHigh()); }
+
+  const CACHE={hi:{}, lo:{}};
+
+  function applyBosses(meta, img){
+    if(!meta||!meta.frames||!img||!img.width) return false;
+    const F=meta.frames;
+    function setB7(id, baseFr, rageFr, extra){
+      const base=b7pack(texSet(img, baseFr||{}));
+      if(!base) return;
+      const rage=rageFr?b7pack(texSet(img, rageFr)):base;
+      const rec={base, rage};
+      if(extra) Object.assign(rec, extra);
+      if(typeof B7TEX!=='undefined') B7TEX[id]=rec;
+      CACHE.hi[id]=rec;
+      const lo={base:loPack(base), rage:loPack(rage)};
+      if(extra){
+        for(const k in extra) lo[k]=loPack(extra[k]);
+      }
+      CACHE.lo[id]=lo;
+      if(!useHi() && typeof B7TEX!=='undefined') B7TEX[id]=lo;
+    }
+    function setSPR(name, tex){
+      if(!tex||typeof SPR==='undefined') return;
+      SPR[name]=tex;
+    }
+    function setANIM(name, t){
+      const pack=b7pack(t);
+      if(!pack||typeof ANIM==='undefined') return;
+      // ANIM uses walk/dead; b7 uses move/death
+      const A={
+        idle:pack.idle, walk:pack.move, atk:pack.atk, hurt:pack.hurt, dead:pack.death,
+        side:pack.idle[0]
+      };
+      ANIM[name]=A; ANIM[name]._atlas=1;
+      setSPR(name, pack.idle[0]);
+    }
+
+    if(F.fat) setB7('fat', F.fat, F.fatR);
+    if(F.toasty) setB7('toasty', F.toasty, F.toastyR);
+    if(F.triggered) setB7('triggered', F.triggered, F.triggeredR);
+    if(F.blankey){
+      const extra={};
+      if(F.blankeyX){
+        const x=texSet(img, F.blankeyX);
+        const sh=b7pack({idle:x.shield, walk:x.shieldWalk||x.shield, atk:x.shieldAtk||x.shield, hurt:x.rageHurt||x.shield, dead:x.shield});
+        if(sh) extra.shield=sh;
+        // also a rage pack from rageIdle/Atk/Hurt if present
+        if(x.rageIdle){
+          const rp=b7pack({idle:x.rageIdle, walk:x.rageIdle, atk:x.rageAtk||x.rageIdle, hurt:x.rageHurt||x.rageIdle, dead:x.rageHurt||x.rageIdle});
+          if(rp) extra._rageX=rp;
+        }
+      }
+      setB7('blankey', F.blankey, (F.blankeyX?null:F.blankey), extra);
+      if(extra._rageX && typeof B7TEX!=='undefined'&&B7TEX.blankey){
+        B7TEX.blankey.rage=useHi()?extra._rageX:loPack(extra._rageX);
+      }
+    }
+    if(F.nit){
+      const extra={};
+      if(F.nitM){
+        const m=texSet(img, F.nitM);
+        const com=b7pack({idle:m.comedy, walk:m.comedy, atk:m.comedyAtk||m.comedy, hurt:m.comedyHurt||m.comedy, dead:m.comedy});
+        const tra=b7pack({idle:m.tragedy, walk:m.tragedy, atk:m.tragedyAtk||m.tragedy, hurt:m.tragedyHurt||m.tragedy, dead:m.tragedy});
+        if(com) extra.comedy=com;
+        if(tra) extra.tragedy=tra;
+      }
+      setB7('nit', F.nit, F.nit, extra);
+    }
+    if(F.glitch) setB7('glitch', F.glitch, F.glitch2||F.glitch);
+    if(F.pale){
+      setB7('pale', F.pale, F.pale);
+      if(typeof TT==='object') TT.bossPale=1;
+    }
+    // SPR fallbacks used by 50-render when bossTex misses
+    if(typeof SPR!=='undefined'){
+      if(F.fat){ const t=texSet(img,F.fat); setSPR('fat', t.idle); }
+      if(F.fatR){ const t=texSet(img,F.fatR); setSPR('fatR', t.idle); }
+      if(F.toasty){ const t=texSet(img,F.toasty); setSPR('toasty', t.idle); }
+      if(F.toastyR){ const t=texSet(img,F.toastyR); setSPR('toastyR', t.idle); }
+      if(F.triggered){ const t=texSet(img,F.triggered); setSPR('trig', t.idle); }
+      if(F.triggeredR){ const t=texSet(img,F.triggeredR); setSPR('trigR', t.idle); }
+      if(F.blankey){ const t=texSet(img,F.blankey); setSPR('blankey', t.idle); setSPR('blankeyR', t.idle); }
+      if(F.blankeyX){ const t=texSet(img,F.blankeyX); if(t.rageIdle) setSPR('blankeyR', t.rageIdle); if(t.shield) setSPR('blankeyS', t.shield); }
+      if(F.nit){ const t=texSet(img,F.nit); setSPR('nit', t.idle); setSPR('nitT', t.idle); }
+      if(F.nitM){ const t=texSet(img,F.nitM); if(t.comedy) setSPR('nitC', t.comedy); if(t.tragedy) setSPR('nitT', t.tragedy); }
+      if(F.glitch){ const t=texSet(img,F.glitch); setSPR('glitch', t.idle); }
+      if(F.glitch2){ const t=texSet(img,F.glitch2); setSPR('glitch2', t.idle); }
+    }
+    // Rogue Cybertoaster: four visual states, ANIM packs
+    if(F.toasterX){
+      const t=texSet(img, F.toasterX);
+      const map={cybertoaster:t.idle, cybertoasterH:t.H||t.idle, cybertoasterC:t.C||t.idle, cybertoasterHC:t.HC||t.H||t.C||t.idle};
+      for(const name in map){
+        if(!map[name]) continue;
+        const one={idle:map[name], walk:map[name], atk:map[name], hurt:map[name], dead:map[name]};
+        setANIM(name, one);
+      }
+    }
+
+    if(typeof TT==='object'){
+      TT.bossAtlas=meta.ver||VER;
+      TT.ver=VER; TT.liveVer=VER; TT.bossVer=VER;
+      TT.bossCache=CACHE;
+    }
+    console.log('v0.21.1 boss atlas on', Object.keys(F).length, 'sets', (meta.W||'?')+'x'+(meta.H||'?'));
+    return true;
+  }
+
+  function restoreBosses(){
+    if(!CACHE.hi||!CACHE.hi.fat) return;
+    const src=useHi()?CACHE.hi:CACHE.lo;
+    if(typeof B7TEX!=='undefined'){
+      for(const id in src) B7TEX[id]=src[id];
+    }
+    if(typeof TT==='object'&&CACHE.hi.pale) TT.bossPale=1;
+  }
+
+  function hookBakes(){
+    if(hookBakes._on) return;
+    hookBakes._on=1;
+    const names=['boot160','installActors','installBoss','boot151','installToasterBoss','bakeAll','bootArt'];
+    for(let i=0;i<names.length;i++){
+      const n=names[i];
+      let orig=null;
+      try{ orig=eval('typeof '+n+'==="function"?'+n+':null'); }catch(e){ orig=null; }
+      if(typeof orig!=='function'||orig._v0211) continue;
+      const wrapped=function(){ const r=orig.apply(this,arguments); try{ restoreBosses(); }catch(e){} return r; };
+      wrapped._v0211=1;
+      try{ eval(n+'=wrapped'); }catch(e){}
+    }
+  }
+
+  let loading=0, loaded=0, failed=0;
+  function loadBossAtlas(){
+    if(loaded||failed) return;
+    if(loading) return;
+    loading=1;
+    const img=new Image();
+    img.decoding='async';
+    function start(meta){
+      if(!meta){ failed=1; console.warn('v0.21.1: boss atlas meta missing, keeping code-drawn bosses'); return; }
+      if(img.complete&&img.naturalWidth){ try{ if(applyBosses(meta,img)) loaded=1; }catch(e){ failed=1; console.error('v0211 apply',e);} return; }
+      img.onload=function(){ try{ if(applyBosses(meta,img)) loaded=1; }catch(e){ failed=1; console.error('v0211 apply',e);} };
+      img.onerror=function(){ failed=1; console.warn('v0.21.1: boss atlas failed, keeping code-drawn bosses'); };
+      if(!img.src) img.src=ATLAS_URL;
+    }
+    fetch(META_URL).then(function(r){return r.ok?r.json():null}).then(start).catch(function(){
+      failed=1; console.warn('v0.21.1: boss atlas meta failed, keeping code-drawn bosses');
+    });
+    img.src=ATLAS_URL;
+  }
+
+  function shouldLoad(){
+    try{
+      if(typeof isToaster==='function'&&isToaster()) return 1;
+      if(typeof isStatic==='function'&&isStatic()) return 1;
+      if(typeof boss!=='undefined'&&boss) return 1;
+      if(typeof run==='object'&&run&&run.special) return 1;
+      const f=typeof run==='object'&&run&&run.floor;
+      if(f&&typeof bossFor==='function'&&bossFor(f)) return 1;
+      if(f&&typeof bossFor==='function'&&bossFor(f+1)) return 1; // preload the floor before a boss
+      if(f&&typeof FINAL_FLOOR==='number'&&(f%FINAL_FLOOR===0||(f+1)%FINAL_FLOOR===0)) return 1;
+    }catch(e){}
+    return 0;
+  }
+  function maybeLoad(){ if(shouldLoad()) loadBossAtlas(); }
+
+  function hookWorld(){
+    if(hookWorld._on) return;
+    hookWorld._on=1;
+    if(typeof buildFloor==='function'){
+      const _bf=buildFloor;
+      buildFloor=function(){ maybeLoad(); const r=_bf.apply(this,arguments); maybeLoad(); return r; };
+    }
+    if(typeof nextFloor==='function'){
+      const _nf=nextFloor;
+      nextFloor=function(){ maybeLoad(); return _nf.apply(this,arguments); };
+    }
+    if(typeof TT==='object'){
+      if(typeof TT.fight==='function'){
+        const _f=TT.fight.bind(TT);
+        TT.fight=function(){ loadBossAtlas(); return _f.apply(TT,arguments); };
+      }
+      if(typeof TT.warp==='function'){
+        const _w=TT.warp.bind(TT);
+        TT.warp=function(){ maybeLoad(); return _w.apply(TT,arguments); };
+      }
+    }
+  }
+
+  hookBakes();
+  hookWorld();
+  setTimeout(hookWorld, 0);
+  setTimeout(hookWorld, 400);
+  setTimeout(maybeLoad, 0);
 })();
 </script>
 </body></html>
