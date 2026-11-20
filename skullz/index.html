@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.20.6"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.20.7"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <link rel="icon" href="data:,"><title>MR. TOASTY'S NO SIGNAL SKULLZ — Therapy Toaster</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Anton&family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
@@ -186,7 +186,7 @@ body.lefty #bReload{right:auto;left:calc(var(--sl) + 22px + 88px*var(--bs,1))}
 #aknob.tap{animation:aktap .28s ease-out}@keyframes aktap{0%{transform:scale(1.45);background-color:#ff00c8;box-shadow:0 0 18px 6px #ff00c8}100%{box-shadow:0 0 0 0 #ff00c800}}
 #ajoy.firing #aknob{background-color:#ff00c8;box-shadow:0 0 14px 4px #ff00c8aa;animation:akhold .16s steps(2) infinite}@keyframes akhold{to{box-shadow:0 0 4px 1px #ff00c8}}
 #ajoy.firing{border-color:#ff00c8;opacity:1}
-</style><script src="https://therapytoaster.github.io/tt-live/arcade/hs-report-v1.js" data-slug="skullz"></script></head><body>
+</style></head><body>
 <canvas id="c" width="320" height="200"></canvas>
 <div id="msg"></div><div id="secban" aria-live="polite"></div><div id="egg" role="dialog" aria-label="Easter egg video"></div>
 <div id="hud"><canvas id="face" width="64" height="64"></canvas><div><b id="xname">MR. TOASTY</b><span id="hp">100</span></div><div><b>AMMO</b><span id="am">0</span></div><div><b>ARMOR</b><span id="ap">0</span></div><div class="hx"><b>WEAPON</b><span id="wn"></span></div><div><b>SKULLZ</b><span id="bn">0</span></div><div class="hx"><b>FLOOR</b><span id="fl">1</span></div><div><b>KILLS</b><span id="kl"></span></div></div>
@@ -1751,7 +1751,7 @@ function showFreed(){state='freed';SFX.win();$('frh').innerHTML=boss.fname+'<br>
 function toUpgrade(){if(state!='freed')return;state='play';nextFloor()}
 function score(){const t=(performance.now()-run.t0)/1000;return run.kills*10+run.elites*40+(run.floor-1)*150+run.freed.length*500+run.secrets*150+run.bonesTotal+run.cursed*250+(run.won?3000+Math.max(0,1800-t)*2:0)|0}
 function recordRun(){const M=meta();M.kills+=run.kills;M.elites+=run.elites;M.secrets+=run.secrets;M.bestFloor=Math.max(M.bestFloor,run.floor);if(run.won&&!run.counted){M.wins++;run.counted=1}
- const sc=score();if(!run.practice){try{window.__ttHS&&window.__ttHS(sc)}catch(e){}}let best=null,isNew=false;if(run.mode=='daily'){const D=M.daily[run.day]||{best:0,tries:0,history:[]};D.tries=(D.tries||0)+1;const entry={sc,floor:run.floor,kills:run.kills,t:(performance.now()-run.t0)/1000,won:!!run.won,bosses:(run.freed||[]).slice(),practice:!!run.practice,at:Date.now()};D.history=(D.history||[]).concat(entry).slice(-30);if(!run.practice){D.counted=1;if(sc>(D.best||0)){D.best=sc;D.floor=run.floor;D.won=run.won;D.kills=run.kills;isNew=true}}M.daily[run.day]=D;best=D.best||0;try{if(TT.dailySubmit)TT.dailySubmit(entry,D)}catch(e){}}
+ const sc=score();let best=null,isNew=false;if(run.mode=='daily'){const D=M.daily[run.day]||{best:0,tries:0,history:[]};D.tries=(D.tries||0)+1;const entry={sc,floor:run.floor,kills:run.kills,t:(performance.now()-run.t0)/1000,won:!!run.won,bosses:(run.freed||[]).slice(),practice:!!run.practice,at:Date.now()};D.history=(D.history||[]).concat(entry).slice(-30);if(!run.practice){D.counted=1;if(sc>(D.best||0)){D.best=sc;D.floor=run.floor;D.won=run.won;D.kills=run.kills;isNew=true}}M.daily[run.day]=D;best=D.best||0;try{if(TT.dailySubmit)TT.dailySubmit(entry,D)}catch(e){}}
  const fresh=checkUnlocks(M);saveMeta(M);return{sc,best,isNew,fresh}}
 function summary(r){const t=(performance.now()-run.t0)/1000;return `SCORE ${r.sc.toLocaleString()}${run.mode=='daily'?' · DAILY '+run.day+(run.practice?' · PRACTICE (NOT COUNTED)':' · COUNTED')+' BEST '+(r.best||0).toLocaleString()+(r.isNew?' ★ NEW BEST':''):''}<br>
  FLOOR ${run.floor} · KILLS ${run.kills} (${run.elites} ELITE) · SECRETS ${run.secrets} · CURSED ${run.cursed} · TIME ${fmt(t)}<br>
@@ -14283,6 +14283,499 @@ body.touch.playing #hud{
     TT.xh=false;
     TT.touchVer=VER;
     if(TT.exitVer)TT.exitVer=VER;
+  }
+})();
+
+// v0.20.7 — Coty's animated clips on in-world TVs, CRT props and billboards.
+// CLOSE stays 1.15. No camera recoil/shake, no crosshair, HUD at the top,
+// v0.20.5 gun pose and v0.20.6 touch layout are unchanged.
+(function(){
+  const VER='0.20.7';
+  const CLOSE=1.15;
+  const TV_V='207';
+  const BASE=(typeof window!=='undefined'&&window.TV_BASE)||'tv/';
+  const NEAR=8, LOAD_R=14, CAP_MOB=3, CAP_DESK=4;
+  const CLIPS=[
+    {id:1,name:'COTY-1',w:480,h:480,portrait:false},
+    {id:2,name:'COTY-2',w:354,h:480,portrait:true},
+    {id:3,name:'COTY-3',w:270,h:480,portrait:true},
+    {id:4,name:'COTY-4',w:384,h:480,portrait:true},
+    {id:5,name:'COTY-5',w:342,h:480,portrait:true},
+    {id:6,name:'COTY-6',w:342,h:480,portrait:true},
+    {id:7,name:'COTY-7',w:342,h:480,portrait:true},
+    {id:8,name:'COTY-8',w:342,h:480,portrait:true},
+    {id:9,name:'COTY-9',w:342,h:480,portrait:true},
+    {id:10,name:'COTY-10',w:342,h:480,portrait:true},
+    {id:11,name:'COTY-11',w:342,h:480,portrait:true},
+    {id:12,name:'COTY-12',w:342,h:480,portrait:true},
+    {id:13,name:'COTY-13',w:342,h:480,portrait:true},
+    {id:14,name:'COTY-14',w:342,h:480,portrait:true},
+    {id:15,name:'COTY-15',w:342,h:480,portrait:true}
+  ];
+  const BY_ID={};for(const c of CLIPS)BY_ID[c.id]=c;
+
+  let unlocked=false, floorTag=-1, sites=[], lastTick=0;
+  const slots={}; // clipId -> {el, ready, playing, lastT}
+
+  function clipForFloor(f){const n=((f|0)-1)%15;return CLIPS[(n<0?n+15:n)].id}
+  function cap(){return (typeof isTouch!=='undefined'&&isTouch)?CAP_MOB:CAP_DESK}
+  function srcOf(id){return BASE+'coty-'+id+'.mp4?v='+TV_V}
+  function quiet(){return !!(typeof MUTE!=='undefined'&&MUTE)||document.body.classList.contains('attract')}
+
+  function ensure(id){
+    if(slots[id])return slots[id];
+    const v=document.createElement('video');
+    v.muted=true;v.defaultMuted=true;v.loop=true;v.playsInline=true;v.autoplay=false;
+    v.setAttribute('muted','');v.setAttribute('playsinline','');v.setAttribute('loop','');
+    v.preload='none';v.crossOrigin='anonymous';v.setAttribute('webkit-playsinline','');
+    v.style.cssText='position:fixed;left:-99px;top:-99px;width:1px;height:1px;opacity:0;pointer-events:none';
+    v.src=srcOf(id);
+    document.body.appendChild(v);
+    const s={el:v,ready:false,playing:false,lastT:-1,wanted:false};
+    const ok=()=>{s.ready=true};
+    v.addEventListener('loadeddata',ok);
+    v.addEventListener('canplay',ok);
+    v.addEventListener('error',()=>{s.err=true});
+    slots[id]=s;return s;
+  }
+  function loadClip(id){
+    const s=ensure(id);
+    if(s.el.preload!=='metadata'&&s.el.preload!=='auto'){
+      s.el.preload='metadata';
+      try{s.el.load()}catch(e){}
+    }
+    return s;
+  }
+  function playClip(id){
+    const s=loadClip(id);
+    if(!unlocked||s.err)return s;
+    if(!s.playing){
+      const p=s.el.play();
+      if(p&&p.then)p.then(()=>{s.playing=true}).catch(()=>{s.playing=false});
+      else s.playing=!s.el.paused;
+    }
+    return s;
+  }
+  function pauseClip(id){
+    const s=slots[id];if(!s)return;
+    if(!s.el.paused){try{s.el.pause()}catch(e){}}
+    s.playing=false;
+  }
+  function kick(){
+    unlocked=true;
+    for(const s of sites){if(s.wantPlay)playClip(s.clip)}
+  }
+
+  // ---------- canvas helpers ----------
+  function canv(w,h){const c=typeof mk==='function'?mk(w,h):document.createElement('canvas');c.width=w;c.height=h;return c}
+  function rawFrom(c){
+    const w=c.width,h=c.height,g=c.getContext('2d',{willReadFrequently:true});
+    const u=new Uint32Array(g.getImageData(0,0,w,h).data.buffer.slice(0));
+    for(let i=0;i<u.length;i++){
+      const a=u[i]>>>24;
+      u[i]=a<8?0:(u[i]|0xff000000)>>>0;
+    }
+    u.ts=w;u.tw=w;u.th=h;return u;
+  }
+  function texSize(T){return T&&(T.tw||T.ts||T.th||64)||64}
+  function blitTex(g,T,w,h){
+    if(!T)return;
+    const tw=T.tw||T.ts||64,th=T.th||T.ts||tw;
+    const c=canv(tw,th),cg=c.getContext('2d');
+    const img=cg.createImageData(tw,th);
+    new Uint32Array(img.data.buffer).set(T);
+    cg.putImageData(img,0,0);
+    g.imageSmoothingEnabled=false;
+    g.drawImage(c,0,0,w,h);
+  }
+  function fitRect(dw,dh,cw,ch){
+    const k=Math.min(dw/cw,dh/ch),aw=Math.max(1,Math.round(cw*k)),ah=Math.max(1,Math.round(ch*k));
+    return [((dw-aw)>>1),((dh-ah)>>1),aw,ah];
+  }
+  function drawVideo(g,clip,x,y,w,h){
+    const s=slots[clip.id];
+    g.fillStyle='#050508';g.fillRect(x,y,w,h);
+    if(s&&s.ready&&s.el.videoWidth){
+      const[dx,dy,aw,ah]=fitRect(w,h,s.el.videoWidth,s.el.videoHeight);
+      g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';
+      try{g.drawImage(s.el,x+dx,y+dy,aw,ah)}catch(e){}
+    }else{
+      staticFill(g,x,y,w,h,clip.id);
+    }
+    // scanlines
+    g.fillStyle='rgba(0,0,0,.22)';
+    for(let yy=0;yy<h;yy+=2)g.fillRect(x,y+yy,w,1);
+  }
+  function staticFill(g,x,y,w,h,seed){
+    let r=((seed||1)*977+((typeof performance!=='undefined'?performance.now():0)|0))|1;
+    for(let yy=0;yy<h;yy+=2)for(let xx=0;xx<w;xx+=2){
+      r=r*16807%2147483647;const v=(r%200)+28;
+      g.fillStyle='rgb('+v+','+v+','+v+')';g.fillRect(x+xx,y+yy,2,2);
+    }
+    const bars=['#ddd','#FFD400','#0ff','#0f0','#f0f','#f00','#00f'];
+    const bh=Math.max(6,h*.22|0),bw=w/bars.length;
+    bars.forEach((c,i)=>{g.fillStyle=c;g.fillRect(x+i*bw,y,bw+1,bh)});
+    g.fillStyle='#000a';g.fillRect(x,y+h/2-8,w,16);
+    g.fillStyle='#FFD400';g.font='bold '+Math.max(6,Math.min(12,w/8|0))+'px monospace';
+    g.textAlign='center';g.textBaseline='middle';
+    g.fillText('NO SIGNAL',x+w/2,y+h/2);
+  }
+
+  function wallFrame(g,clip,videoOn){
+    // 128x128 wall plate with a bezel. Portrait clips get a tall frame; others letterbox in a TV bezel.
+    const port=!!clip.portrait;
+    const aw=port?72:104, ah=port?108:88;
+    const x=64-aw/2|0, y=(port?62:58)-ah/2|0;
+    g.fillStyle='#0009';g.fillRect(x-4,y-4,aw+12,ah+18);
+    g.fillStyle='#14141c';g.fillRect(x-6,y-6,aw+12,ah+18);
+    g.fillStyle='#2a2a36';g.fillRect(x-4,y-4,aw+8,ah+14);
+    g.fillStyle='#e3b303';g.fillRect(x-3,y-3,aw+6,1);
+    g.fillStyle='#050508';g.fillRect(x-1,y-1,aw+2,ah+2);
+    if(videoOn)drawVideo(g,clip,x,y,aw,ah);
+    else{g.fillStyle='#050508';g.fillRect(x,y,aw,ah);staticFill(g,x,y,aw,ah,clip.id);
+      g.fillStyle='rgba(0,0,0,.22)';for(let yy=0;yy<ah;yy+=2)g.fillRect(x,y+yy,aw,1)}
+    g.fillStyle='#ff0040';g.fillRect(x+aw-6,y+ah+4,3,2);
+    g.fillStyle='#e3b303';g.font='bold 5px monospace';g.textAlign='left';g.textBaseline='alphabetic';
+    g.fillText('NO SIGNAL TV',x,y+ah+7);
+    return {x,y,aw,ah};
+  }
+
+  function bakeWall(site,playing){
+    const c=site.cv|| (site.cv=canv(128,128));
+    const g=c.getContext('2d',{willReadFrequently:true});
+    if(site.base){g.putImageData(site.base,0,0)}
+    else{g.fillStyle='#111';g.fillRect(0,0,128,128)}
+    wallFrame(g,site.meta,playing);
+    const u=rawFrom(c);
+    // wall textures are 128x128; keep ts for wallCol
+    u.ts=128;u.tw=128;u.th=128;
+    site.tex=u;
+    if(site.spec){site.spec.Ts=[u];site.spec.ms=1e9;site.spec.loaded=!!playing;site.spec.name=site.meta.name}
+    return u;
+  }
+  function wallBaseFromTile(tile){
+    try{
+      const T=(typeof TEX!=='undefined'&&TEX[tile-1])||(typeof TEX!=='undefined'&&TEX[0]);
+      if(!T)return null;
+      const c=canv(128,128),g=c.getContext('2d');
+      const ts=T.ts||64;
+      const tmp=canv(ts,ts),tg=tmp.getContext('2d');
+      const img=tg.createImageData(ts,ts);
+      new Uint32Array(img.data.buffer).set(T.length>=ts*ts?T.subarray?T.subarray(0,ts*ts):T:T);
+      tg.putImageData(img,0,0);
+      g.imageSmoothingEnabled=false;g.drawImage(tmp,0,0,128,128);
+      return g.getImageData(0,0,128,128);
+    }catch(e){return null}
+  }
+
+  function bakeCrt(site,playing){
+    const T0=(typeof SPR==='object'&&(SPR.crt1||SPR.crt0));
+    const size=texSize(T0)||128;
+    const c=site.cv||(site.cv=canv(size,size));
+    const g=c.getContext('2d',{willReadFrequently:true});
+    g.clearRect(0,0,size,size);
+    if(T0)blitTex(g,T0,size,size);
+    else{g.fillStyle='#2a2a30';g.fillRect(size*.15,size*.12,size*.7,size*.75)}
+    // screen hole: v0.15.1 CRT is 128 with box(28,24,72,56); classic 64 is (14,26,36,24)
+    const sx=size>=96?28:14, sy=size>=96?24:26, sw=size>=96?72:36, sh=size>=96?56:24;
+    if(playing)drawVideo(g,site.meta,sx,sy,sw,sh);
+    else{g.fillStyle='#050508';g.fillRect(sx,sy,sw,sh);staticFill(g,sx,sy,sw,sh,site.meta.id)}
+    const u=rawFrom(c);u.ts=size;u.tw=size;u.th=size;
+    site.tex=u;
+    if(site.key&&typeof SPR==='object')SPR[site.key]=u;
+    return u;
+  }
+
+  function bakeBoard(site,playing){
+    const c=site.cv||(site.cv=canv(128,128));
+    const g=c.getContext('2d',{willReadFrequently:true});
+    g.clearRect(0,0,128,128);
+    const port=!!site.meta.portrait;
+    const aw=port?78:112, ah=port?118:86;
+    const x=64-aw/2|0, y=64-ah/2|0;
+    // pole
+    g.fillStyle='#2a2a30';g.fillRect(60,y+ah,8,128-(y+ah));
+    g.fillStyle='#14141c';g.fillRect(x-5,y-5,aw+10,ah+10);
+    g.fillStyle='#e3b303';g.fillRect(x-4,y-4,aw+8,ah+8);
+    g.fillStyle='#00f0ff';g.fillRect(x-4,y-4,aw+8,2);
+    g.fillStyle='#050508';g.fillRect(x-1,y-1,aw+2,ah+2);
+    if(playing)drawVideo(g,site.meta,x,y,aw,ah);
+    else{g.fillStyle='#050508';g.fillRect(x,y,aw,ah);staticFill(g,x,y,aw,ah,site.meta.id);
+      g.fillStyle='rgba(0,0,0,.22)';for(let yy=0;yy<ah;yy+=2)g.fillRect(x,y+yy,aw,1)}
+    g.fillStyle='#ff0040';g.fillRect(x+aw-7,y+ah+2,4,3);
+    g.fillStyle='#e3b303';g.font='bold 5px monospace';g.textAlign='left';g.textBaseline='alphabetic';
+    g.fillText('NO SIGNAL TV',x,Math.min(126,y+ah+7));
+    const u=rawFrom(c);u.ts=128;u.tw=128;u.th=128;
+    site.tex=u;
+    if(site.key&&typeof SPR==='object')SPR[site.key]=u;
+    return u;
+  }
+
+  // ---------- placement ----------
+  function themeName(){return (typeof theme==='object'&&theme&&theme.id)||'';}
+  function addSite(s){s.meta=BY_ID[s.clip];s.wantPlay=false;s.lastBake=-1;sites.push(s);return s}
+
+  function pickOrMakeWall(){
+    if(typeof WSPEC==='undefined')return null;
+    const walls=[];
+    for(const [c,S] of WSPEC){
+      if(!S||!S.screen||S.art||S.exitDoor||S.broadcast)continue;
+      walls.push({c,S});
+    }
+    if(walls.length)return walls[0];
+    if(typeof map==='undefined'||typeof MW==='undefined')return null;
+    const reach=(typeof v07Reach==='function')?v07Reach():null;
+    const w=MW,h=MH;
+    for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){
+      const c=y*w+x;if(!map[c])continue;
+      if(typeof exitAt==='number'&&c===exitAt)continue;
+      if(typeof cursedAt==='number'&&c===cursedAt)continue;
+      if(typeof secretSet!=='undefined'&&secretSet&&secretSet.has&&secretSet.has(c))continue;
+      if(WSPEC.get(c))continue;
+      for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){
+        const ox=x+dx,oy=y+dy,o=oy*w+ox;
+        if(ox<0||oy<0||ox>=w||oy>=h||map[o])continue;
+        if(reach&&!reach[o])continue;
+        if(Math.hypot(ox-P.x,oy-P.y)<2)continue;
+        const S={Ts:[],ms:1e9,ph:0,face:o,screen:1,piece:-1,loaded:false};
+        WSPEC.set(c,S);
+        return {c,S};
+      }
+    }
+    return null;
+  }
+  function convertWall(clipId){
+    const pick=pickOrMakeWall();
+    if(!pick)return null;
+    const S=pick.S, c=pick.c;
+    const tile=(typeof map!=='undefined'&&map[c])||1;
+    const site=addSite({
+      kind:'wall', clip:clipId, cell:c,
+      x:(c%MW)+.5, y:(((c/MW)|0)+.5),
+      spec:S, tile
+    });
+    site.base=wallBaseFromTile(tile);
+    S.screen=1;S.video=clipId;S.media='coty-'+clipId;S.name=BY_ID[clipId].name;
+    S.piece=-1;S.ms=1e9;S.lit=220;S.loaded=false;
+    bakeWall(site,false);
+    return site;
+  }
+
+  function convertCrts(clipId){
+    if(typeof props==='undefined')return;
+    let n=0;
+    for(const q of props){
+      if(!q||q.gone||q.broken||!q.D||!q.D.crt)continue;
+      if(n>=2)break;
+      const key='__tv_crt_'+clipId+'_'+n;
+      q.D=Object.assign({},q.D,{anim:null,spr:key,tv:clipId});
+      const site=addSite({kind:'crt',clip:clipId,x:q.x,y:q.y,prop:q,key});
+      bakeCrt(site,false);
+      n++;
+    }
+  }
+
+  function largeRooms(){
+    if(typeof map==='undefined')return[];
+    const w=MW,h=MH,seen=new Uint8Array(w*h),rooms=[];
+    const reach=(typeof v07Reach==='function')?v07Reach():null;
+    for(let i=0;i<w*h;i++){
+      if(map[i]||seen[i])continue;
+      if(reach&&!reach[i])continue;
+      const q=[i],cells=[];seen[i]=1;
+      for(let k=0;k<q.length;k++){
+        const c=q[k];cells.push(c);
+        for(const d of[1,-1,w,-w]){
+          const j=c+d;if(j<0||j>=w*h||seen[j]||map[j])continue;
+          if(d===1&&(c%w)==w-1)continue;if(d===-1&&(c%w)==0)continue;
+          if(reach&&!reach[j])continue;
+          seen[j]=1;q.push(j);
+        }
+      }
+      if(cells.length>=16)rooms.push(cells);
+    }
+    rooms.sort((a,b)=>b.length-a.length);
+    return rooms;
+  }
+
+  function placeBillboard(clipId){
+    if(typeof props==='undefined'||typeof addProp!=='function')return null;
+    if(!PROPS.tvboard){
+      PROPS.tvboard={spr:'tvboard',s:2.2,solid:1,r:.42,billboard:1,light:[80,200,255,3.4,120]};
+    }
+    const rooms=largeRooms();
+    const taken=new Set((props||[]).map(p=>(p.y|0)*MW+(p.x|0)));
+    const sx=P.x,sy=P.y;
+    for(const cells of rooms){
+      let best=null,bestS=-1e9;
+      for(const c of cells){
+        const x=c%MW,y=(c/MW)|0,cx=x+.5,cy=y+.5;
+        if(Math.hypot(cx-sx,cy-sy)<3.8)continue;
+        if(taken.has(c))continue;
+        if(typeof exitAt==='number'&&c===exitAt)continue;
+        if(typeof secretSet!=='undefined'&&secretSet&&secretSet.has&&secretSet.has(c))continue;
+        let walls=0,open=0;
+        for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){
+          const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=MW||ny>=MH){walls++;continue}
+          if(map[ny*MW+nx])walls++;else open++;
+        }
+        if(walls<1||open<1)continue;
+        const sc=walls*4+open+Math.min(6,Math.hypot(cx-sx,cy-sy));
+        if(sc>bestS){best=c;bestS=sc}
+      }
+      if(best==null)continue;
+      const x=best%MW+.5,y=((best/MW)|0)+.5;
+      const key='__tv_board_'+clipId+'_'+best;
+      const q=addProp('tvboard',x,y);
+      q.D=Object.assign({},q.D,{anim:null,spr:key,tv:clipId,hp:0});
+      q.k='tvboard';
+      if(q.D.light){q.light=q.D.light}
+      const site=addSite({kind:'billboard',clip:clipId,x,y,prop:q,key,cell:best});
+      bakeBoard(site,false);
+      return site;
+    }
+    return null;
+  }
+
+  function dressFloor(){
+    // drop previous bindings; keep video elements (paused)
+    sites=[];
+    for(const id in slots)pauseClip(+id);
+    // buildFloor often runs from start() before state flips to 'play'
+    if(quiet()||typeof run==='undefined'||!run){floorTag=-1;return;}
+    const f=run.floor|0;
+    const id=clipForFloor(f);
+    floorTag=f+'/'+((run.special)||'')+'/'+id;
+    convertWall(id);
+    convertCrts(id);
+    placeBillboard(id);
+    // bake idle static immediately
+    for(const s of sites)s.needBake=true;
+  }
+
+  function live(site){
+    if(site.kind==='crt'||site.kind==='billboard'){
+      const q=site.prop;if(!q||q.gone||q.broken)return false;
+      // stay in sync if the prop moved (shouldn't)
+      site.x=q.x;site.y=q.y;return true;
+    }
+    if(site.kind==='wall'){
+      if(typeof WSPEC==='undefined')return false;
+      const S=WSPEC.get(site.cell);
+      if(!S||S!==site.spec)return false;
+      return true;
+    }
+    return false;
+  }
+
+  function score(site){
+    const dx=site.x-P.x,dy=site.y-P.y,d=Math.hypot(dx,dy);
+    const ca=Math.cos(P.a),sa=Math.sin(P.a);
+    const front=dx*ca+dy*sa;
+    const inFov=front>0.15&&Math.abs(dx*-sa+dy*ca)<Math.max(1.2,front*1.15);
+    site.dist=d;site.front=front;site.inFov=inFov;
+    site.near=d<NEAR;site.canLoad=d<LOAD_R;
+    site.visible=inFov&&d<18;
+    return (site.visible||site.near)?(1000-d):(site.canLoad?200-d:-d);
+  }
+
+  function tick(t){
+    if(quiet()||typeof state==='undefined'||(state!=='play'&&state!=='tut')){
+      for(const id in slots)pauseClip(+id);
+      return;
+    }
+    // still alive?
+    const alive=sites.filter(live);
+    if(alive.length!==sites.length)sites=alive;
+    const now=(typeof performance!=='undefined')?performance.now():t;
+    const ranked=sites.map(s=>(score(s),s)).sort((a,b)=>score(b)-score(a));
+    const C=cap();
+    const playSet=new Set();
+    let used=0;
+    for(const s of ranked){
+      s.wantPlay=false;
+      if((s.visible||s.near)&&used<C){s.wantPlay=true;playSet.add(s.clip);used=playSet.size}
+      else if(s.canLoad)loadClip(s.clip);
+    }
+    // play / pause by clip
+    const needed=new Set(sites.map(s=>s.clip));
+    for(const id of needed){
+      if(playSet.has(id)&&unlocked)playClip(id);
+      else pauseClip(id);
+    }
+    // bake textures ~20fps or when play state flips
+    for(const s of sites){
+      const playing=playSet.has(s.clip)&&slots[s.clip]&&slots[s.clip].ready&&!slots[s.clip].el.paused;
+      const vt=playing?slots[s.clip].el.currentTime:-1;
+      const due=s.needBake||s.wasPlaying!==playing||(playing&&Math.abs(vt-(s.lastT||0))>=0.04)||(!playing&&!s.tex);
+      if(!due)continue;
+      s.wasPlaying=playing;s.lastT=vt;s.needBake=false;
+      try{
+        if(s.kind==='wall')bakeWall(s,playing);
+        else if(s.kind==='crt')bakeCrt(s,playing);
+        else bakeBoard(s,playing);
+      }catch(e){/* tainted or missing canvas: leave last / static */}
+    }
+    lastTick=now;
+  }
+
+  // ---------- hooks ----------
+  if(typeof buildFloor==='function'){
+    const _bf=buildFloor;
+    buildFloor=function(){
+      const r=_bf.apply(this,arguments);
+      try{dressFloor()}catch(e){console.error('v0207 tv dress',e)}
+      return r;
+    };
+  }
+  if(typeof render==='function'){
+    const _rd=render;
+    render=function(t,rdt){
+      try{tick(t)}catch(e){}
+      return _rd.apply(this,arguments);
+    };
+  }
+  if(typeof au==='function'){
+    const _au=au;
+    au=function(){
+      const ac=_au.apply(this,arguments);
+      try{kick()}catch(e){}
+      return ac;
+    };
+  }
+  const unlockEv=e=>{kick()};
+  addEventListener('pointerdown',unlockEv,{passive:true,capture:true});
+  addEventListener('touchstart',unlockEv,{passive:true,capture:true});
+  addEventListener('mousedown',unlockEv,{passive:true,capture:true});
+  addEventListener('keydown',unlockEv,{passive:true,capture:true});
+
+  if(typeof use==='function'){
+    const _use=use;
+    use=function(){
+      const r=_use.apply(this,arguments);
+      return r;
+    };
+  }
+
+  if(typeof TT==='object'){
+    TT.gunVer=VER;
+    TT.liveVer=VER;
+    TT.wepClose=CLOSE;
+    TT.xh=false;
+    TT.tvVer=VER;
+    TT.tv={
+      ver:VER,
+      clips:CLIPS,
+      v:TV_V,
+      base:BASE,
+      clipForFloor,
+      cap,
+      get unlocked(){return unlocked},
+      get sites(){return sites.map(s=>({kind:s.kind,clip:s.clip,x:s.x,y:s.y,dist:s.dist,visible:s.visible,near:s.near,wantPlay:s.wantPlay,playing:!!(slots[s.clip]&&slots[s.clip].playing),ready:!!(slots[s.clip]&&slots[s.clip].ready),paused:!(slots[s.clip]&&slots[s.clip].playing)}))},
+      get slots(){return Object.keys(slots).map(id=>{const s=slots[id];return{id:+id,ready:s.ready,playing:s.playing,paused:s.el.paused,t:s.el.currentTime,preload:s.el.preload,err:!!s.err}})},
+      dress:dressFloor,
+      kick,tick
+    };
   }
 })();
 </script>
