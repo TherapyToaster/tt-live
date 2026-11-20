@@ -10514,7 +10514,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
 
 /* ==== 40-input.js ==== */
-/* Keyboard + on-screen touch controls */
+/* Keyboard + on-screen touch controls + standard gamepad */
 (function (G) {
   const keys = Object.create(null);
   const map = {
@@ -10522,7 +10522,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     ArrowDown: "brake", KeyS: "brake",
     ArrowLeft: "left", KeyA: "left",
     ArrowRight: "right", KeyD: "right",
-    Space: "drift", ShiftLeft: "drift", ShiftRight: "drift",
+    ShiftLeft: "drift", ShiftRight: "drift",
     KeyX: "item", KeyE: "item",
     Enter: "start",
     KeyC: "crt",
@@ -10530,37 +10530,113 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     KeyV: "style",
   };
 
-  const touch = { accel: false, brake: false, left: false, right: false, drift: false, item: false, start: false, crt: false, quality: false, tilt: false, style: false, helpok: false };
-  let itemEdge = false, startEdge = false, crtEdge = false, qualityEdge = false, tiltEdge = false, styleEdge = false;
-  const prev = { item: false, start: false, crt: false, quality: false, tilt: false, style: false };
-  const queued = { item: false, start: false, crt: false, quality: false, tilt: false, style: false };
+  function actionFor(code) {
+    if (code === "Space") return (G.isSummer && G.isSummer()) ? "jump" : "drift";
+    return map[code];
+  }
 
-  function isTouchDevice() {
+  const touch = {
+    accel: false, brake: false, left: false, right: false, drift: false, jump: false,
+    item: false, start: false, crt: false, quality: false, tilt: false, style: false, helpok: false
+  };
+  const pad = {
+    accel: 0, brake: 0, lx: 0, ly: 0, rx: 0, ry: 0,
+    left: false, right: false, drift: false, jump: false, item: false, start: false
+  };
+  let itemEdge = false, startEdge = false, crtEdge = false, qualityEdge = false, tiltEdge = false, styleEdge = false, jumpEdge = false;
+  const prev = { item: false, start: false, crt: false, quality: false, tilt: false, style: false, jump: false };
+  const queued = { item: false, start: false, crt: false, quality: false, tilt: false, style: false, jump: false };
+
+  /* Prefer mouse+keyboard on laptops that also have a touchscreen. Phones and
+     tablets (coarse pointer, no hover) still start in the touch UI. */
+  function preferTouchUI() {
     try {
-      if ((navigator.maxTouchPoints || 0) > 0 || (navigator.msMaxTouchPoints || 0) > 0) return true;
+      if (window.matchMedia && matchMedia("(hover: hover) and (pointer: fine)").matches) return false;
       if (window.matchMedia && matchMedia("(pointer: coarse)").matches) return true;
+      if (((navigator.maxTouchPoints || 0) > 0 || (navigator.msMaxTouchPoints || 0) > 0) &&
+          !(window.matchMedia && matchMedia("(hover: hover)").matches)) return true;
     } catch (e) {}
     return false;
   }
 
-  G.showTouch = isTouchDevice();
+  G.showTouch = preferTouchUI();
   G.tiltSteer = false;
   G._tiltLeft = false;
   G._tiltRight = false;
-  try { G.touchHelp = isTouchDevice() && localStorage.getItem("tt-kart-touch-help") !== "1"; }
-  catch (e) { G.touchHelp = isTouchDevice(); }
+  try { G.touchHelp = preferTouchUI() && localStorage.getItem("tt-kart-touch-help") !== "1"; }
+  catch (e) { G.touchHelp = preferTouchUI(); }
 
   G.dismissTouchHelp = function () {
     G.touchHelp = false;
     try { localStorage.setItem("tt-kart-touch-help", "1"); } catch (e) {}
   };
 
+  function clearKeys() {
+    for (const k of Object.keys(keys)) keys[k] = false;
+    for (const k of Object.keys(touch)) touch[k] = false;
+    pad.accel = pad.brake = pad.lx = pad.ly = pad.rx = pad.ry = 0;
+    pad.left = pad.right = pad.drift = pad.jump = pad.item = pad.start = false;
+  }
+
+  function pollGamepad() {
+    pad.accel = 0; pad.brake = 0; pad.lx = 0; pad.ly = 0; pad.rx = 0; pad.ry = 0;
+    pad.left = pad.right = pad.drift = pad.jump = pad.item = pad.start = false;
+    let pads = null;
+    try { pads = navigator.getGamepads && navigator.getGamepads(); } catch (e) { return; }
+    if (!pads) return;
+    const dead = 0.18;
+    function axis(a, i) {
+      const v = a[i] || 0;
+      return Math.abs(v) < dead ? 0 : v;
+    }
+    function held(b, i) { return !!(b[i] && (b[i].pressed || b[i].value > 0.45)); }
+    function val(b, i) { return b[i] ? (b[i].value || 0) : 0; }
+    for (let i = 0; i < pads.length; i++) {
+      const gp = pads[i];
+      if (!gp || !gp.connected) continue;
+      const a = gp.axes || [], b = gp.buttons || [];
+      pad.lx = axis(a, 0);
+      pad.ly = axis(a, 1);
+      pad.rx = axis(a, 2);
+      pad.ry = axis(a, 3);
+      pad.accel = Math.max(val(b, 7), held(b, 12) || pad.ly < -0.3 ? 1 : 0);
+      pad.brake = Math.max(val(b, 6), held(b, 13) || pad.ly > 0.3 ? 1 : 0);
+      pad.left = held(b, 14) || pad.lx < -0.3;
+      pad.right = held(b, 15) || pad.lx > 0.3;
+      pad.drift = held(b, 4) || held(b, 10);
+      pad.jump = held(b, 0);
+      pad.item = held(b, 2);
+      pad.start = held(b, 9);
+      break;
+    }
+  }
+
   G.input = {
-    keys, touch,
+    keys, touch, pad,
     down(name) {
-      if (name === "left") return !!(keys.left || touch.left || (G.tiltSteer && G._tiltLeft && !touch.right && !keys.right));
-      if (name === "right") return !!(keys.right || touch.right || (G.tiltSteer && G._tiltRight && !touch.left && !keys.left));
+      if (name === "left") return !!(keys.left || touch.left || pad.left || (G.tiltSteer && G._tiltLeft && !touch.right && !keys.right && !pad.right));
+      if (name === "right") return !!(keys.right || touch.right || pad.right || (G.tiltSteer && G._tiltRight && !touch.left && !keys.left && !pad.left));
+      if (name === "accel") return !!(keys.accel || touch.accel || pad.accel > 0.12);
+      if (name === "brake") return !!(keys.brake || touch.brake || pad.brake > 0.12);
+      if (name === "drift") return !!(keys.drift || touch.drift || pad.drift);
+      if (name === "jump") return !!(keys.jump || touch.jump || pad.jump);
+      if (name === "item") return !!(keys.item || touch.item || pad.item);
+      if (name === "start") return !!(keys.start || touch.start || pad.start);
       return !!(keys[name] || touch[name]);
+    },
+    axis(name) {
+      if (name === "accel") return Math.max(keys.accel || touch.accel ? 1 : 0, pad.accel || 0);
+      if (name === "brake") return Math.max(keys.brake || touch.brake ? 1 : 0, pad.brake || 0);
+      if (name === "lx") {
+        let v = pad.lx || 0;
+        if (keys.right || touch.right) v = Math.max(v, 1);
+        if (keys.left || touch.left) v = Math.min(v, -1);
+        return v;
+      }
+      if (name === "ly") return pad.ly || 0;
+      if (name === "rx") return pad.rx || 0;
+      if (name === "ry") return pad.ry || 0;
+      return 0;
     },
     pressed(name) {
       if (name === "item") return itemEdge;
@@ -10569,36 +10645,42 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       if (name === "quality") return qualityEdge;
       if (name === "tilt") return tiltEdge;
       if (name === "style") return styleEdge;
+      if (name === "jump") return jumpEdge;
       return false;
     },
     endFrame() {},
     beginFrame() {
+      pollGamepad();
       const i = this.down("item"), s = this.down("start"), c = this.down("crt");
       const q = this.down("quality"), t = this.down("tilt"), st = this.down("style");
+      const j = this.down("jump");
       itemEdge = queued.item || (i && !prev.item);
       startEdge = queued.start || (s && !prev.start);
       crtEdge = queued.crt || (c && !prev.crt);
       qualityEdge = queued.quality || (q && !prev.quality);
       tiltEdge = queued.tilt || (t && !prev.tilt);
       styleEdge = queued.style || (st && !prev.style);
-      queued.item = queued.start = queued.crt = queued.quality = queued.tilt = queued.style = false;
-      prev.item = i; prev.start = s; prev.crt = c; prev.quality = q; prev.tilt = t; prev.style = st;
+      jumpEdge = queued.jump || (j && !prev.jump);
+      queued.item = queued.start = queued.crt = queued.quality = queued.tilt = queued.style = queued.jump = false;
+      prev.item = i; prev.start = s; prev.crt = c; prev.quality = q; prev.tilt = t; prev.style = st; prev.jump = j;
     },
+    clearKeys: clearKeys
   };
 
   window.addEventListener("keydown", (e) => {
-    const n = map[e.code];
+    const n = actionFor(e.code);
     if (!n) return;
-    if (!e.repeat && (n === "item" || n === "start" || n === "crt" || n === "quality" || n === "style")) queued[n] = true;
+    if (!e.repeat && (n === "item" || n === "start" || n === "crt" || n === "quality" || n === "style" || n === "jump")) queued[n] = true;
     keys[n] = true;
     if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) e.preventDefault();
     unlockAudio();
   }, { passive: false });
   window.addEventListener("keyup", (e) => {
-    const n = map[e.code];
+    const n = actionFor(e.code);
     if (n) keys[n] = false;
   });
-  window.addEventListener("blur", () => { for (const k of Object.keys(keys)) keys[k] = false; });
+  window.addEventListener("blur", () => { clearKeys(); });
+  document.addEventListener("visibilitychange", () => { if (document.hidden) clearKeys(); });
 
   /* Hit-test canvas buttons. Layout computed in render, stored on G.touchButtons
      in CSS pixels relative to the HUD canvas. */
@@ -10633,7 +10715,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       return;
     }
     st[b.id] = true;
-    if (b.id === "item" || b.id === "start" || b.id === "crt" || b.id === "quality" || b.id === "tilt" || b.id === "style") {
+    if (b.id === "item" || b.id === "start" || b.id === "crt" || b.id === "quality" || b.id === "tilt" || b.id === "style" || b.id === "jump") {
       queued[b.id] = true;
     }
     if (b.id === "tilt") {
@@ -10648,7 +10730,10 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     const pointers = new Map();
     let ignoreUntilUp = false;
     const update = () => {
-      const st = { accel: false, brake: false, left: false, right: false, drift: false, item: false, start: false, crt: false, quality: false, tilt: false, style: false, helpok: false };
+      const st = {
+        accel: false, brake: false, left: false, right: false, drift: false, jump: false,
+        item: false, start: false, crt: false, quality: false, tilt: false, style: false, helpok: false
+      };
       pointers.forEach((p) => {
         const b = hitBtn(p.x, p.y);
         if (!b) return;
@@ -10674,6 +10759,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     };
 
     c.addEventListener("pointerdown", (e) => {
+      G._lastPointerType = e.pointerType || "mouse";
       if (e.pointerType === "touch" || e.pointerType === "pen") G.showTouch = true;
       try { c.setPointerCapture(e.pointerId); } catch (err) {}
       pointers.set(e.pointerId, evToCss(e, c));
@@ -10737,6 +10823,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       block(e);
     }, { passive: false, capture: true });
   });
+  window.addEventListener("wheel", (e) => { if (e.cancelable) e.preventDefault(); }, { passive: false });
   window.addEventListener("contextmenu", (e) => e.preventDefault());
   window.addEventListener("dblclick", (e) => e.preventDefault());
 
@@ -14977,6 +15064,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       while (left > 0) {
         const step = left > dt ? dt : left;
         if (G.isSummer && G.isSummer() && G.stepSummer) {
+          if (G.input && G.input.beginFrame) G.input.beginFrame();
           G.stepSummer(step, race.timer);
         } else if (phase === "race") {
           race.timer += step;
@@ -17276,6 +17364,78 @@ window.addEventListener("load", () => {
   };
   G.summer = S;
 
+  const LOOK_KEY = "tt-summer-look";
+  const HINT_KEY = "tt-summer-controls-hint";
+  const PITCH_MAX = 1.2;
+  const BASE_SENS = 0.0018;
+
+  function clampLook(v, lo, hi) { return v < lo ? lo : (v > hi ? hi : v); }
+  function loadLookSettings() {
+    const out = { sens: 1, invertY: false };
+    try {
+      const raw = localStorage.getItem(LOOK_KEY);
+      if (raw) {
+        const o = JSON.parse(raw);
+        if (o && typeof o.sens === "number") out.sens = clampLook(o.sens, 0.3, 2.5);
+        if (o && o.invertY) out.invertY = true;
+      }
+    } catch (e) {}
+    return out;
+  }
+  function saveLookSettings() {
+    try { localStorage.setItem(LOOK_KEY, JSON.stringify({ sens: S.lookSens, invertY: !!S.invertY })); }
+    catch (e) {}
+  }
+  function loadHintFlag() {
+    try { return localStorage.getItem(HINT_KEY) !== "1"; } catch (e) { return true; }
+  }
+  function dismissHint() {
+    S.showHint = false;
+    try { localStorage.setItem(HINT_KEY, "1"); } catch (e) {}
+  }
+  function applyLookDelta(dx, dy) {
+    const sens = BASE_SENS * (S.lookSens || 1);
+    const lookY = S.invertY ? -dy : dy;
+    S.player.yaw -= dx * sens;
+    S.player.pitch -= lookY * sens;
+    if (S.player.pitch > PITCH_MAX) S.player.pitch = PITCH_MAX;
+    if (S.player.pitch < -PITCH_MAX) S.player.pitch = -PITCH_MAX;
+  }
+  function setMenu(on) {
+    const next = !!on;
+    if (next === !!S.menu) return;
+    S.menu = next;
+    if (S.menu) {
+      if (G.input && G.input.clearKeys) G.input.clearKeys();
+      if (document.exitPointerLock) document.exitPointerLock();
+    }
+  }
+  function requestLookLock() {
+    const canvas = document.getElementById("hud") || document.getElementById("c");
+    if (!canvas || !canvas.requestPointerLock) return;
+    if (S.menu) return;
+    if (S.mode !== "walk" && S.mode !== "drive") return;
+    G.showTouch = false;
+    try {
+      const p = canvas.requestPointerLock({ unadjustedMovement: true });
+      if (p && typeof p.catch === "function") {
+        p.catch(function () { try { canvas.requestPointerLock(); } catch (e2) {} });
+      }
+    } catch (e) {
+      try { canvas.requestPointerLock(); } catch (e2) {}
+    }
+  }
+  (function initLookPrefs() {
+    const ls = loadLookSettings();
+    S.lookSens = ls.sens;
+    S.invertY = ls.invertY;
+    S.showHint = loadHintFlag();
+    S._lookMx = 0; S._lookMy = 0;
+    S._lookSx = 0; S._lookSy = 0;
+    S.chase = null;
+    S.player.vy = 0;
+  })();
+
   function partState(id) {
     if (!S.parts[id]) {
       const def = G.summerPartById(id);
@@ -17526,8 +17686,18 @@ window.addEventListener("load", () => {
     }
     const e = eyePos();
     if (S.mode === "drive") {
-      cam.position.set(e.camX, e.camY, e.camZ);
-      cam.lookAt(e.lookX, e.lookY, e.lookZ);
+      if (!S.chase) {
+        S.chase = { x: e.camX, y: e.camY, z: e.camZ, lx: e.lookX, ly: e.lookY, lz: e.lookZ };
+      }
+      const k = 0.18;
+      S.chase.x += (e.camX - S.chase.x) * k;
+      S.chase.y += (e.camY - S.chase.y) * k;
+      S.chase.z += (e.camZ - S.chase.z) * k;
+      S.chase.lx += (e.lookX - S.chase.lx) * k;
+      S.chase.ly += (e.lookY - S.chase.ly) * k;
+      S.chase.lz += (e.lookZ - S.chase.lz) * k;
+      cam.position.set(S.chase.x, S.chase.y, S.chase.z);
+      cam.lookAt(S.chase.lx, S.chase.ly, S.chase.lz);
       return cam;
     }
     cam.position.set(e.x, e.y, e.z);
@@ -17560,33 +17730,37 @@ window.addEventListener("load", () => {
     if (!canvas) return;
     canvas.addEventListener("click", function (e) {
       if (S.mode !== "walk" && S.mode !== "drive") return;
+      if (S.showHint) { dismissHint(); requestLookLock(); return; }
       if (S.menu) return;
-      if (G.showTouch) return;
+      /* A mouse click on a touch-capable laptop should recapture look, even if
+         an earlier touch flipped on the on-screen stick. */
+      if (G.showTouch && G._lastPointerType && G._lastPointerType !== "mouse") return;
       const r = canvas.getBoundingClientRect();
       const x = e.clientX - r.left, y = e.clientY - r.top;
       const btns = G.touchButtons || [];
       for (let i = 0; i < btns.length; i++) {
         const b = btns[i];
+        if (b.id === "look") continue;
         if (x >= b.x && y >= b.y && x <= b.x + b.w && y <= b.y + b.h) return;
       }
-      if (canvas.requestPointerLock) canvas.requestPointerLock();
+      requestLookLock();
     });
     document.addEventListener("pointerlockchange", function () {
-      S.pointerLocked = document.pointerLockElement === canvas || document.pointerLockElement === document.getElementById("hud");
+      const el = document.pointerLockElement;
+      S.pointerLocked = el === canvas || el === document.getElementById("hud") || el === document.getElementById("c");
+    });
+    document.addEventListener("pointerlockerror", function () {
+      S.lockFailedT = 2.4;
     });
     document.addEventListener("mousemove", function (e) {
       if (!S.pointerLocked || S.menu) return;
-      const sens = 0.0018;
-      S.player.yaw -= e.movementX * sens;
-      S.player.pitch -= e.movementY * sens;
-      if (S.player.pitch > 1.2) S.player.pitch = 1.2;
-      if (S.player.pitch < -1.2) S.player.pitch = -1.2;
+      S._lookMx = (S._lookMx || 0) + (e.movementX || 0);
+      S._lookMy = (S._lookMy || 0) + (e.movementY || 0);
     });
     document.addEventListener("keydown", function (e) {
-      if (e.code === "Escape") {
-        S.menu = !S.menu;
-        if (S.menu && document.exitPointerLock) document.exitPointerLock();
-      }
+      if (e.code !== "Escape") return;
+      if (S.showHint) { dismissHint(); return; }
+      setMenu(!S.menu);
     });
     /* Touch: left stick, right look, handled in step from pointers on the HUD. */
   }
@@ -17705,6 +17879,7 @@ window.addEventListener("load", () => {
     }
     S.mode = "drive";
     S.truck.speed = 0;
+    S.chase = null;
     if (document.exitPointerLock) document.exitPointerLock();
     if (G.audio && G.audio.beep) G.audio.beep("start");
     save();
@@ -17717,21 +17892,17 @@ window.addEventListener("load", () => {
       return false;
     }
     S.mode = "walk";
+    S.chase = null;
     const e = enterPoint();
     S.player.x = e.x; S.player.z = e.z; S.player.y = G.summerHeightAt(e.x, e.z);
     S.player.yaw = S.truck.yaw + Math.PI / 2;
+    S.player.vy = 0;
     save();
     return true;
   }
 
   function stepWalk(dt) {
-    /* Mouse already applied. Touch look: */
-    if (G.showTouch) {
-      S.player.yaw -= (S.lookDx || 0) * dt * 1.6;
-      S.player.pitch -= (S.lookDy || 0) * dt * 1.4;
-      if (S.player.pitch > 1.2) S.player.pitch = 1.2;
-      if (S.player.pitch < -1.2) S.player.pitch = -1.2;
-    }
+    /* Mouse / gamepad / touch look is applied in stepSummer so it can be shared. */
     let mx = 0, mz = 0;
     if (G.input.down("accel")) mz += 1;
     if (G.input.down("brake")) mz -= 1;
@@ -17761,7 +17932,9 @@ window.addEventListener("load", () => {
     /* forward is (sy, cy) in XZ */
     const dx = (sy * mz + cy * mx) * spd * dt;
     const dz = (cy * mz - sy * mx) * spd * dt;
+    const airY = S.player.y;
     G.summerMoveCollide(S.player, dx, dz, RADIUS, EYE);
+    S.player.y = airY;
     const bb = G.summerWorld && G.summerWorld.bbox;
     if (bb) {
       if (S.player.x < bb[0] + 2) S.player.x = bb[0] + 2;
@@ -17769,7 +17942,17 @@ window.addEventListener("load", () => {
       if (S.player.z < bb[1] + 2) S.player.z = bb[1] + 2;
       if (S.player.z > bb[3] - 2) S.player.z = bb[3] - 2;
     }
-    S.player.y = G.summerHeightAt(S.player.x, S.player.z, S.player.y);
+    const ground = G.summerHeightAt(S.player.x, S.player.z, S.player.y);
+    if (S.sitting) {
+      S.player.y = ground;
+      S.player.vy = 0;
+    } else {
+      const onGround = (S.player.y <= ground + 0.07) && (S.player.vy || 0) <= 0.08;
+      if (G.input && G.input.pressed("jump") && onGround && !S.swimming && !S.bolt) S.player.vy = 4.8;
+      S.player.vy = (S.player.vy || 0) - (S.swimming ? 6 : 16) * dt;
+      S.player.y += (S.player.vy || 0) * dt;
+      if (S.player.y <= ground) { S.player.y = ground; S.player.vy = 0; }
+    }
     if (G.tickSummerJobWorld) G.tickSummerJobWorld(dt, S.player);
     revealAround(S.player.x, S.player.z, 900);
 
@@ -17913,25 +18096,48 @@ window.addEventListener("load", () => {
   }
 
   function stepDrive(dt) {
-    const accel = G.input.down("accel") || !!G._debugAccel;
-    const brake = G.input.down("brake");
-    const left = G.input.down("left");
-    const right = G.input.down("right");
+    const axis = G.input && G.input.axis;
+    let accelAmt = axis ? G.input.axis("accel") : (G.input.down("accel") ? 1 : 0);
+    let brakeAmt = axis ? G.input.axis("brake") : (G.input.down("brake") ? 1 : 0);
+    if (G._debugAccel) accelAmt = Math.max(accelAmt, 1);
+    let steerIn = axis ? G.input.axis("lx") : ((G.input.down("right") ? 1 : 0) - (G.input.down("left") ? 1 : 0));
+    if (G.showTouch || S.stickX || S.stickY) {
+      if (Math.abs(S.stickX || 0) > 0.08) steerIn += S.stickX;
+      if ((S.stickY || 0) < -0.15) accelAmt = Math.max(accelAmt, -S.stickY);
+      if ((S.stickY || 0) > 0.15) brakeAmt = Math.max(brakeAmt, S.stickY);
+    }
+    if (steerIn > 1) steerIn = 1;
+    if (steerIn < -1) steerIn = -1;
     const st = S.truck;
     const max = 16.5, acc = 7.5, brk = 14, fric = 2.2;
-    if (accel) st.speed += acc * dt;
-    if (brake) st.speed -= (accel ? 5 : brk) * dt;
+    if (accelAmt > 0) st.speed += acc * dt * accelAmt;
+    if (brakeAmt > 0) st.speed -= (accelAmt > 0.2 ? 5 : brk) * dt * brakeAmt;
+    if (G.input && G.input.down("jump")) {
+      st.speed -= Math.sign(st.speed || 0) * 28 * dt;
+      if (Math.abs(st.speed) < 0.35) st.speed = 0;
+    }
     st.speed -= Math.sign(st.speed) * fric * dt;
-    if (!accel && !brake && Math.abs(st.speed) < 0.3) st.speed = 0;
+    if (accelAmt < 0.05 && brakeAmt < 0.05 && Math.abs(st.speed) < 0.3) st.speed = 0;
     if (st.speed > max) st.speed = max;
     if (st.speed < -5) st.speed = -5;
-    let steerIn = (right ? 1 : 0) - (left ? 1 : 0);
     const steerMax = 0.55 * (1.0 - Math.min(0.7, Math.abs(st.speed) / max));
-    st.steer += (steerIn * steerMax - st.steer) * Math.min(1, dt * 6);
+    st.steer += (steerIn * steerMax - st.steer) * Math.min(1, dt * 8);
     const turn = st.steer * Math.min(1.6, Math.abs(st.speed) * 0.22);
     st.yaw -= turn * dt * Math.sign(st.speed || 1) * (st.speed === 0 ? 0 : 1);
     const dx = Math.sin(st.yaw) * st.speed * dt;
     const dz = Math.cos(st.yaw) * st.speed * dt;
+    function truckHit(x, z, y) {
+      const cols = G.querySummerCols ? G.querySummerCols(x, z, 3) : ((G.summerWorld && G.summerWorld.colliders) || []);
+      const r = 1.15, y0 = y + 0.38, y1 = y + 1.4;
+      for (let i = 0; i < cols.length; i++) {
+        const c = cols[i];
+        if (c.tag === "bounds" || c.tag === "curb") continue;
+        if ((c.maxy - y) < 0.36) continue;
+        if (y1 < c.miny || y0 > c.maxy) continue;
+        if (x + r > c.minx && x - r < c.maxx && z + r > c.minz && z - r < c.maxz) return c;
+      }
+      return null;
+    }
     const next = { x: st.x + dx, y: st.y || 0, z: st.z + dz };
     let nextY = G.summerHeightAt(next.x, next.z, st.y || 0);
     /* Don't drop off a high-rise deck in one frame if the road sample is missed. */
@@ -17940,24 +18146,36 @@ window.addEventListener("load", () => {
     if (nextY < -0.05 && !(G.sampleMapHeight && G.sampleMapHeight(next.x, next.z) != null && G.sampleMapHeight(next.x, next.z) > 0.02)) {
       st.speed *= 0.25;
     } else {
-      const hit = (function () {
-        const cols = G.querySummerCols ? G.querySummerCols(next.x, next.z, 3) : (G.summerWorld.colliders || []);
-        const r = 1.15, y0 = nextY + 0.3, y1 = nextY + 1.4;
-        for (let i = 0; i < cols.length; i++) {
-          const c = cols[i];
-          if (c.tag === "bounds") continue;
-          if (y1 < c.miny || y0 > c.maxy) continue;
-          if (next.x + r > c.minx && next.x - r < c.maxx && next.z + r > c.minz && next.z - r < c.maxz) return c;
-        }
-        return null;
-      })();
-      if (hit) {
-        st.speed *= 0.2;
-      } else {
-        st.x = next.x; st.z = next.z;
+      let nx = st.x + dx, nz = st.z + dz;
+      const y0 = nextY;
+      if (truckHit(nx, st.z, y0)) { nx = st.x; st.speed *= 0.85; }
+      if (truckHit(nx, nz, y0)) { nz = st.z; st.speed *= 0.85; }
+      if (nx === st.x && nz === st.z && (dx || dz)) st.speed *= 0.55;
+      st.x = nx; st.z = nz;
+    }
+    /* Soft push off roundabout islands so the truck doesn't climb the curb into the hedge. */
+    const rabs = (G.summerWorld && G.summerWorld.roundabouts) || [];
+    for (let i = 0; i < rabs.length; i++) {
+      const r = rabs[i];
+      const ir = Math.max(3.2, (r.r || 10) * 0.46) + 1.2;
+      const rx = st.x - r.x, rz = st.z - r.z;
+      const d = Math.hypot(rx, rz);
+      if (d < ir && d > 0.001) {
+        const push = ir - d;
+        st.x += rx / d * push;
+        st.z += rz / d * push;
+        const inward = (Math.sin(st.yaw) * rx + Math.cos(st.yaw) * rz) / d;
+        if (st.speed * inward < 0) st.speed *= 0.65;
       }
     }
-    st.y = G.summerHeightAt(st.x, st.z, st.y || 0);
+    const rawY = G.summerHeightAt(st.x, st.z, st.y || 0);
+    let targetY = rawY;
+    if ((st.y || 0) > 1.5 && rawY < (st.y || 0) - 1.15) targetY = st.y;
+    const maxDy = 8 * dt;
+    const dy = targetY - (st.y || 0);
+    if (dy > maxDy) st.y = (st.y || 0) + maxDy;
+    else if (dy < -maxDy) st.y = (st.y || 0) - maxDy;
+    else st.y = targetY;
     if (G.tickSurfCityMap) G.tickSurfCityMap(st.x, st.z);
     applyTruckPose();
 
@@ -18010,12 +18228,39 @@ window.addEventListener("load", () => {
   G.stepSummer = function (dt, time) {
     if (!S.ready) return;
     S.time = time || (S.time + dt);
+    if (S.lockFailedT > 0) S.lockFailedT -= dt;
+    if (G.input && G.input.pressed("start") && !S.showHint) setMenu(!S.menu);
+    if (S.menu) return;
     if (G.input && G.input.pressed("quality") && G.setQuality) {
       G.setQuality(G.quality === "high" ? "low" : "high");
     }
     if (G.input && G.input.pressed("style") && G.toggleStyle) G.toggleStyle();
-    if (S.menu) return;
     readTouch();
+    /* Smoothed look from mouse, touch-drag, and the gamepad right stick. */
+    if (S.mode === "walk" || (S.mode === "drive" && S.pointerLocked)) {
+      const k = 1 - Math.exp(-Math.max(0.001, dt) * 28);
+      S._lookSx = (S._lookSx || 0) + ((S._lookMx || 0) - (S._lookSx || 0)) * k;
+      S._lookSy = (S._lookSy || 0) + ((S._lookMy || 0) - (S._lookSy || 0)) * k;
+      S._lookMx = 0; S._lookMy = 0;
+      if (S._lookSx || S._lookSy) {
+        if (S.mode === "walk") applyLookDelta(S._lookSx, S._lookSy);
+        S._lookSx *= (1 - k);
+        S._lookSy *= (1 - k);
+        if (Math.abs(S._lookSx) < 0.02) S._lookSx = 0;
+        if (Math.abs(S._lookSy) < 0.02) S._lookSy = 0;
+      }
+      if (S.mode === "walk") {
+        if (S.lookDx || S.lookDy) {
+          applyLookDelta((S.lookDx || 0) * 0.9, (S.lookDy || 0) * 0.9);
+          if (G.summerTouch) { G.summerTouch.ldx = 0; G.summerTouch.ldy = 0; }
+          S.lookDx = 0; S.lookDy = 0;
+        }
+        if (G.input && G.input.axis) {
+          const rx = G.input.axis("rx"), ry = G.input.axis("ry");
+          if (rx || ry) applyLookDelta(rx * 1100 * dt, ry * 1100 * dt);
+        }
+      }
+    }
     const movingWalk = S.mode === "walk" && !!(
       (G.input && (G.input.down("accel") || G.input.down("brake") || G.input.down("left") || G.input.down("right"))) ||
       (G.showTouch && (S.stickX || S.stickY))
@@ -18188,24 +18433,25 @@ window.addEventListener("load", () => {
     ctx.fillText("TOASTER SUMMER  ·  SURF CITY", 18, 26);
     ctx.font = "12px system-ui,sans-serif";
     ctx.fillStyle = "rgba(244,240,228,0.65)";
-    if (S.mode === "walk" && !G.showTouch) ctx.fillText("WASD walk  ·  mouse look  ·  E interact  ·  Esc menu", 18, 44);
-    else if (S.mode === "drive" && !G.showTouch) ctx.fillText("WASD drive  ·  E get out  ·  Esc menu", 18, 44);
+    if (S.mode === "walk" && !G.showTouch) ctx.fillText("WASD walk  ·  Shift sprint  ·  Space jump  ·  E interact  ·  Esc menu", 18, 44);
+    else if (S.mode === "drive" && !G.showTouch) ctx.fillText("WASD drive  ·  Space handbrake  ·  E get out  ·  Esc menu", 18, 44);
 
     /* Menu */
     if (S.menu) {
+      const mw = 400, mh = 448, mx0 = W / 2 - mw / 2, my0 = H / 2 - mh / 2;
       ctx.fillStyle = "rgba(0,0,0,0.62)";
       ctx.fillRect(0, 0, W, H);
-      ctx.fillStyle = "rgba(20,18,16,0.95)";
-      ctx.fillRect(W / 2 - 180, H / 2 - 160, 360, 320);
+      ctx.fillStyle = "rgba(20,18,16,0.96)";
+      ctx.fillRect(mx0, my0, mw, mh);
       ctx.strokeStyle = "rgba(230,220,180,0.4)";
-      ctx.strokeRect(W / 2 - 180, H / 2 - 160, 360, 320);
+      ctx.strokeRect(mx0, my0, mw, mh);
       ctx.textAlign = "center";
       ctx.fillStyle = "#f0e6c8";
       ctx.font = "700 22px system-ui,sans-serif";
-      ctx.fillText("TOASTER SUMMER", W / 2, H / 2 - 120);
+      ctx.fillText("TOASTER SUMMER", W / 2, my0 + 36);
       ctx.font = "11px system-ui,sans-serif";
       ctx.fillStyle = "rgba(244,240,228,0.55)";
-      ctx.fillText("© OpenStreetMap contributors", W / 2, H / 2 - 98);
+      ctx.fillText("© OpenStreetMap contributors", W / 2, my0 + 56);
       const amb = (G.audio && G.audio.ambLabel) ? G.audio.ambLabel() : "Med";
       const items = [
         { id: "resume", label: "Resume" },
@@ -18213,20 +18459,50 @@ window.addEventListener("load", () => {
         { id: "ambience", label: "Ambience: " + amb }
       ];
       items.forEach(function (it, i) {
-        const y = H / 2 - 40 + i * 48;
+        const y = my0 + 88 + i * 44;
         ctx.fillStyle = "rgba(240,230,200,0.12)";
-        ctx.fillRect(W / 2 - 140, y - 18, 280, 36);
+        ctx.fillRect(W / 2 - 150, y - 18, 300, 36);
         ctx.fillStyle = "#f4f0e4";
         ctx.font = "600 16px system-ui,sans-serif";
         ctx.fillText(it.label, W / 2, y + 6);
-        G.touchButtons.push({ id: it.id, x: W / 2 - 140, y: y - 18, w: 280, h: 36 });
+        G.touchButtons.push({ id: it.id, x: W / 2 - 150, y: y - 18, w: 300, h: 36 });
       });
+      ctx.textAlign = "left";
+      ctx.fillStyle = "rgba(244,240,228,0.7)";
+      ctx.font = "700 13px system-ui,sans-serif";
+      const cy = my0 + 230;
+      ctx.fillText("CONTROLS", W / 2 - 150, cy);
+      ctx.font = "12px system-ui,sans-serif";
+      ctx.fillStyle = "#f4f0e4";
+      ctx.fillText("Look sensitivity  " + (S.lookSens || 1).toFixed(2) + "x", W / 2 - 150, cy + 24);
+      const sx = W / 2 - 150, sy = cy + 34, sw = 300, sh = 16;
+      ctx.fillStyle = "rgba(240,230,200,0.16)";
+      ctx.fillRect(sx, sy, sw, sh);
+      const t = ((S.lookSens || 1) - 0.3) / (2.5 - 0.3);
+      ctx.fillStyle = "#e8d080";
+      ctx.fillRect(sx, sy, sw * t, sh);
+      ctx.fillStyle = "#f4f0e4";
+      ctx.fillRect(sx + sw * t - 2, sy - 3, 4, sh + 6);
+      G.touchButtons.push({ id: "sens", x: sx, y: sy - 8, w: sw, h: sh + 16, kind: "slider" });
+      const iy = cy + 70;
+      ctx.fillStyle = "rgba(240,230,200,0.12)";
+      ctx.fillRect(W / 2 - 150, iy - 16, 300, 34);
+      ctx.fillStyle = "#f4f0e4";
+      ctx.font = "600 15px system-ui,sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("Invert Y:  " + (S.invertY ? "On" : "Off"), W / 2, iy + 6);
+      G.touchButtons.push({ id: "invertY", x: W / 2 - 150, y: iy - 16, w: 300, h: 34 });
+      ctx.font = "11px system-ui,sans-serif";
+      ctx.fillStyle = "rgba(244,240,228,0.55)";
+      ctx.fillText("WASD move  ·  Shift sprint  ·  Space jump / handbrake  ·  E interact", W / 2, my0 + mh - 22);
     }
 
     /* Touch chrome */
     if (G.showTouch && !S.menu) {
       const stickR = 56;
       const sx = 28 + stickR, sy = H - 28 - stickR;
+      /* Look zone first so later buttons win the hit test. */
+      G.touchButtons.push({ id: "look", x: W * 0.40, y: 0, w: W * 0.60 - 110, h: H - 200 });
       ctx.fillStyle = "rgba(0,0,0,0.35)";
       ctx.beginPath(); ctx.arc(sx, sy, stickR, 0, Math.PI * 2); ctx.fill();
       ctx.strokeStyle = "rgba(255,255,255,0.45)";
@@ -18235,24 +18511,67 @@ window.addEventListener("load", () => {
       const knx = sx + (S.stickX || 0) * 34, kny = sy + (S.stickY || 0) * 34;
       ctx.beginPath(); ctx.arc(knx, kny, 22, 0, Math.PI * 2); ctx.fillStyle = "rgba(255,255,255,0.4)"; ctx.fill();
       G.touchButtons.push({ id: "stick", x: sx - stickR, y: sy - stickR, w: stickR * 2, h: stickR * 2, cx: sx, cy: sy, r: stickR });
-      /* Interact */
-      const ix = W - 90, iy = H - 90;
-      ctx.beginPath(); ctx.arc(ix, iy, 38, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(0,0,0,0.4)"; ctx.fill();
-      ctx.strokeStyle = "rgba(255,255,255,0.5)"; ctx.stroke();
-      ctx.fillStyle = "#f4f0e4"; ctx.font = "700 16px system-ui,sans-serif"; ctx.textAlign = "center";
-      ctx.fillText("E", ix, iy + 6);
-      G.touchButtons.push({ id: "item", x: ix - 38, y: iy - 38, w: 76, h: 76 });
-      /* Look zone = right half minus the button */
-      G.touchButtons.push({ id: "look", x: W * 0.42, y: 0, w: W * 0.58, h: H - 140 });
+      function roundBtn(id, label, bx, by, r) {
+        ctx.beginPath(); ctx.arc(bx, by, r, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(0,0,0,0.4)"; ctx.fill();
+        ctx.strokeStyle = "rgba(255,255,255,0.5)"; ctx.stroke();
+        ctx.fillStyle = "#f4f0e4"; ctx.font = "700 13px system-ui,sans-serif"; ctx.textAlign = "center";
+        ctx.fillText(label, bx, by + 5);
+        G.touchButtons.push({ id: id, x: bx - r, y: by - r, w: r * 2, h: r * 2 });
+      }
+      const ix = W - 78, iy = H - 86;
+      roundBtn("item", "E", ix, iy, 36);
+      if (S.mode === "drive") {
+        roundBtn("accel", "GAS", ix - 86, iy - 78, 32);
+        roundBtn("brake", "BRK", ix - 86, iy, 32);
+        roundBtn("jump", "HB", ix, iy - 86, 28);
+      } else {
+        roundBtn("drift", "SPRINT", ix, iy - 90, 32);
+      }
     }
 
-    /* Click-to-look hint */
-    if (S.mode === "walk" && !S.pointerLocked && !G.showTouch && !S.menu) {
-      ctx.font = "12px system-ui,sans-serif";
+    /* Click-to-look prompt (after Esc, or before the first capture). */
+    if (S.mode === "walk" && !S.pointerLocked && !G.showTouch && !S.menu && !S.showHint) {
+      ctx.fillStyle = "rgba(0,0,0,0.28)";
+      const pw = 340, ph = 78, px = W / 2 - pw / 2, py = H * 0.18;
+      ctx.fillRect(px, py, pw, ph);
+      ctx.strokeStyle = "rgba(230,220,180,0.45)";
+      ctx.strokeRect(px, py, pw, ph);
       ctx.textAlign = "center";
-      ctx.fillStyle = "rgba(244,240,228,0.55)";
-      ctx.fillText("Click to look around", W / 2, 44);
+      ctx.fillStyle = "#f4f0e4";
+      ctx.font = "700 18px system-ui,sans-serif";
+      ctx.fillText(S.lockFailedT > 0 ? "Click again to capture the mouse" : "Click to look around", W / 2, py + 34);
+      ctx.font = "12px system-ui,sans-serif";
+      ctx.fillStyle = "rgba(244,240,228,0.7)";
+      ctx.fillText("Esc releases the mouse and opens the menu", W / 2, py + 58);
+    }
+
+    /* First-load controls hint. */
+    if (S.showHint && !S.menu) {
+      ctx.fillStyle = "rgba(0,0,0,0.55)";
+      ctx.fillRect(0, 0, W, H);
+      const hw = 420, hh = 268, hx = W / 2 - hw / 2, hy = H / 2 - hh / 2;
+      ctx.fillStyle = "rgba(20,18,16,0.96)";
+      ctx.fillRect(hx, hy, hw, hh);
+      ctx.strokeStyle = "rgba(230,220,180,0.45)";
+      ctx.strokeRect(hx, hy, hw, hh);
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#f0e6c8";
+      ctx.font = "700 22px system-ui,sans-serif";
+      ctx.fillText("Controls", W / 2, hy + 40);
+      ctx.font = "14px system-ui,sans-serif";
+      ctx.fillStyle = "#f4f0e4";
+      const lines = [
+        "WASD or arrows  —  walk and drive",
+        "Mouse  —  look  ·  click to capture",
+        "Shift  —  sprint    Space  —  jump / handbrake",
+        "E  —  interact (hold E to bolt parts)",
+        "Esc  —  pause menu and look settings"
+      ];
+      lines.forEach(function (ln, i) { ctx.fillText(ln, W / 2, hy + 78 + i * 24); });
+      ctx.font = "600 13px system-ui,sans-serif";
+      ctx.fillStyle = "rgba(244,240,228,0.75)";
+      ctx.fillText("Click or tap to start", W / 2, hy + hh - 28);
     }
   }
 
@@ -18274,31 +18593,47 @@ window.addEventListener("load", () => {
       }
       return null;
     }
+    function setSensFromX(x, btn) {
+      const t = Math.max(0, Math.min(1, (x - btn.x) / Math.max(1, btn.w)));
+      S.lookSens = Math.round((0.3 + t * (2.5 - 0.3)) * 100) / 100;
+      saveLookSettings();
+    }
     function refresh() {
       const t = G.summerTouch;
-      t.sx = 0; t.sy = 0; t.ldx = 0; t.ldy = 0;
+      t.sx = 0; t.sy = 0;
+      /* Look deltas accumulate and are consumed in stepSummer. */
       ptr.forEach(function (p) {
         if (p.kind === "stick" && p.btn) {
           t.sx = Math.max(-1, Math.min(1, (p.x - p.btn.cx) / p.btn.r));
           t.sy = Math.max(-1, Math.min(1, (p.y - p.btn.cy) / p.btn.r));
         } else if (p.kind === "look" && p.lx != null) {
-          t.ldx += (p.x - p.lx) * 0.08;
-          t.ldy += (p.y - p.ly) * 0.08;
+          t.ldx += (p.x - p.lx);
+          t.ldy += (p.y - p.ly);
           p.lx = p.x; p.ly = p.y;
+        } else if (p.kind === "sens" && p.btn) {
+          setSensFromX(p.x, p.btn);
         }
       });
     }
     c.addEventListener("pointerdown", function (e) {
       if (!(G.isSummer && G.isSummer())) return;
       const p = css(e);
+      if (S.showHint) { dismissHint(); if ((e.pointerType || "mouse") === "mouse") requestLookLock(); return; }
       const b = hit(p.x, p.y);
-      if (b && b.id === "resume") { S.menu = false; return; }
+      if (b && b.id === "resume") { setMenu(false); requestLookLock(); return; }
       if (b && b.id === "reset") { G.resetSummerSave(); location.reload(); return; }
       if (b && b.id === "ambience") { if (G.audio && G.audio.cycleAmb) G.audio.cycleAmb(); return; }
+      if (b && b.id === "invertY") { S.invertY = !S.invertY; saveLookSettings(); return; }
+      if (b && b.id === "sens") {
+        ptr.set(e.pointerId, { kind: "sens", x: p.x, y: p.y, btn: b });
+        setSensFromX(p.x, b);
+        return;
+      }
       if (b && b.id === "checklist") { S.checklistOpen = !S.checklistOpen; return; }
       if (b && (b.id === "stick" || b.id === "look")) {
+        /* Don't start a look-drag on the stick, or a stick on the look zone. */
         ptr.set(e.pointerId, { kind: b.id, x: p.x, y: p.y, lx: p.x, ly: p.y, btn: b });
-        G.showTouch = true;
+        if ((e.pointerType || "") === "touch" || e.pointerType === "pen") G.showTouch = true;
         refresh();
       }
     });
@@ -18561,7 +18896,31 @@ window.addEventListener("load", () => {
           }
         };
       },
-      frame: frameShot
+      frame: frameShot,
+      look() {
+        return {
+          sens: S.lookSens, invertY: !!S.invertY, yaw: S.player.yaw, pitch: S.player.pitch,
+          locked: !!S.pointerLocked, menu: !!S.menu, hint: !!S.showHint, showTouch: !!G.showTouch,
+          vy: S.player.vy || 0, steer: S.truck.steer, speed: S.truck.speed
+        };
+      },
+      setLook(sens, invertY) {
+        if (sens != null) S.lookSens = clampLook(sens, 0.3, 2.5);
+        if (invertY != null) S.invertY = !!invertY;
+        saveLookSettings();
+        return { sens: S.lookSens, invertY: !!S.invertY };
+      },
+      applyLook(dx, dy) { applyLookDelta(dx, dy); return { yaw: S.player.yaw, pitch: S.player.pitch }; },
+      setMenu: setMenu,
+      dismissHint: dismissHint,
+      setTouch(sx, sy, ldx, ldy) {
+        G.showTouch = true;
+        G.summerTouch = G.summerTouch || { sx: 0, sy: 0, ldx: 0, ldy: 0 };
+        if (sx != null) G.summerTouch.sx = sx;
+        if (sy != null) G.summerTouch.sy = sy;
+        if (ldx != null) G.summerTouch.ldx = ldx;
+        if (ldy != null) G.summerTouch.ldy = ldy;
+      }
     };
   }
 
