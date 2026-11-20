@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.20.7"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.20.8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <link rel="icon" href="data:,"><title>MR. TOASTY'S NO SIGNAL SKULLZ — Therapy Toaster</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Anton&family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
@@ -14322,14 +14322,14 @@ body.touch.playing #hud{
   function srcOf(id){return BASE+'coty-'+id+'.mp4?v='+TV_V}
   function quiet(){return !!(typeof MUTE!=='undefined'&&MUTE)||document.body.classList.contains('attract')}
 
-  function ensure(id){
+  function ensure(id,src){
     if(slots[id])return slots[id];
     const v=document.createElement('video');
     v.muted=true;v.defaultMuted=true;v.loop=true;v.playsInline=true;v.autoplay=false;
     v.setAttribute('muted','');v.setAttribute('playsinline','');v.setAttribute('loop','');
     v.preload='none';v.crossOrigin='anonymous';v.setAttribute('webkit-playsinline','');
     v.style.cssText='position:fixed;left:-99px;top:-99px;width:1px;height:1px;opacity:0;pointer-events:none';
-    v.src=srcOf(id);
+    v.src=src||srcOf(id);
     document.body.appendChild(v);
     const s={el:v,ready:false,playing:false,lastT:-1,wanted:false};
     const ok=()=>{s.ready=true};
@@ -14338,16 +14338,16 @@ body.touch.playing #hud{
     v.addEventListener('error',()=>{s.err=true});
     slots[id]=s;return s;
   }
-  function loadClip(id){
-    const s=ensure(id);
+  function loadClip(id,src){
+    const s=ensure(id,src);
     if(s.el.preload!=='metadata'&&s.el.preload!=='auto'){
       s.el.preload='metadata';
       try{s.el.load()}catch(e){}
     }
     return s;
   }
-  function playClip(id){
-    const s=loadClip(id);
+  function playClip(id,src){
+    const s=loadClip(id,src);
     if(!unlocked||s.err)return s;
     if(!s.playing){
       const p=s.el.play();
@@ -14363,7 +14363,7 @@ body.touch.playing #hud{
   }
   function kick(){
     unlocked=true;
-    for(const s of sites){if(s.wantPlay)playClip(s.clip)}
+    for(const s of sites){if(s.wantPlay)playClip(s.clip,s.src)}
   }
 
   // ---------- canvas helpers ----------
@@ -14513,7 +14513,7 @@ body.touch.playing #hud{
 
   // ---------- placement ----------
   function themeName(){return (typeof theme==='object'&&theme&&theme.id)||'';}
-  function addSite(s){s.meta=BY_ID[s.clip];s.wantPlay=false;s.lastBake=-1;sites.push(s);return s}
+  function addSite(s){if(!s.meta&&BY_ID[s.clip])s.meta=BY_ID[s.clip];s.wantPlay=false;s.lastBake=-1;sites.push(s);return s}
 
   function pickOrMakeWall(){
     if(typeof WSPEC==='undefined')return null;
@@ -14639,8 +14639,8 @@ body.touch.playing #hud{
 
   function dressFloor(){
     // drop previous bindings; keep video elements (paused)
-    sites=[];
-    for(const id in slots)pauseClip(+id);
+    sites=sites.filter(s=>s.kind==='acid'||String(s.clip).indexOf('acid:')===0);
+    for(const id in slots)pauseClip(id);
     // buildFloor often runs from start() before state flips to 'play'
     if(quiet()||typeof run==='undefined'||!run){floorTag=-1;return;}
     const f=run.floor|0;
@@ -14659,7 +14659,7 @@ body.touch.playing #hud{
       // stay in sync if the prop moved (shouldn't)
       site.x=q.x;site.y=q.y;return true;
     }
-    if(site.kind==='wall'){
+    if(site.kind==='wall'||site.kind==='acid'){
       if(typeof WSPEC==='undefined')return false;
       const S=WSPEC.get(site.cell);
       if(!S||S!==site.spec)return false;
@@ -14695,12 +14695,13 @@ body.touch.playing #hud{
     for(const s of ranked){
       s.wantPlay=false;
       if((s.visible||s.near)&&used<C){s.wantPlay=true;playSet.add(s.clip);used=playSet.size}
-      else if(s.canLoad)loadClip(s.clip);
+      else if(s.canLoad)loadClip(s.clip,s.src);
     }
     // play / pause by clip
     const needed=new Set(sites.map(s=>s.clip));
     for(const id of needed){
-      if(playSet.has(id)&&unlocked)playClip(id);
+      const src=(sites.find(s=>s.clip===id)||{}).src;
+      if(playSet.has(id)&&unlocked)playClip(id,src);
       else pauseClip(id);
     }
     // bake textures ~20fps or when play state flips
@@ -14711,7 +14712,8 @@ body.touch.playing #hud{
       if(!due)continue;
       s.wasPlaying=playing;s.lastT=vt;s.needBake=false;
       try{
-        if(s.kind==='wall')bakeWall(s,playing);
+        if(typeof s.bake==='function')s.bake(s,playing);
+        else if(s.kind==='wall')bakeWall(s,playing);
         else if(s.kind==='crt')bakeCrt(s,playing);
         else bakeBoard(s,playing);
       }catch(e){/* tainted or missing canvas: leave last / static */}
@@ -14772,9 +14774,247 @@ body.touch.playing #hud{
       cap,
       get unlocked(){return unlocked},
       get sites(){return sites.map(s=>({kind:s.kind,clip:s.clip,x:s.x,y:s.y,dist:s.dist,visible:s.visible,near:s.near,wantPlay:s.wantPlay,playing:!!(slots[s.clip]&&slots[s.clip].playing),ready:!!(slots[s.clip]&&slots[s.clip].ready),paused:!(slots[s.clip]&&slots[s.clip].playing)}))},
-      get slots(){return Object.keys(slots).map(id=>{const s=slots[id];return{id:+id,ready:s.ready,playing:s.playing,paused:s.el.paused,t:s.el.currentTime,preload:s.el.preload,err:!!s.err}})},
+      get slots(){return Object.keys(slots).map(id=>{const s=slots[id];return{id:id,ready:s.ready,playing:s.playing,paused:s.el.paused,t:s.el.currentTime,preload:s.el.preload,err:!!s.err}})},
       dress:dressFloor,
-      kick,tick
+      kick,tick,
+      addSite,ensure,loadClip,playClip,pauseClip,
+      get _sites(){return sites}
+    };
+  }
+})();
+
+// v0.20.8 — ACID Cult NFT clips as framed portrait wall tiles.
+// Credits: ACID CULT by ACID (@ACIDstronaut). Guest 1/1s use their artist names.
+// Reuses the v0.20.7 video system (lazy-load, near/visible play, shared cap, first-tap unlock).
+// CLOSE stays 1.15. v0.20.5 gun pose and v0.20.6 touch layout are unchanged.
+(function(){
+  const VER='0.20.8';
+  const CLOSE=1.15;
+  const ACID_V='208';
+  const BASE=(typeof window!=='undefined'&&window.ACID_BASE)||'acid/';
+  const FILES=['006','008','012','018','019','020','023','A07','A10','A17','A23','A28','A30','A45','A63','Art01','Art08','Art15','Art16','Art17','B03','B07','B13','B18','B20','B30','B32','B37','B38','B46','B48','B49','BI14','BI19','BI35','D02','D09','D11','D17','D18','D22','D23','D26','D27','D39','D42','D47','D52','D55','D65','D77','D78','D79','D82','DC02','DC03','DD11','DI05','DI15','DI31','DI34','DI35','DI41','DI42','DI45','DI49','F09','F12','F16','F17','F33','F41','F44','F56','J03','J08','J11','J12','J15','J16','M01','M06','M07','M11','M16','M17','M21','M22','N09','N101','N103','N107','N11','N116','N120','N126','N127','N128','N129','N131','N141','N147','N148','N150','N154','N160','N166','N17','N22','N26','N37','N39','N40','N47','N58','N65','N66','N85','N95','N98','NH01','NH10','NH12','NH14','NH15','NH17','NH27','NH29','S01','S05','S10','new-04','new-06','new-10','new-15','new-23'];
+  const GUEST={Art01:'A-VOID',Art08:'AKKRIN',Art15:'METALHEAD',Art16:'OOKASWAKA',Art17:'SKOOJAH'};
+  const CREDIT_MAIN='ACID CULT by ACID (@ACIDstronaut)';
+  const N_NORM=4, N_BOSS=3;
+
+  function slugCredit(id){
+    if(GUEST[id])return 'ACID CULT · '+id+' by '+GUEST[id];
+    return CREDIT_MAIN+' · '+id;
+  }
+  function plaqueText(id){
+    return GUEST[id]? (id+' · '+GUEST[id]) : 'ACID CULT';
+  }
+  function srcOf(id){return BASE+id+'.mp4?v='+ACID_V}
+  function clipKey(id){return 'acid:'+id}
+  function quiet(){return !!(typeof MUTE!=='undefined'&&MUTE)||document.body.classList.contains('attract')}
+
+  function wallBase(tile){
+    try{
+      const T=(typeof TEX!=='undefined'&&TEX[tile-1])||(typeof TEX!=='undefined'&&TEX[0]);
+      if(!T||typeof mk!=='function')return null;
+      const ts=T.ts||64, tmp=mk(ts,ts), tg=tmp.getContext('2d');
+      const img=tg.createImageData(ts,ts);
+      new Uint32Array(img.data.buffer).set(T.length>=ts*ts?(T.subarray?T.subarray(0,ts*ts):T):T);
+      tg.putImageData(img,0,0);
+      const c=mk(128,128),g=c.getContext('2d');
+      g.imageSmoothingEnabled=false;g.drawImage(tmp,0,0,128,128);
+      return g.getImageData(0,0,128,128);
+    }catch(e){return null}
+  }
+  function rawFrom(c){
+    const w=c.width,h=c.height,g=c.getContext('2d',{willReadFrequently:true});
+    const u=new Uint32Array(g.getImageData(0,0,w,h).data.buffer.slice(0));
+    for(let i=0;i<u.length;i++){const a=u[i]>>>24;u[i]=a<8?0:(u[i]|0xff000000)>>>0}
+    u.ts=w;u.tw=w;u.th=h;return u;
+  }
+  function staticFill(g,x,y,w,h,seed){
+    let r=((seed||1)*131+((typeof performance!=='undefined'?performance.now():0)|0))|1;
+    for(let yy=0;yy<h;yy+=2)for(let xx=0;xx<w;xx+=2){
+      r=r*16807%2147483647;const v=(r%160)+40;
+      g.fillStyle='rgb('+v+','+(v*0.9|0)+','+(v*1.05|0)+')';g.fillRect(x+xx,y+yy,2,2);
+    }
+    g.fillStyle='#000a';g.fillRect(x,y+h/2-7,w,14);
+    g.fillStyle='#7dff6a';g.font='bold 6px monospace';g.textAlign='center';g.textBaseline='middle';
+    g.fillText('ACID CULT',x+w/2,y+h/2);
+  }
+  function drawVid(g,site,x,y,w,h,playing){
+    g.fillStyle='#050508';g.fillRect(x,y,w,h);
+    const slot=TT.tv&&TT.tv.ensure?TT.tv.ensure(site.clip,site.src):null;
+    const el=slot&&slot.el;
+    if(playing&&el&&slot.ready&&el.videoWidth){
+      const k=Math.min(w/el.videoWidth,h/el.videoHeight);
+      const aw=Math.max(1,Math.round(el.videoWidth*k)), ah=Math.max(1,Math.round(el.videoHeight*k));
+      g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';
+      try{g.drawImage(el,x+((w-aw)>>1),y+((h-ah)>>1),aw,ah)}catch(e){}
+    }else{
+      staticFill(g,x,y,w,h,(site.slug||'').length*9+3);
+    }
+    g.fillStyle='rgba(0,0,0,.18)';
+    for(let yy=0;yy<h;yy+=2)g.fillRect(x,y+yy,w,1);
+  }
+
+  function bakeAcid(site,playing){
+    const c=site.cv||(site.cv=(typeof mk==='function'?mk(128,128):document.createElement('canvas')));
+    c.width=128;c.height=128;
+    const g=c.getContext('2d',{willReadFrequently:true});
+    if(site.base)g.putImageData(site.base,0,0);
+    else{g.fillStyle='#161018';g.fillRect(0,0,128,128)}
+    const aw=70,ah=100,x=64-aw/2|0,y=8;
+    // acid-green / magenta portrait frame
+    g.fillStyle='#00000088';g.fillRect(x-5,y-5,aw+10,ah+18);
+    g.fillStyle='#1a1020';g.fillRect(x-5,y-5,aw+10,ah+16);
+    g.fillStyle='#7dff6a';g.fillRect(x-4,y-4,aw+8,ah+14);
+    g.fillStyle='#ff00c8';g.fillRect(x-4,y-4,aw+8,2);
+    g.fillStyle='#0b0a0f';g.fillRect(x-1,y-1,aw+2,ah+2);
+    drawVid(g,site,x,y,aw,ah,playing);
+    // plaque under the frame
+    g.fillStyle='#1a1410';g.fillRect(x-4,y+ah+2,aw+8,12);
+    g.fillStyle='#e3b303';g.fillRect(x-4,y+ah+2,aw+8,1);
+    g.fillStyle='#7dff6a';g.font='bold 5px monospace';g.textAlign='center';g.textBaseline='middle';
+    const label=plaqueText(site.slug);
+    g.fillText(label.length>16?label.slice(0,16):label,64,y+ah+8);
+    const u=rawFrom(c);u.ts=128;u.tw=128;u.th=128;
+    site.tex=u;
+    if(site.spec){site.spec.Ts=[u];site.spec.ms=1e9;site.spec.loaded=!!playing;site.spec.credit=site.credit}
+    return u;
+  }
+
+  function pickClips(floor){
+    let sr=(typeof strHash==='function'?strHash('ACID'+(typeof runSeed!=='undefined'?runSeed:1)):((typeof runSeed!=='undefined'?runSeed:1)^0x9e3779b9))>>>0;
+    const R=()=>{sr=sr*16807%2147483647;return sr/2147483647};
+    const sh=a=>{const b=a.slice();for(let i=b.length-1;i>0;i--){const j=(R()*(i+1))|0;[b[i],b[j]]=[b[j],b[i]]}return b};
+    const q=sh(FILES);
+    const n=(typeof boss!=='undefined'&&boss)?N_BOSS:N_NORM;
+    const start=((((floor|0)-1)*N_NORM)%q.length+q.length)%q.length;
+    const out=[];
+    for(let i=0;i<n;i++)out.push(q[(start+i)%q.length]);
+    return out;
+  }
+
+  function wallCands(){
+    if(typeof map==='undefined'||typeof MW==='undefined')return[];
+    const w=MW,h=MH,reach=(typeof v07Reach==='function')?v07Reach():null;
+    const special=new Set();
+    if(typeof exitAt==='number'&&exitAt>=0)special.add(exitAt);
+    if(typeof cursedAt==='number'&&cursedAt>=0)special.add(cursedAt);
+    if(typeof insiderAt==='number'&&insiderAt>=0)special.add(insiderAt);
+    if(typeof secretSet!=='undefined'&&secretSet)for(const i of secretSet)special.add(i);
+    if(typeof WSPEC!=='undefined')for(const [c,S] of WSPEC){
+      if(S&&(S.video||S.art||S.exitDoor||S.broadcast||S.acid||S.screen))special.add(c);
+    }
+    const cand=[];
+    for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){
+      const c=y*w+x;if(!map[c]||special.has(c)||map[c]==8||map[c]==9||map[c]==10)continue;
+      for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){
+        const ox=x+dx,oy=y+dy;if(ox<0||oy<0||ox>=w||oy>=h)continue;
+        const o=oy*w+ox;if(map[o]||(reach&&!reach[o]))continue;
+        let run2=0,px=ox,py=oy;
+        while(px>=0&&py>=0&&px<w&&py<h&&!map[py*w+px]&&run2<12){run2++;px+=dx;py+=dy}
+        if(run2>=3)cand.push({c,o,sc:run2});
+      }
+    }
+    cand.sort((a,b)=>b.sc-a.sc);
+    return cand;
+  }
+
+  function dressAcid(){
+    if(quiet()||typeof run==='undefined'||!run||typeof TT==='undefined'||!TT.tv||!TT.tv.addSite)return;
+    // drop previous acid sites only (coty sites stay)
+    if(TT.tv._sites){
+      const keep=TT.tv._sites.filter(s=>!(s.kind==='acid'||(''+s.clip).indexOf('acid:')===0));
+      TT.tv._sites.length=0;for(const s of keep)TT.tv._sites.push(s);
+    }
+    const ids=pickClips(run.floor|0);
+    const cand=wallCands();
+    const picked=[];
+    for(const q of cand){
+      if(picked.length>=ids.length)break;
+      if(picked.some(p=>Math.hypot((p.c%MW)-(q.c%MW),(((p.c/MW)|0)-((q.c/MW)|0)))<6))continue;
+      if(typeof P!=='undefined'&&Math.hypot(q.c%MW-(P.x|0),((q.c/MW)|0)-(P.y|0))<2)continue;
+      picked.push(q);
+    }
+    picked.forEach((q,i)=>{
+      const id=ids[i], tile=(map[q.c])||1;
+      const S={Ts:[],ms:1e9,ph:0,face:q.o,screen:1,piece:-1,acid:1,media:'acid-'+id,
+        name:GUEST[id]?('ACID CULT · '+GUEST[id]):'ACID CULT', credit:slugCredit(id), loaded:false, lit:220};
+      WSPEC.set(q.c,S);
+      const site={
+        kind:'acid', clip:clipKey(id), slug:id, src:srcOf(id),
+        credit:slugCredit(id), cell:q.c, x:(q.c%MW)+.5, y:(((q.c/MW)|0)+.5),
+        spec:S, tile, base:wallBase(tile), bake:bakeAcid
+      };
+      TT.tv.addSite(site);
+      bakeAcid(site,false);
+    });
+  }
+
+  function creditsUI(){
+    if(document.getElementById('acidcred'))return;
+    const p=document.createElement('p');
+    p.id='acidcred';
+    p.style.cssText='color:#7dff6a;font-size:clamp(6px,1.4vw,9px);line-height:1.6;max-width:min(640px,92vw);margin:8px auto 0;text-align:center;text-shadow:1px 1px 0 #000';
+    p.innerHTML='WALL TILES: <b style="color:#e3b303">ACID CULT</b> by ACID (@ACIDstronaut)<br>GUEST 1/1s: A-VOID · AKKRIN · METALHEAD · OOKASWAKA · SKOOJAH';
+    p.style.cssText='color:#7dff6a;font-size:clamp(6px,1.3vw,9px);line-height:1.45;max-width:min(720px,94vw);margin:6px auto 4px;text-align:center;text-shadow:1px 1px 0 #000';
+    const modes=document.querySelector('#title .modes');
+    const load=document.getElementById('load');
+    const lo=document.querySelector('#title .lo');
+    if(load&&load.parentNode)load.parentNode.insertBefore(p, load);
+    else if(lo&&lo.parentNode)lo.parentNode.insertBefore(p, lo);
+    else if(modes&&modes.parentNode)modes.parentNode.insertBefore(p, modes.nextSibling);
+    else {
+      const host=document.getElementById('cotys')||document.getElementById('tstats')||document.getElementById('title');
+      if(host&&host.parentNode)host.parentNode.insertBefore(p, host.nextSibling);
+      else if(host)host.appendChild(p);
+    }
+    const gal=document.getElementById('gal');
+    if(gal&&!document.getElementById('galacid')){
+      const g=document.createElement('p');
+      g.id='galacid';
+      g.style.cssText='color:#7dff6a;font-size:clamp(6px,1.5vw,9px);text-align:center;margin:4px 12px 8px;line-height:1.6';
+      g.innerHTML='ACID CULT wall tiles by ACID (@ACIDstronaut)<br>Guest 1/1s: A-Void · Akkrin · Metalhead · Ookaswaka · Skoojah';
+      const h=gal.querySelector('h1');
+      if(h&&h.nextSibling)gal.insertBefore(g,h.nextSibling.nextSibling||h.nextSibling);
+      else gal.appendChild(g);
+    }
+  }
+
+  if(typeof buildFloor==='function'){
+    const _bf=buildFloor;
+    buildFloor=function(){
+      const r=_bf.apply(this,arguments);
+      try{dressAcid()}catch(e){console.error('v0208 acid dress',e)}
+      return r;
+    };
+  }
+  if(typeof use==='function'){
+    const _use=use;
+    use=function(){
+      try{
+        if(typeof ray==='function'&&typeof WSPEC!=='undefined'&&state==='play'){
+          const r=ray(P.x,P.y,Math.cos(P.a),Math.sin(P.a));
+          if(r&&r.d<=1.6&&WSPEC.has(r.i)){
+            const S=WSPEC.get(r.i);
+            if(S&&S.acid){msg(S.credit||CREDIT_MAIN);return}
+          }
+        }
+      }catch(e){}
+      return _use.apply(this,arguments);
+    };
+  }
+
+  creditsUI();
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',creditsUI);
+
+  if(typeof TT==='object'){
+    TT.gunVer=VER;
+    TT.liveVer=VER;
+    TT.wepClose=CLOSE;
+    TT.xh=false;
+    TT.acidVer=VER;
+    TT.acid={
+      ver:VER, v:ACID_V, files:FILES, guest:GUEST, credit:CREDIT_MAIN,
+      clipForFloor:pickClips, dress:dressAcid,
+      get sites(){return (TT.tv&&TT.tv.sites||[]).filter(s=>s.kind==='acid')}
     };
   }
 })();
