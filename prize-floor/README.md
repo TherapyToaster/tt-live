@@ -1,7 +1,18 @@
-# Toasty's Prize Floor: v0.5.2 (six wings, twenty-four machines, Butter Lane bowling, touch-ready)
+# Toasty's Prize Floor: v0.6.0 (six wings, twenty-nine machines, five pro pushers, wall TVs)
 
 Live copy: https://therapytoaster.github.io/tt-live/prize-floor/ (also on Toasty's ARTcade).
 Play uses in-game Tokens and Stubs only. There is no real money and no crypto.
+
+## v0.6.0: pro pushers and wall TVs
+Five new multi-mechanic coin pushers, each with its own physics world, rules placard and touch controls:
+- **Channel Cascade** (Signal wing): three off-beat tiers and a moving Tuner Cup that spins a 3-reel dial (showers, Static Fever, cards, bolts).
+- **Pit Lane Carousel** (Kart wing): a tilted spinning turntable with a pit pocket. Three flags open the side gates, and the trophy pays +15.
+- **Crumb Dungeon Drop** (Crumb wing): a pin board feeds a Treasure Slot that spins an 8-part wheel. Crumb figures pay +12.
+- **Toasty Tower Topple** (lobby): topple the coin tower and push the Crown Coin off for +12. The right-side lift (L / LIFT) restacks it.
+- **Breadlord's Rival Rush** (lobby): the Breadlord drops on the far side. Charge the claw (C / CLAW) and chain 10 quick wins for Rush Fever.
+
+Ten wall TVs play Coty's own looping clips (muted, in `tv/`). Only screens near you play, and Low quality plays just the nearest one. Add `?notv` to the URL to turn them off.
+Previous build: `v0.5.2/`.
 
 ## v0.5.2: mobile and touch controls
 - **Walk and look:** drag a thumb anywhere on the left half to walk. A floating joystick appears where you touch. Drag on the right half to look. None of this needs pointer lock.
