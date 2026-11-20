@@ -22430,6 +22430,11 @@ window.addEventListener("load", () => {
       ? G.photoMat("deck", { color: 0xe8d2ae, repeat: [3.5, 3.0], rough: 0.85, ns: 0.8, envI: 0.3, gain: 1.55 })
       : new T.MeshStandardMaterial({ map: deckTex, color: 0xffffff, roughness: 0.85 });
     const whitePanel = new T.MeshStandardMaterial({ color: 0xffffff, roughness: 0.45, emissive: 0xb4b0a8, emissiveIntensity: 0.75 });
+    /* Shop interior paint: warm off-white that does not fall to black in shadow. */
+    const shopPaint = new T.MeshStandardMaterial({
+      color: 0xf6f1e6, roughness: 0.68, metalness: 0,
+      emissive: 0x9a9488, emissiveIntensity: 0.28
+    });
 
     /* Footprint: garage faces +Z (the street). */
     const W = 13.2, D = 10.0;
@@ -22448,8 +22453,8 @@ window.addEventListener("load", () => {
     const doorL = doorX - doorW / 2, doorR = doorX + doorW / 2;
 
     /* Garage bay (right of the ground-floor French doors). */
-    const garL = cx - 0.15, garR = cx + 4.85, garZ = z1;
-    const garW = garR - garL, garH = 2.40;
+    const garL = cx - 0.15, garR = cx + 6.35, garZ = z1;
+    const garW = garR - garL, garH = 2.58;
     const truckX = (garL + garR) / 2;
     const truckZ = z1 - 1.7;
 
@@ -22487,14 +22492,14 @@ window.addEventListener("load", () => {
     g.add(box(W, soffitY, wallT, navy, cx, yG, z0));
     addCol(cols, x0, x1, 0, soffitY, z0 - 0.15, z0 + 0.2, "wall");
     /* Interior back of the garage (so the bay isn't a tunnel). */
-    g.add(box(garW + 0.4, soffitY, 0.12, whitePanel, (garL + garR) / 2, yG, z0 + 2.4));
+    g.add(box(garW + 0.4, soffitY, 0.12, shopPaint, (garL + garR) / 2, yG, z0 + 2.4));
     addCol(cols, garL - 0.2, garR + 0.2, 0, soffitY, z0 + 2.2, z0 + 2.6, "garage-back");
     /* Side walls so the bay is a room, not open to the yard under the stairs. */
     const garDepth = z1 - (z0 + 2.4);
     const garMidZ = ((z0 + 2.4) + z1) / 2;
-    g.add(box(0.12, soffitY, garDepth, whitePanel, garL, yG, garMidZ));
+    g.add(box(0.12, soffitY, garDepth, shopPaint, garL, yG, garMidZ));
     addCol(cols, garL - 0.12, garL + 0.12, 0, soffitY, z0 + 2.4, z1, "garage-west");
-    g.add(box(0.12, soffitY, garDepth, whitePanel, garR, yG, garMidZ));
+    g.add(box(0.12, soffitY, garDepth, shopPaint, garR, yG, garMidZ));
     addCol(cols, garR - 0.12, garR + 0.12, 0, soffitY, z0 + 2.4, z1, "garage-east");
     /* Concrete slab so the bay doesn't show a grass strip. */
     const concTex = (function () {
@@ -22512,12 +22517,33 @@ window.addEventListener("load", () => {
       tex.repeat.set(4, 6);
       return tex;
     })();
-    const concM = new T.MeshStandardMaterial({ map: concTex, color: 0xffffff, roughness: 0.92, metalness: 0 });
+    const concM = (G.photoMat && G.hasPhoto && G.hasPhoto("concrete"))
+      ? G.photoMat("concrete", { color: 0xffffff, repeat: [2.6, 3.2], rough: 0.86, ns: 0.7, envI: 0.18, gain: 3.8 })
+      : new T.MeshStandardMaterial({ map: concTex, color: 0xffffff, roughness: 0.92, metalness: 0 });
+    if (concM.emissive) {
+      concM.emissive.setHex(0x6e6a62);
+      concM.emissiveIntensity = 0.55;
+    }
     const slabZ0 = z0 + 2.35, slabZ1 = z1 + 0.25;
-    const slab = box(garW + 0.2, 0.07, slabZ1 - slabZ0, concM, (garL + garR) / 2, 0.04, (slabZ0 + slabZ1) / 2);
-    slab.receiveShadow = true;
-    g.add(slab);
+    /* Leave a hole for the service pit (stands keep the truck at grade). */
+    const pitW = 0.96, pitL = 3.35, pitX = truckX, pitZ = truckZ;
+    const slabX0 = garL - 0.1, slabX1 = garR + 0.1;
+    const pitX0 = pitX - pitW / 2, pitX1 = pitX + pitW / 2;
+    const pitZ0b = pitZ - pitL / 2, pitZ1b = pitZ + pitL / 2;
+    function addSlab(ax0, ax1, az0, az1) {
+      const w = ax1 - ax0, d = az1 - az0;
+      if (w < 0.05 || d < 0.05) return;
+      const s = box(w, 0.07, d, concM, (ax0 + ax1) / 2, 0.04, (az0 + az1) / 2);
+      s.receiveShadow = true;
+      g.add(s);
+    }
+    addSlab(slabX0, pitX0, slabZ0, slabZ1);
+    addSlab(pitX1, slabX1, slabZ0, slabZ1);
+    addSlab(pitX0, pitX1, slabZ0, pitZ0b);
+    addSlab(pitX0, pitX1, pitZ1b, slabZ1);
     addHeight(hs, garL, garR, slabZ0, slabZ1, 0.07, "garage-floor");
+    G.summerWorld = G.summerWorld || {};
+    G.summerWorld._garagePit = { x: pitX, z: pitZ, w: pitW, l: pitL };
 
     /* Front wall at grade: left of garage (with an opening for ground French doors),
        and a slim pier to the right of the garage. */
@@ -22618,8 +22644,8 @@ window.addEventListener("load", () => {
       fill2.position.set(cx - 3.2, soffitY - 0.2, z1 + 0.9);
       fill2.castShadow = false;
       g.add(fill2);
-      const fill3 = new T.PointLight(0xfff4e6, 0.42, 5.0, 1.5);
-      fill3.position.set((garL + garR) / 2, soffitY - 0.3, z1 + 0.6);
+      const fill3 = new T.PointLight(0xfff4e6, 0.5, 6.0, 1.5);
+      fill3.position.set(garL + 0.7, soffitY - 0.12, z1 - 0.9);
       fill3.castShadow = false;
       g.add(fill3);
     }
@@ -22868,22 +22894,9 @@ window.addEventListener("load", () => {
       doorX: doorX, doorW: doorW, doorH: doorH, wy: floorY + 1.6
     });
 
-    /* Tool bench along the back of the garage bay. */
-    const bx = truckX, bz = z0 + 2.9;
-    const bench = new T.Group();
-    bench.add(box(3.2, 0.1, 0.75, mats.woodDk, 0, 0.9, 0));
-    bench.add(box(3.2, 0.9, 0.08, mats.wood, 0, 0.45, -0.34));
-    bench.add(box(0.08, 0.9, 0.75, mats.wood, -1.56, 0.45, 0));
-    bench.add(box(0.08, 0.9, 0.75, mats.wood, 1.56, 0.45, 0));
-    bench.add(box(0.28, 0.16, 0.22, mats.metal, -1.1, 1.03, 0.1));
-    bench.add(cyl(0.03, 0.03, 0.45, 6, mats.metal, -0.6, 1.12, 0.05, 0, 0, 0.5));
-    bench.add(box(0.08, 0.28, 0.08, mats.metal, 0.4, 1.14, 0.05));
-    bench.add(box(0.08, 0.22, 0.08, mats.metal, 0.55, 1.11, 0.05));
-    bench.position.set(bx, 0, bz);
-    g.add(bench);
-    addCol(cols, bx - 1.7, bx + 1.7, 0, 1.15, bz - 0.45, bz + 0.45, "bench");
-    G.summerWorld.bench = { x: bx, y: 0.95, z: bz, mesh: bench };
-
+    /* The old back-wall bench, wood panel, and lamp are replaced by the shop
+       dresser (TV, workbench, LED strips). Keep a radio group so the existing
+       toggle hook works; dressSummerGarage moves it onto the TV shelf. */
     const radio = new T.Group();
     const radioM = new T.MeshStandardMaterial({ color: 0x2a2a28, roughness: 0.7 });
     const radioFace = new T.MeshStandardMaterial({ color: 0xd8c878, roughness: 0.55, emissive: 0x3a3010, emissiveIntensity: 0.15 });
@@ -22891,17 +22904,10 @@ window.addEventListener("load", () => {
     radio.add(box(0.36, 0.12, 0.02, radioFace, 0, 0.02, 0.12));
     radio.add(cyl(0.035, 0.035, 0.28, 8, mats.metal, 0.14, 0.26, 0));
     radio.add(cyl(0.02, 0.02, 0.08, 8, mats.metal, -0.12, 0.04, 0.13, Math.PI / 2, 0, 0));
-    radio.position.set(bx + 1.1, 1.07, bz + 0.1);
+    radio.position.set(truckX + 0.95, 1.18, z0 + 2.75);
     radio.userData.kind = "radio";
     g.add(radio);
     G.summerWorld.radio = { x: radio.position.x, y: radio.position.y, z: radio.position.z, mesh: radio, on: false };
-
-    g.add(box(2.4, 1.2, 0.04, new T.MeshStandardMaterial({ color: 0x8a5a32, roughness: 0.85 }), bx, 1.85, bz - 0.5));
-    const lamp = new T.MeshStandardMaterial({ color: 0xf2ead0, emissive: 0xfff2c8, emissiveIntensity: 1.4, roughness: 0.5 });
-    g.add(cyl(0.12, 0.16, 0.14, 10, lamp, bx - 1.4, 2.15, bz + 0.2));
-    const bulb = new T.PointLight(0xffe8c0, 1.1, 8, 1.6);
-    bulb.position.set(bx - 1.4, 2.1, bz + 0.4);
-    if (G.quality !== "low") g.add(bulb);
 
     /* Mailbox */
     const mail = new T.Group();
@@ -22929,6 +22935,7 @@ window.addEventListener("load", () => {
     };
     G.summerWorld.truckHome = { x: truckX, y: 0, z: truckZ, yaw: 0 };
     G.summerWorld.spawn = { x: truckX, y: 0, z: 12.4, yaw: Math.PI };
+    if (G.dressSummerGarage) G.dressSummerGarage(g, mats, cols, hs);
     return g;
   }
 
@@ -23838,6 +23845,11 @@ window.addEventListener("load", () => {
     if (!mesh) return;
     mesh.visible = true;
     mesh.scale.set(1, 1, 1);
+    const spawn = G.summerWorld && G.summerWorld.shopSpawns && G.summerWorld.shopSpawns[id];
+    if (spawn && Math.hypot((p.x || 0) - spawn.x, (p.z || 0) - spawn.z) < 0.9) {
+      const sc = spawn.s || 0.5;
+      mesh.scale.set(sc, sc, sc);
+    }
     const surface = (p.surface != null) ? p.surface : (p.y || 0);
     mesh.position.set(p.x, 0, p.z);
     mesh.rotation.set(0, p.ry || 0, 0);
@@ -23876,6 +23888,7 @@ window.addEventListener("load", () => {
       return;
     }
     mesh.visible = true;
+    mesh.scale.set(1, 1, 1);
     S.frame.add(mesh);
     if (sock.identity) {
       mesh.position.set(0, 0, 0);
@@ -24177,6 +24190,8 @@ window.addEventListener("load", () => {
     });
     /* Radio, door, truck enter */
     if (G.summerWorld.radio) consider("radio", "radio", G.summerWorld.radio.x, G.summerWorld.radio.y, G.summerWorld.radio.z, 0.55);
+    const shopFr = G.summerWorld.shop && G.summerWorld.shop.fridge;
+    if (shopFr) consider("shop-fridge", "shop-fridge", shopFr.x, shopFr.y, shopFr.z, 0.7);
     if (G.summerWorld.door) consider("door", "door", G.summerWorld.door.x, G.summerWorld.door.y, G.summerWorld.door.z, 0.7);
     const enter = enterPoint();
     consider("enter", "enter", enter.x, enter.y, enter.z, 0.9);
@@ -24290,7 +24305,12 @@ window.addEventListener("load", () => {
         const p = G.promptSummerLife(S.look);
         if (p) S.prompt = p;
       }
+      if (G.promptGarageShop) {
+        const gp = G.promptGarageShop(S.look);
+        if (gp) S.prompt = gp;
+      }
       if (G.interactSummerLife) G.interactSummerLife(S.look, interactPressed());
+      if (G.interactGarageShop) G.interactGarageShop(S.look, interactPressed());
       return;
     }
     const sprint = !!(G.input.down("drift"));
@@ -24335,6 +24355,7 @@ window.addEventListener("load", () => {
       const d = lookDir();
       const mesh = S.meshes[S.held];
       if (mesh.parent !== G.scene) G.scene.add(mesh);
+      mesh.scale.set(1, 1, 1);
       mesh.position.set(S.player.x + d.x * 0.9 + 0.25 * cy, S.player.y + EYE + d.y * 0.9 - 0.25, S.player.z + d.z * 0.9 - 0.25 * sy);
       mesh.rotation.set(0.15, S.player.yaw, 0);
     }
@@ -24459,10 +24480,13 @@ window.addEventListener("load", () => {
       } else {
         S.prompt = "Not ready: " + missingDrive().join(", ");
       }
-    } else if (G.promptSummerLife || G.interactSummerLife) {
+    } else if (G.promptSummerLife || G.interactSummerLife || G.promptGarageShop || G.interactGarageShop) {
       const lifePrompt = G.promptSummerLife ? G.promptSummerLife(hit) : "";
       if (lifePrompt) S.prompt = lifePrompt;
+      const shopPrompt = G.promptGarageShop ? G.promptGarageShop(hit) : "";
+      if (shopPrompt) S.prompt = shopPrompt;
       if (G.interactSummerLife) G.interactSummerLife(hit, interactPressed());
+      if (G.interactGarageShop) G.interactGarageShop(hit, interactPressed());
       S.alignT = 0;
     } else {
       S.alignT = 0;
@@ -25033,6 +25057,7 @@ window.addEventListener("load", () => {
     const cam = updateWalkCam();
     if (G.tickRealSky) G.tickRealSky(time || S.time);
     if (G.tickWater) G.tickWater(time || S.time);
+    if (G.tickGarageShop) G.tickGarageShop(time || S.time);
     if (G._skyRoot && cam) G._skyRoot.position.copy(cam.position);
     if (G.renderPost && G.renderer) G.renderPost(G.renderer, G.scene, cam);
     else if (G.renderer) G.renderer.render(G.scene, cam);
@@ -25928,6 +25953,66 @@ window.addEventListener("load", () => {
       S.player.yaw = Math.PI; S.player.pitch = -0.42;
       if (G.walkCam) { G.walkCam.near = 0.1; G.walkCam.far = 800; G.walkCam.updateProjectionMatrix(); }
       revealAround(2.4, 18.4, 600);
+    } else if (name === "garage" || name === "garage-bay" || name === "shop") {
+      G._hideHud = true;
+      S.checklistOpen = false;
+      if (typeof dismissHint === "function") dismissHint();
+      S.mode = "walk";
+      const home = G.summerWorld.truckHome || { x: 4.3, z: 1.7 };
+      S.player.x = home.x; S.player.y = 0; S.player.z = home.z + 4.4;
+      S.player.yaw = Math.PI; S.player.pitch = 0.04;
+      S.camOverride = { x: home.x, y: 1.9, z: home.z + 5.4, lx: home.x, ly: 1.25, lz: home.z - 4.4 };
+      if (G.walkCam) { G.walkCam.near = 0.1; G.walkCam.far = 400; G.walkCam.updateProjectionMatrix(); }
+      revealAround(home.x, home.z, 400);
+    } else if (name === "garage-pit" || name === "pit") {
+      G._hideHud = true;
+      S.checklistOpen = false;
+      if (typeof dismissHint === "function") dismissHint();
+      S.mode = "walk";
+      const home = G.summerWorld.truckHome || { x: 4.3, z: 1.7 };
+      const pit = G.summerWorld.shop && G.summerWorld.shop.pit;
+      S.player.x = home.x; S.player.y = pit ? pit.y : -1.1; S.player.z = home.z + 0.4;
+      S.player.yaw = Math.PI; S.player.pitch = 0.15;
+      S.camOverride = { x: home.x, y: pit ? pit.y + 0.42 : -0.25, z: home.z + 1.35, lx: home.x, ly: pit ? pit.y + 0.35 : -0.3, lz: home.z - 1.2 };
+      if (G.walkCam) { G.walkCam.near = 0.08; G.walkCam.far = 200; G.walkCam.updateProjectionMatrix(); }
+      revealAround(home.x, home.z, 300);
+    } else if (name === "garage-tv" || name === "shop-tv") {
+      G._hideHud = true;
+      S.checklistOpen = false;
+      if (typeof dismissHint === "function") dismissHint();
+      S.mode = "walk";
+      const home = G.summerWorld.truckHome || { x: 4.3, z: 1.7 };
+      const hz = (G.summerWorld.house && G.summerWorld.house.z0 != null) ? G.summerWorld.house.z0 + 2.58 : home.z - 3.4;
+      S.player.x = 2.2; S.player.y = 0; S.player.z = 0.2;
+      S.player.yaw = Math.PI + 0.45; S.player.pitch = 0.08;
+      S.camOverride = { x: 2.2, y: 1.48, z: 0.25, lx: home.x, ly: 1.68, lz: hz };
+      if (G.walkCam) { G.walkCam.near = 0.1; G.walkCam.far = 200; G.walkCam.updateProjectionMatrix(); }
+      revealAround(home.x, home.z, 300);
+    } else if (name === "garage-racks" || name === "shop-racks") {
+      G._hideHud = true;
+      S.checklistOpen = false;
+      if (typeof dismissHint === "function") dismissHint();
+      S.mode = "walk";
+      const house = G.summerWorld.house || {};
+      const home = G.summerWorld.truckHome || { x: 4.3, z: 1.7 };
+      const x = (house.openX0 != null) ? house.openX0 + 0.7 : home.x - 2.2;
+      S.player.x = 3.05; S.player.y = 0; S.player.z = 1.15;
+      S.player.yaw = -Math.PI / 2; S.player.pitch = -0.06;
+      S.camOverride = { x: 3.1, y: 1.28, z: 1.2, lx: x, ly: 1.02, lz: 1.05 };
+      if (G.walkCam) { G.walkCam.near = 0.1; G.walkCam.far = 200; G.walkCam.updateProjectionMatrix(); }
+      revealAround(home.x, home.z, 300);
+    } else if (name === "garage-couch" || name === "shop-couch") {
+      G._hideHud = true;
+      S.checklistOpen = false;
+      if (typeof dismissHint === "function") dismissHint();
+      S.mode = "walk";
+      const home = G.summerWorld.truckHome || { x: 4.3, z: 1.7 };
+      const hz = (G.summerWorld.house && G.summerWorld.house.z0 != null) ? G.summerWorld.house.z0 + 2.58 : home.z - 3.4;
+      S.player.x = 3.5; S.player.y = 0; S.player.z = -1.0;
+      S.player.yaw = Math.PI + 0.55; S.player.pitch = 0.1;
+      S.camOverride = { x: 3.55, y: 1.52, z: -0.85, lx: 2.4, ly: 1.15, lz: hz };
+      if (G.walkCam) { G.walkCam.near = 0.1; G.walkCam.far = 200; G.walkCam.updateProjectionMatrix(); }
+      revealAround(home.x, home.z, 300);
     } else if (name === "phone-life") {
       G._hideHud = false;
       S.hunger = 64;
@@ -30543,14 +30628,20 @@ window.addEventListener("load", () => {
     if (mat.normalMap && mat.normalScale) mat.normalScale.set(0.85, 0.85);
     mat.onBeforeCompile = function (shader) {
       shader.uniforms.sandMap = { value: sandMap };
+      shader.uniforms.pitMin = { value: new T.Vector2(0, 0) };
+      shader.uniforms.pitMax = { value: new T.Vector2(0, 0) };
+      shader.uniforms.pitOn = { value: 0 };
+      mat.userData.pitUniforms = shader.uniforms;
+      if (G.applyGaragePitToLawn) G.applyGaragePitToLawn(mat);
       shader.vertexShader = shader.vertexShader
         .replace("#include <common>", "#include <common>\nvarying float vSand;\nvarying vec3 vLawnW;")
         .replace("#include <color_vertex>", "#include <color_vertex>\nvSand = color.r;\nvLawnW = (modelMatrix * vec4(position, 1.0)).xyz;");
       shader.fragmentShader = shader.fragmentShader
-        .replace("#include <common>", "#include <common>\nuniform sampler2D sandMap;\nvarying float vSand;\nvarying vec3 vLawnW;")
+        .replace("#include <common>", "#include <common>\nuniform sampler2D sandMap;\nuniform vec2 pitMin;\nuniform vec2 pitMax;\nuniform float pitOn;\nvarying float vSand;\nvarying vec3 vLawnW;")
         .replace("#include <color_fragment>", "/* sand mix uses vSand, skip vertex tint */")
         .replace("#include <map_fragment>", [
           "#ifdef USE_MAP",
+          "  if (pitOn > 0.5 && vLawnW.x >= pitMin.x && vLawnW.x <= pitMax.x && vLawnW.z >= pitMin.y && vLawnW.z <= pitMax.y) discard;",
           "  vec4 sampledDiffuseColor = texture2D(map, vMapUv);",
           "  vec4 sandC = texture2D(sandMap, vMapUv * 1.15);",
           "  float sandAmt = clamp(vSand, 0.0, 1.0);",
@@ -30566,7 +30657,7 @@ window.addEventListener("load", () => {
           "#endif"
         ].join("\n"));
     };
-    mat.customProgramCacheKey = function () { return "lawn-sand-mix-v5-photo"; };
+    mat.customProgramCacheKey = function () { return "lawn-sand-mix-v6-pit"; };
     return mat;
   };
 
@@ -33425,5 +33516,836 @@ window.addEventListener("load", () => {
   G.ensureRoadClearance = function () {
     if (!(G.summerWorld && G.summerWorld.roadClear)) G.buildRoadClearance();
     return !!(G.summerWorld && G.summerWorld.roadClear);
+  };
+})(window.TK = window.TK || {});
+
+
+/* ==== 93-summer-garage.js ==== */
+/* Summer16: polish Toasty's garage shop — bright TV show, LED lights, metal racks, lounge props. */
+(function (G) {
+  function THREE() { return window.THREE; }
+  function box() { return G._mdl.box.apply(null, arguments); }
+  function cyl() { return G._mdl.cyl.apply(null, arguments); }
+
+  function canvasTex(c) {
+    const T = THREE();
+    const tx = new T.CanvasTexture(c);
+    tx.colorSpace = T.SRGBColorSpace;
+    tx.minFilter = T.LinearFilter;
+    tx.magFilter = T.LinearFilter;
+    tx.generateMipmaps = false;
+    tx.wrapS = T.ClampToEdgeWrapping;
+    tx.wrapT = T.ClampToEdgeWrapping;
+    tx.needsUpdate = true;
+    return tx;
+  }
+
+  function addSolid(cols, minx, maxx, miny, maxy, minz, maxz, tag) {
+    if (!cols) return;
+    cols.push({ minx: minx, maxx: maxx, miny: miny, maxy: maxy, minz: minz, maxz: maxz, tag: tag || "shop" });
+  }
+
+  G.applyGaragePitToLawn = function (mat) {
+    const pit = (G.summerWorld && (G.summerWorld.shop && G.summerWorld.shop.pit || G.summerWorld._garagePit));
+    const u = mat && mat.userData && mat.userData.pitUniforms;
+    if (!pit || !u || !u.pitOn) return;
+    const pad = 0.04;
+    u.pitMin.value.set(pit.x - pit.w / 2 - pad, pit.z - pit.l / 2 - pad);
+    u.pitMax.value.set(pit.x + pit.w / 2 + pad, pit.z + pit.l / 2 + pad);
+    u.pitOn.value = 1;
+  };
+
+  function applyPitToAllLawns() {
+    const root = (G.summerWorld && G.summerWorld.root) || G.scene;
+    if (!root) return;
+    root.traverse(function (o) {
+      const mats = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : [];
+      mats.forEach(function (m) { if (m && m.userData && m.userData.pitUniforms) G.applyGaragePitToLawn(m); });
+    });
+  }
+
+  function makeLabelTex(title, sub) {
+    const { c, ctx } = G.makeCanvas(768, 192);
+    ctx.fillStyle = "#fff8ec";
+    ctx.fillRect(0, 0, 768, 192);
+    ctx.fillStyle = "#e08a1a";
+    ctx.fillRect(0, 0, 22, 192);
+    ctx.fillStyle = "#2a2418";
+    ctx.fillRect(22, 0, 4, 192);
+    ctx.fillStyle = "#1c1810";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    let size = 64;
+    ctx.font = "800 " + size + "px system-ui,sans-serif";
+    while (size > 40 && ctx.measureText(title).width > 700) {
+      size -= 2;
+      ctx.font = "800 " + size + "px system-ui,sans-serif";
+    }
+    ctx.fillText(title, 44, sub ? 78 : 96);
+    if (sub) {
+      ctx.fillStyle = "#6a5e48";
+      ctx.font = "700 36px system-ui,sans-serif";
+      ctx.fillText(sub, 44, 138);
+    }
+    return canvasTex(c);
+  }
+
+  function makePosterTex(kind) {
+    const { c, ctx } = G.makeCanvas(512, 768);
+    function toast(x, y, s) {
+      ctx.fillStyle = "#b56a1e";
+      roundRect(ctx, x - 70 * s, y - 48 * s, 140 * s, 96 * s, 16 * s);
+      ctx.fill();
+      ctx.fillStyle = "#f0c060";
+      roundRect(ctx, x - 54 * s, y - 34 * s, 108 * s, 70 * s, 12 * s);
+      ctx.fill();
+      ctx.fillStyle = "#2a2010";
+      ctx.beginPath();
+      ctx.arc(x - 18 * s, y - 6 * s, 7 * s, 0, Math.PI * 2);
+      ctx.arc(x + 18 * s, y - 6 * s, 7 * s, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#2a2010";
+      ctx.lineWidth = 4 * s;
+      ctx.beginPath();
+      ctx.arc(x, y + 12 * s, 16 * s, 0.15 * Math.PI, 0.85 * Math.PI);
+      ctx.stroke();
+    }
+    if (kind === "tsn") {
+      ctx.fillStyle = "#f3b43a";
+      ctx.fillRect(0, 0, 512, 768);
+      ctx.fillStyle = "#1c1810";
+      ctx.fillRect(0, 0, 512, 36);
+      ctx.fillRect(0, 732, 512, 36);
+      toast(256, 280, 2.1);
+      ctx.fillStyle = "#1c1810";
+      ctx.textAlign = "center";
+      ctx.font = "900 86px system-ui,sans-serif";
+      ctx.fillText("TOAST SHOP", 256, 500);
+      ctx.font = "800 42px system-ui,sans-serif";
+      ctx.fillText("NETWORK", 256, 560);
+      ctx.font = "700 28px system-ui,sans-serif";
+      ctx.fillText("SATURDAY BUILD-ALONG", 256, 640);
+    } else if (kind === "pit") {
+      ctx.fillStyle = "#1e6a72";
+      ctx.fillRect(0, 0, 512, 768);
+      ctx.fillStyle = "#f4efe4";
+      ctx.fillRect(36, 36, 440, 696);
+      ctx.fillStyle = "#1e6a72";
+      ctx.fillRect(80, 220, 28, 360);
+      ctx.fillRect(80, 220, 200, 22);
+      for (let i = 0; i < 7; i++) {
+        ctx.fillRect(80, 250 + i * 48, 120, 10);
+      }
+      toast(340, 280, 1.3);
+      ctx.fillStyle = "#1c1810";
+      ctx.textAlign = "center";
+      ctx.font = "900 72px system-ui,sans-serif";
+      ctx.fillText("PIT CREW", 256, 140);
+      ctx.font = "700 36px system-ui,sans-serif";
+      ctx.fillText("CLIMB IN · BOLT ON", 256, 660);
+    } else {
+      ctx.fillStyle = "#f4e2b8";
+      ctx.fillRect(0, 0, 512, 768);
+      ctx.fillStyle = "#3a7a9a";
+      ctx.fillRect(0, 480, 512, 288);
+      ctx.fillStyle = "#e8c878";
+      ctx.fillRect(0, 470, 512, 28);
+      toast(256, 300, 1.8);
+      ctx.fillStyle = "#1c1810";
+      ctx.textAlign = "center";
+      ctx.font = "900 64px system-ui,sans-serif";
+      ctx.fillText("OPEN BAY 1", 256, 580);
+      ctx.font = "700 30px system-ui,sans-serif";
+      ctx.fillText("PARTS ON THE RACKS", 256, 640);
+      ctx.fillText("HOMEBUILT · ORIGINAL", 256, 690);
+    }
+    return canvasTex(c);
+  }
+
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+  }
+
+  function makeTvTex() {
+    const { c, ctx } = G.makeCanvas(1024, 576);
+    const tx = canvasTex(c);
+    return { c: c, ctx: ctx, tex: tx, w: 1024, h: 576 };
+  }
+
+  function drawToasty(ctx, x, y, s, t, pose) {
+    const bounce = Math.abs(Math.sin(t * 6.2)) * 10 * s;
+    const cy = y - bounce;
+    const arm = (pose === "wrench") ? -0.4 : Math.sin(t * 6.2) * 0.7;
+    const leg = Math.sin(t * 6.2) * 0.35;
+    /* legs */
+    ctx.strokeStyle = "#5a3a18";
+    ctx.lineWidth = 10 * s;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(x - 16 * s, cy + 48 * s);
+    ctx.lineTo(x - 16 * s + Math.sin(leg) * 16 * s, cy + 84 * s);
+    ctx.moveTo(x + 16 * s, cy + 48 * s);
+    ctx.lineTo(x + 16 * s - Math.sin(leg) * 16 * s, cy + 84 * s);
+    ctx.stroke();
+    /* arms */
+    ctx.beginPath();
+    ctx.moveTo(x - 58 * s, cy);
+    ctx.lineTo(x - 58 * s - 30 * s, cy + Math.sin(arm) * 36 * s);
+    ctx.moveTo(x + 58 * s, cy);
+    ctx.lineTo(x + 58 * s + 30 * s, cy - Math.sin(arm) * 36 * s);
+    ctx.stroke();
+    if (pose === "wrench") {
+      const wx = x + 58 * s + 30 * s, wy = cy - Math.sin(arm) * 36 * s;
+      ctx.fillStyle = "#c0c6cc";
+      ctx.fillRect(wx - 6 * s, wy - 28 * s, 12 * s, 40 * s);
+      ctx.fillRect(wx - 16 * s, wy - 36 * s, 32 * s, 12 * s);
+    }
+    /* toast body */
+    ctx.fillStyle = "#a85a18";
+    roundRect(ctx, x - 70 * s, cy - 58 * s, 140 * s, 108 * s, 18 * s);
+    ctx.fill();
+    ctx.fillStyle = "#f3c056";
+    roundRect(ctx, x - 54 * s, cy - 42 * s, 108 * s, 78 * s, 14 * s);
+    ctx.fill();
+    /* cheeks + face */
+    ctx.fillStyle = "#e88858";
+    ctx.beginPath();
+    ctx.arc(x - 28 * s, cy + 6 * s, 8 * s, 0, Math.PI * 2);
+    ctx.arc(x + 28 * s, cy + 6 * s, 8 * s, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#2a2010";
+    ctx.beginPath();
+    ctx.arc(x - 20 * s, cy - 8 * s, 8 * s, 0, Math.PI * 2);
+    ctx.arc(x + 20 * s, cy - 8 * s, 8 * s, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#fff";
+    ctx.beginPath();
+    ctx.arc(x - 17 * s, cy - 11 * s, 3 * s, 0, Math.PI * 2);
+    ctx.arc(x + 23 * s, cy - 11 * s, 3 * s, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#2a2010";
+    ctx.lineWidth = 5 * s;
+    ctx.beginPath();
+    ctx.arc(x, cy + 10 * s, 18 * s, 0.15 * Math.PI, 0.85 * Math.PI);
+    ctx.stroke();
+  }
+
+  function paintTv(tv, t) {
+    const ctx = tv.ctx, W = tv.w || 1024, H = tv.h || 576;
+    const cycle = 16;
+    const u = ((t % cycle) + cycle) % cycle;
+    /* Always start from a bright fill so a missed branch never leaves a black frame. */
+    ctx.fillStyle = "#5ad6ff";
+    ctx.fillRect(0, 0, W, H);
+
+    if (u >= 6 && u < 9) {
+      /* Color bars between segments */
+      const bars = ["#f4f4f4", "#f3e04a", "#4ae0e0", "#4ae04a", "#e04ae0", "#e04a4a", "#4a4ae0", "#222"];
+      const bw = W / bars.length;
+      for (let i = 0; i < bars.length; i++) {
+        ctx.fillStyle = bars[i];
+        ctx.fillRect(i * bw, 0, bw + 1, H - 90);
+      }
+      ctx.fillStyle = "#111";
+      ctx.fillRect(0, H - 90, W, 90);
+      ctx.fillStyle = "#fff45a";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.font = "900 52px system-ui,sans-serif";
+      ctx.fillText("WE'LL BE RIGHT BACK  ·  TSN", W / 2, H - 45);
+    } else {
+      const build = u >= 9;
+      if (build) {
+        const g = ctx.createLinearGradient(0, 0, 0, H);
+        g.addColorStop(0, "#7ed8ff");
+        g.addColorStop(1, "#ffe89a");
+        ctx.fillStyle = g;
+      } else {
+        const g = ctx.createLinearGradient(0, 0, W, H);
+        g.addColorStop(0, "#ffe566");
+        g.addColorStop(0.55, "#7ae0ff");
+        g.addColorStop(1, "#ffb45a");
+        ctx.fillStyle = g;
+      }
+      ctx.fillRect(0, 0, W, H);
+
+      /* Header */
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, W, 78);
+      ctx.fillStyle = "#e08a1a";
+      ctx.fillRect(0, 78, W, 8);
+      ctx.fillStyle = "#1c1810";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.font = "900 48px system-ui,sans-serif";
+      ctx.fillText("TOAST SHOP NETWORK", 28, 42);
+      ctx.textAlign = "right";
+      ctx.font = "800 28px system-ui,sans-serif";
+      ctx.fillStyle = "#e08a1a";
+      ctx.fillText(build ? "SATURDAY BUILD-ALONG" : "LIVE IN THE BAY", W - 28, 42);
+
+      drawToasty(ctx, build ? 280 : 512, 300, 1.85, t, build ? "wrench" : "wave");
+
+      if (build) {
+        ctx.fillStyle = "rgba(255,248,236,0.92)";
+        roundRect(ctx, 560, 120, 430, 320, 18);
+        ctx.fill();
+        ctx.fillStyle = "#1c1810";
+        ctx.textAlign = "left";
+        ctx.font = "800 32px system-ui,sans-serif";
+        ctx.fillText("TODAY'S BUILD", 590, 165);
+        const lines = ["Toast Arms  ·  on the rack", "Juice Pack  ·  charged", "Crust Cab  ·  ready", "Hold E to install"];
+        ctx.font = "700 26px system-ui,sans-serif";
+        lines.forEach(function (ln, i) {
+          ctx.fillStyle = i === (Math.floor(t) % lines.length) ? "#e08a1a" : "#2a2418";
+          ctx.fillText("•  " + ln, 590, 220 + i * 48);
+        });
+      }
+    }
+
+    /* Scrolling ticker — always on, high contrast */
+    ctx.fillStyle = "#1c1810";
+    ctx.fillRect(0, H - 64, W, 64);
+    ctx.fillStyle = "#fff45a";
+    ctx.fillRect(0, H - 64, W, 6);
+    const msg = "   TOASTY'S BAY 1  •  PARTS ON THE RACKS  •  CLIMB THE PIT  •  HOLD E TO INSTALL  •  TOAST SHOP NETWORK  •  ORIGINAL BUILD-ALONG  •  GRAB A TOAST POP  •  ";
+    const scroll = ((t * 140) % 2200);
+    ctx.fillStyle = "#fffef4";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.font = "800 36px system-ui,sans-serif";
+    ctx.fillText(msg + msg, 40 - scroll, H - 28);
+    tv.tex.needsUpdate = true;
+  }
+
+  function labelPlate(tex, w, h, x, y, z, ry) {
+    const T = THREE();
+    /* Same unlit/emissive path as the posters — MeshBasic was reading as a
+       solid black card under the shop's ACES pass. */
+    const mat = new T.MeshStandardMaterial({
+      color: 0xffffff, map: tex, emissiveMap: tex, emissive: 0xffffff,
+      emissiveIntensity: 1.05, roughness: 1, metalness: 0, toneMapped: false,
+      side: T.DoubleSide
+    });
+    const m = new T.Mesh(new T.PlaneGeometry(w, h), mat);
+    m.position.set(x, y, z);
+    m.rotation.y = ry || 0;
+    m.userData.noOutline = true;
+    m.renderOrder = 4;
+    return m;
+  }
+
+  function posterPlate(tex, w, h, x, y, z, ry) {
+    const T = THREE();
+    const mat = new T.MeshStandardMaterial({
+      map: tex, emissiveMap: tex, emissive: 0xffffff, emissiveIntensity: 0.35,
+      roughness: 0.85, metalness: 0, toneMapped: false
+    });
+    const m = new T.Mesh(new T.PlaneGeometry(w, h), mat);
+    m.position.set(x, y, z);
+    m.rotation.y = ry || 0;
+    m.userData.noOutline = true;
+    return m;
+  }
+
+  function tickHighlight(shop, time) {
+    const T = THREE();
+    const S = G.summer;
+    const look = S && S.look;
+    const hl = shop && shop.highlight;
+    if (!hl) return;
+    if (look && look.kind === "part" && look.id) {
+      hl.visible = true;
+      hl.position.set(look.x, look.y + 0.42, look.z);
+      const cam = G.walkCam;
+      if (cam) hl.lookAt(cam.position);
+      if (hl.userData.id !== look.id) {
+        hl.userData.id = look.id;
+        const def = G.summerPartById && G.summerPartById(look.id);
+        const name = (def && def.name) || look.id;
+        const group = (def && def.group) || "Part";
+        const tex = makeLabelTex(name, group);
+        if (hl.userData.mat) {
+          hl.userData.mat.map = tex;
+          hl.userData.mat.emissiveMap = tex;
+          hl.userData.mat.needsUpdate = true;
+        }
+      }
+      const pulse = 0.85 + Math.sin((time || 0) * 6) * 0.15;
+      if (hl.userData.ring) hl.userData.ring.material.opacity = pulse;
+    } else {
+      hl.visible = false;
+    }
+  }
+
+  G.tickGarageShop = function (time) {
+    const shop = G.summerWorld && G.summerWorld.shop;
+    if (shop && shop.tv) paintTv(shop.tv, time || 0);
+    tickHighlight(shop, time);
+    /* The ocean follow-patch sits at y = -0.85 and would swallow the pit. */
+    const patch = G.summerWorld && G.summerWorld.wavePatch;
+    const cam = G.walkCam;
+    if (patch && cam && cam.position.y < 0.15) {
+      patch.visible = false;
+    } else if (patch && G.summerWorld && G.summerWorld.wavePatchY != null) {
+      patch.visible = true;
+    }
+  };
+
+  G.dressSummerGarage = function (root, mats, cols, hs) {
+    const T = THREE();
+    const house = G.summerWorld && G.summerWorld.house;
+    if (!house || !root) return;
+    const garL = house.openX0, garR = house.openX1;
+    const truckX = house.truckX, truckZ = house.truckZ;
+    const z1 = house.z1, z0 = house.z0;
+    const soffitY = house.soffitY || 2.62;
+    const shop = new T.Group();
+    shop.name = "GarageShop";
+    root.add(shop);
+
+    /* ---------- Service pit (between the wheels, under the frame) ---------- */
+    const reserved = G.summerWorld._garagePit || {};
+    const pitW = reserved.w || 0.96, pitL = reserved.l || 3.35, pitD = 0.72;
+    const pitX = reserved.x != null ? reserved.x : truckX;
+    const pitZ = reserved.z != null ? reserved.z : truckZ;
+    const pitY0 = -pitD;
+    const conc = (G.photoMat && G.hasPhoto && G.hasPhoto("concrete"))
+      ? G.photoMat("concrete", { color: 0xffffff, repeat: [1.2, 1.8], rough: 0.88, ns: 0.7, envI: 0.16, gain: 3.6 })
+      : (mats.concrete || new T.MeshStandardMaterial({ color: 0xc8c2b6, roughness: 0.92 }));
+    if (conc.emissive) { conc.emissive.setHex(0x7a7468); conc.emissiveIntensity = 0.6; }
+    const concDk = new T.MeshStandardMaterial({
+      color: 0xc4bcae, roughness: 0.9, emissive: 0x4a463e, emissiveIntensity: 0.28
+    });
+    const metal = mats.metal || new T.MeshStandardMaterial({ color: 0x8a9096, roughness: 0.4, metalness: 0.65 });
+    const metalLite = new T.MeshStandardMaterial({ color: 0xc8ced4, roughness: 0.32, metalness: 0.72 });
+    const warn = new T.MeshStandardMaterial({ color: 0xf0b24a, roughness: 0.5, emissive: 0x8a5a10, emissiveIntensity: 0.45 });
+
+    shop.add(box(pitW, 0.08, pitL, conc, pitX, pitY0 + 0.04, pitZ));
+    const wallH = pitD - 0.04;
+    shop.add(box(0.08, wallH, pitL, concDk, pitX - pitW / 2 + 0.04, pitY0 + wallH / 2, pitZ));
+    shop.add(box(0.08, wallH, pitL, concDk, pitX + pitW / 2 - 0.04, pitY0 + wallH / 2, pitZ));
+    shop.add(box(pitW, wallH, 0.08, concDk, pitX, pitY0 + wallH / 2, pitZ - pitL / 2 + 0.04));
+    shop.add(box(pitW, wallH, 0.08, concDk, pitX, pitY0 + wallH / 2, pitZ + pitL / 2 - 0.04));
+    /* Steel lip + warning stripe around the opening */
+    const lip = 0.08, lipY = 0.02;
+    shop.add(box(pitW + 0.2, lip, 0.08, metal, pitX, lipY, pitZ - pitL / 2 - 0.02));
+    shop.add(box(pitW + 0.2, lip, 0.08, metal, pitX, lipY, pitZ + pitL / 2 + 0.02));
+    shop.add(box(0.08, lip, pitL + 0.2, metal, pitX - pitW / 2 - 0.02, lipY, pitZ));
+    shop.add(box(0.08, lip, pitL + 0.2, metal, pitX + pitW / 2 + 0.02, lipY, pitZ));
+    shop.add(box(pitW + 0.16, 0.02, 0.06, warn, pitX, lipY + 0.05, pitZ - pitL / 2 - 0.02));
+    shop.add(box(pitW + 0.16, 0.02, 0.06, warn, pitX, lipY + 0.05, pitZ + pitL / 2 + 0.02));
+    shop.add(box(0.06, 0.02, pitL + 0.16, warn, pitX - pitW / 2 - 0.02, lipY + 0.05, pitZ));
+    shop.add(box(0.06, 0.02, pitL + 0.16, warn, pitX + pitW / 2 + 0.02, lipY + 0.05, pitZ));
+
+    /* Ladder on the street-side end of the pit (player climbs here). */
+    const ladX = pitX + pitW / 2 - 0.16;
+    const ladZ = pitZ + pitL / 2 - 0.28;
+    const lad = new T.Group();
+    const rungs = 5;
+    for (let i = 0; i < rungs; i++) {
+      const y = pitY0 + 0.14 + i * ((-pitY0 - 0.08) / (rungs - 1));
+      lad.add(box(0.28, 0.03, 0.04, metalLite, 0, y, 0));
+    }
+    lad.add(box(0.03, -pitY0, 0.03, metal, -0.14, pitY0 / 2, 0));
+    lad.add(box(0.03, -pitY0, 0.03, metal, 0.14, pitY0 / 2, 0));
+    lad.position.set(ladX, 0, ladZ);
+    shop.add(lad);
+
+    /* Bright pit work lights */
+    const pitLit = new T.MeshStandardMaterial({
+      color: 0xffffff, emissive: 0xfff4cc, emissiveIntensity: 2.4, roughness: 0.35, toneMapped: false
+    });
+    shop.add(box(0.18, 0.05, 0.1, pitLit, pitX - pitW / 2 + 0.12, -0.08, pitZ - 0.7));
+    shop.add(box(0.18, 0.05, 0.1, pitLit, pitX + pitW / 2 - 0.12, -0.08, pitZ + 0.7));
+    if (T.PointLight) {
+      const pL1 = new T.PointLight(0xfff1c0, 1.35, 4.2, 1.4);
+      pL1.position.set(pitX - 0.15, -0.08, pitZ - 0.55);
+      shop.add(pL1);
+      const pL2 = new T.PointLight(0xfff1c0, 1.35, 4.2, 1.4);
+      pL2.position.set(pitX + 0.15, -0.08, pitZ + 0.55);
+      shop.add(pL2);
+      const pL3 = new T.PointLight(0xfff6e0, 0.7, 3.2, 1.5);
+      pL3.position.set(pitX, pitY0 + 0.35, pitZ);
+      shop.add(pL3);
+    }
+
+    /* ---------- Ceiling LED strips ---------- */
+    const ledMat = new T.MeshStandardMaterial({
+      color: 0xffffff, emissive: 0xf5f7ff, emissiveIntensity: 1.9, roughness: 0.25, toneMapped: false
+    });
+    const ledHousing = new T.MeshStandardMaterial({ color: 0xd8dde2, roughness: 0.4, metalness: 0.5 });
+    const stripZ0 = z0 + 2.7, stripZ1 = z1 - 0.35;
+    const stripLen = stripZ1 - stripZ0;
+    const stripMid = (stripZ0 + stripZ1) / 2;
+    const stripXs = [garL + 0.7, (garL + garR) / 2, garR - 0.7];
+    stripXs.forEach(function (sx) {
+      shop.add(box(0.1, 0.03, stripLen, ledHousing, sx, soffitY - 0.06, stripMid));
+      shop.add(box(0.07, 0.02, stripLen - 0.08, ledMat, sx, soffitY - 0.085, stripMid));
+    });
+    if (T.PointLight) {
+      const hi = (G.quality === "low") ? 0.75 : 1.05;
+      const shopL = [
+        [(garL + garR) / 2, soffitY - 0.08, -0.6, 1.05],
+        [(garL + garR) / 2, soffitY - 0.08, -2.4, 1.05],
+        [garL + 0.9, soffitY - 0.12, 0.2, 0.95],
+        [garR - 0.9, soffitY - 0.12, 0.2, 0.95]
+      ];
+      shopL.forEach(function (L, i) {
+        if (G.quality === "low" && i > 1) return;
+        const pl = new T.PointLight(0xf4f6ff, L[3] * hi, 8.2, 1.2);
+        pl.position.set(L[0], L[1], L[2]);
+        shop.add(pl);
+      });
+    }
+
+    /* ---------- Toast Shop Network TV (bright unlit/emissive canvas) ---------- */
+    const tvX = truckX;
+    const tvY = 1.68;
+    const tvZ = z0 + 2.58;
+    const tvW = 2.08, tvH = 1.18;
+    const tv = makeTvTex();
+    paintTv(tv, 2.6);
+    const tvGroup = new T.Group();
+    const bezel = new T.MeshStandardMaterial({ color: 0x1a1a1c, roughness: 0.45, metalness: 0.3 });
+    tvGroup.add(box(tvW + 0.1, tvH + 0.1, 0.06, bezel, 0, 0, -0.02));
+    const screenMat = new T.MeshStandardMaterial({
+      map: tv.tex,
+      emissiveMap: tv.tex,
+      emissive: 0xffffff,
+      emissiveIntensity: 1.65,
+      roughness: 1,
+      metalness: 0,
+      toneMapped: false
+    });
+    const screen = new T.Mesh(new T.PlaneGeometry(tvW, tvH), screenMat);
+    screen.position.set(0, 0, 0.03);
+    screen.renderOrder = 2;
+    screen.userData.noOutline = true;
+    tvGroup.add(screen);
+    /* Bias light behind the set so the wall picks up a glow. */
+    const bias = new T.MeshBasicMaterial({ color: 0x9ad8ff, toneMapped: false, transparent: true, opacity: 0.85 });
+    const biasM = new T.Mesh(new T.PlaneGeometry(tvW + 0.2, tvH + 0.16), bias);
+    biasM.position.set(0, 0, -0.06);
+    tvGroup.add(biasM);
+    tvGroup.position.set(tvX, tvY, tvZ);
+    shop.add(tvGroup);
+    /* Slim shelf under the TV for the radio. */
+    shop.add(box(1.7, 0.05, 0.26, metalLite, tvX, 1.02, tvZ + 0.14));
+    shop.add(box(0.06, 1.02, 0.06, metalLite, tvX - 0.78, 0.51, tvZ + 0.1));
+    shop.add(box(0.06, 1.02, 0.06, metalLite, tvX + 0.78, 0.51, tvZ + 0.1));
+
+    /* Radio is placed on the workbench further down, not in front of the screen. */
+
+    /* ---------- Lighter metal racks along both side walls ---------- */
+    /* Leave the back-west lounge and back-east workbench clear of shelves. */
+    const parts = (G.SUMMER_PARTS || []).slice();
+    const groups = ["Suspension", "Chassis", "Power", "Wheels", "Body", "Cabin"];
+    const byGroup = {};
+    groups.forEach(function (gn) { byGroup[gn] = []; });
+    parts.forEach(function (p) {
+      (byGroup[p.group] || (byGroup[p.group] = [])).push(p);
+    });
+    const westX = garL + 0.18;
+    const eastX = garR - 0.18;
+    const zRack0 = -0.55;
+    const zRack1 = z1 - 0.55;
+    const slots = [];
+
+    function rackWall(x, face, list, z0s, z1s) {
+      const zc = (z0s + z1s) / 2, len = z1s - z0s;
+      const yShelves = [0.50, 1.05, 1.58];
+      /* Light aluminum uprights + back panel */
+      shop.add(box(0.03, 2.15, len + 0.08, metalLite, x, 1.15, zc));
+      shop.add(box(0.03, 2.15, 0.05, metalLite, x + face * 0.52, 1.15, z0s));
+      shop.add(box(0.03, 2.15, 0.05, metalLite, x + face * 0.52, 1.15, z1s));
+      yShelves.forEach(function (ys) {
+        shop.add(box(0.04, 0.015, len, ledMat, x + face * 0.28, ys + 0.04, zc));
+      });
+      const n = list.length;
+      const nCol = Math.max(1, Math.ceil(n / 3));
+      for (let i = 0; i < n; i++) {
+        const col = Math.floor(i / 3);
+        const row = i % 3;
+        const u = nCol === 1 ? 0.5 : col / (nCol - 1);
+        const z = z0s + 0.42 + u * (len - 0.84);
+        const yShelf = yShelves[row];
+        const big = /wheel|cab|bed|hood|tonneau|bumper|motor|juice/.test(list[i].id);
+        shop.add(box(0.58, 0.03, 0.70, metalLite, x + face * 0.34, yShelf, z));
+        shop.add(box(0.03, yShelf - 0.02, 0.03, metal, x + face * 0.12, yShelf / 2, z - 0.28));
+        shop.add(box(0.03, yShelf - 0.02, 0.03, metal, x + face * 0.12, yShelf / 2, z + 0.28));
+        /* Small nameplate, flat on the shelf's front edge, under the part. */
+        const labelY = yShelf - 0.055;
+        const labelX = x + face * 0.635;
+        const lry = face > 0 ? Math.PI / 2 : -Math.PI / 2;
+        const plate = labelPlate(makeLabelTex(list[i].name, list[i].group), 0.28, 0.09, labelX, labelY, z, lry);
+        plate.renderOrder = 4;
+        shop.add(plate);
+        /* Keep the long axis along the wall so beds/arms do not spear into the aisle. */
+        const sc = /cab|bed|hood|tonneau|bumper/.test(list[i].id) ? 0.32
+          : /wheel|motor|arm/.test(list[i].id) ? 0.38
+          : 0.44;
+        slots.push({
+          id: list[i].id,
+          x: x + face * 0.38,
+          y: yShelf + 0.02,
+          z: z,
+          ry: 0,
+          s: sc
+        });
+      }
+    }
+    const westList = []
+      .concat(byGroup.Suspension || [])
+      .concat(byGroup.Chassis || [])
+      .concat(byGroup.Power || [])
+      .concat(byGroup.Wheels || []);
+    const eastList = []
+      .concat(byGroup.Body || [])
+      .concat(byGroup.Cabin || []);
+    rackWall(westX, 1, westList, zRack0, zRack1);
+    rackWall(eastX, -1, eastList, zRack0, zRack1);
+
+    shop.add(labelPlate(makeLabelTex("SUSPENSION · POWER · WHEELS", "West rack"), 1.9, 0.22,
+      westX + 0.08, 2.24, (zRack0 + zRack1) / 2, Math.PI / 2));
+    shop.add(labelPlate(makeLabelTex("BODY · CABIN", "East rack"), 1.35, 0.22,
+      eastX - 0.08, 2.24, (zRack0 + zRack1) / 2, -Math.PI / 2));
+
+    /* Look-at highlight / tooltip for loose parts */
+    const hl = new T.Group();
+    hl.visible = false;
+    const hlMat = new T.MeshStandardMaterial({
+      color: 0xffffff, map: makeLabelTex("Part", "Rack"),
+      emissiveMap: null, emissive: 0xffffff, emissiveIntensity: 1.05,
+      roughness: 1, metalness: 0, toneMapped: false, side: T.DoubleSide
+    });
+    hlMat.emissiveMap = hlMat.map;
+    const hlCard = new T.Mesh(new T.PlaneGeometry(0.95, 0.26), hlMat);
+    hlCard.position.set(0, 0.12, 0);
+    hl.add(hlCard);
+    const ringMat = new T.MeshBasicMaterial({ color: 0xffd24a, transparent: true, opacity: 0.9, toneMapped: false, side: T.DoubleSide });
+    const ring = new T.Mesh(new T.RingGeometry(0.22, 0.28, 24), ringMat);
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.y = -0.28;
+    hl.add(ring);
+    hl.userData.mat = hlMat;
+    hl.userData.ring = ring;
+    shop.add(hl);
+
+    /* ---------- Lounge: couch facing the TV, mini fridge ---------- */
+    const couchX = 2.15, couchZ = -2.55;
+    const fabric = new T.MeshStandardMaterial({ color: 0x3a5a7a, roughness: 0.78 });
+    const fabricLt = new T.MeshStandardMaterial({ color: 0x4a6e8e, roughness: 0.75 });
+    const woodLt = mats.wood || new T.MeshStandardMaterial({ color: 0xc8a878, roughness: 0.8 });
+    const couch = new T.Group();
+    couch.add(box(1.7, 0.38, 0.78, fabric, 0, 0.28, 0));
+    couch.add(box(1.7, 0.46, 0.18, fabricLt, 0, 0.68, -0.30));
+    couch.add(box(0.16, 0.5, 0.78, fabric, -0.86, 0.55, 0));
+    couch.add(box(0.16, 0.5, 0.78, fabric, 0.86, 0.55, 0));
+    couch.add(box(0.7, 0.08, 0.28, fabricLt, -0.38, 0.50, 0.08));
+    couch.add(box(0.7, 0.08, 0.28, fabricLt, 0.38, 0.50, 0.08));
+    couch.add(box(1.74, 0.06, 0.82, woodLt, 0, 0.06, 0));
+    couch.position.set(couchX, 0, couchZ);
+    /* Seat faces the TV on the back wall (-Z). Local backrest is at -Z, so
+       a 180° yaw points the cushions at the screen. */
+    couch.rotation.y = Math.PI;
+    shop.add(couch);
+    addSolid(cols, couchX - 0.95, couchX + 0.95, 0, 0.9, couchZ - 0.5, couchZ + 0.5, "shop-couch");
+
+    const fridgeX = 1.52, fridgeZ = -3.45;
+    const fridgeCol = new T.MeshStandardMaterial({ color: 0xdce4ea, roughness: 0.35, metalness: 0.25 });
+    const fridgeDk = new T.MeshStandardMaterial({ color: 0x9aa6ae, roughness: 0.4, metalness: 0.3 });
+    const fridge = new T.Group();
+    fridge.add(box(0.52, 0.92, 0.5, fridgeCol, 0, 0.46, 0));
+    fridge.add(box(0.48, 0.02, 0.02, fridgeDk, 0, 0.72, 0.26));
+    fridge.add(box(0.04, 0.28, 0.04, fridgeDk, 0.22, 0.55, 0.26));
+    const fridgeLite = new T.MeshStandardMaterial({ color: 0x9ad8ff, emissive: 0x3a80a0, emissiveIntensity: 0.4, roughness: 0.4 });
+    fridge.add(box(0.06, 0.04, 0.02, fridgeLite, -0.16, 0.86, 0.26));
+    fridge.position.set(fridgeX, 0, fridgeZ);
+    shop.add(fridge);
+    addSolid(cols, fridgeX - 0.3, fridgeX + 0.3, 0, 1.0, fridgeZ - 0.3, fridgeZ + 0.3, "shop-fridge");
+
+    /* ---------- Workbench, pegboard, rolling toolbox, compressor ---------- */
+    const benchX = 6.55, benchZ = -3.15;
+    const bench = new T.Group();
+    bench.add(box(1.55, 0.08, 0.7, woodLt, 0, 0.92, 0));
+    bench.add(box(1.55, 0.88, 0.08, woodLt, 0, 0.44, -0.31));
+    bench.add(box(0.07, 0.88, 0.7, woodLt, -0.74, 0.44, 0));
+    bench.add(box(0.07, 0.88, 0.7, woodLt, 0.74, 0.44, 0));
+    /* Tools on the bench */
+    bench.add(box(0.08, 0.04, 0.36, metal, -0.4, 0.98, 0.05));
+    bench.add(box(0.16, 0.05, 0.16, metalLite, -0.4, 1.02, -0.12));
+    bench.add(cyl(0.015, 0.015, 0.32, 8, metal, 0.1, 1.02, 0.0, 0, 0, 0.4));
+    bench.add(box(0.22, 0.08, 0.12, metal, 0.45, 1.00, 0.08));
+    bench.position.set(benchX, 0, benchZ);
+    shop.add(bench);
+    addSolid(cols, benchX - 0.85, benchX + 0.85, 0, 1.1, benchZ - 0.42, benchZ + 0.42, "shop-bench");
+
+    /* Radio lives on the workbench, clear of the TV picture. */
+    if (G.summerWorld.radio && G.summerWorld.radio.mesh) {
+      const r = G.summerWorld.radio;
+      r.mesh.position.set(benchX - 0.48, 1.06, benchZ + 0.12);
+      r.mesh.rotation.y = -Math.PI / 2;
+      r.x = r.mesh.position.x;
+      r.y = r.mesh.position.y;
+      r.z = r.mesh.position.z;
+    }
+
+    const pegX = garR - 0.14, pegZ = -3.15, pegY = 1.7;
+    const pegBoard = new T.MeshStandardMaterial({ color: 0xc47a3a, roughness: 0.8 });
+    const peg = new T.Group();
+    peg.add(box(0.04, 0.95, 1.15, pegBoard, 0, 0, 0));
+    const pegPin = new T.MeshStandardMaterial({ color: 0xd8c8a0, roughness: 0.5, metalness: 0.3 });
+    for (let r = 0; r < 4; r++) {
+      for (let c = 0; c < 6; c++) {
+        peg.add(cyl(0.012, 0.012, 0.05, 6, pegPin, 0.04, -0.35 + r * 0.22, -0.46 + c * 0.18, 0, 0, Math.PI / 2));
+      }
+    }
+    /* Hanging tools */
+    peg.add(box(0.02, 0.28, 0.05, metal, 0.08, 0.15, -0.28));
+    peg.add(box(0.02, 0.22, 0.05, metal, 0.08, 0.12, 0.0));
+    peg.add(cyl(0.015, 0.015, 0.34, 8, metal, 0.08, -0.05, 0.28, 0, 0, 0.2));
+    peg.position.set(pegX, pegY, pegZ);
+    shop.add(peg);
+
+    const boxX = 6.35, boxZ = -1.85;
+    const red = new T.MeshStandardMaterial({ color: 0xc43a2a, roughness: 0.45, metalness: 0.2 });
+    const redDk = new T.MeshStandardMaterial({ color: 0x8a2418, roughness: 0.5 });
+    const toolbox = new T.Group();
+    toolbox.add(box(0.55, 0.72, 0.42, red, 0, 0.42, 0));
+    for (let i = 0; i < 4; i++) {
+      toolbox.add(box(0.52, 0.02, 0.4, redDk, 0, 0.22 + i * 0.16, 0.01));
+      toolbox.add(box(0.16, 0.02, 0.04, metalLite, 0, 0.25 + i * 0.16, 0.22));
+    }
+    toolbox.add(cyl(0.07, 0.07, 0.05, 10, metal, -0.2, 0.07, 0.16, Math.PI / 2, 0, 0));
+    toolbox.add(cyl(0.07, 0.07, 0.05, 10, metal, 0.2, 0.07, 0.16, Math.PI / 2, 0, 0));
+    toolbox.add(cyl(0.07, 0.07, 0.05, 10, metal, -0.2, 0.07, -0.16, Math.PI / 2, 0, 0));
+    toolbox.add(cyl(0.07, 0.07, 0.05, 10, metal, 0.2, 0.07, -0.16, Math.PI / 2, 0, 0));
+    toolbox.position.set(boxX, 0, boxZ);
+    shop.add(toolbox);
+    addSolid(cols, boxX - 0.32, boxX + 0.32, 0, 0.85, boxZ - 0.26, boxZ + 0.26, "shop-toolbox");
+
+    const compX = garR - 0.42, compZ = 2.45;
+    const tankM = new T.MeshStandardMaterial({ color: 0xd8a03a, roughness: 0.4, metalness: 0.45 });
+    const comp = new T.Group();
+    comp.add(cyl(0.16, 0.16, 0.7, 16, tankM, 0, 0.22, 0, 0, 0, Math.PI / 2));
+    comp.add(box(0.28, 0.22, 0.22, metal, 0.05, 0.52, 0));
+    comp.add(cyl(0.04, 0.04, 0.12, 8, metal, 0.05, 0.66, 0));
+    comp.add(box(0.5, 0.04, 0.28, metal, 0, 0.06, 0));
+    /* Hose coil */
+    const hose = new T.MeshStandardMaterial({ color: 0x2a4a8a, roughness: 0.7 });
+    comp.add(cyl(0.08, 0.08, 0.1, 12, hose, -0.22, 0.22, 0.12, 0, 0, Math.PI / 2));
+    comp.position.set(compX, 0, compZ);
+    shop.add(comp);
+    addSolid(cols, compX - 0.4, compX + 0.3, 0, 0.8, compZ - 0.22, compZ + 0.22, "shop-compressor");
+
+    /* Original posters on the back wall, flanking the TV (no real brands). */
+    const posters = [];
+    const p1 = posterPlate(makePosterTex("tsn"), 0.72, 1.05, tvX - 1.55, 1.7, tvZ + 0.02, 0);
+    const p2 = posterPlate(makePosterTex("pit"), 0.62, 0.95, tvX + 1.52, 1.65, tvZ + 0.02, 0);
+    const p3 = posterPlate(makePosterTex("bay"), 0.62, 0.95, westX + 0.06, 1.85, -2.55, Math.PI / 2);
+    shop.add(p1); shop.add(p2); shop.add(p3);
+    posters.push(p1, p2, p3);
+
+    const spawns = {};
+    slots.forEach(function (s) {
+      spawns[s.id] = { x: s.x, y: s.y, z: s.z, ry: s.ry, s: s.s };
+    });
+    G.summerWorld.shopSpawns = spawns;
+    G.summerWorld.shop = {
+      tv: tv, screen: screen, group: shop,
+      pit: { x: pitX, z: pitZ, w: pitW, l: pitL, y: pitY0 + 0.06, depth: pitD, ladX: ladX, ladZ: ladZ },
+      couch: { x: couchX, y: 0.4, z: couchZ, mesh: couch },
+      fridge: { x: fridgeX, y: 0.5, z: fridgeZ, mesh: fridge, stock: 6 },
+      fridgeStock: 6,
+      toolbox: { x: boxX, y: 0.4, z: boxZ, mesh: toolbox },
+      bench: { x: benchX, y: 0.95, z: benchZ, mesh: bench },
+      pegboard: { x: pegX, y: pegY, z: pegZ, mesh: peg },
+      posters: posters,
+      compressor: { x: compX, y: 0.3, z: compZ, mesh: comp },
+      radio: G.summerWorld.radio || null,
+      highlight: hl,
+      lights: true
+    };
+    applyPitToAllLawns();
+  };
+
+  /* Use rack poses when the shop has been dressed; keep the old scatter as fallback. */
+  const _prevSpawns = G.summerPartSpawns;
+  G.summerPartSpawns = function (home) {
+    if (G.summerWorld && G.summerWorld.shopSpawns) {
+      const src = G.summerWorld.shopSpawns;
+      const out = {};
+      Object.keys(src).forEach(function (id) {
+        const s = src[id];
+        out[id] = { x: s.x, y: s.y, z: s.z, ry: s.ry, s: s.s };
+      });
+      return out;
+    }
+    return _prevSpawns ? _prevSpawns(home) : {};
+  };
+
+  G.promptGarageShop = function (look) {
+    const shop = G.summerWorld && G.summerWorld.shop;
+    const S = G.summer;
+    if (!shop || !S || S.mode === "drive") return null;
+    const p = S.player;
+    if (look && look.kind === "shop-fridge" && shop.fridge) {
+      const n = shop.fridge.stock != null ? shop.fridge.stock : 0;
+      return n > 0 ? "E  Grab a Toast Pop  (" + n + " left)" : "Fridge is empty";
+    }
+    if (!shop.pit) return null;
+    if (S.held || (look && look.id && look.kind !== "shop-fridge")) return null;
+    const pit = shop.pit;
+    const dLad = Math.hypot((p.x) - pit.ladX, (p.z) - pit.ladZ);
+    const inPit = (p.y || 0) < -0.25;
+    if (dLad < 0.85) {
+      return inPit ? "E  Climb out of the pit" : "E  Climb into the pit";
+    }
+    return null;
+  };
+
+  G.interactGarageShop = function (look, pressed) {
+    if (!pressed) return;
+    const shop = G.summerWorld && G.summerWorld.shop;
+    const S = G.summer;
+    if (!shop || !S || S.mode === "drive") return;
+    if (look && look.kind === "shop-fridge" && shop.fridge) {
+      const n = shop.fridge.stock != null ? shop.fridge.stock : 0;
+      if (n <= 0) return;
+      shop.fridge.stock = n - 1;
+      S.hunger = Math.max(0, Math.min(100, (S.hunger || 0) + 16));
+      if (G.audio && G.audio.beep) G.audio.beep("2");
+      if (G.saveSummerNow) G.saveSummerNow();
+      return;
+    }
+    if (!shop.pit) return;
+    const p = S.player;
+    const pit = shop.pit;
+    if (S.held || (look && look.id && look.kind !== "shop-fridge")) return;
+    const dLad = Math.hypot(p.x - pit.ladX, p.z - pit.ladZ);
+    if (dLad >= 0.85) return;
+    const inPit = (p.y || 0) < -0.25;
+    if (inPit) {
+      p.x = pit.ladX + 0.35;
+      p.z = pit.ladZ + 0.15;
+      p.y = G.summerHeightAt(p.x, p.z, 0) || 0;
+      p.vy = 0;
+    } else {
+      p.x = pit.x;
+      p.z = pit.ladZ - 0.35;
+      p.y = pit.y;
+      p.vy = 0;
+    }
   };
 })(window.TK = window.TK || {});
