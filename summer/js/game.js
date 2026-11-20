@@ -24301,9 +24301,11 @@ window.addEventListener("load", () => {
     if (inWater) { S.swimming = true; spd *= 0.58; }
     else S.swimming = false;
     const sy = Math.sin(S.player.yaw), cy = Math.cos(S.player.yaw);
-    /* forward is (sy, cy) in XZ */
-    const dx = (sy * mz + cy * mx) * spd * dt;
-    const dz = (cy * mz - sy * mx) * spd * dt;
+    /* forward is (sy, cy) in XZ. Three.js cameras look down local -Z, so
+       screen-right is (-cy, sy) — the opposite of up×forward. D (mx=+1)
+       must move camera-right; the previous (cy, -sy) strafe was inverted. */
+    const dx = (sy * mz - cy * mx) * spd * dt;
+    const dz = (cy * mz + sy * mx) * spd * dt;
     const airY = S.player.y;
     G.summerMoveCollide(S.player, dx, dz, RADIUS, EYE);
     S.player.y = airY;
@@ -24495,7 +24497,9 @@ window.addEventListener("load", () => {
     const steerMax = 0.55 * (1.0 - Math.min(0.7, Math.abs(st.speed) / max));
     st.steer += (steerIn * steerMax - st.steer) * Math.min(1, dt * 8);
     const turn = st.steer * Math.min(1.6, Math.abs(st.speed) * 0.22);
-    st.yaw -= turn * dt * Math.sign(st.speed || 1) * (st.speed === 0 ? 0 : 1);
+    /* Positive steer (D / stick right) increases yaw so the nose swings
+       camera-right. The previous subtraction turned D left / A right. */
+    st.yaw += turn * dt * Math.sign(st.speed || 1) * (st.speed === 0 ? 0 : 1);
     const dx = Math.sin(st.yaw) * st.speed * dt;
     const dz = Math.cos(st.yaw) * st.speed * dt;
     function truckHit(x, z, y) {
@@ -25196,6 +25200,7 @@ window.addEventListener("load", () => {
         S.player.y = y != null ? y : G.summerHeightAt(S.player.x, S.player.z);
         if (yaw != null) S.player.yaw = yaw;
         if (pitch != null) S.player.pitch = pitch;
+        S.camOverride = null;
         S.mode = "walk";
       },
       setTruck(x, z, yaw) {
@@ -25881,6 +25886,48 @@ window.addEventListener("load", () => {
       const cz = (-1.6 + island.z + main.z) / 3;
       S.camOverride = { x: cx, y: 1450, z: cz, lx: cx, ly: 0, lz: cz };
       revealAround(cx, cz, 2800);
+    } else if (name === "foot-yard-third" || name === "foot-house-third") {
+      G._hideHud = true;
+      S.checklistOpen = false;
+      if (typeof dismissHint === "function") dismissHint();
+      S.mode = "walk";
+      S.player.x = 1.2; S.player.y = 0; S.player.z = 8.5;
+      S.player.yaw = 0; S.player.pitch = -0.12;
+      /* Behind and above the walker, looking at the ground under their feet. */
+      S.camOverride = { x: 1.2, y: 2.35, z: 4.7, lx: 1.2, ly: 0.12, lz: 8.5 };
+      if (G.walkCam) { G.walkCam.near = 0.1; G.walkCam.far = 800; G.walkCam.updateProjectionMatrix(); }
+      revealAround(1.2, 8.5, 500);
+    } else if (name === "foot-yard-first" || name === "foot-house-first") {
+      G._hideHud = true;
+      S.checklistOpen = false;
+      if (typeof dismissHint === "function") dismissHint();
+      S.mode = "walk";
+      S.camOverride = null;
+      S.player.x = 1.2; S.player.y = 0; S.player.z = 8.5;
+      S.player.yaw = 0; S.player.pitch = -0.55;
+      if (G.walkCam) { G.walkCam.near = 0.1; G.walkCam.far = 800; G.walkCam.updateProjectionMatrix(); }
+      revealAround(1.2, 8.5, 500);
+    } else if (name === "foot-street-third") {
+      G._hideHud = true;
+      S.checklistOpen = false;
+      if (typeof dismissHint === "function") dismissHint();
+      S.mode = "walk";
+      S.player.x = 2.4; S.player.y = 0; S.player.z = 18.4;
+      S.player.yaw = Math.PI; S.player.pitch = -0.12;
+      /* On the pavement, behind the walker, looking at the house and their feet. */
+      S.camOverride = { x: 2.4, y: 2.4, z: 21.8, lx: 2.4, ly: 0.1, lz: 17.6 };
+      if (G.walkCam) { G.walkCam.near = 0.1; G.walkCam.far = 800; G.walkCam.updateProjectionMatrix(); }
+      revealAround(2.4, 18.4, 600);
+    } else if (name === "foot-street-first") {
+      G._hideHud = true;
+      S.checklistOpen = false;
+      if (typeof dismissHint === "function") dismissHint();
+      S.mode = "walk";
+      S.camOverride = null;
+      S.player.x = 2.4; S.player.y = 0; S.player.z = 18.4;
+      S.player.yaw = Math.PI; S.player.pitch = -0.42;
+      if (G.walkCam) { G.walkCam.near = 0.1; G.walkCam.far = 800; G.walkCam.updateProjectionMatrix(); }
+      revealAround(2.4, 18.4, 600);
     } else if (name === "phone-life") {
       G._hideHud = false;
       S.hunger = 64;
@@ -31501,31 +31548,15 @@ window.addEventListener("load", () => {
     return geo;
   }
   function ensureGrassCards() {
-    if (G.quality === "low") {
-      if (G.summerWorld && G.summerWorld.grassCards) G.summerWorld.grassCards.visible = false;
-      return null;
-    }
+    /* Follow-cam grass blades used a hard 1.2 m inner radius and a flat
+       #6a9a48 card color, so they read as a green circle glued to the
+       walker (even on dirt, driveway, and street edges). Lawn textures
+       and CC0 clumps already cover the grass; do not respawn the ring. */
     if (G.summerWorld && G.summerWorld.grassCards) {
-      G.summerWorld.grassCards.visible = true;
-      return G.summerWorld.grassCards;
+      G.summerWorld.grassCards.visible = false;
+      G.summerWorld.grassCards.count = 0;
     }
-    const T = THREE();
-    const n = 220;
-    const mat = new T.MeshStandardMaterial({
-      color: 0x6a9a48, roughness: 0.9, metalness: 0, side: T.DoubleSide
-    });
-    const mesh = new T.InstancedMesh(grassBladeGeo(T), mat, n);
-    mesh.name = "grass-blades";
-    mesh.frustumCulled = false;
-    mesh.castShadow = false;
-    mesh.receiveShadow = true;
-    mesh.count = 0;
-    const root = (G.summerWorld && G.summerWorld.root) || G.scene;
-    if (root) root.add(mesh);
-    G.summerWorld = G.summerWorld || {};
-    G.summerWorld.grassCards = mesh;
-    G.summerWorld.grassDummy = new T.Object3D();
-    return mesh;
+    return null;
   }
 
   G.tickCoastalLook = function (x, z, t) {
