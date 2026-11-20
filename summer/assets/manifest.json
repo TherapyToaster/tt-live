@@ -1,0 +1,134 @@
+{
+  "version": 12,
+  "hdri": {
+    "high": "hdri/sky_high.hdr",
+    "low": "hdri/sky_low.hdr"
+  },
+  "textures": {
+    "lawn": {
+      "diff": "tex/{tier}/lawn_diff.jpg",
+      "nor": "tex/{tier}/lawn_nor.jpg",
+      "rough": "tex/{tier}/lawn_rough.jpg"
+    },
+    "sand": {
+      "diff": "tex/{tier}/sand_diff.jpg",
+      "nor": "tex/{tier}/sand_nor.jpg",
+      "rough": "tex/{tier}/sand_rough.jpg"
+    },
+    "wet_sand": {
+      "diff": "tex/{tier}/wet_sand_diff.jpg",
+      "nor": "tex/{tier}/wet_sand_nor.jpg",
+      "rough": "tex/{tier}/wet_sand_rough.jpg"
+    },
+    "asphalt": {
+      "diff": "tex/{tier}/asphalt_diff.jpg",
+      "nor": "tex/{tier}/asphalt_nor.jpg",
+      "rough": "tex/{tier}/asphalt_rough.jpg"
+    },
+    "concrete": {
+      "diff": "tex/{tier}/concrete_diff.jpg",
+      "nor": "tex/{tier}/concrete_nor.jpg",
+      "rough": "tex/{tier}/concrete_rough.jpg"
+    },
+    "gravel": {
+      "diff": "tex/{tier}/gravel_diff.jpg",
+      "nor": "tex/{tier}/gravel_nor.jpg",
+      "rough": "tex/{tier}/gravel_rough.jpg"
+    },
+    "deck": {
+      "diff": "tex/{tier}/deck_diff.jpg",
+      "nor": "tex/{tier}/deck_nor.jpg",
+      "rough": "tex/{tier}/deck_rough.jpg"
+    },
+    "siding": {
+      "diff": "tex/{tier}/siding_diff.jpg",
+      "nor": "tex/{tier}/siding_nor.jpg",
+      "rough": "tex/{tier}/siding_rough.jpg"
+    },
+    "metal_roof": {
+      "diff": "tex/{tier}/metal_roof_diff.jpg",
+      "nor": "tex/{tier}/metal_roof_nor.jpg",
+      "rough": "tex/{tier}/metal_roof_rough.jpg"
+    },
+    "shingles": {
+      "diff": "tex/{tier}/shingles_diff.jpg",
+      "nor": "tex/{tier}/shingles_nor.jpg",
+      "rough": "tex/{tier}/shingles_rough.jpg"
+    },
+    "bark": {
+      "diff": "tex/{tier}/bark_diff.jpg",
+      "nor": "tex/{tier}/bark_nor.jpg",
+      "rough": "tex/{tier}/bark_rough.jpg"
+    },
+    "palm_bark": {
+      "diff": "tex/{tier}/palm_bark_diff.jpg",
+      "nor": "tex/{tier}/palm_bark_nor.jpg",
+      "rough": "tex/{tier}/palm_bark_rough.jpg"
+    },
+    "water": {
+      "diff": "tex/{tier}/water_diff.jpg",
+      "nor": "tex/{tier}/water_nor.jpg",
+      "rough": "tex/{tier}/water_rough.jpg"
+    },
+    "leaves": {
+      "diff": "tex/{tier}/leaves_diff.jpg",
+      "nor": "tex/{tier}/leaves_nor.jpg",
+      "rough": "tex/{tier}/leaves_rough.jpg"
+    }
+  },
+  "alphaTextures": {
+    "leaves": "tex/{tier}/leaves.png"
+  },
+  "models": {
+    "palm_1": "models/{tier}/palm_1.glb",
+    "palm_2": "models/{tier}/palm_2.glb",
+    "palm_3": "models/{tier}/palm_3.glb",
+    "oak_1": "models/{tier}/oak_1.glb",
+    "oak_2": "models/{tier}/oak_2.glb",
+    "oak_3": "models/{tier}/oak_3.glb",
+    "pine_1": "models/{tier}/pine_1.glb",
+    "pine_2": "models/{tier}/pine_2.glb",
+    "pine_3": "models/{tier}/pine_3.glb",
+    "bush_1": "models/{tier}/bush_1.glb",
+    "bush_2": "models/{tier}/bush_2.glb",
+    "grass_clump": "models/{tier}/grass_clump.glb",
+    "grass_short": "models/{tier}/grass_short.glb",
+    "dune_grass": "models/{tier}/dune_grass.glb",
+    "shrub": "models/{tier}/shrub.glb",
+    "grass_bermuda": "models/{tier}/grass_bermuda.glb",
+    "grass_medium": "models/{tier}/grass_medium.glb",
+    "rock": "models/{tier}/rock.glb"
+  },
+  "groups": {
+    "palm": [
+      "palm_1",
+      "palm_2",
+      "palm_3"
+    ],
+    "oak": [
+      "oak_1",
+      "oak_2",
+      "oak_3"
+    ],
+    "pine": [
+      "pine_1",
+      "pine_2",
+      "pine_3"
+    ],
+    "bush": [
+      "bush_1",
+      "bush_2",
+      "shrub"
+    ],
+    "grass": [
+      "grass_clump",
+      "grass_short",
+      "grass_bermuda",
+      "grass_medium",
+      "dune_grass"
+    ],
+    "rock": [
+      "rock"
+    ]
+  }
+}
