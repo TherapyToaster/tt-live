@@ -1,5 +1,5 @@
 {
-  "version": 12,
+  "version": 13,
   "hdri": {
     "high": "hdri/sky_high.hdr",
     "low": "hdri/sky_low.hdr"
@@ -97,7 +97,12 @@
     "shrub": "models/{tier}/shrub.glb",
     "grass_bermuda": "models/{tier}/grass_bermuda.glb",
     "grass_medium": "models/{tier}/grass_medium.glb",
-    "rock": "models/{tier}/rock.glb"
+    "rock": "models/{tier}/rock.glb",
+    "car_sedan": "models/{tier}/car_sedan.glb",
+    "car_suv": "models/{tier}/car_suv.glb",
+    "car_van": "models/{tier}/car_van.glb",
+    "car_truck": "models/{tier}/car_truck.glb",
+    "umbrella": "models/{tier}/umbrella.glb"
   },
   "groups": {
     "palm": [
@@ -129,6 +134,15 @@
     ],
     "rock": [
       "rock"
+    ],
+    "car": [
+      "car_sedan",
+      "car_suv",
+      "car_van",
+      "car_truck"
+    ],
+    "umbrella": [
+      "umbrella"
     ]
   }
 }

@@ -6279,7 +6279,7 @@ THREE.RGBELoader = RGBELoader;
       loader.load(src, function (tex) {
         tex.mapping = T.EquirectangularReflectionMapping;
         if (tex.colorSpace != null && T.LinearSRGBColorSpace) tex.colorSpace = T.LinearSRGBColorSpace;
-        try { clampHDRI(tex, 4.8, 1.45); } catch (e) { console.warn("clampHDRI", e); }
+        try { clampHDRI(tex, 1.55, 1.18); } catch (e) { console.warn("clampHDRI", e); }
         let env = tex;
         try {
           if (renderer && T.PMREMGenerator) {
@@ -6433,7 +6433,7 @@ THREE.RGBELoader = RGBELoader;
     const mat = new T.MeshStandardMaterial({
       color: opts.color != null ? opts.color : 0xffffff,
       map: maps.diff || null,
-      normalMap: maps.nor || null,
+      normalMap: opts.noNormal ? null : (maps.nor || null),
       roughnessMap: maps.rough || null,
       roughness: opts.rough != null ? opts.rough : 1,
       metalness: opts.metal != null ? opts.metal : 0,
@@ -6452,8 +6452,18 @@ THREE.RGBELoader = RGBELoader;
     const wet = !!opts.wet;
     const paint = !!opts.paint;
     const gain = (opts.gain != null) ? opts.gain : 1;
+    const wrap = (opts.wrap != null) ? opts.wrap : 0;
+    const grade = opts.grade || null;
     mat.userData.cc0 = name;
     mat.onBeforeCompile = function (shader) {
+      const gradeLine = grade
+        ? ("  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(" +
+           Number(grade.r).toFixed(3) + ", " + Number(grade.g).toFixed(3) + ", " + Number(grade.b).toFixed(3) +
+           "), " + Number(grade.mix != null ? grade.mix : 0.55).toFixed(3) + ");\n" +
+           "  float gradeL = dot(diffuseColor.rgb, vec3(0.30, 0.54, 0.16));\n" +
+           "  diffuseColor.rgb = mix(vec3(gradeL), diffuseColor.rgb, " +
+           Number(grade.sat != null ? grade.sat : 0.45).toFixed(3) + ");")
+        : "";
       shader.fragmentShader = shader.fragmentShader
         .replace("#include <map_fragment>", [
           "#ifdef USE_MAP",
@@ -6466,6 +6476,7 @@ THREE.RGBELoader = RGBELoader;
           "  float mac2 = fract(sin(dot(mu * 7.13, vec2(269.5, 183.3))) * 15731.215);",
           "  diffuseColor.rgb *= 0.90 + 0.14 * mac + 0.06 * mac2;",
           (gain !== 1) ? ("  diffuseColor.rgb *= " + gain.toFixed(3) + ";") : "",
+          gradeLine,
           stripes ? "  float stripe = 0.5 + 0.5 * sin(mu.y * 28.0 + mac * 0.8);" : "",
           stripes ? "  diffuseColor.rgb *= mix(vec3(0.93, 0.95, 0.90), vec3(1.05, 1.04, 0.98), stripe);" : "",
           "#endif"
@@ -6476,9 +6487,16 @@ THREE.RGBELoader = RGBELoader;
           "#include <roughnessmap_fragment>\n  roughnessFactor = min(roughnessFactor, 0.28);\n  diffuseColor.rgb *= 0.72;"
         );
       }
+      if (wrap > 0) {
+        shader.fragmentShader = shader.fragmentShader.replace(
+          "#include <lights_fragment_end>",
+          "#include <lights_fragment_end>\n  outgoingLight += diffuseColor.rgb * " + wrap.toFixed(3) + ";"
+        );
+      }
     };
     mat.customProgramCacheKey = function () {
-      return "cc0-" + name + (stripes ? "-s" : "") + (wet ? "-w" : "") + (paint ? "-p" : "") + "-g" + gain;
+      return "cc0-" + name + (stripes ? "-s" : "") + (wet ? "-w" : "") + (paint ? "-p" : "") +
+        "-g" + gain + "-w" + wrap + (grade ? "-gr" : "");
     };
     return mat;
   };
@@ -6506,16 +6524,50 @@ THREE.RGBELoader = RGBELoader;
       if (isHalf && toH) data[i] = toH(v);
       else data[i] = v;
     }
-    cap = cap || 7.5;
-    midLift = midLift || 1.45;
+    cap = cap || 1.55;
+    midLift = midLift || 1.12;
+    const knee = Math.min(cap * 0.48, 0.82);
     for (let i = 0; i < w * h; i++) {
       const o = i * ch;
       let r = rd(o), g = rd(o + 1), b = rd(o + 2);
       const lum = r * 0.2126 + g * 0.7152 + b * 0.0722;
       let scale = midLift;
-      if (lum > cap) scale = cap / Math.max(lum, 1e-4);
-      else if (lum > 2.5) scale = midLift * (1.0 - 0.55 * ((lum - 2.5) / (cap - 2.5)));
+      if (lum > knee) {
+        /* Soft-knee toward a modest cap so the sun stays a warm disk, not a white hole. */
+        const t = (lum - knee) / Math.max(1e-4, cap - knee);
+        const soft = knee + (cap - knee) * (t / (t + 1.15));
+        const target = Math.min(cap, soft);
+        scale = target / Math.max(lum, 1e-4);
+      } else if (lum < 0.32) {
+        scale = midLift + (0.32 - lum) * 0.55;
+      }
       r *= scale; g *= scale; b *= scale;
+      const y = (i / w) | 0;
+      const v = (y + 0.5) / h; /* 0 = +Y, 0.5 = horizon, 1 = -Y */
+      /* Soft sky window: full effect above the horizon, fade out below. */
+      const skyWin = v < 0.48 ? 1 : (v < 0.62 ? 1 - (v - 0.48) / 0.14 : 0);
+      if (skyWin > 0) {
+        const horiz = 1.0 - Math.min(1, Math.abs(v - 0.5) / 0.28);
+        const zen = Math.max(0, Math.min(1, (0.5 - v) / 0.45));
+        const luma2 = r * 0.2126 + g * 0.7152 + b * 0.0722;
+        /* Bright hazy coastal blue. Mix smoothly so the sun halo has no hard seam. */
+        const paleR = 0.58 + zen * 0.10 + horiz * 0.28;
+        const paleG = 0.74 + zen * 0.08 + horiz * 0.18;
+        const paleB = 0.94 + horiz * 0.04;
+        const desat = (0.38 + horiz * 0.32 + zen * 0.10) * skyWin;
+        const targetL = 0.42 + zen * 0.16 + horiz * 0.22;
+        const useL = Math.max(luma2, targetL);
+        r = r * (1 - desat) + paleR * useL * desat;
+        g = g * (1 - desat) + paleG * useL * desat;
+        b = b * (1 - desat) + paleB * useL * desat;
+        const lift = 1.16 + zen * 0.18 + horiz * 0.28;
+        const shrink = 0.90;
+        const bright = Math.max(0, Math.min(1, (luma2 - 0.58) / 0.42));
+        const scale2 = (lift * (1 - bright) + shrink * bright);
+        r *= 1 + (scale2 - 1) * skyWin;
+        g *= 1 + (scale2 - 1) * skyWin;
+        b *= 1 + (scale2 - 1) * skyWin;
+      }
       wr(o, r); wr(o + 1, g); wr(o + 2, b);
     }
     tex.needsUpdate = true;
@@ -6554,7 +6606,7 @@ THREE.RGBELoader = RGBELoader;
       const bg = G.cc0.rawEnv;
       bg.mapping = T.EquirectangularReflectionMapping;
       G.scene.background = bg;
-      if (G.scene.backgroundIntensity != null) G.scene.backgroundIntensity = 1.45;
+      if (G.scene.backgroundIntensity != null) G.scene.backgroundIntensity = 1.06;
     }
     if (G._skyMesh) G._skyMesh.visible = false;
     if (G._skyRoot) G._skyRoot.visible = G.quality === "low"; /* keep cheap sky on phones if no bg */
@@ -6585,10 +6637,17 @@ THREE.RGBELoader = RGBELoader;
     if (!gltf || !xforms || !xforms.length) return [];
     const src = (gltf.scene || gltf.scenes && gltf.scenes[0]);
     if (!src) return [];
+    src.updateMatrixWorld(true);
     const meshes = collectMeshes(src);
     const out = [];
     const dummy = new T.Object3D();
+    const baked = new T.Matrix4();
     meshes.forEach(function (srcMesh, mi) {
+      const mn = (srcMesh.name || (srcMesh.material && srcMesh.material.name) || "").toLowerCase();
+      /* Kenney's umbrella GLB packs three canopy color variants in one scene
+         (charcoal + foam + coral). Instancing all of them stacks a black
+         canopy over the bright ones. Keep steel, timber, and one canopy. */
+      if (name === "umbrella" && (mn.indexOf("charcoal") >= 0 || mn.indexOf("foam") >= 0)) return;
       const geo = srcMesh.geometry;
       let mat = srcMesh.material;
       if (Array.isArray(mat)) mat = mat[0];
@@ -6600,13 +6659,15 @@ THREE.RGBELoader = RGBELoader;
         const n = ((srcMesh.material && srcMesh.material.name) || srcMesh.name || "").toLowerCase();
         const isWood = n.indexOf("wood") >= 0 || n.indexOf("bark") >= 0 || n.indexOf("trunk") >= 0;
         const isLeaf = n.indexOf("leaf") >= 0 || n.indexOf("foliage") >= 0 || n.indexOf("green") >= 0;
+        const hasColor = !!(srcMesh.geometry && srcMesh.geometry.getAttribute && srcMesh.geometry.getAttribute("color"));
         if (isWood && G.hasPhoto(opts.bark || "bark")) {
           const maps = G.cc0.maps[opts.bark || (name.indexOf("palm") >= 0 ? "palm_bark" : "bark")];
           if (maps && maps.diff) {
             mat.map = maps.diff;
             mat.normalMap = maps.nor || mat.normalMap;
             mat.roughnessMap = maps.rough || mat.roughnessMap;
-            mat.vertexColors = true;
+            /* Bark albedo replaces vertex color; multiplying the two goes muddy-dark. */
+            mat.vertexColors = false;
             mat.color.setHex(0xffffff);
             wrapMaps(mat, maps, [1, 1], 0.9);
           }
@@ -6616,31 +6677,130 @@ THREE.RGBELoader = RGBELoader;
           mat.transparent = false;
           mat.alphaTest = 0;
           mat.side = T.DoubleSide;
-          mat.vertexColors = true;
+          mat.vertexColors = hasColor;
           if (!mat.color || mat.color.getHex() === 0x000000) mat.color.setHex(0x5a8a3a);
         }
         mat.roughness = mat.roughness != null ? mat.roughness : 0.8;
         mat.metalness = 0;
+        if (name && name.indexOf("car_") === 0) styleCarMaterial(mat, srcMesh, name);
+        if (name === "umbrella") styleUmbrellaMaterial(mat, srcMesh);
       }
       const inst = new T.InstancedMesh(geo, mat, xforms.length);
       inst.castShadow = opts.cast !== false && G.quality !== "low";
-      inst.receiveShadow = true;
+      inst.receiveShadow = name !== "umbrella";
       inst.frustumCulled = false;
       inst.name = "cc0:" + name + ":" + mi;
+      inst.userData.cc0Local = srcMesh.matrixWorld.clone();
       for (let i = 0; i < xforms.length; i++) {
         const d = xforms[i];
         dummy.position.set(d.x, d.y || 0, d.z);
         dummy.rotation.set(0, d.yaw || 0, 0);
         dummy.scale.set(d.sx || 1, d.sy || 1, d.sz || 1);
         dummy.updateMatrix();
-        inst.setMatrixAt(i, dummy.matrix);
+        baked.multiplyMatrices(dummy.matrix, inst.userData.cc0Local);
+        inst.setMatrixAt(i, baked);
       }
       inst.instanceMatrix.needsUpdate = true;
+      if (opts.colors && inst.setColorAt) {
+        const col = new T.Color();
+        for (let i = 0; i < xforms.length; i++) {
+          col.set(opts.colors[i] != null ? opts.colors[i] : 0xc8c2b8);
+          inst.setColorAt(i, col);
+        }
+        if (inst.instanceColor) inst.instanceColor.needsUpdate = true;
+      }
       if (parent) parent.add(inst);
       out.push(inst);
     });
     return out;
   };
+
+  /* Kenney canopy is a solid PBR color (no map). Tint with instance colors. */
+  function styleUmbrellaMaterial(mat, srcMesh) {
+    const T = THREE();
+    const n = ((srcMesh && srcMesh.name) || (mat && mat.name) || "").toLowerCase();
+    const isPole = n.indexOf("steel") >= 0 || n.indexOf("timber") >= 0 || n.indexOf("pole") >= 0;
+    mat.metalness = isPole ? (n.indexOf("steel") >= 0 ? 0.55 : 0.05) : 0;
+    mat.roughness = isPole ? (n.indexOf("steel") >= 0 ? 0.35 : 0.8) : 0.55;
+    mat.side = T.DoubleSide;
+    mat.vertexColors = false;
+    if (!isPole) {
+      mat.color.setHex(0xffffff);
+      mat.emissive = mat.emissive || new T.Color();
+      mat.emissive.setHex(0x2a2018);
+      mat.emissiveIntensity = 0.18;
+      mat.envMapIntensity = 0.55;
+    }
+  }
+
+  function styleTreeClone(root) {
+    const T = THREE();
+    if (!root) return;
+    root.traverse(function (o) {
+      if (!o.isMesh) return;
+      let mat = o.material;
+      if (Array.isArray(mat)) mat = mat[0];
+      if (!mat || !mat.clone) return;
+      mat = mat.clone();
+      mat.metalness = 0;
+      mat.roughness = mat.roughness != null ? mat.roughness : 0.8;
+      mat.side = T.DoubleSide;
+      mat.envMap = null;
+      mat.envMapIntensity = 0;
+      const hasColor = !!(o.geometry && o.geometry.getAttribute && o.geometry.getAttribute("color"));
+      mat.vertexColors = hasColor;
+      if (!hasColor && (!mat.color || mat.color.getHex() === 0x000000 || mat.color.getHex() === 0xffffff)) {
+        const n = ((mat.name || o.name) || "").toLowerCase();
+        mat.color.setHex(n.indexOf("wood") >= 0 || n.indexOf("bark") >= 0 ? 0xa07a4a : 0x4e8a38);
+      }
+      o.material = mat;
+    });
+  }
+
+  /* Glossy paint on the body, rubber/metal on wheels. Instance color retints
+     chromatic paint texels and leaves glass, trim, and dark rubber alone. */
+  function styleCarMaterial(mat, srcMesh, name) {
+    const T = THREE();
+    const n = ((srcMesh && srcMesh.name) || (mat && mat.name) || name || "").toLowerCase();
+    const isWheel = n.indexOf("wheel") >= 0;
+    if (isWheel) {
+      mat.roughness = 0.9;
+      mat.metalness = 0.06;
+      mat.envMapIntensity = 0.3;
+      return;
+    }
+    mat.roughness = 0.3;
+    mat.metalness = 0.1;
+    mat.envMapIntensity = 1.05;
+    const prev = mat.onBeforeCompile;
+    mat.onBeforeCompile = function (shader) {
+      if (prev) prev(shader);
+      shader.vertexShader = shader.vertexShader
+        .replace("#include <color_pars_vertex>",
+          "#include <color_pars_vertex>\n#ifdef USE_INSTANCING_COLOR\nvarying vec3 vCarColor;\n#endif")
+        .replace("#include <color_vertex>",
+          "#include <color_vertex>\n#ifdef USE_INSTANCING_COLOR\nvCarColor = instanceColor.rgb;\n#endif");
+      shader.fragmentShader = shader.fragmentShader
+        .replace("#include <color_pars_fragment>",
+          "#include <color_pars_fragment>\n#ifdef USE_INSTANCING_COLOR\nvarying vec3 vCarColor;\n#endif")
+        .replace("#include <map_fragment>", [
+          "#ifdef USE_MAP",
+          "  vec4 sampledDiffuseColor = texture2D(map, vMapUv);",
+          "#ifdef USE_INSTANCING_COLOR",
+          "  float luma = dot(sampledDiffuseColor.rgb, vec3(0.299, 0.587, 0.114));",
+          "  float sat = distance(sampledDiffuseColor.rgb, vec3(luma));",
+          "  float paint = smoothstep(0.06, 0.15, sat) * smoothstep(0.10, 0.22, luma);",
+          "  sampledDiffuseColor.rgb = mix(sampledDiffuseColor.rgb, vCarColor * (0.22 + luma * 1.2), paint);",
+          "#endif",
+          "  diffuseColor *= sampledDiffuseColor;",
+          "#endif"
+        ].join("\n"));
+    };
+    const oldKey = mat.customProgramCacheKey;
+    mat.customProgramCacheKey = function () {
+      return (oldKey ? oldKey.call(mat) : "") + "|car-paint-tint";
+    };
+  }
 
   /* Camera-facing billboard impostors for distant trees (built once from a render). */
   G.makeImpostor = function (name, size) {
@@ -6652,10 +6812,15 @@ THREE.RGBELoader = RGBELoader;
     const dim = size || (G.quality === "low" ? 128 : 256);
     const rt = new T.WebGLRenderTarget(dim, dim, { depthBuffer: true });
     const scn = new T.Scene();
-    const amb = new T.AmbientLight(0xffffff, 1.1);
-    const dir = new T.DirectionalLight(0xfff0d8, 1.4);
+    const amb = new T.AmbientLight(0xffffff, 1.6);
+    const dir = new T.DirectionalLight(0xfff0d8, 1.8);
     dir.position.set(2, 4, 3);
-    scn.add(amb, dir, src.clone());
+    const hemi = new T.HemisphereLight(0xd8ecff, 0x7a8a50, 1.1);
+    /* Bake the styled clone. Raw glTF defaults metalness to 1, which renders
+       as a black silhouette with no environment map in the offscreen scene. */
+    const clone = src.clone();
+    styleTreeClone(clone);
+    scn.add(amb, hemi, dir, clone);
     const box = new T.Box3().setFromObject(src);
     const ctr = box.getCenter(new T.Vector3());
     const ext = box.getSize(new T.Vector3());
@@ -6671,7 +6836,8 @@ THREE.RGBELoader = RGBELoader;
     G.renderer.setClearColor(prev.sc, prev.al);
     const tex = rt.texture;
     tex.needsUpdate = true;
-    const mat = new T.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: 0.2, depthWrite: true, side: T.DoubleSide, fog: true });
+    if (tex.colorSpace != null && T.SRGBColorSpace) tex.colorSpace = T.SRGBColorSpace;
+    const mat = new T.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: 0.15, depthWrite: true, side: T.DoubleSide, fog: true });
     const geo = new T.PlaneGeometry(Math.max(ext.x, ext.z) * 1.05, ext.y * 1.05);
     return { geo: geo, mat: mat, height: ext.y, width: Math.max(ext.x, ext.z) };
   };
@@ -7222,6 +7388,7 @@ THREE.RGBELoader = RGBELoader;
     "uniform vec3 sunDir; uniform vec3 soundDeep; uniform vec3 soundShallow;",
     "uniform float waveAmp; uniform vec3 waveCam; uniform float waveHole;",
     "uniform sampler2D shoreMap; uniform float hasShore; uniform vec2 shoreOrigin; uniform vec2 shoreSize;",
+    "uniform vec2 oceanDir;",
     "uniform sampler2D waterNormal; uniform float hasWaterN;",
     "varying vec2 vUv; varying vec3 vWorld; varying vec3 vN;",
     "vec3 skySample(vec3 d){",
@@ -7240,7 +7407,8 @@ THREE.RGBELoader = RGBELoader;
     "float fbm(vec2 p){ float v=0.0,a=0.5; for(int i=0;i<4;i++){ v+=a*vnoise(p); p=p*2.07+13.0; a*=0.5;} return v; }",
     "void main(){",
     "  if (waveHole > 0.0 && length(vWorld.xz - waveCam.xz) < waveHole) discard;",
-    "  float snd = smoothstep(30.0, -90.0, vWorld.z);",
+    "  float seaward = dot(vWorld.xz, oceanDir);",
+    "  float snd = smoothstep(40.0, -120.0, seaward);",
     "  float amp = mix(1.0, 0.42, snd) * (waveAmp > 0.0 ? waveAmp : 1.0);",
     "  vec2 wp = vWorld.xz * 0.018;",
     "  float n = fbm(wp + vec2(time * 0.04, time * 0.025) * amp);",
@@ -7265,6 +7433,8 @@ THREE.RGBELoader = RGBELoader;
     "    if (suv.x >= 0.0 && suv.x <= 1.0 && suv.y >= 0.0 && suv.y <= 1.0)",
     "      shoreD = texture2D(shoreMap, suv).r * 64.0;",
     "  }",
+    "  /* Hide water under remaining land; let it reach the beach itself. */",
+    "  if (hasShore > 0.5 && shoreD < 0.45) discard;",
     "  float shallowF = 1.0 - smoothstep(0.4, 55.0, shoreD);",
     "  vec3 col = mix(deepC, shalC, clamp(shallowF * 0.85 + 0.16 + fres * 0.12, 0.0, 1.0));",
     "  col = mix(col, refl, (0.06 + fres * 0.42) * (1.0 - shallowF * 0.78));",
@@ -7299,7 +7469,7 @@ THREE.RGBELoader = RGBELoader;
         shallow: { value: new (T.Color)(shallow) },
         soundDeep: { value: new (T.Color)(0x164a44) },
         soundShallow: { value: new (T.Color)(0x2e8a6c) },
-        skyCol: { value: new (T.Color)(0xd6e0ee) },
+        skyCol: { value: new (T.Color)(0xe6eef6) },
         sunDir: { value: new (T.Vector3)(0.3, 0.8, 0.4) },
         waveAmp: { value: kind === "sound" ? 0.5 : 1.25 },
         waveCam: { value: new (T.Vector3)(0, 0, 0) },
@@ -7310,6 +7480,7 @@ THREE.RGBELoader = RGBELoader;
         hasShore: { value: 0 },
         shoreOrigin: { value: new (T.Vector2)(0, 0) },
         shoreSize: { value: new (T.Vector2)(1, 1) },
+        oceanDir: { value: new (T.Vector2)(-1, 0) },
         waterNormal: { value: null },
         hasWaterN: { value: 0 },
       },
@@ -7338,6 +7509,8 @@ THREE.RGBELoader = RGBELoader;
       if (u.hasShore) u.hasShore.value = 1;
       if (u.shoreOrigin) u.shoreOrigin.value.set(sh.ox, sh.oz);
       if (u.shoreSize) u.shoreSize.value.set(sh.sx, sh.sz);
+      const od = (G.SURF_CITY_MAP && G.SURF_CITY_MAP.meta && G.SURF_CITY_MAP.meta.oceanDir) || { x: -1, z: 0 };
+      if (u.oceanDir) u.oceanDir.value.set(od.x, od.z);
     }
     G.bindWaterNormal && G.bindWaterNormal();
   };
@@ -7388,7 +7561,7 @@ THREE.RGBELoader = RGBELoader;
     if (G.cc0 && G.cc0.env && tod === "day") {
       /* Bright midday: strong sky fill so shaded facades stay readable, HDRI
          already clamped so exposure can come up without a blown sun. */
-      L.sunI = 1.45; L.hemiI = 0.95; L.ambI = 0.34; L.fillI = 0.48; L.exp = 1.30;
+      L.sunI = 1.02; L.hemiI = 1.85; L.ambI = 0.88; L.fillI = 1.22; L.exp = 1.24;
       L.fog = 0xd6e4f0; L.sun = 0xfff0cc; L.hemiSky = 0xdceaf8; L.hemiGnd = 0x8a9a68;
     }
     if (G._amb) { G._amb.color.set(L.amb); G._amb.intensity = L.ambI; }
@@ -7920,6 +8093,8 @@ THREE.RGBELoader = RGBELoader;
         }
         const hex = mat.color.getHex();
         if (muted[hex] != null) mat.color.setHex(muted[hex]);
+        /* Summer coastal look owns emissive wrap and env intensity; do not crush them. */
+        if (G.gameMode === "summer" || (mat.userData && (mat.userData.keepEmit || mat.userData.cc0))) return;
         if (mat.emissive && mat.emissiveIntensity > 0.15 && !mat.userData.keepEmit) {
           mat.emissiveIntensity = Math.min(mat.emissiveIntensity, 0.12);
         }
@@ -23768,7 +23943,11 @@ window.addEventListener("load", () => {
   }
   function driveReady() {
     const need = G.summerDriveReadyIds();
-    for (let i = 0; i < need.length; i++) if (!installed(need[i])) return false;
+    for (let i = 0; i < need.length; i++) {
+      const p = partState(need[i]);
+      if (p.state !== "installed") return false;
+      if ((p.tight || []).some(function (tt) { return !tt; })) return false;
+    }
     return true;
   }
   function missingDrive() {
@@ -23793,12 +23972,14 @@ window.addEventListener("load", () => {
 
   function save() {
     const data = {
-      v: 1,
+      v: 2,
       parts: {},
       inTruck: S.mode === "drive",
       player: { x: S.player.x, y: S.player.y, z: S.player.z, yaw: S.player.yaw, pitch: S.player.pitch },
       truck: { x: S.truck.x, z: S.truck.z, yaw: S.truck.yaw, lowered: S.truck.lowered },
-      radioOn: S.radioOn
+      radioOn: S.radioOn,
+      tool: S.tool || null,
+      firstDriveDone: !!S.firstDriveDone
     };
     if (G.packSummerLife) Object.assign(data, G.packSummerLife());
     Object.keys(S.parts).forEach(function (id) {
@@ -23812,7 +23993,7 @@ window.addEventListener("load", () => {
       const raw = localStorage.getItem(SAVE_KEY);
       if (!raw) return false;
       const data = JSON.parse(raw);
-      if (!data || data.v !== 1 || !data.parts) return false;
+      if (!data || !(data.v >= 1) || !data.parts) return false;
       Object.keys(data.parts).forEach(function (id) {
         const p = partState(id);
         const s = data.parts[id];
@@ -23829,6 +24010,8 @@ window.addEventListener("load", () => {
         S.truck.yaw = data.truck.yaw || 0; S.truck.lowered = !!data.truck.lowered;
       }
       S.radioOn = !!data.radioOn;
+      S.tool = data.tool || null;
+      S.firstDriveDone = !!data.firstDriveDone;
       S._wantDrive = !!data.inTruck;
       if (G.applySummerLife) G.applySummerLife(data);
       return true;
@@ -23843,6 +24026,7 @@ window.addEventListener("load", () => {
     const mesh = S.meshes[id];
     const p = partState(id);
     if (!mesh) return;
+    if (p.state === "missing") { mesh.visible = false; return; }
     mesh.visible = true;
     mesh.scale.set(1, 1, 1);
     const spawn = G.summerWorld && G.summerWorld.shopSpawns && G.summerWorld.shopSpawns[id];
@@ -23914,7 +24098,7 @@ window.addEventListener("load", () => {
     });
     /* Lower onto wheels when all four are on. */
     const stands = S.frame.userData.stands;
-    if (allWheelsOn()) {
+    if (driveReady()) {
       S.truck.lowered = true;
       if (stands) stands.visible = false;
     } else {
@@ -23931,7 +24115,10 @@ window.addEventListener("load", () => {
       const p = partState(def.id);
       if (!fromSave || p.state !== "installed") {
         const sp = spawns[def.id] || { x: home.x + 3, y: 0.2, z: home.z, ry: 0 };
-        if (!fromSave) { p.x = sp.x; p.surface = sp.y; p.y = sp.y; p.z = sp.z; p.ry = sp.ry; p.state = "loose"; }
+        if (!fromSave) {
+          p.x = sp.x; p.surface = sp.y; p.y = sp.y; p.z = sp.z; p.ry = sp.ry;
+          p.state = (G.summerPartIsCatalog && G.summerPartIsCatalog(def.id)) ? "missing" : "loose";
+        }
       }
       const mesh = G.buildSummerPartMesh(def.id);
       mesh.userData.partId = def.id;
@@ -24043,26 +24230,29 @@ window.addEventListener("load", () => {
     /* Warm sun, cool sky ambient. Studio fill/key are too hot for a coastal day. */
     if (tod === "day") {
       const ibl = !!(G.cc0 && G.cc0.env);
-      G._sun.color.setHex(0xfff0cc);
-      G._sun.intensity = lowQ ? (ibl ? 1.25 : 1.45) : (ibl ? 1.45 : 1.25);
+      G._sun.color.setHex(0xfff2d2);
+      G._sun.intensity = lowQ ? (ibl ? 1.00 : 1.22) : (ibl ? 1.02 : 1.10);
       if (G._hemi) {
-        G._hemi.color.setHex(0xdceaf8);
-        G._hemi.groundColor.setHex(0x8a9a68);
-        G._hemi.intensity = ibl ? 0.95 : 0.7;
+        /* Bright sky fill so backlit facades read as paint, not black cutouts. */
+        G._hemi.color.setHex(0xf4f7fc);
+        G._hemi.groundColor.setHex(0xc4c8a8);
+        G._hemi.intensity = ibl ? 1.85 : 1.15;
       }
-      if (G._amb) { G._amb.color.setHex(0xfff6ea); G._amb.intensity = ibl ? 0.34 : 0.24; }
+      if (G._amb) { G._amb.color.setHex(0xfff6ea); G._amb.intensity = ibl ? 0.88 : 0.44; }
       if (G._fill) {
-        G._fill.color.setHex(0xd4e4f6);
-        G._fill.intensity = ibl ? 0.48 : 0.3;
-        G._fill.position.set(px - hx, Math.max(18, hy * 0.75), pz - hz);
+        G._fill.color.setHex(0xe8f0fa);
+        G._fill.intensity = ibl ? 1.22 : 0.62;
+        /* Keep the fill lower so vertical walls actually receive it. */
+        G._fill.position.set(px - hx, Math.max(10, hy * 0.42), pz - hz);
         if (G._fill.target) {
           G._fill.target.position.set(px, 0, pz);
           G._fill.target.updateMatrixWorld();
           if (G.scene && !G._fill.target.parent) G.scene.add(G._fill.target);
         }
       }
-      if (G._key) G._key.intensity = 0.16;
-      if (G.renderer) G.renderer.toneMappingExposure = ibl ? 1.30 : 1.05;
+      if (G._key) G._key.intensity = 0.22;
+      if (G.renderer) G.renderer.toneMappingExposure = ibl ? 1.24 : 1.10;
+      if (G._sun && G._sun.shadow && G._sun.shadow.intensity != null) G._sun.shadow.intensity = 0.48;
     }
     G._sun.position.set(px + hx, hy, pz + hz);
     G._sun.target.position.set(px, 0, pz);
@@ -24096,7 +24286,8 @@ window.addEventListener("load", () => {
       }
       G._sunFar.visible = true;
       G._sunFar.color.copy(G._sun.color);
-      G._sunFar.intensity = tod === "day" ? 0.4 : 0.2;
+      G._sunFar.intensity = tod === "day" ? 0.22 : 0.14;
+      if (G._sunFar.shadow && G._sunFar.shadow.intensity != null) G._sunFar.shadow.intensity = 0.4;
       G._sunFar.position.copy(G._sun.position);
       G._sunFar.target.position.set(px, 0, pz);
       G._sunFar.target.updateMatrixWorld();
@@ -24169,7 +24360,7 @@ window.addEventListener("load", () => {
     /* Loose parts */
     G.SUMMER_PARTS.forEach(function (def) {
       const p = partState(def.id);
-      if (p.state === "loose" && S.held !== def.id) {
+      if (p.state === "loose" && S.held !== def.id && p.state !== "missing") {
         const mesh = S.meshes[def.id];
         if (mesh) {
           const box = new (THREE()).Box3().setFromObject(mesh);
@@ -24196,6 +24387,7 @@ window.addEventListener("load", () => {
     const enter = enterPoint();
     consider("enter", "enter", enter.x, enter.y, enter.z, 0.9);
     if (G.raySummerLife) G.raySummerLife(consider);
+    if (G.raySummerBuild) G.raySummerBuild(consider);
     return best;
   }
 
@@ -24248,7 +24440,6 @@ window.addEventListener("load", () => {
     S.alignT = 0;
     S.bolt = { id: id, i: 0, t: 0, waiting: true };
     attachInstalled(id);
-    if (allWheelsOn()) S.truck.lowered = true;
     syncPartsVisual();
   }
 
@@ -24269,6 +24460,13 @@ window.addEventListener("load", () => {
     S.chase = null;
     if (document.exitPointerLock) document.exitPointerLock();
     if (G.audio && G.audio.beep) G.audio.beep("start");
+    if (!S.firstDriveDone) {
+      S.firstDriveDone = true;
+      S.celebrateT = 5.8;
+      S.celebrateTitle = "FIRST DRIVE";
+      S.celebrateSub = "Take it down to the beach!";
+      if (G.audio && G.audio.beep) G.audio.beep("go");
+    }
     save();
     return true;
   }
@@ -24295,6 +24493,7 @@ window.addEventListener("load", () => {
     if (G.input.down("brake")) mz -= 1;
     if (G.input.down("left")) mx -= 1;
     if (G.input.down("right")) mx += 1;
+    if (S.catalogOpen) mx = 0;
     if (G.showTouch && (S.stickX || S.stickY)) { mx += S.stickX; mz += -S.stickY; }
     const len = Math.hypot(mx, mz);
     if (len > 1) { mx /= len; mz /= len; }
@@ -24393,6 +24592,8 @@ window.addEventListener("load", () => {
       return;
     }
 
+    if (G.tickSummerCatalog) G.tickSummerCatalog(dt, interactPressed());
+
     if (S.held) {
       const id = S.held;
       const sock = S.look && S.look.kind === "installed" ? null : null;
@@ -24405,12 +24606,18 @@ window.addEventListener("load", () => {
         return (vx / L) * dir.x + (vy / L) * dir.y + (vz / L) * dir.z > 0.82 && d < 3.2;
       })();
       if (looking && depsMet(id)) {
-        S.prompt = "Hold E to align " + G.summerPartById(id).name;
-        if (interactDown()) {
-          S.alignT += dt;
-          S.prompt = "Aligning… " + Math.min(100, Math.floor(S.alignT / 1.15 * 100)) + "%";
-          if (S.alignT >= 1.15) startBolt(id);
-        } else S.alignT = Math.max(0, S.alignT - dt * 1.4);
+        const gate = G.summerBuildGate ? G.summerBuildGate(id) : { ok: true };
+        if (!gate.ok) {
+          S.prompt = gate.prompt || "Need the right tool";
+          S.alignT = 0;
+        } else {
+          S.prompt = "Hold E to align " + G.summerPartById(id).name;
+          if (interactDown()) {
+            S.alignT += dt;
+            S.prompt = "Aligning… " + Math.min(100, Math.floor(S.alignT / 1.15 * 100)) + "%";
+            if (S.alignT >= 1.15) startBolt(id);
+          } else S.alignT = Math.max(0, S.alignT - dt * 1.4);
+        }
       } else if (looking && !depsMet(id)) {
         const def = G.summerPartById(id);
         const miss = def.deps.filter(function (d) { return !installed(d); }).map(function (d) { return G.summerPartById(d).name; });
@@ -24480,13 +24687,16 @@ window.addEventListener("load", () => {
       } else {
         S.prompt = "Not ready: " + missingDrive().join(", ");
       }
-    } else if (G.promptSummerLife || G.interactSummerLife || G.promptGarageShop || G.interactGarageShop) {
+    } else if (G.promptSummerLife || G.interactSummerLife || G.promptGarageShop || G.interactGarageShop || G.promptSummerBuild) {
       const lifePrompt = G.promptSummerLife ? G.promptSummerLife(hit) : "";
       if (lifePrompt) S.prompt = lifePrompt;
       const shopPrompt = G.promptGarageShop ? G.promptGarageShop(hit) : "";
       if (shopPrompt) S.prompt = shopPrompt;
+      const buildPrompt = G.promptSummerBuild ? G.promptSummerBuild(hit) : "";
+      if (buildPrompt) S.prompt = buildPrompt;
       if (G.interactSummerLife) G.interactSummerLife(hit, interactPressed());
       if (G.interactGarageShop) G.interactGarageShop(hit, interactPressed());
+      if (G.interactSummerBuild) G.interactSummerBuild(hit, interactPressed());
       S.alignT = 0;
     } else {
       S.alignT = 0;
@@ -24628,6 +24838,7 @@ window.addEventListener("load", () => {
   G.stepSummer = function (dt, time) {
     if (!S.ready) return;
     S.time = time || (S.time + dt);
+    if (S.celebrateT > 0) S.celebrateT = Math.max(0, S.celebrateT - dt);
     if (S.lockFailedT > 0) S.lockFailedT -= dt;
     if (G.input && G.input.pressed("start") && !S.showHint) setMenu(!S.menu);
     if (S.menu) return;
@@ -24702,10 +24913,11 @@ window.addEventListener("load", () => {
   function drawChecklist(ctx, W, H) {
     const touch = !!G.showTouch;
     if (S.checklistOpen == null) S.checklistOpen = !touch;
-    const open = !!S.checklistOpen;
+    const open = !!S.checklistOpen || !!S.catalogOpen;
     const counts = checklistCounts();
-    const label = "PARTS " + counts.on + "/" + counts.n;
-    const btnW = 118, btnH = 28;
+    const pct = counts.n ? Math.round(counts.on / counts.n * 100) : 0;
+    const label = "BUILD " + counts.on + "/" + counts.n + "  " + pct + "%";
+    const btnW = 168, btnH = 28;
     const bx = W - btnW - (touch ? 8 : 14);
     const by = touch ? 10 : 12;
     ctx.fillStyle = "rgba(10,12,16,0.72)";
@@ -24747,10 +24959,12 @@ window.addEventListener("load", () => {
       g.items.forEach(function (part) {
         const st = partState(part.id);
         const on = st.state === "installed";
+        const miss = st.state === "missing";
         const loose = on && st.tight.some(function (tt) { return !tt; });
-        ctx.fillStyle = on ? (loose ? "#e8c050" : "#8ed08a") : (S.held === part.id ? "#8ec0e8" : "rgba(230,230,230,0.55)");
+        ctx.fillStyle = on ? (loose ? "#e8c050" : "#8ed08a") : (miss ? "#e0a06a" : (S.held === part.id ? "#8ec0e8" : "rgba(230,230,230,0.55)"));
         ctx.font = "11px system-ui,sans-serif";
-        ctx.fillText((on ? (loose ? "\u2248 " : "\u2713 ") : "\u25cb ") + part.name, x + pad + 4, yy);
+        const mark = on ? (loose ? "\u2248 " : "\u2713 ") : (miss ? "\u2709 " : "\u25cb ");
+        ctx.fillText(mark + part.name + (miss ? "  order" : ""), x + pad + 4, yy);
         yy += line;
       });
     });
@@ -24766,6 +24980,7 @@ window.addEventListener("load", () => {
     ctx.imageSmoothingEnabled = true;
     G.touchButtons = [];
 
+    if (G.drawSummerCelebrate) G.drawSummerCelebrate(ctx, W, H);
     if (G._hideHud) return;
 
     /* Crosshair in walk mode */
@@ -24810,6 +25025,8 @@ window.addEventListener("load", () => {
     }
 
     drawChecklist(ctx, W, H);
+    if (G.drawSummerCatalog) G.drawSummerCatalog(ctx, W, H);
+    if (G.drawSummerToolChip) G.drawSummerToolChip(ctx, W, H);
     if (G.drawSummerLifeHud) G.drawSummerLifeHud(ctx, W, H, !!G.showTouch);
 
     /* Drive speed */
@@ -24931,7 +25148,7 @@ window.addEventListener("load", () => {
     }
 
     /* Click-to-look prompt (after Esc, or before the first capture). */
-    if (S.mode === "walk" && !S.pointerLocked && !G.showTouch && !S.menu && !S.showHint) {
+    if (S.mode === "walk" && !S.pointerLocked && !G.showTouch && !S.menu && !S.showHint && !G._shotFrozen) {
       ctx.fillStyle = "rgba(0,0,0,0.28)";
       const pw = 340, ph = 78, px = W / 2 - pw / 2, py = H * 0.18;
       ctx.fillRect(px, py, pw, ph);
@@ -25071,12 +25288,12 @@ window.addEventListener("load", () => {
     G.timeOfDay = "day";
     if (!G.renderer && G.initRenderer) G.initRenderer({ skipWorld: true });
     if (G.setQuality) G.setQuality(G.quality || "high");
-    const fogCol = (G.cc0 && G.cc0.env) ? 0xd6e4f0 : 0xd4cfc4;
+    const fogCol = (G.cc0 && G.cc0.env) ? 0xe4eef6 : 0xd8d4c8;
     if (G.scene) {
       G.scene.fog = new (THREE()).Fog(fogCol, 220, 2000);
       G.renderer.setClearColor(fogCol, 1);
     }
-    if (G.renderer) G.renderer.toneMappingExposure = (G.cc0 && G.cc0.env) ? 1.30 : 1.05;
+    if (G.renderer) G.renderer.toneMappingExposure = (G.cc0 && G.cc0.env) ? 1.24 : 1.10;
     G.buildSummerWorld(G.mats);
     if (G.bindWaterNormal) G.bindWaterNormal();
     if (G.bindEnvToMaterials) G.bindEnvToMaterials(G.scene);
@@ -25121,6 +25338,18 @@ window.addEventListener("load", () => {
           truck: { x: S.truck.x, y: S.truck.y, z: S.truck.z, yaw: S.truck.yaw, speed: S.truck.speed, lowered: S.truck.lowered },
           parts: parts, missing: missingDrive(),
           cash: S.cash, hunger: S.hunger,
+          tool: S.tool || null, firstDriveDone: !!S.firstDriveDone,
+          catalogOpen: !!S.catalogOpen, celebrateT: S.celebrateT || 0,
+          progress: (function () {
+            const ids = G.SUMMER_PARTS || [];
+            let on = 0, miss = 0;
+            ids.forEach(function (d) {
+              const p = partState(d.id);
+              if (p.state === "installed") on += 1;
+              if (p.state === "missing") miss += 1;
+            });
+            return { on: on, n: ids.length, missing: miss, pct: ids.length ? Math.round(on / ids.length * 100) : 0 };
+          })(),
           bag: (S.bag || []).map(function (it) { return it.id; }),
           fridge: (S.fridge || []).map(function (it) { return it.id; }),
           job: S.job ? { type: S.job.type, title: S.job.title, have: S.job.have, need: S.job.need, holding: !!S.job.holding, late: !!S.job.late } : null,
@@ -25327,6 +25556,23 @@ window.addEventListener("load", () => {
         if (sy != null) G.summerTouch.sy = sy;
         if (ldx != null) G.summerTouch.ldx = ldx;
         if (ldy != null) G.summerTouch.ldy = ldy;
+      },
+      _syncParts() { syncPartsVisual(); },
+      _applyPose() { applyTruckPose(); },
+      buyCatalog(id) { return G.buySummerCatalog(id); },
+      equipTool(id, putBack) { return G.equipSummerTool(id, putBack); },
+      installGated(id, tight) {
+        if (!G.summerPartById(id)) return { ok: false, reason: "unknown" };
+        const p = partState(id);
+        if (p.state === "missing") return { ok: false, reason: "unowned" };
+        const gate = G.summerBuildGate ? G.summerBuildGate(id) : { ok: true };
+        if (!gate.ok) return { ok: false, reason: gate.reason, prompt: gate.prompt };
+        return G.debug.summer.install(id, tight !== false);
+      },
+      resetFresh() {
+        if (G.resetSummerBuildFresh) G.resetSummerBuildFresh();
+        else restoreGarageFresh();
+        return G.debug.summer.state();
       }
     };
   }
@@ -25358,7 +25604,7 @@ window.addEventListener("load", () => {
     (G.SUMMER_PARTS || []).forEach(function (def) {
       const p = partState(def.id);
       const sp = spawns[def.id] || { x: home.x + 3, y: 0.2, z: home.z, ry: 0 };
-      p.state = "loose";
+      p.state = (G.summerPartIsCatalog && G.summerPartIsCatalog(def.id)) ? "missing" : "loose";
       p.x = sp.x; p.y = sp.y; p.surface = sp.y; p.z = sp.z; p.ry = sp.ry;
       p.tight = [];
       for (let i = 0; i < def.bolts; i++) p.tight.push(false);
@@ -26013,6 +26259,144 @@ window.addEventListener("load", () => {
       S.camOverride = { x: 3.55, y: 1.52, z: -0.85, lx: 2.4, ly: 1.15, lz: hz };
       if (G.walkCam) { G.walkCam.near = 0.1; G.walkCam.far = 200; G.walkCam.updateProjectionMatrix(); }
       revealAround(home.x, home.z, 300);
+    } else if (name === "build-start" || name === "garage-build") {
+      G._hideHud = true;
+      S.checklistOpen = true;
+      S.catalogOpen = false;
+      if (typeof dismissHint === "function") dismissHint();
+      if (G.resetSummerBuildFresh) G.resetSummerBuildFresh();
+      else restoreGarageFresh();
+      S.mode = "walk";
+      const home = G.summerWorld.truckHome || { x: 4.3, z: 1.7 };
+      S.player.x = home.x; S.player.y = 0; S.player.z = home.z + 4.4;
+      S.player.yaw = Math.PI; S.player.pitch = 0.04;
+      S.camOverride = { x: home.x - 0.2, y: 1.55, z: home.z + 4.6, lx: home.x, ly: 0.85, lz: home.z - 0.4 };
+      if (G.walkCam) { G.walkCam.near = 0.1; G.walkCam.far = 400; G.walkCam.updateProjectionMatrix(); }
+      revealAround(home.x, home.z, 400);
+    } else if (name === "build-catalog" || name === "garage-catalog") {
+      G._hideHud = false;
+      S.checklistOpen = true;
+      if (typeof dismissHint === "function") dismissHint();
+      const shop = G.summerWorld.shop || {};
+      const clip = shop.clipboard || shop.partsPc || { x: 7.05, z: -3.15 };
+      S.mode = "walk";
+      S.catalogOpen = true;
+      S.catalogI = 0;
+      S.player.x = clip.x - 0.55; S.player.y = 0; S.player.z = clip.z + 0.7;
+      S.player.yaw = Math.atan2(clip.x - S.player.x, clip.z - S.player.z);
+      S.player.pitch = 0.2;
+      S.camOverride = { x: clip.x - 0.95, y: 1.52, z: clip.z + 1.15, lx: clip.x + 0.05, ly: 1.02, lz: clip.z };
+      if (G.walkCam) { G.walkCam.near = 0.08; G.walkCam.far = 200; G.walkCam.updateProjectionMatrix(); }
+      revealAround(clip.x, clip.z, 300);
+    } else if (name === "build-tools" || name === "garage-tools") {
+      G._hideHud = true;
+      S.checklistOpen = false;
+      S.catalogOpen = false;
+      if (typeof dismissHint === "function") dismissHint();
+      S.tool = null;
+      const shop = G.summerWorld.shop || {};
+      const box = shop.toolbox || { x: 6.35, z: -1.85 };
+      S.mode = "walk";
+      S.player.x = box.x - 0.9; S.player.y = 0; S.player.z = box.z + 0.15;
+      S.player.yaw = Math.PI / 2; S.player.pitch = 0.15;
+      S.camOverride = { x: 5.0, y: 1.38, z: -1.05, lx: 6.85, ly: 1.12, lz: -2.55 };
+      if (G.walkCam) { G.walkCam.near = 0.08; G.walkCam.far = 200; G.walkCam.updateProjectionMatrix(); }
+      revealAround(box.x, box.z, 300);
+    } else if (name === "build-pit") {
+      G._hideHud = true;
+      S.checklistOpen = false;
+      S.catalogOpen = false;
+      if (typeof dismissHint === "function") dismissHint();
+      S.mode = "walk";
+      S.tool = "impact";
+      const home = G.summerWorld.truckHome || { x: 4.3, z: 1.7 };
+      const pit = G.summerWorld.shop && G.summerWorld.shop.pit;
+      /* Show a crate motor on the rack delivered, truck still on stands. */
+      if (G.buySummerCatalog && G.summer && G.summer.parts && G.summer.parts.motor && G.summer.parts.motor.state === "missing") {
+        const cash = G.summer.cash || 0;
+        if (cash < 24) G.summer.cash = cash + 24;
+        G.buySummerCatalog("motor");
+      }
+      S.player.x = home.x; S.player.y = pit ? pit.y : -0.66; S.player.z = home.z + 0.15;
+      S.player.yaw = Math.PI; S.player.pitch = 0.2;
+      S.camOverride = { x: home.x + 0.45, y: pit ? pit.y + 0.28 : -0.35, z: home.z + 1.7, lx: home.x, ly: 0.62, lz: home.z - 0.55 };
+      if (G.walkCam) { G.walkCam.near = 0.08; G.walkCam.far = 200; G.walkCam.updateProjectionMatrix(); }
+      revealAround(home.x, home.z, 300);
+    } else if (name === "first-drive" || name === "build-drive") {
+      G._hideHud = true;
+      S.checklistOpen = false;
+      S.catalogOpen = false;
+      if (typeof dismissHint === "function") dismissHint();
+      G.debug.summer.installAll(true);
+      const home = G.summerWorld.truckHome || { x: 4.3, z: 1.7 };
+      S.truck.x = home.x; S.truck.z = home.z + 6.2; S.truck.y = 0; S.truck.yaw = 0; S.truck.speed = 3.2;
+      S.firstDriveDone = false;
+      applyTruckPose();
+      S.mode = "walk";
+      G.debug.summer.enterTruck();
+      S.celebrateT = 5.8;
+      S.celebrateTitle = "FIRST DRIVE";
+      S.celebrateSub = "Take it down to the beach!";
+      S.camOverride = { x: home.x - 2.4, y: 1.55, z: home.z + 9.4, lx: home.x, ly: 1.05, lz: home.z + 5.2 };
+      if (G.walkCam) { G.walkCam.near = 0.1; G.walkCam.far = 400; G.walkCam.updateProjectionMatrix(); }
+      revealAround(home.x, home.z + 6, 400);
+    } else if (name === "sun-road" || name === "sun-main-road") {
+      G._hideHud = true;
+      S.checklistOpen = false;
+      S.catalogOpen = false;
+      if (typeof dismissHint === "function") dismissHint();
+      S.mode = "walk";
+      const sun = (G.cc0 && G.cc0.sunDir) || { x: 0.35, y: 0.8, z: 0.4 };
+      const L = Math.hypot(sun.x, sun.z) || 1;
+      const dx = sun.x / L, dz = sun.z / L;
+      const px = 6.2, pz = 26.4;
+      S.player.x = px; S.player.y = 0; S.player.z = pz;
+      S.player.yaw = Math.atan2(dx, dz);
+      S.player.pitch = 0.12;
+      S.camOverride = { x: px, y: 1.55, z: pz, lx: px + dx * 48, ly: 1.4 + Math.max(0.15, sun.y) * 14, lz: pz + dz * 48 };
+      if (G.walkCam) { G.walkCam.near = 0.1; G.walkCam.far = 900; G.walkCam.updateProjectionMatrix(); }
+      revealAround(px, pz, 900);
+    } else if (name === "sun-beach") {
+      G._hideHud = true;
+      S.checklistOpen = false;
+      S.catalogOpen = false;
+      if (typeof dismissHint === "function") dismissHint();
+      S.mode = "walk";
+      const sun = (G.cc0 && G.cc0.sunDir) || { x: 0.35, y: 0.8, z: 0.4 };
+      const L = Math.hypot(sun.x, sun.z) || 1;
+      const dx = sun.x / L, dz = sun.z / L;
+      const acc = (G.summerWorld && G.summerWorld.landmarks && G.summerWorld.landmarks.beachAccess) || { x: 30.8, z: -80 };
+      const od = (G.SURF_CITY_MAP && G.SURF_CITY_MAP.meta && G.SURF_CITY_MAP.meta.oceanDir) || { x: 0, z: -1 };
+      const px = acc.x + od.x * 70 + 6, pz = acc.z + od.z * 70;
+      S.player.x = px; S.player.y = 1.6; S.player.z = pz;
+      S.player.yaw = Math.atan2(dx, dz);
+      S.player.pitch = 0.1;
+      S.camOverride = { x: px, y: 1.7, z: pz, lx: px + dx * 48, ly: 1.4 + Math.max(0.15, sun.y) * 14, lz: pz + dz * 48 };
+      if (G.walkCam) { G.walkCam.near = 0.1; G.walkCam.far = 900; G.walkCam.updateProjectionMatrix(); }
+      revealAround(px, pz, 900);
+    } else if (name === "beach-shore" || name === "beach-ocean" || name === "shore") {
+      G._hideHud = true;
+      S.checklistOpen = false;
+      S.catalogOpen = false;
+      if (typeof dismissHint === "function") dismissHint();
+      S.mode = "walk";
+      const acc = (G.summerWorld && G.summerWorld.landmarks && G.summerWorld.landmarks.beachAccess)
+        || (G.SURF_CITY_MAP && G.SURF_CITY_MAP.landmarks && G.SURF_CITY_MAP.landmarks.beachAccess)
+        || { x: -146.88, z: -14.89 };
+      const od = (G.SURF_CITY_MAP && G.SURF_CITY_MAP.meta && G.SURF_CITY_MAP.meta.oceanDir) || { x: -1, z: 0 };
+      const alongX = -od.z, alongZ = od.x;
+      /* Stand near the waterline, look along the shore with the ocean filling the seaward side. */
+      const px = acc.x + od.x * 18 + alongX * 6;
+      const pz = acc.z + od.z * 18 + alongZ * 6;
+      S.player.x = px; S.player.y = 1.5; S.player.z = pz;
+      S.player.yaw = Math.atan2(alongX * 0.7 + od.x * 0.55, alongZ * 0.7 + od.z * 0.55);
+      S.player.pitch = 0.02;
+      S.camOverride = {
+        x: px, y: 2.05, z: pz,
+        lx: px + alongX * 26 + od.x * 24, ly: 0.55, lz: pz + alongZ * 26 + od.z * 24
+      };
+      if (G.walkCam) { G.walkCam.near = 0.1; G.walkCam.far = 1200; G.walkCam.updateProjectionMatrix(); }
+      revealAround(px, pz, 900);
     } else if (name === "phone-life") {
       G._hideHud = false;
       S.hunger = 64;
@@ -27684,6 +28068,7 @@ window.addEventListener("load", () => {
     const b2z = (crumb && crumb.z != null) ? crumb.z + 8 : 14.8;
     const board2 = buildBoard(root, mats, cols, b2x, b2z, 0, "GIG BOARD");
     G.summerWorld.jobBoards.push(board, board2);
+    if (G.dressSummerPartsTerminals) G.dressSummerPartsTerminals(root, mats, cols);
     makeWaypoint();
 
     /* Permanent surf rack and a beach drop stand. */
@@ -28622,6 +29007,18 @@ window.addEventListener("load", () => {
     const k = j * g.w + i;
     return (g.bytes[k >> 3] & (1 << (k & 7))) !== 0;
   }
+  G.summerGridAt = gridAt;
+
+  /* True for pavement that sits on the ocean beach or seaward of the dunes.
+     N/S Shore Drive stays inland (on land, west of the dunes) and is kept. */
+  G.skipRoadOnOceanBeach = function (x, z) {
+    if (G.summerOnBeach && G.summerOnBeach(x, z)) return true;
+    const sw = G.summerWorld || {};
+    const od = (G.SURF_CITY_MAP && G.SURF_CITY_MAP.meta && G.SURF_CITY_MAP.meta.oceanDir) || { x: -1, z: 0 };
+    if (G.summerSeawardOvershoot && sw.beachGrid &&
+        G.summerSeawardOvershoot(x, z, sw.beachGrid, gridAt, od)) return true;
+    return false;
+  };
 
   function hashKey(x, z, cell) {
     return ((x / cell) | 0) + ":" + ((z / cell) | 0);
@@ -28755,6 +29152,7 @@ window.addEventListener("load", () => {
   G.buildSurfCityMap = function (root, mats, cols, hs) {
     const map = G.SURF_CITY_MAP;
     if (!map) return null;
+    if (G.fixSummerOceanDir) G.fixSummerOceanDir(map);
     const T = THREE();
     const group = new T.Group();
     group.name = "SurfCityMap";
@@ -28762,6 +29160,8 @@ window.addEventListener("load", () => {
 
     const landGrid = decodeGrid(map.landGrid);
     const beachGrid = decodeGrid(map.beachGrid);
+    if (G.clipSeawardLandGrid) G.summerWorld.seawardClipped = G.clipSeawardLandGrid(landGrid, beachGrid, map);
+    if (G.clipWideBeachGrid) G.summerWorld.beachClipped = G.clipWideBeachGrid(landGrid, beachGrid, map, 30);
     G.summerWorld.landGrid = landGrid;
     G.summerWorld.beachGrid = beachGrid;
     G.summerWorld.map = map;
@@ -28778,7 +29178,8 @@ window.addEventListener("load", () => {
     /* Keep the water below the land so it cannot paint over the island
        (the ocean shader is transparent and does not write depth). */
     waterMat.depthWrite = true;
-    if (waterMat.uniforms && waterMat.uniforms.waveHole) waterMat.uniforms.waveHole.value = 155;
+    /* Shore map hides water under the island; a camera-radius hole also ate the nearby ocean. */
+    if (waterMat.uniforms && waterMat.uniforms.waveHole) waterMat.uniforms.waveHole.value = 0;
     water.position.set((bb[0] + bb[2]) / 2, -0.85, (bb[1] + bb[3]) / 2);
     water.userData.ocean = true;
     group.add(water);
@@ -28946,7 +29347,7 @@ window.addEventListener("load", () => {
           color: 0x8fbc5c, map: lawnMap, roughness: 0.95, metalness: 0, side: T.DoubleSide
         });
     const sand = (G.photoMat && G.hasPhoto && G.hasPhoto("sand"))
-      ? G.photoMat("sand", { color: 0xf3e7cc, repeat: [0.28, 0.28], rough: 0.96, ns: 1.0, envI: 0.2, side: T.DoubleSide, gain: 1.72 })
+      ? G.photoMat("sand", { color: 0xf2eee4, repeat: [0.28, 0.28], rough: 0.96, ns: 1.0, envI: 0.18, side: T.DoubleSide, gain: 1.22, grade: { r: 0.87, g: 0.81, b: 0.70, mix: 0.52, sat: 0.42 } })
       : new T.MeshStandardMaterial({
           color: 0xe8d6a8, map: sandMap, roughness: 0.96, metalness: 0, side: T.DoubleSide
         });
@@ -28985,8 +29386,9 @@ window.addEventListener("load", () => {
     }
     if (map.land && map.land.length) ringMesh(map.land, 0.02, grass, group, true);
     else gridMesh(landGrid, grass, 0.02, function (x, z) { return !gridAt(beachGrid, x, z); });
-    if (map.beach && map.beach.length) ringMesh(map.beach, 0.04, sand, group);
-    else gridMesh(beachGrid, sand, 0.03);
+    /* Use the clipped beach grid, not the oversized OSM beach rings, so the
+       Atlantic reaches the dune line along the whole shore. */
+    gridMesh(beachGrid, sand, 0.04);
 
     /* Roads per chunk, skip the high-rise span (drawn once at high quality). */
     const ashMap = G.makeCoastAsphaltTexture ? G.makeCoastAsphaltTexture() : null;
@@ -29008,6 +29410,27 @@ window.addEventListener("load", () => {
       function flush(arr) {
         if (arr.length < 2) return;
         const mid = arr[(arr.length / 2) | 0];
+        const mx = mid[0], mz = mid.length > 2 ? mid[2] : mid[1];
+        /* Drop asphalt on the ocean beach (including ways whose midpoint is
+           still marked as land under an oversized beach polygon). */
+        let beachN = 0;
+        for (let pi = 0; pi < arr.length; pi++) {
+          const px = arr[pi][0], pz = arr[pi].length > 2 ? arr[pi][2] : arr[pi][1];
+          if (G.skipRoadOnOceanBeach && G.skipRoadOnOceanBeach(px, pz)) beachN++;
+        }
+        if (beachN * 2 >= arr.length) return;
+        const onLand = gridAt(landGrid, mx, mz);
+        const onBeach = gridAt(beachGrid, mx, mz);
+        if (!onLand) {
+          /* Keep inland roads; drop asphalt that was hiding under oversized beach rings. */
+          if (onBeach) return;
+          let near = false;
+          for (let d = 4; d <= 14 && !near; d += 4) {
+            if (gridAt(landGrid, mx + d, mz) || gridAt(landGrid, mx - d, mz) ||
+                gridAt(landGrid, mx, mz + d) || gridAt(landGrid, mx, mz - d)) near = true;
+          }
+          if (!near) return;
+        }
         const ch = chunkOf(mid[0], mid[1]);
         const geo = ribbonGeo(T, arr, r.w || 6, function () { return 0.11; });
         if (!geo) return;
@@ -29489,6 +29912,8 @@ window.addEventListener("load", () => {
     g.setAttribute("normal", new T.Float32BufferAttribute(b.nrm, 3));
     g.setAttribute("uv", new T.Float32BufferAttribute(b.uv, 2));
     g.setIndex(b.idx);
+    g.computeBoundingSphere();
+    try { if (g.computeTangents) g.computeTangents(); } catch (e) {}
     return g;
   }
   function addMesh(ch, geo, mat) {
@@ -29501,7 +29926,24 @@ window.addEventListener("load", () => {
     ch.add(m);
   }
 
-  const SIDING = [0x2a3d66, 0x4a7a6a, 0x7aa8c8, 0xe8d5b0, 0xf4f1ea, 0xe8c85a];
+  /* Floor very dark paints so backlit walls cannot collapse to a black silhouette. */
+  function liftSiding(c, minL) {
+    minL = minL != null ? minL : 0.64;
+    let r = (c >> 16) & 255, g = (c >> 8) & 255, b = c & 255;
+    const l = (0.22 * r + 0.70 * g + 0.08 * b) / 255;
+    if (l < minL) {
+      const s = minL / Math.max(l, 0.05);
+      r = Math.min(255, Math.round(r * s));
+      g = Math.min(255, Math.round(g * s));
+      b = Math.min(255, Math.round(b * s));
+    }
+    /* Pull dark navy toward a dusty coastal paint so backlit walls stay readable. */
+    r = Math.min(255, Math.round(r * 0.72 + 214 * 0.28));
+    g = Math.min(255, Math.round(g * 0.72 + 208 * 0.28));
+    b = Math.min(255, Math.round(b * 0.72 + 200 * 0.28));
+    return (r << 16) | (g << 8) | b;
+  }
+  const SIDING = [0x2a3d66, 0x4a7a6a, 0x7aa8c8, 0xe8d5b0, 0xf4f1ea, 0xe8c85a].map(function (c) { return liftSiding(c); });
   const COMM = [0xc8bba8, 0xd8c8b0, 0xb8c4c0, 0xd0d4d8, 0xc4b49a];
 
   function lookMats() {
@@ -29538,9 +29980,24 @@ window.addEventListener("load", () => {
     }
     const siding = {};
     SIDING.forEach(function (c) {
-      siding[c] = (G.photoMat && G.hasPhoto && G.hasPhoto("siding"))
-        ? G.photoMat("siding", { color: c, repeat: [2.2, 2.0], rough: 0.84, ns: 0.85, envI: 0.6, paint: true })
+      /* Batched OSM wall boxes plus the siding normal map shaded as a pure
+         black slab (NaN / zero TBN in the standard normal-map path). Player
+         house meshes are fine with the same albedo; skip the normal map here
+         and add a wrap term so daylight walls keep a readable paint color. */
+      const mat = (G.photoMat && G.hasPhoto && G.hasPhoto("siding"))
+        ? G.photoMat("siding", { color: c, repeat: [2.2, 2.0], rough: 0.84, ns: 0, envI: 0.65, paint: true, gain: 1.10, side: T.FrontSide, noNormal: true })
         : std(c, { map: sidingMap, rough: 0.84 });
+      if (mat) {
+        mat.normalMap = null;
+        mat.side = T.FrontSide;
+        mat.emissive = mat.emissive || new T.Color();
+        mat.emissive.setHex(c);
+        mat.emissiveIntensity = 0.16;
+        mat.userData = mat.userData || {};
+        mat.userData.keepEmit = true;
+        mat.userData.cc0 = "siding";
+      }
+      siding[c] = mat;
     });
     const comm = {};
     COMM.forEach(function (c) { comm[c] = std(c, { rough: 0.86 }); });
@@ -29572,8 +30029,10 @@ window.addEventListener("load", () => {
         : std(0xc8b08a, { rough: 0.86 }),
       piling: std(0xe8e4d8, { rough: 0.72 }),
       yard: std(0x8fbc5c, { map: yardMap, rough: 0.95, side: T.DoubleSide }),
-      sand: std(0xe4d0a0, { map: sandMap, rough: 0.96, side: T.DoubleSide }),
-      wetSand: std(0xb08a5a, { map: sandMap, rough: 0.7, side: T.DoubleSide }),
+      sand: (G.photoMat && G.hasPhoto && G.hasPhoto("sand"))
+        ? G.photoMat("sand", { color: 0xf2eee4, repeat: [0.22, 0.22], rough: 0.96, ns: 1.0, envI: 0.18, side: T.DoubleSide, gain: 1.22, grade: { r: 0.87, g: 0.81, b: 0.70, mix: 0.58, sat: 0.40 } })
+        : std(0xe8dcc0, { map: sandMap, rough: 0.96, side: T.DoubleSide }),
+      wetSand: std(0xc4b08a, { map: sandMap, rough: 0.7, side: T.DoubleSide }),
       asphalt: (G.photoMat && G.hasPhoto && G.hasPhoto("asphalt"))
         ? G.photoMat("asphalt", { color: 0xcac8c2, repeat: [0.22, 0.22], rough: 0.92, ns: 0.9, envI: 0.25, gain: 1.28 })
         : std(0x4a4846, { map: ashMap, rough: 0.96 }),
@@ -29625,7 +30084,9 @@ window.addEventListener("load", () => {
       if (G.inRoadPavement && G.inRoadPavement(b.x, b.z, Math.min(b.w, b.d) * 0.25)) return;
       const ch = chunkOf(b.x, b.z);
       const area = b.w * b.d;
-      const isComm = area >= 400 || (b.s === 0 && area >= 280);
+      /* Stilt / residential footprints stay houses. Only ground-level pads
+         (s === 0) or truly huge boxes become store slabs. */
+      const isComm = (b.s === 0 && area >= 280) || area >= 900;
       const yaw = b.r || 0;
       const hx = (Math.abs(Math.cos(yaw)) * b.w + Math.abs(Math.sin(yaw)) * b.d) * 0.5;
       const hz = (Math.abs(Math.sin(yaw)) * b.w + Math.abs(Math.cos(yaw)) * b.d) * 0.5;
@@ -29914,7 +30375,8 @@ window.addEventListener("load", () => {
     const awnp2 = W(Wd * 0.4, 1.3, Dd * 0.5 + 1.2);
     pushBox(tb, 0.1, 2.4, 0.1, awnp1.x, awnp1.y, awnp1.z, yaw);
     pushBox(tb, 0.1, 2.4, 0.1, awnp2.x, awnp2.y, awnp2.z, yaw);
-    /* Storefront glass */
+    /* Storefront glass on +Z, plus a couple of side windows so the long
+       wall is not a blank gray slab from the road. */
     if (!lowQ) {
       const n = Math.max(2, Math.min(5, (Wd / 3.2) | 0));
       for (let i = 0; i < n; i++) {
@@ -29923,6 +30385,16 @@ window.addEventListener("load", () => {
         pushBox(tb, 1.5, 2.2, 0.08, q.x, q.y, q.z, yaw);
         const gq = W(lx, 1.45, Dd * 0.5 + 0.06);
         pushBox(gb, 1.28, 1.9, 0.04, gq.x, gq.y, gq.z, yaw);
+      }
+      const nS = Math.max(1, Math.min(3, (Dd / 4.2) | 0));
+      for (let i = 0; i < nS; i++) {
+        const lz = -Dd * 0.28 + (nS === 1 ? 0 : i * (Dd * 0.56 / (nS - 1)));
+        [-1, 1].forEach(function (side) {
+          const q = W(side * (Wd * 0.5 + 0.04), 1.55, lz);
+          pushBox(tb, 0.08, 1.7, 1.25, q.x, q.y, q.z, yaw);
+          const gq = W(side * (Wd * 0.5 + 0.06), 1.55, lz);
+          pushBox(gb, 0.04, 1.45, 1.05, gq.x, gq.y, gq.z, yaw);
+        });
       }
     }
     /* Parking pad in front */
@@ -30088,12 +30560,28 @@ window.addEventListener("load", () => {
       flushCur();
       return segs;
     }
+    function clipBeachRoad(pts) {
+      if (!G.skipRoadOnOceanBeach) return [pts];
+      const segs = [];
+      let cur = [];
+      function flushCur() { if (cur.length >= 2) segs.push(cur); cur = []; }
+      for (let i = 0; i < pts.length; i++) {
+        const p = xzOf(pts[i]);
+        if (G.skipRoadOnOceanBeach(p.x, p.z)) flushCur();
+        else cur.push(pts[i]);
+      }
+      flushCur();
+      return segs;
+    }
     (map.roads || []).forEach(function (r) {
       if (r.bridge) return;
       const pts = r.pts;
       if (!pts || pts.length < 2) return;
       const w = r.w || 6;
-      const pieces = clipOut(pts, 0.4);
+      const pieces = [];
+      clipOut(pts, 0.4).forEach(function (seg) {
+        clipBeachRoad(seg).forEach(function (s) { pieces.push(s); });
+      });
       pieces.forEach(function (seg) {
         const mid = seg[(seg.length / 2) | 0];
         const ch = chunkOf(mid[0], mid.length > 2 ? mid[2] : mid[1]);
@@ -30315,20 +30803,34 @@ window.addEventListener("load", () => {
     const across = lowQ ? 5 : 7;
     const duneWidth = 14;
     const rowsA = [
-      { d: 0.2, y: 0.07, c: [1, 0.96, 0.88] },
-      { d: 3.4, y: -0.1, c: [0.9, 0.82, 0.68] },
-      { d: 6.4, y: -0.42, c: [0.7, 0.55, 0.4] },
-      { d: 9.6, y: -0.82, c: [0.55, 0.42, 0.32] }
+      { d: 0.4, y: 0.05, c: [1.00, 0.97, 0.90] },
+      { d: 3.5, y: -0.06, c: [0.97, 0.92, 0.82] },
+      { d: 7.0, y: -0.22, c: [0.93, 0.87, 0.75] },
+      { d: 11.0, y: -0.50, c: [0.86, 0.80, 0.68] },
+      { d: 15.5, y: -0.85, c: [0.78, 0.72, 0.60] }
     ];
+    const nApr = rowsA.length;
 
-    beach.forEach(function (ring) {
-      const samples = [];
-      alongRing(ring, function (x, z, dx, dz) {
-        const nx = -dz, nz = dx;
-        const inland = (G.summerInLand && G.summerInLand(x - nx * 3.2, z - nz * 3.2));
-        const dir = inland ? -1 : 1;
-        samples.push({ x: x, z: z, dx: dx, dz: dz, nx: nx, nz: nz, dir: dir });
-      }, alongStep);
+    function collectShoreSamples() {
+      const out = [];
+      if (G.sampleClippedShoreline) {
+        const raw = G.sampleClippedShoreline(alongStep);
+        if (raw && raw.length >= 3) return raw;
+      }
+      /* Fallback: walk OSM rings but only keep the clipped seaward edge. */
+      beach.forEach(function (ring) {
+        alongRing(ring, function (x, z, dx, dz) {
+          if (G.skipRoadOnOceanBeach && !G.summerOnBeach(x, z)) return;
+          if (G.summerOnBeach && !G.summerOnBeach(x, z)) return;
+          const od = (G.SURF_CITY_MAP && G.SURF_CITY_MAP.meta && G.SURF_CITY_MAP.meta.oceanDir) || { x: -1, z: 0 };
+          if (G.summerOnBeach && G.summerOnBeach(x + od.x * 8, z + od.z * 8)) return;
+          out.push({ x: x, z: z, dx: dx, dz: dz, nx: od.x, nz: od.z, dir: 1 });
+        }, alongStep);
+      });
+      return out;
+    }
+
+    function emitShoreRun(samples) {
       if (samples.length < 3) return;
       const row = samples.length;
       const dBase = dunePos.length / 3;
@@ -30342,7 +30844,10 @@ window.addEventListener("load", () => {
           const u = j / (across - 1);
           const x = s.x + inX * (1.2 + u * duneWidth);
           const z = s.z + inZ * (1.2 + u * duneWidth);
-          const onClear = G.inRoadCorridor && G.inRoadCorridor(x, z, 0.8);
+          /* Don't flatten ocean-beach footways — that cut a stair-step hole
+             through the dunes and showed a lower dark plane underneath. */
+          const onBeach = G.summerOnBeach && G.summerOnBeach(x, z);
+          const onClear = !onBeach && G.inRoadCorridor && G.inRoadCorridor(x, z, 0.8);
           const ridge = Math.exp(-Math.pow((u - 0.38) / 0.3, 2));
           const n = fbm(x * 0.07, z * 0.07);
           const h = onClear ? 0.03 : Math.max(0.02, ridge * (0.45 + n * 1.35) * (0.75 + hash01(s.x, s.z, 8) * 0.55));
@@ -30354,19 +30859,19 @@ window.addEventListener("load", () => {
           }
         }
         if (i % Math.max(1, Math.round(200 / alongStep)) === 0) walkCandidates.push(s);
-        for (let k = 0; k < 4; k++) {
+        for (let k = 0; k < nApr; k++) {
           const x = s.x + s.nx * s.dir * rowsA[k].d;
           const z = s.z + s.nz * s.dir * rowsA[k].d;
           apronPos.push(x, rowsA[k].y, z);
           apronUv.push(i * 0.2, k * 0.45);
           apronCol.push(rowsA[k].c[0], rowsA[k].c[1], rowsA[k].c[2]);
         }
-        const iBaseHint = inlandPos.length / 3;
         const inRows = [0.8, 4, 8, 13, 18, 24, 32, 42];
         for (let k = 0; k < inRows.length; k++) {
           const x = s.x + inX * inRows[k];
           const z = s.z + inZ * inRows[k];
-          inlandPos.push(x, 0.04, z);
+          /* Sit above the beach grid (y=0.04) so the two sand planes do not z-fight. */
+          inlandPos.push(x, 0.055, z);
           inlandUv.push(i * 0.18, k * 0.3);
         }
         const wx1 = s.x + s.nx * s.dir * 6.2, wz1 = s.z + s.nz * s.dir * 6.2;
@@ -30379,8 +30884,8 @@ window.addEventListener("load", () => {
           const a = dBase + i * across + j, c = a + across;
           duneIdx.push(a, c, a + 1, a + 1, c, c + 1);
         }
-        for (let k = 0; k < 3; k++) {
-          const a = aBase + i * 4 + k, c = a + 4;
+        for (let k = 0; k < nApr - 1; k++) {
+          const a = aBase + i * nApr + k, c = a + nApr;
           apronIdx.push(a, c, a + 1, a + 1, c, c + 1);
         }
         for (let k = 0; k < 7; k++) {
@@ -30390,7 +30895,22 @@ window.addEventListener("load", () => {
         const a = wBase + i * 2, c = a + 2;
         washIdx.push(a, c, a + 1, a + 1, c, c + 1);
       }
-    });
+    }
+
+    (function runShore() {
+      const list = collectShoreSamples();
+      let run = [];
+      function flush() { emitShoreRun(run); run = []; }
+      for (let i = 0; i < list.length; i++) {
+        const p = list[i];
+        if (run.length) {
+          const q = run[run.length - 1];
+          if (Math.hypot(p.x - q.x, p.z - q.z) > alongStep * 6) flush();
+        }
+        run.push(p);
+      }
+      flush();
+    })();
 
     function meshFrom(pos, uv, idx, col, nrmUp) {
       if (!pos.length || !idx.length) return null;
@@ -30634,20 +31154,21 @@ window.addEventListener("load", () => {
       mat.userData.pitUniforms = shader.uniforms;
       if (G.applyGaragePitToLawn) G.applyGaragePitToLawn(mat);
       shader.vertexShader = shader.vertexShader
-        .replace("#include <common>", "#include <common>\nvarying float vSand;\nvarying vec3 vLawnW;")
-        .replace("#include <color_vertex>", "#include <color_vertex>\nvSand = color.r;\nvLawnW = (modelMatrix * vec4(position, 1.0)).xyz;");
+        .replace("#include <common>", "#include <common>\nvarying float vSand;\nvarying float vLandKeep;\nvarying vec3 vLawnW;")
+        .replace("#include <color_vertex>", "#include <color_vertex>\nvSand = color.r;\nvLandKeep = color.g;\nvLawnW = (modelMatrix * vec4(position, 1.0)).xyz;");
       shader.fragmentShader = shader.fragmentShader
-        .replace("#include <common>", "#include <common>\nuniform sampler2D sandMap;\nuniform vec2 pitMin;\nuniform vec2 pitMax;\nuniform float pitOn;\nvarying float vSand;\nvarying vec3 vLawnW;")
+        .replace("#include <common>", "#include <common>\nuniform sampler2D sandMap;\nuniform vec2 pitMin;\nuniform vec2 pitMax;\nuniform float pitOn;\nvarying float vSand;\nvarying float vLandKeep;\nvarying vec3 vLawnW;")
         .replace("#include <color_fragment>", "/* sand mix uses vSand, skip vertex tint */")
         .replace("#include <map_fragment>", [
           "#ifdef USE_MAP",
+          "  if (vLandKeep < 0.5) discard;",
           "  if (pitOn > 0.5 && vLawnW.x >= pitMin.x && vLawnW.x <= pitMax.x && vLawnW.z >= pitMin.y && vLawnW.z <= pitMax.y) discard;",
           "  vec4 sampledDiffuseColor = texture2D(map, vMapUv);",
           "  vec4 sandC = texture2D(sandMap, vMapUv * 1.15);",
           "  float sandAmt = clamp(vSand, 0.0, 1.0);",
           "  /* Keep inland lots green; only mix sand where painted. */",
           "  sampledDiffuseColor = mix(sampledDiffuseColor, sandC, sandAmt);",
-          "  sampledDiffuseColor.rgb *= mix(vec3(1.08, 1.12, 0.92), vec3(1.25, 1.18, 1.02), sandAmt);",
+          "  sampledDiffuseColor.rgb *= mix(vec3(1.04, 1.06, 1.00), vec3(1.08, 1.06, 1.02), sandAmt);\n  sampledDiffuseColor.rgb = mix(sampledDiffuseColor.rgb, vec3(0.90, 0.84, 0.72), sandAmt * 0.82);\n  float sandL = dot(sampledDiffuseColor.rgb, vec3(0.30, 0.54, 0.16));\n  sampledDiffuseColor.rgb = mix(sampledDiffuseColor.rgb, vec3(sandL * 1.02, sandL * 0.97, sandL * 0.86), sandAmt * 0.55);",
           "  float stripe = sin(vLawnW.x * 1.65 + vLawnW.z * 0.08) * 0.045;",
           "  float clump = sin(vLawnW.x * 0.31 + vLawnW.z * 0.27) * sin(vLawnW.z * 0.19) * 0.05;",
           "  sampledDiffuseColor.rgb *= 1.0 + (stripe + clump) * (1.0 - sandAmt);",
@@ -30657,19 +31178,174 @@ window.addEventListener("load", () => {
           "#endif"
         ].join("\n"));
     };
-    mat.customProgramCacheKey = function () { return "lawn-sand-mix-v6-pit"; };
+    mat.customProgramCacheKey = function () { return "lawn-sand-mix-v8-pale"; };
     return mat;
+  };
+
+  /* Beach access is on the ocean side of the house. The baked meta.oceanDir
+     of (0, -1) pointed along the shore after the summer13 rotation. */
+  G.fixSummerOceanDir = function (map) {
+    map = map || G.SURF_CITY_MAP;
+    if (!map) return { x: -1, z: 0 };
+    map.meta = map.meta || {};
+    const acc = map.landmarks && map.landmarks.beachAccess;
+    const h = map.house || { x: 1.2, z: -1.6 };
+    if (acc && acc.x != null) {
+      let dx = acc.x - h.x, dz = acc.z - h.z;
+      const L = Math.hypot(dx, dz) || 1;
+      map.meta.oceanDir = { x: dx / L, z: dz / L };
+    } else if (!map.meta.oceanDir) {
+      map.meta.oceanDir = { x: -1, z: 0 };
+    }
+    return map.meta.oceanDir;
+  };
+
+  G.summerSeawardOvershoot = function (x, z, beachGrid, gridAt, od) {
+    if (!beachGrid || !gridAt || !od) return false;
+    if (gridAt(beachGrid, x, z)) return false;
+    let ahead = false, behind = false;
+    for (let d = 8; d <= 240; d += 8) {
+      if (gridAt(beachGrid, x + od.x * d, z + od.z * d)) ahead = true;
+      if (gridAt(beachGrid, x - od.x * d, z - od.z * d)) behind = true;
+      if (ahead && behind) break;
+    }
+    return !ahead && behind;
+  };
+
+  G.clipSeawardLandGrid = function (landGrid, beachGrid, map) {
+    if (!landGrid || !beachGrid || !landGrid.bytes) return 0;
+    const od = (map && map.meta && map.meta.oceanDir) || (G.fixSummerOceanDir && G.fixSummerOceanDir(map)) || { x: -1, z: 0 };
+    const gridAt = function (g, x, z) {
+      if (!g) return false;
+      const i = Math.floor((x - g.ox) / g.cell), j = Math.floor((z - g.oz) / g.cell);
+      if (i < 0 || j < 0 || i >= g.w || j >= g.h) return false;
+      const k = j * g.w + i;
+      return !!(g.bytes[k >> 3] & (1 << (k & 7)));
+    };
+    let n = 0;
+    const g = landGrid;
+    for (let j = 0; j < g.h; j++) {
+      for (let i = 0; i < g.w; i++) {
+        const k = j * g.w + i;
+        if (!(g.bytes[k >> 3] & (1 << (k & 7)))) continue;
+        const x = g.ox + (i + 0.5) * g.cell, z = g.oz + (j + 0.5) * g.cell;
+        if (G.summerSeawardOvershoot(x, z, beachGrid, gridAt, od)) {
+          g.bytes[k >> 3] &= ~(1 << (k & 7));
+          n++;
+        }
+      }
+    }
+    return n;
+  };
+
+  /* OSM beach polygons can run far seaward of the real dune line and hide the
+     Atlantic under a sand lot. Keep a coastal strip and clip the rest. */
+  G.clipWideBeachGrid = function (landGrid, beachGrid, map, maxWidth) {
+    if (!beachGrid || !beachGrid.bytes) return 0;
+    maxWidth = maxWidth || 32;
+    const od = (map && map.meta && map.meta.oceanDir) || (G.fixSummerOceanDir && G.fixSummerOceanDir(map)) || { x: -1, z: 0 };
+    const gridAt = function (g, x, z) {
+      if (!g) return false;
+      const i = Math.floor((x - g.ox) / g.cell), j = Math.floor((z - g.oz) / g.cell);
+      if (i < 0 || j < 0 || i >= g.w || j >= g.h) return false;
+      const k = j * g.w + i;
+      return !!(g.bytes[k >> 3] & (1 << (k & 7)));
+    };
+    let n = 0;
+    const g = beachGrid;
+    for (let j = 0; j < g.h; j++) {
+      for (let i = 0; i < g.w; i++) {
+        const k = j * g.w + i;
+        if (!(g.bytes[k >> 3] & (1 << (k & 7)))) continue;
+        const x = g.ox + (i + 0.5) * g.cell, z = g.oz + (j + 0.5) * g.cell;
+        let inland = 0;
+        for (let d = 4; d <= maxWidth + 24; d += 4) {
+          const ix = x - od.x * d, iz = z - od.z * d;
+          if (gridAt(g, ix, iz)) inland = d;
+          if (landGrid && gridAt(landGrid, ix, iz) && inland === 0) break;
+        }
+        if (inland >= maxWidth) {
+          g.bytes[k >> 3] &= ~(1 << (k & 7));
+          n++;
+        }
+      }
+    }
+    return n;
+  };
+
+  /* Seaward edge of the clipped beach strip, ordered along-shore. Used to
+     dress dunes / wet sand so we don't follow the oversized OSM beach ring
+     (which laid a second "shore" out in the water and a dark apron between). */
+  G.sampleClippedShoreline = function (step) {
+    const sw = G.summerWorld || {};
+    const g = sw.beachGrid;
+    const map = G.SURF_CITY_MAP;
+    const od = (map && map.meta && map.meta.oceanDir) || { x: -1, z: 0 };
+    const gridAt = G.summerGridAt;
+    if (!g || !g.bytes || !gridAt) return [];
+    step = step || 2.1;
+    const cell = g.cell || 8;
+    const raw = [];
+    for (let j = 0; j < g.h; j++) {
+      for (let i = 0; i < g.w; i++) {
+        const k = j * g.w + i;
+        if (!(g.bytes[k >> 3] & (1 << (k & 7)))) continue;
+        const x = g.ox + (i + 0.5) * cell, z = g.oz + (j + 0.5) * cell;
+        if (gridAt(g, x + od.x * cell, z + od.z * cell)) continue;
+        /* Skip holes in the beach strip — seaward emptiness that fills back in
+           a few cells would dress a dark wet apron in the middle of the sand. */
+        let hole = false;
+        for (let d = cell * 2; d <= cell * 4 && !hole; d += cell) {
+          if (gridAt(g, x + od.x * d, z + od.z * d)) hole = true;
+        }
+        if (hole) continue;
+        const hasBack = gridAt(g, x - od.x * cell, z - od.z * cell) ||
+          (sw.landGrid && gridAt(sw.landGrid, x - od.x * cell * 2, z - od.z * cell * 2));
+        if (!hasBack) continue;
+        raw.push({ x: x, z: z });
+      }
+    }
+    const tx = -od.z, tz = od.x;
+    raw.sort(function (a, b) { return (a.x * tx + a.z * tz) - (b.x * tx + b.z * tz); });
+    const samples = [];
+    function pushSamp(x, z, dx, dz) {
+      const L = Math.hypot(dx, dz) || 1;
+      samples.push({ x: x, z: z, dx: dx / L, dz: dz / L, nx: od.x, nz: od.z, dir: 1 });
+    }
+    for (let i = 0; i < raw.length; i++) {
+      const p = raw[i];
+      const prev = raw[Math.max(0, i - 1)], next = raw[Math.min(raw.length - 1, i + 1)];
+      let dx = next.x - prev.x, dz = next.z - prev.z;
+      if (i > 0) {
+        const gap = Math.hypot(p.x - prev.x, p.z - prev.z);
+        if (gap > cell * 3) {
+          pushSamp(p.x, p.z, next.x - p.x, next.z - p.z);
+          continue;
+        }
+        /* Densify so the dune/apron mesh is smooth. */
+        const n = Math.max(1, Math.round(gap / step));
+        for (let t = 1; t <= n; t++) {
+          const u = t / n;
+          pushSamp(prev.x + (p.x - prev.x) * u, prev.z + (p.z - prev.z) * u, p.x - prev.x, p.z - prev.z);
+        }
+      } else {
+        pushSamp(p.x, p.z, dx, dz);
+      }
+    }
+    return samples;
   };
 
   G.paintLandSandAmt = function (geo, beachGrid, gridAt) {
     const T = THREE();
     const pos = geo.attributes.position;
     const col = new Float32Array(pos.count * 3);
+    const od = (G.SURF_CITY_MAP && G.SURF_CITY_MAP.meta && G.SURF_CITY_MAP.meta.oceanDir) || { x: -1, z: 0 };
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i), z = pos.getZ(i);
       let s = 0;
-      if (beachGrid && gridAt && gridAt(beachGrid, x, z)) s = 1;
-      else if (beachGrid && gridAt) {
+      const keep = (G.summerSeawardOvershoot && G.summerSeawardOvershoot(x, z, beachGrid, gridAt, od)) ? 0 : 1;
+      if (keep && beachGrid && gridAt && gridAt(beachGrid, x, z)) s = 1;
+      else if (keep && beachGrid && gridAt) {
         for (let d = 4; d <= 80 && s < 1; d += 4) {
           if (gridAt(beachGrid, x + d, z) || gridAt(beachGrid, x - d, z) ||
               gridAt(beachGrid, x, z + d) || gridAt(beachGrid, x, z - d) ||
@@ -30682,7 +31358,7 @@ window.addEventListener("load", () => {
         }
       }
       col[i * 3] = s;
-      col[i * 3 + 1] = 1;
+      col[i * 3 + 1] = keep;
       col[i * 3 + 2] = 1;
     }
     geo.setAttribute("color", new T.Float32BufferAttribute(col, 3));
@@ -31482,6 +32158,7 @@ window.addEventListener("load", () => {
       if (kind === "crepe" || kind === "myrtle") return 1.15;
       return 1.6;
     }
+    if (G.summerWorld) G.summerWorld.treeImpostors = [];
     Object.keys(buckets).forEach(function (k) {
       const b = buckets[k];
       const rad = (b.kind === "oak" || b.kind === "pine" || b.kind === "sabal") ? 1.65
@@ -31503,11 +32180,35 @@ window.addEventListener("load", () => {
           });
         });
         Object.keys(byName).forEach(function (nm) {
-          G.instanceCC0(nm, byName[nm], b.ch, {
-            bark: b.kind === "sabal" ? "palm_bark" : "bark",
-            cast: !lowQ
+          const all = byName[nm];
+          const near = [], far = [];
+          /* Distance was measured to the player house, so beach palms at
+             ~180 m always became impostors. Keep a wide near radius; far
+             cards are now baked from styled (non-metal) materials. */
+          const LOD_R = lowQ ? 140 : 240;
+          all.forEach(function (d) {
+            ((Math.hypot((d.x || 0) - 1.2, (d.z || 0) + 1.6) < LOD_R) ? near : far).push(d);
           });
-          placedCc0 = true;
+          if (near.length) {
+            G.instanceCC0(nm, near, b.ch, {
+              bark: b.kind === "sabal" ? "palm_bark" : "bark",
+              cast: !lowQ
+            });
+          }
+          if (far.length && G.makeImpostor && G.instanceImpostors) {
+            const imp = G.makeImpostor(nm);
+            const mesh = imp ? G.instanceImpostors(imp, far, b.ch) : null;
+            if (mesh) {
+              mesh.name = "cc0-impostor:" + nm;
+              G.summerWorld.treeImpostors = G.summerWorld.treeImpostors || [];
+              G.summerWorld.treeImpostors.push({ mesh: mesh, list: far, height: imp.height || 4 });
+            } else {
+              G.instanceCC0(nm, far, b.ch, { bark: b.kind === "sabal" ? "palm_bark" : "bark", cast: false });
+            }
+          } else if (far.length) {
+            G.instanceCC0(nm, far, b.ch, { bark: b.kind === "sabal" ? "palm_bark" : "bark", cast: false });
+          }
+          placedCc0 = !!(near.length || far.length);
         });
       }
       if (!placedCc0) {
@@ -31651,6 +32352,24 @@ window.addEventListener("load", () => {
   }
 
   G.tickCoastalLook = function (x, z, t) {
+    const imps = G.summerWorld && G.summerWorld.treeImpostors;
+    if (imps && imps.length) {
+      const T = THREE();
+      const dummy = G._impDummy || (G._impDummy = new T.Object3D());
+      imps.forEach(function (it) {
+        if (!it.mesh || !it.list) return;
+        const yaw = Math.atan2((x || 0) - 0, (z || 0) - 0);
+        for (let i = 0; i < it.list.length; i++) {
+          const d = it.list[i];
+          dummy.position.set(d.x, (d.y || 0) + (it.height * (d.sy || 1)) * 0.5, d.z);
+          dummy.rotation.set(0, Math.atan2((x || 0) - d.x, (z || 0) - d.z), 0);
+          dummy.scale.set(d.sx || 1, d.sy || 1, d.sz || 1);
+          dummy.updateMatrix();
+          it.mesh.setMatrixAt(i, dummy.matrix);
+        }
+        it.mesh.instanceMatrix.needsUpdate = true;
+      });
+    }
     const patch = G.summerWorld && G.summerWorld.wavePatch;
     if (patch) {
       patch.position.x = x;
@@ -31892,11 +32611,54 @@ window.addEventListener("load", () => {
     parts.push(finial);
     return mergeGroupGeo(T, parts);
   }
+
+  const CAR_COLORS = [0xf3f1ea, 0xf3f1ea, 0xc9ccd0, 0xc9ccd0, 0x6e7276, 0x222224, 0x2a5fa8, 0x2a5fa8, 0xb31f1f];
+  G.summerCarColor = function (x, z, salt) {
+    const n = Math.abs((Math.sin((x || 0) * 12.9 + (z || 0) * 4.7 + (salt || 0) * 1.7) * 43758.5) | 0);
+    return CAR_COLORS[n % CAR_COLORS.length];
+  };
+
   function towelGeo(T) {
-    const p = new T.Mesh(new T.BoxGeometry(0.7, 0.03, 1.55), new T.MeshBasicMaterial());
-    p.position.y = 0.02;
+    const p = new T.Mesh(new T.BoxGeometry(0.78, 0.045, 1.62), new T.MeshBasicMaterial());
+    p.position.y = 0.028;
     return mergeGroupGeo(T, [p]);
   }
+  function towelMat(hex) {
+    const T = THREE();
+    const w = 256, h = 128;
+    const cnv = document.createElement("canvas");
+    cnv.width = w; cnv.height = h;
+    const ctx = cnv.getContext("2d");
+    const r = (hex >> 16) & 255, g = (hex >> 8) & 255, b = hex & 255;
+    const light = "rgb(" + Math.min(255, r + 40) + "," + Math.min(255, g + 36) + "," + Math.min(255, b + 28) + ")";
+    const mid = "rgb(" + r + "," + g + "," + b + ")";
+    const dark = "rgb(" + Math.max(0, r - 28) + "," + Math.max(0, g - 24) + "," + Math.max(0, b - 20) + ")";
+    ctx.fillStyle = mid;
+    ctx.fillRect(0, 0, w, h);
+    const stripeW = 18;
+    for (let x = 0; x < w; x += stripeW * 2) {
+      ctx.fillStyle = light;
+      ctx.fillRect(x, 0, stripeW, h);
+    }
+    /* Hem / fringe at both ends */
+    ctx.fillStyle = "rgba(255,255,255,0.22)";
+    ctx.fillRect(0, 0, w, 8);
+    ctx.fillRect(0, h - 8, w, 8);
+    ctx.fillStyle = dark;
+    for (let x = 4; x < w; x += 8) {
+      ctx.fillRect(x, 0, 2, 10);
+      ctx.fillRect(x, h - 10, 2, 10);
+    }
+    const tex = new T.CanvasTexture(cnv);
+    tex.wrapS = tex.wrapT = T.RepeatWrapping;
+    tex.anisotropy = 4;
+    if (tex.colorSpace != null && T.SRGBColorSpace) tex.colorSpace = T.SRGBColorSpace;
+    return new T.MeshStandardMaterial({
+      map: tex, color: hex, roughness: 0.92, metalness: 0,
+      envMapIntensity: 0.2
+    });
+  }
+
   function chairGeo(T) {
     const parts = [];
     const seat = new T.Mesh(new T.BoxGeometry(0.52, 0.06, 0.48), new T.MeshBasicMaterial());
@@ -32102,7 +32864,7 @@ window.addEventListener("load", () => {
     const carColors = [0xc8c2b8, 0x3a5a8a, 0x8a3030, 0x2e4a32, 0xd8c48a, 0x5a5e62, 0xe8e4dc, 0x6a3a58];
     const cartColors = [0xf2e6a0, 0x8ad0c8, 0xf0b070, 0xd0d4d0, 0x7aa86a];
     const umbColors = [0xe86a4a, 0xf2d25a, 0x3a7ab0, 0xf4f0e8, 0x5aa87a, 0xd070a0];
-    const towelColors = [0xf2a0a0, 0xa0d0e8, 0xf2e0a0, 0xe8e8e0, 0xb0d0a0];
+    const towelColors = [0xe86a5a, 0x3a8ec8, 0xf0c84a, 0x3fa07a, 0xd45a8a, 0x2f6fa8];
     const boatColors = [0xf2f0ea, 0x2a4a6a, 0xc45a3a, 0xd8c48a, 0x3a6a58];
     const kayakColors = [0xe85a3a, 0x3a8aaa, 0xf0c04a, 0x4a8a5a];
 
@@ -32323,7 +33085,7 @@ window.addEventListener("load", () => {
             x: ox, y: 0, z: oz, yaw: hash01(ox, oz, 24) * 6, sx: 1, sy: 1, sz: 1
           });
           const td = towelColors[irand(ox, oz, 25, towelColors.length)];
-          buck(chOf(ox, oz).name, "towel", mat(td, { rough: 0.9 })).push({
+          buck(chOf(ox, oz).name, "towel", towelMat(td)).push({
             x: ox + 1.1, y: 0.01, z: oz + 0.2, yaw: hash01(ox, oz, 26) * 0.8, sx: 1, sy: 1, sz: 1
           });
           if (!lowQ || k === 0) {
@@ -32350,7 +33112,7 @@ window.addEventListener("load", () => {
         buck(chOf(ox, oz).name, "umbrella", mat(um, { rough: 0.7, side: T.DoubleSide })).push({
           x: ox, y: 0, z: oz, yaw: k * 0.7, sx: 1.05, sy: 1, sz: 1.05
         });
-        buck(chOf(ox, oz).name, "towel", mat(towelColors[k % towelColors.length], { rough: 0.9 })).push({
+        buck(chOf(ox, oz).name, "towel", towelMat(towelColors[k % towelColors.length])).push({
           x: ox + 1.0, y: 0.01, z: oz + 0.3, yaw: k * 0.4, sx: 1, sy: 1, sz: 1
         });
         buck(chOf(ox, oz).name, "chair", mat(um, { rough: 0.75 })).push({
@@ -32452,6 +33214,32 @@ window.addEventListener("load", () => {
       for (let i = 0; i < chunks.length; i++) {
         if (chunks[i].name === b.parent) { parent = chunks[i]; break; }
       }
+      if ((b.kind === "car" || b.kind === "umbrella") && G.instanceCC0 && G.cc0 && G.cc0.models) {
+        const names = (b.kind === "car")
+          ? ["car_sedan", "car_suv", "car_van", "car_truck"].filter(function (n) { return G.cc0.models[n]; })
+          : (G.cc0.models.umbrella ? ["umbrella"] : []);
+        if (names.length) {
+          const by = {};
+          const byCol = {};
+          b.list.forEach(function (d, i) {
+            const nm = names[Math.abs((Math.sin((d.x || 0) * 12.9 + (d.z || 0) * 4.7) * 43758) | 0) % names.length];
+            if (!by[nm]) { by[nm] = []; byCol[nm] = []; }
+            const sc = (d.sx || 1) * (b.kind === "car" ? 1.35 : 1);
+            by[nm].push({ x: d.x, y: d.y || 0, z: d.z, yaw: d.yaw || 0, sx: sc, sy: sc, sz: sc });
+            byCol[nm].push(b.kind === "umbrella"
+              ? ((b.mat && b.mat.color && b.mat.color.getHex()) || 0xe86a4a)
+              : (G.summerCarColor ? G.summerCarColor(d.x, d.z, 3) : 0xc9ccd0));
+          });
+          Object.keys(by).forEach(function (nm) {
+            G.instanceCC0(nm, by[nm], parent, {
+              cast: b.kind === "umbrella" ? false : !lowQ,
+              envI: b.kind === "umbrella" ? 0.7 : 1.0,
+              colors: byCol[nm]
+            });
+          });
+          return;
+        }
+      }
       addInstanced(parent, geo, b.mat, b.list, b.kind || "prop");
     });
 
@@ -32484,39 +33272,67 @@ window.addEventListener("load", () => {
     const aiN = Math.min(paths.length ? (lowQ ? 4 : 10) : 0, lowQ ? 4 : 10);
     const aiCars = [];
     const aiMat = mat(0xc8c2b8, { rough: 0.45, metal: 0.25, vc: true });
-    const aiMesh = aiN ? new T.InstancedMesh(geos.car, aiMat, aiN) : null;
-    if (aiMesh) aiMesh.name = "ai-traffic";
-    if (aiMesh) {
-      aiMesh.frustumCulled = false;
-      aiMesh.castShadow = false;
-      life.add(aiMesh);
-      const colsA = [0xc8c2b8, 0x3a5a8a, 0x8a3030, 0x5a5e62, 0xd8c48a, 0x2e4a32, 0xe8e4dc, 0x6a3a58];
-      /* Per-instance colors: reuse one material; tint via a second mesh set? Keep one silver/varied by swapping? */
-      /* Use vertex-less color: MeshStandard + instance color if supported. */
-      if (aiMesh.instanceColor || T.InstancedBufferAttribute) {
-        try { aiMesh.instanceColor = null; } catch (e) {}
-      }
-    }
-    /* Build a set of unique-color AI as individual meshes if instancing colors is messy — instanced is fine in one color? Better vary with setColorAt. */
-    if (aiMesh && aiMesh.setColorAt) {
-      const col = new T.Color();
-      const colsA = [0xc8c2b8, 0x3a5a8a, 0x8a3030, 0x5a5e62, 0xd8c48a, 0x2e4a32, 0xe8e4dc, 0x6a3a58];
+    let aiMesh = null;
+    let aiMeshes = null;
+    const aiGroups = [];
+    let assign = [];
+    const aiTypes = ["car_sedan", "car_suv", "car_van", "car_truck"].filter(function (n) {
+      return G.cc0 && G.cc0.models && G.cc0.models[n];
+    });
+    if (aiN && aiTypes.length && G.instanceCC0) {
       for (let i = 0; i < aiN; i++) {
-        col.set(colsA[i % colsA.length]);
-        aiMesh.setColorAt(i, col);
+        const typ = aiTypes[i % aiTypes.length];
+        const col = G.summerCarColor ? G.summerCarColor(i * 17.1, i * 9.3, 5) : 0xc9ccd0;
+        assign.push({ type: typ, color: col, slot: -1 });
       }
-      if (aiMesh.instanceColor) aiMesh.instanceColor.needsUpdate = true;
+      aiTypes.forEach(function (typ) {
+        const seed = [], cols = [], who = [];
+        for (let i = 0; i < aiN; i++) {
+          if (assign[i].type !== typ) continue;
+          assign[i].slot = seed.length;
+          seed.push({ x: 0, y: 0, z: 0, yaw: 0, sx: 1.35, sy: 1.35, sz: 1.35 });
+          cols.push(assign[i].color);
+          who.push(i);
+        }
+        if (!seed.length) return;
+        const meshes = G.instanceCC0(typ, seed, life, { cast: false, envI: 1.0, colors: cols });
+        (meshes || []).forEach(function (m, k) { m.name = "ai-traffic-" + typ + "-" + k; m.castShadow = false; });
+        aiGroups.push({ type: typ, meshes: meshes || [], who: who });
+      });
+      aiMeshes = [];
+      aiGroups.forEach(function (g) { (g.meshes || []).forEach(function (m) { aiMeshes.push(m); }); });
+    } else {
+      aiMesh = aiN ? new T.InstancedMesh(geos.car, aiMat, aiN) : null;
+      if (aiMesh) aiMesh.name = "ai-traffic";
+      if (aiMesh) {
+        aiMesh.frustumCulled = false;
+        aiMesh.castShadow = false;
+        life.add(aiMesh);
+      }
+      if (aiMesh && aiMesh.setColorAt) {
+        const col = new T.Color();
+        const colsA = [0xc8c2b8, 0x3a5a8a, 0x8a3030, 0x5a5e62, 0xd8c48a, 0x2e4a32, 0xe8e4dc, 0x6a3a58];
+        for (let i = 0; i < aiN; i++) {
+          col.set(colsA[i % colsA.length]);
+          aiMesh.setColorAt(i, col);
+        }
+        if (aiMesh.instanceColor) aiMesh.instanceColor.needsUpdate = true;
+      }
     }
     for (let i = 0; i < aiN; i++) {
       const path = paths[i % paths.length];
       const s0 = (path.len * (0.08 + (i / Math.max(1, aiN)) * 0.8)) % path.len;
+      const asg = (typeof assign !== "undefined" && assign[i]) || null;
       aiCars.push({
         path: path, s: s0, dir: 1, speed: 5.5 + (i % 3) * 1.1, lane: 1.45,
-        yield: 0, shoulder: 0, x: 0, z: 0, yaw: 0
+        yield: 0, shoulder: 0, x: 0, z: 0, yaw: 0,
+        type: asg && asg.type, slot: asg ? asg.slot : i, color: asg && asg.color
       });
     }
     G.summerWorld.aiCars = aiCars;
     G.summerWorld.aiMesh = aiMesh;
+    G.summerWorld.aiMeshes = aiMeshes;
+    G.summerWorld.aiGroups = aiGroups;
 
     /* Pedestrians — mix of walkers and standers. */
     const pedN = lowQ ? 16 : 48;
@@ -32672,6 +33488,7 @@ window.addEventListener("load", () => {
     /* AI */
     const ai = w.aiCars || [];
     const aiMesh = w.aiMesh;
+    const aiMeshes = w.aiMeshes || null;
     let yielded = 0;
     for (let i = 0; i < ai.length; i++) {
       const c = ai[i];
@@ -32698,13 +33515,32 @@ window.addEventListener("load", () => {
       c.x = sm.x + (-sm.dz) * off;
       c.z = sm.z + sm.dx * off;
       c.yaw = sm.yaw;
-      if (aiMesh) {
+      if (aiMesh || (aiMeshes && aiMeshes.length)) {
         const show = Math.hypot(c.x - camX, c.z - camZ) < vis;
-        setDummy(dummy, c.x, show ? 0 : -20, c.z, c.yaw, 1, 1, 1);
-        aiMesh.setMatrixAt(i, dummy.matrix);
+        setDummy(dummy, c.x, show ? 0 : -20, c.z, c.yaw, 1.35, 1.35, 1.35);
+        if (aiMesh) aiMesh.setMatrixAt(i, dummy.matrix);
+        const baked = G._lifeMat || (G._lifeMat = new T.Matrix4());
+        const groups = w.aiGroups || [];
+        if (groups.length && c.slot != null) {
+          for (let g = 0; g < groups.length; g++) {
+            if (groups[g].type !== c.type) continue;
+            (groups[g].meshes || []).forEach(function (m) {
+              if (m.userData && m.userData.cc0Local) baked.multiplyMatrices(dummy.matrix, m.userData.cc0Local);
+              else baked.copy(dummy.matrix);
+              m.setMatrixAt(c.slot, baked);
+            });
+          }
+        } else if (aiMeshes) {
+          aiMeshes.forEach(function (m) {
+            if (m.userData && m.userData.cc0Local) baked.multiplyMatrices(dummy.matrix, m.userData.cc0Local);
+            else baked.copy(dummy.matrix);
+            m.setMatrixAt(i, baked);
+          });
+        }
       }
     }
     if (aiMesh) aiMesh.instanceMatrix.needsUpdate = true;
+    if (aiMeshes) aiMeshes.forEach(function (m) { m.instanceMatrix.needsUpdate = true; });
     w.aiYielded = yielded;
 
     /* Peds */
@@ -34277,6 +35113,7 @@ window.addEventListener("load", () => {
       highlight: hl,
       lights: true
     };
+    if (G.dressSummerBuild) G.dressSummerBuild(G.summerWorld.shop, mats, cols);
     applyPitToAllLawns();
   };
 
@@ -34347,5 +35184,513 @@ window.addEventListener("load", () => {
       p.y = pit.y;
       p.vy = 0;
     }
+  };
+})(window.TK = window.TK || {});
+
+
+/* ==== 94-summer-build.js ==== */
+/* Toaster Summer truck build loop: catalog parts, tools, pit bolts, first drive. */
+(function (G) {
+  const THREE = function () { return G.THREE || window.THREE; };
+
+  const TOOLS = {
+    socket: { id: "socket", name: "socket wrench", short: "Socket" },
+    impact: { id: "impact", name: "impact gun", short: "Impact" },
+    torque: { id: "torque", name: "torque wrench", short: "Torque" }
+  };
+
+  /* Starter parts already sit on the racks. Catalog SKUs are mail-order. */
+  const CATALOG = [
+    { id: "brakes", name: "Brake Set", price: 18, parts: ["brakes"] },
+    { id: "motor", name: "Crate Motor", price: 24, parts: ["motor"] },
+    { id: "juice", name: "Juice Pack", price: 22, parts: ["juice"] },
+    { id: "wheels", name: "Toast Wheel Set", price: 32, parts: ["lf-wheel", "rf-wheel", "lr-wheel", "rr-wheel"] },
+    { id: "glass", name: "Cab Glass", price: 12, parts: ["glass"] },
+    { id: "lightbar", name: "Light Bar", price: 14, parts: ["lightbar"] },
+    { id: "tonneau", name: "Tonneau Cover", price: 10, parts: ["tonneau"] }
+  ];
+
+  const PART_TOOL = {
+    "lf-arm": "socket", "rf-arm": "socket", "lr-arm": "socket", "rr-arm": "socket",
+    "brakes": "socket", "steer": "socket", "bumper-f": "socket", "bumper-r": "socket", "seat": "socket",
+    "motor": "impact", "juice": "impact", "cab": "impact", "bed": "impact",
+    "hood": "impact", "tonneau": "impact", "glass": "impact", "lightbar": "impact",
+    "lf-wheel": "torque", "rf-wheel": "torque", "lr-wheel": "torque", "rr-wheel": "torque"
+  };
+
+  const PIT_PARTS = { motor: true, juice: true, steer: true, brakes: true };
+
+  const CATALOG_PART = (function () {
+    const o = {};
+    CATALOG.forEach(function (sku) {
+      sku.parts.forEach(function (id) { o[id] = sku.id; });
+    });
+    return o;
+  })();
+
+  G.SUMMER_CATALOG = CATALOG;
+  G.summerPartIsCatalog = function (id) { return !!CATALOG_PART[id]; };
+  G.summerPartTool = function (id) { return PART_TOOL[id] || "socket"; };
+  G.summerPartNeedsPit = function (id) { return !!PIT_PARTS[id]; };
+  G.summerCatalogSku = function (id) {
+    for (let i = 0; i < CATALOG.length; i++) if (CATALOG[i].id === id) return CATALOG[i];
+    return null;
+  };
+
+  function S() { return G.summer; }
+  function partState(id) {
+    const s = S();
+    if (!s.parts) s.parts = {};
+    if (!s.parts[id]) s.parts[id] = { state: "loose", tight: [], x: 0, y: 0, z: 0, ry: 0 };
+    return s.parts[id];
+  }
+
+  function skuOwned(sku) {
+    return sku.parts.every(function (id) { return partState(id).state !== "missing"; });
+  }
+
+  function inPit() {
+    const s = S();
+    return !!(s && (s.player.y || 0) < -0.25);
+  }
+
+  G.summerBuildGate = function (id) {
+    const def = G.summerPartById && G.summerPartById(id);
+    if (!def) return { ok: false, reason: "unknown", prompt: "Unknown part" };
+    const p = partState(id);
+    if (p.state === "missing") {
+      return { ok: false, reason: "unowned", prompt: "Order " + def.name + " from the catalog first" };
+    }
+    const need = PART_TOOL[id] || "socket";
+    const s = S();
+    if ((s.tool || null) !== need) {
+      const t = TOOLS[need];
+      return { ok: false, reason: "tool", prompt: "Grab the " + t.name + " first" };
+    }
+    if (PIT_PARTS[id] && !inPit()) {
+      return { ok: false, reason: "pit", prompt: "Climb into the pit to bolt the " + def.name };
+    }
+    return { ok: true };
+  };
+
+  G.buySummerCatalog = function (skuId) {
+    const s = S();
+    const sku = G.summerCatalogSku(skuId);
+    if (!s || !sku) return { ok: false, reason: "unknown" };
+    if (skuOwned(sku)) return { ok: false, reason: "owned" };
+    const cash = s.cash || 0;
+    if (cash < sku.price) return { ok: false, reason: "cash", need: sku.price, cash: cash };
+    s.cash = cash - sku.price;
+    const home = (G.summerWorld && G.summerWorld.truckHome) || { x: 4.3, z: 1.7 };
+    const spawns = G.summerPartSpawns ? G.summerPartSpawns(home) : {};
+    sku.parts.forEach(function (id) {
+      const p = partState(id);
+      const sp = spawns[id] || { x: home.x + 2, y: 0.8, z: home.z, ry: 0 };
+      p.state = "loose";
+      p.x = sp.x; p.y = sp.y; p.surface = sp.y; p.z = sp.z; p.ry = sp.ry;
+    });
+    if (G.debug && G.debug.summer && G.debug.summer._syncParts) G.debug.summer._syncParts();
+    else {
+      /* Fallback: if meshes exist, hide/show via a public hook. */
+      if (G.syncSummerParts) G.syncSummerParts();
+    }
+    s.prompt = sku.name + " delivered to the shop racks";
+    s.promptT = 2.8;
+    if (G.audio && G.audio.beep) G.audio.beep("go");
+    if (G.saveSummerNow) G.saveSummerNow();
+    return { ok: true, sku: sku.id, cash: s.cash, parts: sku.parts.slice() };
+  };
+
+  G.equipSummerTool = function (id, putBack) {
+    const s = S();
+    if (!s || !TOOLS[id]) return { ok: false };
+    if (putBack || s.tool === id) {
+      s.tool = null;
+      s.prompt = "Put the " + TOOLS[id].name + " back";
+    } else {
+      s.tool = id;
+      s.prompt = "Equipped the " + TOOLS[id].name;
+    }
+    s.promptT = 1.8;
+    if (G.audio && G.audio.beep) G.audio.beep("2");
+    if (G.saveSummerNow) G.saveSummerNow();
+    return { ok: true, tool: s.tool };
+  };
+
+  function box(w, h, d, mat, x, y, z) {
+    const T = THREE();
+    const m = new T.Mesh(new T.BoxGeometry(w, h, d), mat);
+    m.position.set(x || 0, y || 0, z || 0);
+    m.castShadow = true;
+    return m;
+  }
+  function cyl(rt, rb, h, seg, mat, x, y, z, rx, ry, rz) {
+    const T = THREE();
+    const m = new T.Mesh(new T.CylinderGeometry(rt, rb, h, seg || 8), mat);
+    m.position.set(x || 0, y || 0, z || 0);
+    if (rx) m.rotation.x = rx;
+    if (ry) m.rotation.y = ry;
+    if (rz) m.rotation.z = rz;
+    return m;
+  }
+  function label(text, w, h, fg, bg) {
+    const T = THREE();
+    const c = document.createElement("canvas");
+    c.width = 512; c.height = 256;
+    const ctx = c.getContext("2d");
+    ctx.fillStyle = bg || "#f3e6c0";
+    ctx.fillRect(0, 0, 512, 256);
+    ctx.fillStyle = fg || "#3a2a18";
+    ctx.font = "700 48px system-ui,sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    const lines = String(text).split("\n");
+    lines.forEach(function (ln, i) {
+      ctx.fillText(ln, 256, 128 + (i - (lines.length - 1) / 2) * 56);
+    });
+    const tex = new T.CanvasTexture(c);
+    tex.colorSpace = T.SRGBColorSpace || tex.colorSpace;
+    const mat = new T.MeshStandardMaterial({
+      map: tex, roughness: 0.85, metalness: 0,
+      emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.22
+    });
+    const mesh = new T.Mesh(new T.PlaneGeometry(w, h), mat);
+    return mesh;
+  }
+
+  function makeToolMesh(kind, mats) {
+    const T = THREE();
+    const g = new T.Group();
+    const chrome = mats.chrome || new T.MeshStandardMaterial({ color: 0xc8d0d4, metalness: 0.75, roughness: 0.28 });
+    const grip = mats.grip || new T.MeshStandardMaterial({ color: 0x2a2a2e, roughness: 0.55, metalness: 0.15 });
+    const accent = mats.accent || new T.MeshStandardMaterial({ color: 0xd8a024, roughness: 0.4, metalness: 0.35 });
+    if (kind === "socket") {
+      g.add(cyl(0.018, 0.018, 0.22, 8, chrome, 0, 0.02, 0, 0, 0, Math.PI / 2));
+      g.add(box(0.055, 0.04, 0.08, chrome, 0.12, 0.02, 0));
+      g.add(cyl(0.016, 0.016, 0.1, 8, grip, -0.12, 0.02, 0, 0, 0, Math.PI / 2));
+    } else if (kind === "impact") {
+      g.add(box(0.16, 0.07, 0.07, accent, 0.02, 0.04, 0));
+      g.add(box(0.05, 0.11, 0.05, grip, -0.02, -0.04, 0));
+      g.add(cyl(0.018, 0.018, 0.08, 8, chrome, 0.12, 0.04, 0, 0, 0, Math.PI / 2));
+    } else {
+      g.add(cyl(0.014, 0.014, 0.28, 8, chrome, 0, 0.02, 0, 0, 0, Math.PI / 2));
+      g.add(box(0.04, 0.035, 0.05, accent, 0.14, 0.02, 0));
+      g.add(cyl(0.03, 0.03, 0.012, 10, chrome, 0.14, 0.05, 0));
+    }
+    g.userData.toolId = kind;
+    return g;
+  }
+
+  function makeClipboard(mats) {
+    const T = THREE();
+    const g = new T.Group();
+    const board = new T.MeshStandardMaterial({ color: 0xc45a2a, roughness: 0.6, metalness: 0.05 });
+    const clip = mats.chrome || new T.MeshStandardMaterial({ color: 0xc8d0d4, metalness: 0.7, roughness: 0.3 });
+    g.add(box(0.28, 0.01, 0.36, board, 0, 0, 0));
+    g.add(box(0.1, 0.02, 0.06, clip, 0, 0.012, -0.15));
+    const paper = label("BUILD\nCHECKLIST", 0.24, 0.28, "#3a2a18", "#f7f0dc");
+    paper.rotation.x = -Math.PI / 2;
+    paper.position.y = 0.008;
+    g.add(paper);
+    return g;
+  }
+
+  function makeTerminal(mats, title) {
+    const T = THREE();
+    const g = new T.Group();
+    const dark = new T.MeshStandardMaterial({ color: 0x2a2e32, roughness: 0.45, metalness: 0.35 });
+    const bezel = new T.MeshStandardMaterial({ color: 0x1a1c1e, roughness: 0.5, metalness: 0.2 });
+    g.add(box(0.08, 1.05, 0.08, mats.wood || dark, 0, 0.52, 0));
+    g.add(box(0.28, 0.04, 0.22, dark, 0, 1.08, 0.02));
+    g.add(box(0.36, 0.28, 0.04, bezel, 0, 1.28, 0.02));
+    const scr = label((title || "PARTS") + "\nMAIL-ORDER", 0.32, 0.22, "#d8f0c8", "#14301c");
+    scr.position.set(0, 1.28, 0.045);
+    g.add(scr);
+    return g;
+  }
+
+  G.dressSummerBuild = function (shop, mats, cols) {
+    if (!shop || !shop.group) return;
+    const T = THREE();
+    const root = shop.group;
+    const metal = mats.metal || new T.MeshStandardMaterial({ color: 0x9aa0a6, metalness: 0.7, roughness: 0.35 });
+    const toolMats = { chrome: metal, grip: new T.MeshStandardMaterial({ color: 0x242428, roughness: 0.55 }), accent: new T.MeshStandardMaterial({ color: 0xd8a024, metalness: 0.35, roughness: 0.4 }) };
+
+    const bench = shop.bench || { x: 6.55, z: -3.15 };
+    const clip = makeClipboard(toolMats);
+    clip.position.set(bench.x + 0.52, 0.98, bench.z + 0.05);
+    clip.rotation.y = -0.35;
+    root.add(clip);
+    shop.clipboard = { x: clip.position.x, y: 0.98, z: clip.position.z, mesh: clip };
+
+    const pc = new T.Group();
+    const dark = new T.MeshStandardMaterial({ color: 0x2a2e32, roughness: 0.45, metalness: 0.3 });
+    pc.add(box(0.28, 0.02, 0.2, dark, 0, 0, 0));
+    pc.add(box(0.26, 0.18, 0.012, dark, 0, 0.12, -0.08));
+    const scr = label("PARTS", 0.24, 0.15, "#c8f0b0", "#14281a");
+    scr.position.set(0, 0.12, -0.072);
+    pc.add(scr);
+    pc.position.set(bench.x + 0.08, 0.97, bench.z - 0.08);
+    pc.rotation.y = 0.2;
+    root.add(pc);
+    shop.partsPc = { x: pc.position.x, y: 1.05, z: pc.position.z, mesh: pc };
+
+    /* Socket + impact live on the rolling toolbox; torque hangs on the pegboard. */
+    const tbox = shop.toolbox || { x: 6.35, z: -1.85 };
+    const socket = makeToolMesh("socket", toolMats);
+    socket.position.set(tbox.x - 0.12, 0.86, tbox.z + 0.02);
+    root.add(socket);
+    const impact = makeToolMesh("impact", toolMats);
+    impact.position.set(tbox.x + 0.12, 0.88, tbox.z + 0.02);
+    impact.rotation.y = 0.4;
+    root.add(impact);
+    const peg = shop.pegboard || { x: 7.41, y: 1.7, z: -3.15 };
+    const torque = makeToolMesh("torque", toolMats);
+    torque.position.set(peg.x - 0.12, peg.y + 0.05, peg.z + 0.18);
+    torque.rotation.z = Math.PI / 2;
+    torque.rotation.y = Math.PI / 2;
+    root.add(torque);
+
+    shop.tools = {
+      socket: { id: "socket", x: socket.position.x, y: socket.position.y, z: socket.position.z, mesh: socket },
+      impact: { id: "impact", x: impact.position.x, y: impact.position.y, z: impact.position.z, mesh: impact },
+      torque: { id: "torque", x: torque.position.x, y: torque.position.y, z: torque.position.z, mesh: torque }
+    };
+  };
+
+  G.dressSummerPartsTerminals = function (root, mats, cols) {
+    if (!root || !G.summerWorld) return;
+    const boards = G.summerWorld.jobBoards || [];
+    if (!G.summerWorld.partsTerminals) G.summerWorld.partsTerminals = [];
+    boards.forEach(function (b, i) {
+      const yaw = (b.mesh && b.mesh.rotation && b.mesh.rotation.y) || 0;
+      const side = (i === 0) ? -1.15 : 1.15;
+      const x = (b.x || 0) + Math.cos(yaw) * side;
+      const z = (b.z || 0) + Math.sin(yaw) * side;
+      const term = makeTerminal(mats || {}, "GIG");
+      term.position.set(x, 0, z);
+      term.rotation.y = yaw + (i === 0 ? 0.15 : 0);
+      root.add(term);
+      G.summerWorld.partsTerminals.push({ x: x, y: 1.28, z: z, mesh: term });
+    });
+  };
+
+  G.raySummerBuild = function (consider) {
+    const s = S();
+    const shop = G.summerWorld && G.summerWorld.shop;
+    if (!s || s.mode === "drive") return;
+    if (shop && shop.tools) {
+      Object.keys(shop.tools).forEach(function (k) {
+        const t = shop.tools[k];
+        /* Hide the world tool when it is already in the player's hand. */
+        if (t.mesh) t.mesh.visible = s.tool !== k;
+        consider(t.x, t.y, t.z, { kind: "shop-tool", id: k });
+      });
+    }
+    if (shop && shop.clipboard) {
+      consider(shop.clipboard.x, shop.clipboard.y, shop.clipboard.z, { kind: "build-clip" });
+    }
+    if (shop && shop.partsPc) {
+      consider(shop.partsPc.x, shop.partsPc.y, shop.partsPc.z, { kind: "parts-pc" });
+    }
+    (G.summerWorld.partsTerminals || []).forEach(function (t) {
+      consider(t.x, t.y, t.z, { kind: "parts-pc" });
+    });
+  };
+
+  G.promptSummerBuild = function (look) {
+    const s = S();
+    if (!s || s.mode === "drive" || !look) return null;
+    if (look.kind === "shop-tool" && look.id) {
+      const t = TOOLS[look.id];
+      if (!t) return null;
+      if (s.tool === look.id) return "E  Hang up the " + t.name;
+      if (s.tool) return "E  Swap for the " + t.name;
+      return "E  Grab the " + t.name;
+    }
+    if (look.kind === "build-clip" || look.kind === "parts-pc") {
+      if (s.catalogOpen) return "A / D  cycle   ·   E  order   ·   E again on Close";
+      return look.kind === "build-clip" ? "E  Open the build clipboard" : "E  Open the parts catalog";
+    }
+    return null;
+  };
+
+  G.interactSummerBuild = function (look, pressed) {
+    if (!pressed) return;
+    const s = S();
+    if (!s || s.mode === "drive" || !look) return;
+    if (look.kind === "shop-tool" && look.id) {
+      G.equipSummerTool(look.id, s.tool === look.id);
+      return;
+    }
+    if (look.kind === "build-clip" || look.kind === "parts-pc") {
+      if (s.catalogOpen) {
+        /* Second E on the board closes only if the Close row is selected;
+           otherwise the tick handler buys. Opening toggle is handled here
+           when closed. */
+        return;
+      }
+      s.catalogOpen = true;
+      s.checklistOpen = true;
+      s.catalogI = 0;
+      if (G.audio && G.audio.beep) G.audio.beep("1");
+    }
+  };
+
+  function catalogRows() {
+    const rows = CATALOG.map(function (sku, i) {
+      return { kind: "sku", sku: sku, i: i, owned: skuOwned(sku) };
+    });
+    rows.push({ kind: "close" });
+    return rows;
+  }
+
+  G.tickSummerCatalog = function (dt, pressed) {
+    const s = S();
+    if (!s || !s.catalogOpen) return;
+    const rows = catalogRows();
+    if (s.catalogI == null) s.catalogI = 0;
+    if (G.input && G.input.pressed("left")) {
+      s.catalogI = (s.catalogI + rows.length - 1) % rows.length;
+      if (G.audio && G.audio.beep) G.audio.beep("1");
+    }
+    if (G.input && G.input.pressed("right")) {
+      s.catalogI = (s.catalogI + 1) % rows.length;
+      if (G.audio && G.audio.beep) G.audio.beep("1");
+    }
+    s.catalogI = ((s.catalogI % rows.length) + rows.length) % rows.length;
+    const row = rows[s.catalogI];
+    if (row.kind === "close") s.prompt = "E  Close the catalog";
+    else if (row.owned) s.prompt = row.sku.name + "  —  already in the shop";
+    else if ((s.cash || 0) < row.sku.price) s.prompt = "Need $" + row.sku.price + " for " + row.sku.name + "  (have $" + (s.cash || 0) + ")";
+    else s.prompt = "E  Order " + row.sku.name + "  $" + row.sku.price;
+    /* Close if the player walks off. */
+    const shop = G.summerWorld && G.summerWorld.shop;
+    const anchors = [];
+    if (shop && shop.clipboard) anchors.push(shop.clipboard);
+    if (shop && shop.partsPc) anchors.push(shop.partsPc);
+    (G.summerWorld.partsTerminals || []).forEach(function (t) { anchors.push(t); });
+    let near = false;
+    for (let i = 0; i < anchors.length; i++) {
+      if (Math.hypot((s.player.x || 0) - anchors[i].x, (s.player.z || 0) - anchors[i].z) < 3.6) { near = true; break; }
+    }
+    if (!near) { s.catalogOpen = false; return; }
+    if (!pressed) return;
+    if (row.kind === "close") {
+      s.catalogOpen = false;
+      if (G.audio && G.audio.beep) G.audio.beep("1");
+      return;
+    }
+    const r = G.buySummerCatalog(row.sku.id);
+    if (!r.ok && r.reason === "cash" && G.audio && G.audio.beep) G.audio.beep("1");
+  };
+
+  G.drawSummerCatalog = function (ctx, W, H) {
+    const s = S();
+    if (!s || !s.catalogOpen || !ctx) return;
+    const rows = catalogRows();
+    const x = 24, y = 86, w = 320, h = 38 + rows.length * 28 + 18;
+    ctx.fillStyle = "rgba(16,18,16,0.78)";
+    ctx.fillRect(x, y, w, h);
+    ctx.strokeStyle = "rgba(200,220,160,0.35)";
+    ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+    ctx.font = "700 14px system-ui,sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#e8f0c8";
+    ctx.fillText("MAIL-ORDER PARTS", x + 14, y + 22);
+    ctx.font = "600 12px system-ui,sans-serif";
+    ctx.fillStyle = "#c8d090";
+    ctx.fillText("CASH  $" + (s.cash || 0), x + w - 110, y + 22);
+    rows.forEach(function (row, i) {
+      const yy = y + 40 + i * 28;
+      if (i === s.catalogI) {
+        ctx.fillStyle = "rgba(180,200,80,0.28)";
+        ctx.fillRect(x + 8, yy - 16, w - 16, 24);
+      }
+      ctx.font = "600 13px system-ui,sans-serif";
+      if (row.kind === "close") {
+        ctx.fillStyle = "#f0f0e4";
+        ctx.fillText("Close catalog", x + 16, yy);
+        return;
+      }
+      ctx.fillStyle = row.owned ? "#8ed08a" : ((s.cash || 0) >= row.sku.price ? "#f4f0e4" : "#e0a06a");
+      const tag = row.owned ? "IN SHOP" : "$" + row.sku.price;
+      ctx.fillText(row.sku.name, x + 16, yy);
+      ctx.textAlign = "right";
+      ctx.fillText(tag, x + w - 16, yy);
+      ctx.textAlign = "left";
+    });
+  };
+
+  G.drawSummerToolChip = function (ctx, W, H) {
+    const s = S();
+    if (!s || !s.tool || !ctx) return;
+    const t = TOOLS[s.tool];
+    if (!t) return;
+    const label = t.short.toUpperCase();
+    ctx.font = "700 13px system-ui,sans-serif";
+    const tw = ctx.measureText(label).width;
+    const x = W - tw - 36, y = 22;
+    ctx.fillStyle = "rgba(20,20,18,0.62)";
+    ctx.fillRect(x, y, tw + 20, 26);
+    ctx.fillStyle = "#e8c050";
+    ctx.textAlign = "left";
+    ctx.fillText(label, x + 10, y + 18);
+  };
+
+  G.drawSummerCelebrate = function (ctx, W, H) {
+    const s = S();
+    if (!s || !(s.celebrateT > 0) || !ctx) return;
+    const t = Math.min(1, s.celebrateT / 5.8);
+    const a = Math.min(1, s.celebrateT / 0.8) * Math.min(1, t * 2);
+    ctx.save();
+    ctx.globalAlpha = a;
+    ctx.fillStyle = "rgba(10, 8, 4, 0.45)";
+    ctx.fillRect(0, H * 0.28, W, 132);
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#ffe28a";
+    ctx.font = "800 52px system-ui,sans-serif";
+    ctx.fillText(s.celebrateTitle || "FIRST DRIVE", W / 2, H * 0.28 + 64);
+    ctx.fillStyle = "#f4f0e4";
+    ctx.font = "600 20px system-ui,sans-serif";
+    ctx.fillText(s.celebrateSub || "Take it down to the beach!", W / 2, H * 0.28 + 104);
+    ctx.restore();
+  };
+
+  G.resetSummerBuildFresh = function () {
+    const s = S();
+    if (!s) return;
+    s.tool = null;
+    s.firstDriveDone = false;
+    s.catalogOpen = false;
+    s.catalogI = 0;
+    s.celebrateT = 0;
+    s.held = null;
+    s.bolt = null;
+    s.alignT = 0;
+    s.mode = "walk";
+    s.cash = 60;
+    s.hunger = 82;
+    const home = (G.summerWorld && G.summerWorld.truckHome) || { x: 4.3, z: 1.7, yaw: 0 };
+    s.truck.x = home.x;
+    s.truck.y = 0;
+    s.truck.z = home.z;
+    s.truck.yaw = home.yaw || 0;
+    s.truck.speed = 0;
+    s.truck.lowered = false;
+    const spawns = G.summerPartSpawns ? G.summerPartSpawns(home) : {};
+    (G.SUMMER_PARTS || []).forEach(function (def) {
+      const p = partState(def.id);
+      const sp = spawns[def.id] || { x: home.x + 3, y: 0.2, z: home.z, ry: 0 };
+      p.state = G.summerPartIsCatalog(def.id) ? "missing" : "loose";
+      p.x = sp.x; p.y = sp.y; p.surface = sp.y; p.z = sp.z; p.ry = sp.ry;
+      p.tight = [];
+      for (let i = 0; i < def.bolts; i++) p.tight.push(false);
+    });
+    if (G.debug && G.debug.summer && G.debug.summer._syncParts) {
+      G.debug.summer._syncParts();
+      if (G.debug.summer._applyPose) G.debug.summer._applyPose();
+    }
+    if (G.saveSummerNow) G.saveSummerNow();
   };
 })(window.TK = window.TK || {});

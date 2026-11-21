@@ -1,4 +1,4 @@
-# Credits — Toaster Summer CC0 assets (summer12)
+# Credits — Toaster Summer CC0 assets (summer20)
 
 All third-party assets below are licensed **CC0 1.0 Universal** (public domain dedication).
 No paid or brand-logo assets are included. Photoscanned Poly Haven tree *meshes* were not
@@ -113,3 +113,22 @@ shipped (they are 50–900 MB each); only lightweight game-ready / low-poly mesh
 - [three.js](https://threejs.org/) r160.1 (MIT), including `GLTFLoader` and `RGBELoader`.
 
 Existing game credits (truck photos, OSM, etc.) remain in the repo-root `CREDITS.md`.
+
+## Kenney Car Kit (sedan, SUV, van, pickup — no brand marks)
+- Source: https://kenney.nl/assets/car-kit and https://opengameart.org/content/car-kit
+- License: CC0 1.0
+- Author: Kenney (www.kenney.nl)
+- Packed as: `assets/models/{high,low}/car_{sedan,suv,van,truck}.glb` plus `Textures/colormap.png`
+- Note: Emergency / taxi / police liveries were not included. Models have no real car brand logos.
+
+## Beach umbrella (Beach Surf and Paddle Kit)
+- Source: https://3dassets.dev/assets/beach-surf-and-paddle-kit-beach-umbrella-fb839e7d
+- License: CC0 1.0 Universal
+- Packed as: `assets/models/{high,low}/umbrella.glb`
+
+## Tree stand-ins (coastal NC species, existing Quaternius / Poly Haven meshes)
+- Live oak: `oak_1`–`oak_3` (Quaternius Ultimate Nature Pack)
+- Palmetto / sabal palm: `palm_1`–`palm_3` (same pack)
+- Loblolly pine: `pine_1`–`pine_3` (same pack)
+- Wax myrtle: `bush_1`, `bush_2`, `shrub` (Quaternius bushes + Poly Haven shrub_03)
+- Distant trees use camera-facing impostors (LOD) beyond about 90 m from the house; near trees stay instanced meshes.
