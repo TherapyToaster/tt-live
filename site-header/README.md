@@ -1,8 +1,14 @@
-# Site header: OOK glitch background (v2)
+# Site header: OOK glitch background (v3)
 
 The My One of a Kind glitch-background canvas, behind the nav tabs on every page that does not already have its own header background. It is the same animation as `ashley-header/header-bg.js`, now sitewide with an exclusion list.
 
 It paints inside `.header-announcement-bar-wrapper` and does not change header height, tab borders, the soft yellow glow, or the caution bar. No underlines are added. `prefers-reduced-motion: reduce` gets a single static glitch frame.
+
+## v3
+
+Home overlay is calmer: lower opacity, slower and rarer ticks, softer scanlines, no tears or strobing, so the graffiti mural stays readable. The glitch palette is now site yellow #FFD400, neon gold #DEBC13, graffiti red #F6392E, and NFT-banner blue #0C87CC (no default RGB cyan/magenta). NFT banner intensity is unchanged aside from that palette.
+
+The full-page Home scroll glitch (`#tt-glitch-cv` / `#tt-glitch-fx`) lives in the Home code block, not this file. Tone-downs for that layer are in `/workspace/homepage-code-v451.txt`.
 
 ## v2 modes
 
