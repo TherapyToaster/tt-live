@@ -1,4 +1,4 @@
-/* TT site header: OOK glitch background v4
+/* TT site header: OOK glitch background v5
    Same canvas as the Ashley Savvie / My One of a Kind glitch background
    (dark #05070d field, scanlines, grain, bursts, SYS_ERR ticks)
    behind the nav tabs.
@@ -7,11 +7,16 @@
    #FFD400 core yellow, #DEBC13 neon gold (banner sign / halo),
    #F6392E graffiti-wall red, #0C87CC NFT-banner neon blue.
 
-   v4: the NFT-tab banner treatment (neon MR. TOASTY shutter photo + v3-palette
-   glitch overlay at the same intensity as /skullz) is the site header on every
-   page except Home. Home stays on the #tt-topwall graffiti mural with the
-   calmer v3 overlay. Ashley Savvie is included via this footer script only;
-   her page Code block is not edited.
+   v5: v4 plus Home. Every page with the site header, including Home, uses the
+   NFT-tab banner treatment (neon MR. TOASTY shutter photo + v3-palette glitch
+   at /skullz intensity) behind the nav tabs. On Home, only the header area
+   changes; #tt-topwall stays as the page background from under the header
+   through the Daily Glitch. Footer script only — no Home code-block edit.
+   Does not touch the Tag Wall, embed, or #ttpw-root.
+
+   v4: the NFT-tab banner treatment was the site header on every page except
+   Home. Ashley Savvie is included via this footer script only; her page Code
+   block is not edited.
 
    ARTcade (/arcade) used to be excluded because artcade-header/header-bg-v2.css
    paints a neon sign into the header wrap. v4 overrides that CSS from this
@@ -78,10 +83,8 @@
     var b=D.body;
     if(!b)return 'off';
     if(b.classList.contains('sqs-edit-mode-active'))return 'off';
-    var path=location.pathname||'';
-    /* Home keeps the graffiti mural + calmer overlay. Every other page with
-       the site header gets the NFT-tab banner treatment. */
-    if(path==='/'||HOME_PATH.test(path)||hasCid(HOME_CID))return 'home-overlay';
+    /* v5: Home also gets the NFT banner in the header. #tt-topwall remains
+       the page background below the header. home-overlay is unused. */
     return 'nft-banner';
   }
 
@@ -107,8 +110,8 @@
   function onPage(){
     var m=pageMode();
     if(m==='off')return false;
-    /* v4 always applies on Home (overlay) and on every other page (banner),
-       even if a page stylesheet already painted a header background (ARTcade). */
+    /* v5 always applies the NFT banner, even if a page stylesheet already
+       painted a header background (ARTcade, Home #tt-topwall wrap tint). */
     if(m==='home-overlay'||m==='nft-banner')return true;
     if(hasOwnHeaderBg())return false;
     return true;
@@ -160,7 +163,7 @@
         'background:transparent!important;background-color:transparent!important;background-image:none!important;'+
       '}'+
       /* NFT tab: photo banner, glitch canvas + veil on top, tabs above that */+
-      'html.'+CLS+'.'+CLS_NFT+' #header .header-announcement-bar-wrapper,html.'+CLS+'.'+CLS_NFT+' body .header-announcement-bar-wrapper{'+
+      'html.'+CLS+'.'+CLS_NFT+' #header .header-announcement-bar-wrapper,html.'+CLS+'.'+CLS_NFT+' body .header-announcement-bar-wrapper,html.'+CLS+'.'+CLS_NFT+'.tt-topwall #header .header-announcement-bar-wrapper{'+
         'position:relative;'+
         'background-color:#000!important;'+
         'background-image:url("'+BANNER_2400_JPG+'")!important;'+
@@ -170,7 +173,7 @@
         'background-position:50% 45%!important;'+
         'background-repeat:no-repeat!important;'+
       '}'+
-      '@media (max-width:800px){html.'+CLS+'.'+CLS_NFT+' #header .header-announcement-bar-wrapper,html.'+CLS+'.'+CLS_NFT+' body .header-announcement-bar-wrapper{'+
+      '@media (max-width:800px){html.'+CLS+'.'+CLS_NFT+' #header .header-announcement-bar-wrapper,html.'+CLS+'.'+CLS_NFT+' body .header-announcement-bar-wrapper,html.'+CLS+'.'+CLS_NFT+'.tt-topwall #header .header-announcement-bar-wrapper{'+
         'background-image:url("'+BANNER_1200_JPG+'")!important;'+
         'background-image:image-set(url("'+BANNER_1200_WEBP+'") type("image/webp"),url("'+BANNER_1200_JPG+'") type("image/jpeg"))!important;'+
       '}}'+
