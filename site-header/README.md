@@ -1,34 +1,13 @@
-# Site header: OOK glitch background (v5)
+# Site header: OOK glitch background (v6)
 
-The My One of a Kind glitch-background canvas, behind the nav tabs. Same animation family as `ashley-header/header-bg.js`, with a site-matched palette.
+v6 = v3 (7a86faa) behavior plus overlay-only glitch on pages that have their own header art, plus a new Home wallpaper. The v4/v5 NFT-banner-on-every-tab change is gone.
 
-It paints inside `.header-announcement-bar-wrapper` and does not change header height, tab borders, the soft yellow glow, or the caution bar. No underlines are added. `prefers-reduced-motion: reduce` gets a single static glitch frame.
+- **/skullz, /mr-toastys-nft-wall:** unchanged from v3 (NFT banner photo + glitch under the tabs).
+- **Default pages** (Shop, Ashley, About, Food Reviews, ...): unchanged from v3 (dark OOK field + glitch).
+- **Pages with their own header art** (/arcade neon sign, /mr-toastys-merch if it returns, or any page whose header wrap already has a background image / canvas / video): ONLY a calm transparent glitch canvas over their own header (`html.tt-site-ook-ovl`). Their background is not replaced, hidden or recolored.
+- **Home:** `#tt-topwall .tw-img` picture swapped from this footer file to `home-wall-v2-2400/1200` (neon "Hello my name is Mr. Toasty" shutter wall), shown whole (fit to width, `100% auto`) over a dark blurred fill of the same picture (`home-wall-v2-fill`). The calm glitch canvas is mounted inside `#tt-topwall`, so it covers the whole wallpaper area under all content and tabs. Hourly Home code-block rebuilds do not undo this. Tune position with CSS vars `--tt-wall-y` (desktop, default 50%) / `--tt-wall-y-m` (mobile, default 72%).
 
-## v5
-
-Every page with the site header, **including Home**, uses the **NFT-tab banner treatment**: the neon MR. TOASTY shutter photo (`nft-banner-2400` / `1200`) behind the tabs, with the v3-palette glitch overlay on top at the same intensity as `/skullz`.
-
-**On Home, only the header area changes.** `#tt-topwall` stays as the page background from under the header through the Daily Glitch. This is applied from the footer script only — do not edit the Home code block (hourly Home rebuilds will not revert the header). Does not touch the Tag Wall, the embed, or `#ttpw-root`.
-
-Home's own `#tt-topwall-css` tints the header wrap (`background: rgba(0,0,0,.18)`). This script beats that with higher-specificity `#header` / `html.tt-topwall` rules plus an inline `!important` background.
-
-**ARTcade** (`/arcade`) is included the same way as v4 (overrides `artcade-header/header-bg-v2.css` from the footer tag; no arcade page-block edit).
-
-**Ashley Savvie** is included via this same footer script. Do not edit her page Code block.
-
-`/mr-toastys-merch` 404s; if it returns, it also gets the banner.
-
-## Palette
-
-#FFD400 core yellow, #DEBC13 neon gold, #F6392E graffiti red, #0C87CC NFT-banner blue. No default RGB cyan/magenta.
-
-## Mode
-
-- **Banner** (every page with the site header, including Home): photo + glitch under the tabs.
-
-The unused `home-overlay` path (transparent glitch over the graffiti in the header) remains in the file but is not selected.
-
-This script replaces the Ashley-only tag. Do not leave both tags in Footer Code Injection. The script also destroys leftover `#tt-ashley-ook-cv` nodes if the old file is still loaded. Safe under Squarespace soft navigation: the canvas is not duplicated.
+Palette: #FFD400, #DEBC13, #F6392E, #0C87CC. `prefers-reduced-motion: reduce` gets one static frame. Canvas and veil are `pointer-events:none`.
 
 ## One-line tag (sitewide Footer Code Injection)
 

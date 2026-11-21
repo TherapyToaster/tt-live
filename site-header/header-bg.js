@@ -1,49 +1,59 @@
-/* TT site header: OOK glitch background v5
+/* TT site header: OOK glitch background v6
    Same canvas as the Ashley Savvie / My One of a Kind glitch background
    (dark #05070d field, scanlines, grain, bursts, SYS_ERR ticks)
-   behind the nav tabs.
+   behind the nav tabs on every page that does not already have its own
+   header background.
 
    Palette (sampled from the live site, not default RGB cyan/magenta):
    #FFD400 core yellow, #DEBC13 neon gold (banner sign / halo),
    #F6392E graffiti-wall red, #0C87CC NFT-banner neon blue.
 
-   v5: v4 plus Home. Every page with the site header, including Home, uses the
-   NFT-tab banner treatment (neon MR. TOASTY shutter photo + v3-palette glitch
-   at /skullz intensity) behind the nav tabs. On Home, only the header area
-   changes; #tt-topwall stays as the page background from under the header
-   through the Daily Glitch. Footer script only — no Home code-block edit.
-   Does not touch the Tag Wall, embed, or #ttpw-root.
-
-   v4: the NFT-tab banner treatment was the site header on every page except
-   Home. Ashley Savvie is included via this footer script only; her page Code
-   block is not edited.
-
-   ARTcade (/arcade) used to be excluded because artcade-header/header-bg-v2.css
-   paints a neon sign into the header wrap. v4 overrides that CSS from this
-   file (higher-specificity #header rules) and does not edit the arcade page block.
-
-   /mr-toastys-merch remains 404; if it returns, it also gets the banner.
+   v6 (after v4/v5 were rolled back): same as v3, plus
+   - Every page v3 left alone (/arcade neon sign, /mr-toastys-merch, any page
+     whose header wrap already has its own background image / canvas / video)
+     now gets ONLY the calm transparent glitch overlay on top of its own header.
+     Its own background is not replaced, hidden or recolored. No banner photo.
+   - Home: the #tt-topwall wallpaper picture is swapped (from this footer file,
+     so hourly Home code-block rebuilds do not undo it) to the neon
+     "Hello my name is Mr. Toasty" shutter wall (home-wall-v2-*), shown WHOLE
+     (fit to width, no cover crop) over a dark blurred fill of the same image.
+     The calm glitch canvas now covers the whole wallpaper area (inside
+     #tt-topwall, under all content and tabs), not just the header strip.
+   - /skullz and /mr-toastys-nft-wall unchanged from v3. Default dark-field
+     pages (Ashley, Shop, About, ...) unchanged from v3.
 
    v3: Home overlay is much calmer (lower opacity, rare soft ticks, no
-   tears or strobe) so the graffiti wallpaper reads clearly.
+   tears or strobe) so the graffiti wallpaper reads clearly. NFT banner
+   intensity stays about the same; only the palette changes there.
 
    v2 added two modes, both keep the overlay glitch under the tabs:
-   - Banner (/skullz and, as of v4, every non-Home page with the site header):
+   - NFT banner (/mr-toastys-nft-wall and /skullz, the "Mr. Toasty's NFTs" tab):
      the neon MR. TOASTY shutter photo is the banner picture; the glitch paints
      on top of it. Banner files live in this folder (nft-banner-2400/1200).
    - Home overlay (/ and /home): the glitch paints over the #tt-topwall graffiti
      wallpaper and under the nav tabs. Transparent canvas, no opaque fill, so
      the mural stays visible. Does not touch the Tag Wall, embed, or #ttpw-root.
 
+   Excluded (keep their existing header art):
+   - /arcade (collection 6ad5b63914df0c0376bddf45): neon sign CSS
+   - /mr-toastys-merch: graffiti header, if that page returns (404 as of 2026-11-14)
+   - Any other page whose .header-announcement-bar-wrapper already has a non-none
+     background-image from page CSS, or a foreign canvas/video in the header wrap.
+     Home's #tt-topwall is no longer treated as a reason to skip (overlay mode).
+
+   Ashley Savvie (/ashleysavvie, collection 6aefb320e7defe1c4dfda59f) keeps the
+   same look, including the white-bar gap fix under the nav.
+
    Does not change header height, tab borders, the soft yellow glow, or the
    caution bar. Adds no underlines. Safe under Squarespace soft nav (no
-   duplicate canvas). Respects prefers-reduced-motion (static glitch frame).
-   Neutralizes the older Ashley-only script if both load.
+   duplicate canvas; removed on excluded pages). Respects prefers-reduced-motion
+   (static glitch frame). Neutralizes the older Ashley-only script if both load.
 
    Replaces ashley-header/header-bg.js. Load once from sitewide Footer Code Injection:
    <script src="https://therapytoaster.github.io/tt-live/site-header/header-bg.js?c=SHORTSHA" defer></script>
    Home does not need a tag in the Home code block; this file already runs sitewide
-   and survives hourly Home rebuilds.
+   and survives hourly Home rebuilds. v3 only changes this file for the header layer;
+   the full-page Home scroll glitch lives in the Home code block.
 */
 (function(){
   if(window.self!==window.top)return;
@@ -57,17 +67,32 @@
   var W=window, D=document, KEY='__ttSiteOokHeader';
   if(W[KEY]&&W[KEY].destroy)W[KEY].destroy();
 
+  var EXCLUDE_CID={
+    'collection-6ad5b63914df0c0376bddf45':1  /* ARTcade */
+  };
+  var EXCLUDE_PATH=/^\/(arcade|mr-toastys-merch)\/?$/i; /* v6: overlay-only, keep own header art */
   var HOME_CID={
     'collection-6a9884b8f61a583fee13721f':1
   };
+  var NFT_CID={
+    'collection-6af6cf6c71c4ca6f54577e52':1, /* /mr-toastys-nft-wall */
+    'collection-6ad2fee94e898d331b4002bf':1  /* /skullz  (nav tab "Mr. Toasty's NFTs") */
+  };
   var HOME_PATH=/^\/(home)?\/?$/i;
+  var NFT_PATH=/^\/(mr-toastys-nft-wall|skullz)\/?$/i;
   var ASSET='https://therapytoaster.github.io/tt-live/site-header/';
   var BANNER_2400_WEBP=ASSET+'nft-banner-2400.webp';
   var BANNER_2400_JPG=ASSET+'nft-banner-2400.jpg';
   var BANNER_1200_WEBP=ASSET+'nft-banner-1200.webp';
   var BANNER_1200_JPG=ASSET+'nft-banner-1200.jpg';
+  var CLS_OVL='tt-site-ook-ovl'; /* v6: overlay-only on a page's own header */
+  var CLS_WALL='tt-site-ook-wall'; /* v6: Home wallpaper swap */
+  var WALL_2400_WEBP=ASSET+'home-wall-v2-2400.webp', WALL_2400_JPG=ASSET+'home-wall-v2-2400.jpg';
+  var WALL_1200_WEBP=ASSET+'home-wall-v2-1200.webp', WALL_1200_JPG=ASSET+'home-wall-v2-1200.jpg';
+  var WALL_FILL_WEBP=ASSET+'home-wall-v2-fill.webp', WALL_FILL_JPG=ASSET+'home-wall-v2-fill.jpg';
+  var TOPWALL_ID='tt-topwall';
 
-  var mode='off'; /* off | default | nft-banner | home-overlay */
+  var mode='off'; /* off | default | nft-banner | home-overlay | overlay */
   var bannerImg=null, bannerTried=false, bannerWait=0;
 
   function bodyIdClass(){
@@ -83,9 +108,11 @@
     var b=D.body;
     if(!b)return 'off';
     if(b.classList.contains('sqs-edit-mode-active'))return 'off';
-    /* v5: Home also gets the NFT banner in the header. #tt-topwall remains
-       the page background below the header. home-overlay is unused. */
-    return 'nft-banner';
+    var path=location.pathname||'';
+    if(EXCLUDE_PATH.test(path)||hasCid(EXCLUDE_CID))return 'overlay';
+    if(path==='/'||HOME_PATH.test(path)||hasCid(HOME_CID))return 'home-overlay';
+    if(NFT_PATH.test(path)||hasCid(NFT_CID))return 'nft-banner';
+    return 'default';
   }
 
   function hasOwnHeaderBg(wrapEl){
@@ -101,29 +128,35 @@
     var bg=(W.getComputedStyle?getComputedStyle(wrap).backgroundImage:'')||'';
     if(bg&&bg!=='none'){
       var root=D.documentElement;
-      if(root&&(root.classList.contains(CLS)||root.classList.contains(CLS_NFT)||root.classList.contains(CLS_OVER)))return false;
+      if(root&&(root.classList.contains(CLS)||root.classList.contains(CLS_NFT)||root.classList.contains(CLS_OVER)||root.classList.contains(CLS_OVL)))return false;
       return true;
     }
     return false;
   }
 
   function onPage(){
-    var m=pageMode();
-    if(m==='off')return false;
-    /* v5 always applies the NFT banner, even if a page stylesheet already
-       painted a header background (ARTcade, Home #tt-topwall wrap tint). */
-    if(m==='home-overlay'||m==='nft-banner')return true;
-    if(hasOwnHeaderBg())return false;
-    return true;
+    return pageMode()!=='off';
   }
+  /* v6: a 'default' page whose header already has its own art gets overlay-only.
+     Check with our classes off so a previous page's class cannot hide its art. */
+  function resolveMode(m,wrapEl){
+    if(m!=='default')return m;
+    var root=D.documentElement,had=root?root.className:'';
+    if(root)root.classList.remove(CLS,CLS_NFT,CLS_OVER,CLS_OVL);
+    var own=hasOwnHeaderBg(wrapEl);
+    if(root)root.className=had;
+    return own?'overlay':'default';
+  }
+  function calm(){return mode==='home-overlay'||mode==='overlay';}
 
   function setActive(m){
     var root=D.documentElement;
     if(!root)return;
-    root.classList.remove(CLS,CLS_NFT,CLS_OVER);
+    root.classList.remove(CLS,CLS_NFT,CLS_OVER,CLS_OVL,CLS_WALL);
     if(!m||m==='off')return;
     if(m==='nft-banner'){root.classList.add(CLS,CLS_NFT);}
-    else if(m==='home-overlay'){root.classList.add(CLS_OVER);}
+    else if(m==='home-overlay'){root.classList.add(CLS_OVER,CLS_WALL);}
+    else if(m==='overlay'){root.classList.add(CLS_OVL);}
     else root.classList.add(CLS);
   }
 
@@ -163,7 +196,7 @@
         'background:transparent!important;background-color:transparent!important;background-image:none!important;'+
       '}'+
       /* NFT tab: photo banner, glitch canvas + veil on top, tabs above that */+
-      'html.'+CLS+'.'+CLS_NFT+' #header .header-announcement-bar-wrapper,html.'+CLS+'.'+CLS_NFT+' body .header-announcement-bar-wrapper,html.'+CLS+'.'+CLS_NFT+'.tt-topwall #header .header-announcement-bar-wrapper{'+
+      'html.'+CLS+'.'+CLS_NFT+' .header-announcement-bar-wrapper{'+
         'position:relative;'+
         'background-color:#000!important;'+
         'background-image:url("'+BANNER_2400_JPG+'")!important;'+
@@ -173,11 +206,11 @@
         'background-position:50% 45%!important;'+
         'background-repeat:no-repeat!important;'+
       '}'+
-      '@media (max-width:800px){html.'+CLS+'.'+CLS_NFT+' #header .header-announcement-bar-wrapper,html.'+CLS+'.'+CLS_NFT+' body .header-announcement-bar-wrapper,html.'+CLS+'.'+CLS_NFT+'.tt-topwall #header .header-announcement-bar-wrapper{'+
+      '@media (max-width:800px){html.'+CLS+'.'+CLS_NFT+' .header-announcement-bar-wrapper{'+
         'background-image:url("'+BANNER_1200_JPG+'")!important;'+
         'background-image:image-set(url("'+BANNER_1200_WEBP+'") type("image/webp"),url("'+BANNER_1200_JPG+'") type("image/jpeg"))!important;'+
       '}}'+
-      'html.'+CLS+'.'+CLS_NFT+' #header .header-announcement-bar-wrapper .header-background,html.'+CLS+'.'+CLS_NFT+' body .header-announcement-bar-wrapper .header-background{'+
+      'html.'+CLS+'.'+CLS_NFT+' .header-announcement-bar-wrapper .header-background{'+
         'background:transparent!important;background-color:transparent!important;background-image:none!important;'+
       '}'+
       /* Home: glitch over the graffiti wallpaper, under the tabs. Do not paint an opaque header fill. */+
@@ -203,6 +236,25 @@
       'html.'+CLS+' .header-title-logo img,html.'+CLS_NFT+' .header-title-logo img,html.'+CLS_OVER+' .header-title-logo img{'+
         'filter:drop-shadow(0 0 6px #000) drop-shadow(0 1px 2px #000);'+
       '}'+
+      /* v6 overlay-only: never touch the page's own header background. */
+      'html.'+CLS_OVL+' .header-announcement-bar-wrapper{position:relative;}'+
+      'html.'+CLS_OVL+' #'+OV_ID+'{background:rgba(0,0,0,.03);}'+
+      'html.'+CLS_OVL+' .header-announcement-bar-wrapper > .header-inner{position:relative;z-index:2;}'+
+      /* v6 Home wallpaper: whole image, fit to width, dark blurred fill of the same picture. */
+      'html.'+CLS_WALL+' #'+TOPWALL_ID+' .tw-img{'+
+        'background-color:#05070d!important;background-repeat:no-repeat,no-repeat!important;'+
+        'background-image:url("'+WALL_2400_JPG+'"),url("'+WALL_FILL_JPG+'")!important;'+
+        'background-image:image-set(url("'+WALL_2400_WEBP+'") type("image/webp"),url("'+WALL_2400_JPG+'") type("image/jpeg")),image-set(url("'+WALL_FILL_WEBP+'") type("image/webp"),url("'+WALL_FILL_JPG+'") type("image/jpeg"))!important;'+
+        'background-size:100% auto,cover!important;'+
+        'background-position:50% var(--tt-wall-y,50%),50% 50%!important;'+
+      '}'+
+      '@media (max-width:767px){html.'+CLS_WALL+' #'+TOPWALL_ID+' .tw-img{'+
+        'background-image:url("'+WALL_1200_JPG+'"),url("'+WALL_FILL_JPG+'")!important;'+
+        'background-image:image-set(url("'+WALL_1200_WEBP+'") type("image/webp"),url("'+WALL_1200_JPG+'") type("image/jpeg")),image-set(url("'+WALL_FILL_WEBP+'") type("image/webp"),url("'+WALL_FILL_JPG+'") type("image/jpeg"))!important;'+
+        'background-position:50% var(--tt-wall-y-m,72%),50% 50%!important;'+
+      '}}'+
+      'html.'+CLS_WALL+' #'+TOPWALL_ID+' #'+CV_ID+'{z-index:2;}'+
+      'html.'+CLS_WALL+' #'+TOPWALL_ID+' #'+OV_ID+'{z-index:3;background:rgba(0,0,0,.03);}'+
       /* Ashley white-bar gap under the nav (same rules as the Ashley-only script). */+
       '[data-section-id="'+SECTION+'"] .content-wrapper{padding-top:0!important}'+
       '[data-section-id="'+SECTION+'"] .section-background{background:#000!important}';
@@ -229,7 +281,7 @@
 
   function paintBase(){
     if(!bc||!base)return;
-    var overlay=mode==='home-overlay';
+    var overlay=calm();
     var nft=mode==='nft-banner';
     if(overlay){
       bc.clearRect(0,0,width,height);
@@ -253,16 +305,14 @@
     bc.fillStyle='rgba(0,0,0,.28)';for(y=0;y<height;y+=3)bc.fillRect(0,y,width,1);
   }
 
-  function wantAlpha(){return mode==='nft-banner'||mode==='home-overlay';}
+  function wantAlpha(){return mode==='nft-banner'||calm();}
 
   function size(force){
-    if(!wrap)return;
-    if(mode==='nft-banner')applyBannerCss(wrap);
-    if(!cv||!ctx)return;
+    if(!cv||!wrap||!ctx)return;
     var cw=wrap.clientWidth||innerWidth,ch=wrap.clientHeight||0;
     if(ch<8)ch=Math.max(8,(wrap.getBoundingClientRect().height||0));
     if(!force&&cw===lastW&&Math.abs(ch-lastH)<2&&width)return;
-    lastW=cw;lastH=ch;mob=cw<700;FPS=mode==='home-overlay'?(mob?8:10):(mob?20:24);
+    lastW=cw;lastH=ch;mob=cw<700;FPS=calm()?(mob?8:10):(mob?20:24);
     var d=Math.min(W.devicePixelRatio||1,2),k=(mob?.5:.6)*d,cap=mob?180000:400000;
     if(cw*k*ch*k>cap)k=Math.sqrt(cap/(cw*ch||1));S=k;
     width=Math.max(48,Math.round(cw*k));height=Math.max(24,Math.round(ch*k));
@@ -276,14 +326,14 @@
       for(var i=0;i<p.length;i+=4){var v=R()*255|0;p[i]=v;p[i+1]=v*.94|0;p[i+2]=v*.82|0;p[i+3]=R()<.5?0:(R()*34|0);}
       nx.putImageData(id,0,0);pats.push(ctx.createPattern(nc,'repeat'));
     }
-    if(mode==='home-overlay') tracks=[{y:R()*height,v:height*.012,h:Math.max(2,height*.01)}];
+    if(calm()) tracks=[{y:R()*height,v:height*.012,h:Math.max(2,height*.01)}];
     else tracks=[{y:R()*height,v:height*.05,h:Math.max(3,height*.018)},{y:R()*height,v:height*.085,h:Math.max(2,height*.008)}];
-    if(mode==='home-overlay')ctx.clearRect(0,0,width,height);
+    if(calm())ctx.clearRect(0,0,width,height);
     ctx.drawImage(base,0,0);if(rmq.matches)still();
   }
 
   function newBurst(t){
-    var home=mode==='home-overlay';
+    var home=calm();
     var n=home?1+(R()*2|0):(mob?3:4)+(R()*(mob?3:5)|0),sl=[];
     for(var i=0;i<n;i++){
       var r=R();
@@ -330,7 +380,7 @@
   }
   function draw(t,dt){
     var b=burst&&t-burst.t<burst.d?burst:null;if(burst&&!b)burst=null;
-    var overlay=mode==='home-overlay';
+    var overlay=calm();
     if(overlay){
       ctx.clearRect(0,0,width,height);
       ctx.globalAlpha=.7;ctx.drawImage(base,0,0);ctx.globalAlpha=1;
@@ -355,7 +405,7 @@
   }
   function still(){
     if(!ctx||!base)return;
-    var overlay=mode==='home-overlay';
+    var overlay=calm();
     if(overlay)ctx.clearRect(0,0,width,height);
     ctx.globalAlpha=1;ctx.drawImage(base,0,0);noise(overlay?.12:.6);
     if(overlay)return;
@@ -374,7 +424,7 @@
   function stopLoop(){if(raf)cancelAnimationFrame(raf);raf=0;}
   function startLoop(){
     if(!raf&&vis&&onScreen&&!rmq.matches&&cv&&cv.isConnected){
-      last=0;if(!nextB)nextB=performance.now()+(mode==='home-overlay'?2500:400);raf=requestAnimationFrame(loop);
+      last=0;if(!nextB)nextB=performance.now()+(calm()?2500:400);raf=requestAnimationFrame(loop);
     }
   }
 
@@ -395,26 +445,7 @@
     tryNext();
   }
 
-  function bannerImageValue(){
-    var webp=mob?BANNER_1200_WEBP:BANNER_2400_WEBP, jpg=mob?BANNER_1200_JPG:BANNER_2400_JPG;
-    return 'url("'+jpg+'")';
-  }
-  function applyBannerCss(el){
-    var w=el||wrap;
-    if(!w)return;
-    if(mode!=='nft-banner'){clearBannerCss(w);return;}
-    w.style.setProperty('background-color','#000','important');
-    w.style.setProperty('background-image',bannerImageValue(),'important');
-    w.style.setProperty('background-size','cover','important');
-    w.style.setProperty('background-position','50% 45%','important');
-    w.style.setProperty('background-repeat','no-repeat','important');
-  }
-  function clearBannerCss(el){
-    var w=el||wrap;
-    if(!w||!w.style)return;
-    ['background-image','background-size','background-position','background-repeat','background-color'].forEach(function(prop){w.style.removeProperty(prop);});
-  }
-
+  var cvMode='',wallTry=0,wallT=0;
   function mount(){
     removeLegacy();
     var m=pageMode();
@@ -423,26 +454,33 @@
     ensureStyle();
     wrap=D.querySelector('#header .header-announcement-bar-wrapper')||D.querySelector('.header-announcement-bar-wrapper');
     if(!wrap)return;
-    /* Re-check own bg now that we have the wrap, before adding our class.
-       Home overlay and the NFT banner are allowed even when #tt-topwall or a
-       CSS background is present (we are the ones setting the NFT background). */
-    if(m==='default'&&hasOwnHeaderBg(wrap)){unmount();return;}
+    /* v6: default pages with their own header art get overlay-only (nothing replaced). */
+    m=resolveMode(m,wrap);
+    mode=m;
     setActive(m);
-    if(cv&&cv.isConnected&&cv.parentNode===wrap){
+    /* v6 Home: glitch canvas covers the whole #tt-topwall wallpaper, not just the header. */
+    var host=wrap,inWall=false;
+    clearTimeout(wallT);
+    if(m==='home-overlay'){
+      var tw=D.getElementById(TOPWALL_ID);
+      if(tw){host=tw;inWall=true;wallTry=0;}
+      else if(wallTry<40){wallTry++;wallT=setTimeout(function(){if(pageMode()==='home-overlay')mount();},400);}
+    }else wallTry=0;
+    if(cv&&cv.isConnected&&cv.parentNode===host&&cvMode===m){
+      wrap=host;
       if(m==='nft-banner'&&!(bannerImg&&bannerImg.naturalWidth)){
         loadBanner(function(){paintBase();size(true);startLoop();});
       }else{size(false);startLoop();}
       return;
     }
-    var host=wrap;
     unmountCanvasOnly();
     wrap=host;
-    mode=m;
+    mode=m;cvMode=m;
     setActive(m);
     cv=D.createElement('canvas');cv.id=CV_ID;cv.setAttribute('aria-hidden','true');cv.setAttribute('role','presentation');
     ov=D.createElement('div');ov.id=OV_ID;ov.setAttribute('aria-hidden','true');
-    wrap.insertBefore(ov,wrap.firstChild);
-    wrap.insertBefore(cv,wrap.firstChild);
+    if(inWall){wrap.appendChild(cv);wrap.appendChild(ov);}
+    else{wrap.insertBefore(ov,wrap.firstChild);wrap.insertBefore(cv,wrap.firstChild);}
     ctx=cv.getContext('2d',{alpha:wantAlpha()});if(!ctx)return;
     pats=[];base=null;bc=null;burst=null;texts=[];nextB=0;nextT=0;lastW=0;lastH=0;fi=0;
     vis=!D.hidden;onScreen=true;
@@ -476,13 +514,12 @@
   }
 
   function unmountCanvasOnly(){
-    clearBannerCss(wrap);
     stopLoop();
     if(io){try{io.disconnect();}catch(e){}io=null;}
     if(ro){try{ro.disconnect();}catch(e){}ro=null;}
     if(cv&&cv.parentNode)cv.parentNode.removeChild(cv);
     if(ov&&ov.parentNode)ov.parentNode.removeChild(ov);
-    cv=null;ov=null;ctx=null;wrap=null;
+    cv=null;ov=null;ctx=null;wrap=null;cvMode='';
   }
   function unmount(){
     unmountCanvasOnly();
@@ -492,6 +529,7 @@
   }
 
   function destroy(){
+    clearTimeout(wallT);
     unmount();
     if(unvis){D.removeEventListener('visibilitychange',unvis);unvis=null;}
     if(unrm&&rmq.removeEventListener){rmq.removeEventListener('change',unrm);unrm=null;}
