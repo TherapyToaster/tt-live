@@ -1,4 +1,7 @@
-/* TT site header: OOK glitch background v6.1
+/* TT site header: OOK glitch background v6.2
+   v6.2: adds the TT IMG FIX block at the end of this file (dead Shopify
+   tee mockup URLs on Home "Dress like Mr. Toasty" card, Latest drop strip
+   and /shop are swapped to the current product images). Nothing else changed.
    Same canvas as the Ashley Savvie / My One of a Kind glitch background
    (dark #05070d field, scanlines, grain, bursts, SYS_ERR ticks)
    behind the nav tabs on every page that does not already have its own
@@ -607,4 +610,80 @@
   }
   if(D.readyState==='loading')D.addEventListener('DOMContentLoaded',boot);
   else boot();
+})();
+
+/* ===== TT IMG FIX v1 (header-bg.js v6.2) =====
+   Shopify replaced some tee mockup files with new product photos and the old
+   file URLs now 404. Home ("Dress like Mr. Toasty" card + Latest drop strip)
+   and /shop still pointed at the old files, so the pictures showed as broken.
+   This swaps every old URL to the product's current image (keeps any
+   &width= size), on load, on DOM changes and on image error.
+   Also: the Latest drop strip listed "Please Be Nice Tee" (unpublished
+   2026-11-21); it now shows "Hooded Hello Toasty Tee" instead. */
+(function(){
+  var W=window,D=document;
+  if(W.__ttImgFix)return;W.__ttImgFix=1;
+  var B='https://cdn.shopify.com/s/files/1/0787/6860/3190/files/';
+  var MAP={"hive-mind-skull-tee-mockup.png": "unisex-staple-t-shirt-black-front-6af99e778f48f.jpg?v=1794743934","golden-fracture-tee-mockup-v2.png": "unisex-staple-t-shirt-black-front-6af9fe193f146.jpg?v=1794768416","cherry-bomb-skull-tee-mockup.png": "unisex-staple-t-shirt-black-front-6af9996c53714.jpg?v=1794742643","chrome-flame-skull-tee-mockup.png": "unisex-staple-t-shirt-black-front-6af999fa5354b.jpg?v=1794742785","cosmic-halo-skull-tee-mockup.png": "unisex-staple-t-shirt-black-front-6af99a9b3dfb2.jpg?v=1794742945","hers-tee-mockup.png": "unisex-staple-t-shirt-black-front-6af99c55ecd4d.jpg?v=1794743389","his-tee-mockup.png": "unisex-staple-t-shirt-black-front-6af99de01b7f3.jpg?v=1794743783","nice-and-toasty-tee-mockup.png": "unisex-staple-t-shirt-black-front-6af99ef5a07e3.jpg?v=1794744061","vhs-static-skull-tee-mockup.png": "unisex-staple-t-shirt-black-front-6afa0164540d2.jpg?v=1794769259","xx-static-smile-tee-mockup.png": "unisex-staple-t-shirt-black-front-6afa028349bba.jpg?v=1794769546","unisex-staple-t-shirt-black-heather-front-and-back-6adadbe7d1015_800x800.jpg": "mr-toasty-tee-blend-mockup.png?v=1793421323"};
+  var KEYS=Object.keys(MAP);
+  var PBN='please-be-nice-tee-mockup';
+  var HHT=B+'hooded-hello-toasty-tee-mockup.png?v=1795139551';
+  function swapUrl(u){
+    if(!u||u.indexOf('cdn.shopify.com')<0)return null;
+    for(var i=0;i<KEYS.length;i++){
+      if(u.indexOf(KEYS[i])>-1){
+        var w=/[?&]width=(\d+)/.exec(u);
+        return B+MAP[KEYS[i]]+(w?'&width='+w[1]:'');
+      }
+    }
+    return null;
+  }
+  function fixImg(im){
+    if(!im||im.tagName!=='IMG')return;
+    var n=swapUrl(im.getAttribute('src'));
+    if(n&&im.getAttribute('src')!==n)im.setAttribute('src',n);
+    var ss=im.getAttribute('srcset');
+    if(ss&&/mockup|6adadbe7d1015/.test(ss)){
+      var out=ss.split(',').map(function(p){p=p.trim();var sp=p.split(/\s+/);var r=swapUrl(sp[0]);if(r)sp[0]=r;return sp.join(' ');}).join(', ');
+      if(out!==ss)im.setAttribute('srcset',out);
+    }
+    ['data-src','data-image'].forEach(function(a){var v=im.getAttribute(a),r=swapUrl(v);if(r)im.setAttribute(a,r);});
+  }
+  function fixDrop(){
+    var d=D.getElementById('tt-drop');if(!d)return;
+    var ims=d.querySelectorAll('img');
+    for(var i=0;i<ims.length;i++){
+      var s=ims[i].getAttribute('src')||'';
+      if(s.indexOf(PBN)>-1){
+        ims[i].setAttribute('src',HHT+'&width=200');
+        var b=ims[i].parentNode&&ims[i].parentNode.querySelector('b');
+        if(b)b.textContent='Hooded Hello Toasty Tee';
+      }
+    }
+  }
+  function fixBg(el){
+    var st=el.getAttribute&&el.getAttribute('style');
+    if(!st||st.indexOf('cdn.shopify.com')<0)return;
+    var out=st.replace(/url\((['"]?)([^'")]+)\1\)/g,function(m,q,u){var r=swapUrl(u);return r?'url('+q+r+q+')':m;});
+    if(out!==st)el.setAttribute('style',out);
+  }
+  function scan(root){
+    root=root||D;
+    if(!root.querySelectorAll)return;
+    var ims=root.querySelectorAll('img');
+    for(var i=0;i<ims.length;i++)fixImg(ims[i]);
+    var bg=root.querySelectorAll('[style*="cdn.shopify.com"]');
+    for(var j=0;j<bg.length;j++)fixBg(bg[j]);
+    fixDrop();
+  }
+  var q=0;
+  function soon(){if(q)return;q=setTimeout(function(){q=0;scan(D);},300);}
+  D.addEventListener('error',function(e){var t=e.target;if(t&&t.tagName==='IMG'){fixImg(t);}},true);
+  function boot(){
+    scan(D);
+    try{new MutationObserver(soon).observe(D.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['src','srcset']});}catch(e){}
+    [250,1000,2500,5000].forEach(function(ms){setTimeout(function(){scan(D);},ms);});
+    ['mercury:load','mercury:navigate'].forEach(function(ev){W.addEventListener(ev,soon);D.addEventListener(ev,soon);});
+  }
+  if(D.readyState==='loading')D.addEventListener('DOMContentLoaded',boot);else boot();
 })();
