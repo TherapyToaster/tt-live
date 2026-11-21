@@ -1,4 +1,6 @@
-/* TT site header: OOK glitch background v6.2
+/* TT site header: OOK glitch background v6.3
+   v6.3: adds the TT GOTTEM block at the end (Home: click any big R in
+   Coty's name to play a "HA GOTTEM" clip). Nothing else changed.
    v6.2: adds the TT IMG FIX block at the end of this file (dead Shopify
    tee mockup URLs on Home "Dress like Mr. Toasty" card, Latest drop strip
    and /shop are swapped to the current product images). Nothing else changed.
@@ -687,3 +689,196 @@
   }
   if(D.readyState==='loading')D.addEventListener('DOMContentLoaded',boot);else boot();
 })();
+
+/* TT GOTTEM v1 (header-bg.js v6.3-gottem) =====
+   Home only. Clicking any big (R) in Coty's name plays a short "HA GOTTEM"
+   clip (site-header/sfx/gottem.mp3 / .ogg), with a small wiggle.
+   Wired R's:
+     1. hero heading "〽️®️ Ƭᴏᴀsᴛʏ🎭 Therapy Space" (the .tt-blackr span made by
+        TT BLACK R; if that span isn't there, this block wraps the ® itself)
+     2. the "Dress like 〽️®️Ƭᴏᴀ𝙎ᴛʏ🎭" shop card heading (#ttmerch .ttm-logo);
+        clicking the R plays the clip instead of opening the shop link
+     3. the announcement bar "better known as 〽️®️Ƭᴏᴀ𝙎ᴛʏ🎭"
+     4. the purple circled R in the neon "M(R)TOASTY" sign on the Home wall
+        picture (a click hotspot computed from the wall's runtime placement)
+   Every click restarts the clip. Only text-node ® glyphs inside those
+   elements are wrapped (span.tt-gotr); nothing is wrapped inside the
+   Squarespace editor iframe, so no span can be saved into a block.
+   Re-applies on DOM changes, so it survives the hourly Home rebuild. */
+(function(){
+  var W=window,D=document;
+  if(W.__ttGottem)return;W.__ttGottem=1;
+  try{if(W.self!==W.top)return;}catch(e){return;}
+  var BASE='https://therapytoaster.github.io/tt-live/site-header/sfx/gottem';
+  var V='?v=1';
+  var CLS='tt-gotr';
+  /* circled R on the wall picture, as fractions of the picture (2400x800) */
+  var WR={cx:2009/2400,cy:670/800,r:46/2400};
+  var audio=null;
+  function isHome(){
+    var p=(location.pathname||'/').replace(/\/+$/,'')||'/';
+    return p==='/'||p==='/home'||(D.body&&D.body.classList.contains('homepage'));
+  }
+  function getAudio(){
+    if(audio)return audio;
+    audio=new Audio();
+    var mp3=audio.canPlayType&&audio.canPlayType('audio/mpeg');
+    audio.src=BASE+(mp3?'.mp3':'.ogg')+V;
+    audio.preload='auto';
+    audio.setAttribute('data-tt-gottem','1');
+    return audio;
+  }
+  function play(){
+    var a=getAudio();
+    try{a.pause();a.currentTime=0;}catch(e){}
+    var p=a.play();if(p&&p.catch)p.catch(function(){});
+  }
+  function wiggle(el){
+    if(!el)return;
+    el.classList.remove('tt-gotr-wig');void el.offsetWidth;el.classList.add('tt-gotr-wig');
+    setTimeout(function(){el.classList.remove('tt-gotr-wig');},600);
+  }
+  function css(){
+    if(D.getElementById('tt-gottem-css'))return;
+    var s=D.createElement('style');s.id='tt-gottem-css';
+    s.textContent=
+      '.'+CLS+',.tt-blackr.'+CLS+'{cursor:pointer!important;display:inline-block;transform-origin:50% 60%;-webkit-tap-highlight-color:transparent;pointer-events:auto}'+
+      '@keyframes ttGotWig{0%{transform:rotate(0) scale(1)}20%{transform:rotate(-14deg) scale(1.15)}40%{transform:rotate(11deg) scale(1.15)}60%{transform:rotate(-7deg) scale(1.08)}80%{transform:rotate(4deg) scale(1.03)}100%{transform:rotate(0) scale(1)}}'+
+      '.tt-gotr-wig{animation:ttGotWig .55s ease-out!important}'+
+      'html.tt-gotr-hot,html.tt-gotr-hot *{cursor:pointer!important}'+
+      '#tt-gotr-ring{position:absolute;left:0;top:0;width:0;height:0;border-radius:50%;pointer-events:none;z-index:2147483000;opacity:0;box-shadow:0 0 0 3px #FFD400,0 0 18px 4px rgba(255,212,0,.75)}'+
+      '@keyframes ttGotRing{0%{opacity:.95;transform:scale(.8) rotate(0)}30%{transform:scale(1.15) rotate(-10deg)}60%{transform:scale(1.05) rotate(8deg)}100%{opacity:0;transform:scale(1.35) rotate(0)}}'+
+      '#tt-gotr-ring.go{animation:ttGotRing .6s ease-out}'+
+      '@media (prefers-reduced-motion:reduce){.tt-gotr-wig,#tt-gotr-ring.go{animation:none!important}}';
+    (D.head||D.documentElement).appendChild(s);
+  }
+  /* wrap every ® text glyph under el in span.tt-gotr (keeps a following U+FE0F with it) */
+  function wrapR(el){
+    if(!el||el.closest('script,style,noscript,textarea'))return;
+    var w=D.createTreeWalker(el,NodeFilter.SHOW_TEXT,null),n,list=[];
+    while((n=w.nextNode())){
+      if(n.nodeValue.indexOf('\u00AE')<0)continue;
+      var p=n.parentNode;
+      if(p&&p.classList&&(p.classList.contains(CLS)||p.classList.contains('tt-blackr')))continue;
+      list.push(n);
+    }
+    list.forEach(function(t){
+      var i;
+      while(t&&(i=t.nodeValue.indexOf('\u00AE'))>-1){
+        var len=(t.nodeValue.charAt(i+1)==='\uFE0F')?2:1;
+        var r=t.splitText(i),rest=r.splitText(len);
+        var s=D.createElement('span');s.className=CLS;s.setAttribute('aria-hidden','false');s.title='Ha, gottem';
+        r.parentNode.replaceChild(s,r);s.appendChild(r);
+        t=rest;
+      }
+    });
+  }
+  function apply(){
+    if(!isHome())return;
+    css();
+    /* 1. hero heading */
+    [].forEach.call(D.querySelectorAll('.sqs-html-content h1'),function(h){
+      if(!/therapy\s*space/i.test(h.textContent))return;
+      var b=h.querySelectorAll('.tt-blackr');
+      if(b.length){[].forEach.call(b,function(x){x.classList.add(CLS);});}
+      else {wrapR(h);[].forEach.call(h.querySelectorAll('.'+CLS),function(x){x.classList.add('tt-blackr');});}
+    });
+    /* 2. Dress like card heading */
+    [].forEach.call(D.querySelectorAll('#ttmerch .ttm-logo'),wrapR);
+    /* 3. announcement bar */
+    [].forEach.call(D.querySelectorAll('.sqs-announcement-bar-text-inner, .sqs-announcement-bar-text'),wrapR);
+    [].forEach.call(D.querySelectorAll('.'+CLS),function(x){
+      x.setAttribute('role','button');x.setAttribute('tabindex','0');x.setAttribute('aria-label','Play Ha, gottem');x.title='Ha, gottem';
+    });
+    placeRing();
+  }
+  /* 4. wall picture hotspot */
+  function wallR(){
+    var tw=D.getElementById('tt-topwall');if(!tw)return null;
+    var img=tw.querySelector('.tw-img');if(!img)return null;
+    var rc=img.getBoundingClientRect();if(!rc.width||!rc.height)return null;
+    var cs=getComputedStyle(img);
+    if(!/home-wall-v2/.test(cs.backgroundImage||''))return null;
+    var sz=(cs.backgroundSize||'').split(',')[0].trim().split(/\s+/)[0]||'100%';
+    var bw=/%$/.test(sz)?rc.width*parseFloat(sz)/100:(parseFloat(sz)||rc.width);
+    var bh=bw/3;
+    var px=(cs.backgroundPositionX||'50%').split(',')[0].trim();
+    var py=(cs.backgroundPositionY||'50%').split(',')[0].trim();
+    var bx=/%$/.test(px)?(rc.width-bw)*parseFloat(px)/100:parseFloat(px)||0;
+    var by=/%$/.test(py)?(rc.height-bh)*parseFloat(py)/100:parseFloat(py)||0;
+    var cx=rc.left+bx+bw*WR.cx, cy=rc.top+by+bh*WR.cy, r=Math.max(bw*WR.r,18);
+    /* the R must be inside the visible wallpaper box */
+    if(cy<rc.top||cy>rc.bottom||cx<rc.left||cx>rc.right)return null;
+    return {x:cx,y:cy,r:r,vr:bw*WR.r};
+  }
+  var ring=null;
+  function placeRing(){
+    var h=wallR();
+    if(!h){if(ring)ring.style.display='none';return null;}
+    if(!ring){ring=D.createElement('div');ring.id='tt-gotr-ring';D.body.appendChild(ring);}
+    var vr=Math.max(h.vr,10);
+    ring.style.display='block';
+    ring.style.left=(h.x-vr+W.scrollX)+'px';ring.style.top=(h.y-vr+W.scrollY)+'px';
+    ring.style.width=ring.style.height=(2*vr)+'px';
+    return h;
+  }
+  /* only when the tap lands on the wall itself or on an empty page/section
+     background over it, never on a card, widget or floating panel */
+  var BGC=/(^|\s)(page-section|content-wrapper|content|section-background|section-border|fluid-engine|sqs-layout|row|col)(\s|$)/;
+  function bgTarget(t){
+    if(!t||!t.tagName)return true;
+    if(t.closest&&t.closest('#tt-topwall'))return true;
+    if(!(/^(HTML|BODY|MAIN|SECTION|ARTICLE|DIV)$/.test(t.tagName)))return false;
+    if(t.tagName==='DIV'&&!BGC.test(typeof t.className==='string'?t.className:''))return false;
+    for(var e=t;e&&e.nodeType===1&&e!==D.body;e=e.parentElement){
+      var p=getComputedStyle(e).position;if(p==='fixed'||p==='sticky')return false;
+    }
+    return true;
+  }
+  function inWallR(x,y,t){
+    if(!isHome())return false;
+    if(t&&t.closest&&t.closest('a,button,input,textarea,select,label,[role="button"],iframe,.'+CLS+',.tt-blackr'))return false;
+    if(!bgTarget(t))return false;
+    var h=wallR();if(!h)return false;
+    var dx=x-h.x,dy=y-h.y;return dx*dx+dy*dy<=h.r*h.r;
+  }
+  D.addEventListener('click',function(e){
+    var t=e.target;
+    if(!isHome())return;
+    var r=t&&t.closest&&t.closest('.'+CLS);
+    if(r){e.preventDefault();e.stopPropagation();play();wiggle(r);return;}
+    if(inWallR(e.clientX,e.clientY,t)){
+      e.preventDefault();e.stopPropagation();play();
+      var h=placeRing();if(h&&ring){ring.classList.remove('go');void ring.offsetWidth;ring.classList.add('go');}
+    }
+  },true);
+  D.addEventListener('keydown',function(e){
+    if(!isHome()||(e.key!=='Enter'&&e.key!==' '))return;
+    var r=e.target&&e.target.closest&&e.target.closest('.'+CLS);
+    if(r){e.preventDefault();e.stopPropagation();play();wiggle(r);}
+  },true);
+  var hotRaf=0,lx=0,ly=0,lt=null;
+  D.addEventListener('mousemove',function(e){
+    lx=e.clientX;ly=e.clientY;lt=e.target;
+    if(hotRaf)return;
+    hotRaf=requestAnimationFrame(function(){
+      hotRaf=0;
+      var on=inWallR(lx,ly,lt);
+      D.documentElement.classList.toggle('tt-gotr-hot',on);
+    });
+  },{passive:true});
+  var q=0;
+  function soon(){if(q)return;q=setTimeout(function(){q=0;apply();},250);}
+  function boot(){
+    apply();
+    if(isHome())getAudio();
+    try{new MutationObserver(function(ms){
+      for(var i=0;i<ms.length;i++){var t=ms[i].target;if(t&&t.id==='tt-gotr-ring')continue;soon();return;}
+    }).observe(D.body||D.documentElement,{childList:true,subtree:true});}catch(e){}
+    [300,1000,2500,5000,9000].forEach(function(ms){setTimeout(apply,ms);});
+    W.addEventListener('resize',soon);W.addEventListener('load',apply);
+    ['mercury:load','mercury:navigate'].forEach(function(ev){W.addEventListener(ev,soon);D.addEventListener(ev,soon);});
+  }
+  if(D.readyState==='loading')D.addEventListener('DOMContentLoaded',boot);else boot();
+})();
+/* /TT GOTTEM */
