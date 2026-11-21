@@ -21712,8 +21712,12 @@ window.addEventListener("load", () => {
     }
     const y0 = G.summerHeightAt(pos.x, pos.z, pos.y);
     let nx = pos.x + dx, nz = pos.z + dz;
-    if (blocked(nx, pos.z, y0)) nx = pos.x;
-    if (blocked(nx, nz, y0)) nz = pos.z;
+    const y1 = y0 + height * 0.9;
+    function fleetBlocks(x, z) {
+      return G.summerFleetHit && G.summerFleetHit(x, z, y0, y1, radius, null);
+    }
+    if (blocked(nx, pos.z, y0) || fleetBlocks(nx, pos.z)) nx = pos.x;
+    if (blocked(nx, nz, y0) || fleetBlocks(nx, nz)) nz = pos.z;
     /* If both axes blocked, stay put. */
     const y = G.summerHeightAt(nx, nz, y0);
     pos.x = nx; pos.z = nz; pos.y = y;
@@ -23109,6 +23113,9 @@ window.addEventListener("load", () => {
       truckX: truckX, truckZ: truckZ, gableX: tCx
     };
     G.summerWorld.truckHome = { x: truckX, y: 0, z: truckZ, yaw: 0 };
+    /* Daily Toaster Truck parks in the driveway, left of the garage center
+       so it does not sit over the pit or block the walk-in. */
+    G.summerWorld.cyberHome = { x: 1.35, y: 0, z: z1 + 6.2, yaw: 0 };
     G.summerWorld.spawn = { x: truckX, y: 0, z: 12.4, yaw: Math.PI };
     if (G.dressSummerGarage) G.dressSummerGarage(g, mats, cols, hs);
     return g;
@@ -23480,39 +23487,36 @@ window.addEventListener("load", () => {
 
     if (!G.summerWorld.spawn) G.summerWorld.spawn = { x: 3.4, y: 0, z: 12.4, yaw: Math.PI };
     if (!G.summerWorld.truckHome) G.summerWorld.truckHome = { x: 3.35, y: 0, z: 1.7, yaw: 0 };
+    if (!G.summerWorld.cyberHome) G.summerWorld.cyberHome = (G.defaultSummerCyberHome && G.defaultSummerCyberHome()) || { x: 1.35, y: 0, z: 9.6, yaw: 0 };
     return G.summerWorld;
   };
 })(window.TK = window.TK || {});
 
 
 /* ==== 81-summer-truck.js ==== */
-/* Toaster Summer truck: a stripped Cybertruck-style stainless frame on jack
-   stands, plus pick-up-able parts with original names. Real meters. No Tesla logo.
-   Plate reads THERAPY TOASTER. */
+/* Toaster Summer vehicles: a finished Cybertruck-style Toaster Truck in the
+   driveway, and the Sandcrab — an original beat-up beach pickup — on jack
+   stands over the garage pit. Real meters. No Tesla logos, no real plates.
+   The Toaster Truck plate reads THERAPY TOASTER. */
 (function (G) {
   function THREE() { return window.THREE; }
   function box() { return G._mdl.box.apply(null, arguments); }
   function cyl() { return G._mdl.cyl.apply(null, arguments); }
 
-  /* Kart-true Cybertruck meters, so the assembled body matches the real3 truck. */
-  const LEN = 5.68, WB = 3.81, WBELT = 1.18;
-  const frontOH = 0.88, rearOH = LEN - WB - frontOH;
-  const TIRE_R = 0.4895, TIRE_W = 0.355;
+  /* Sandcrab meters: shorter, narrower, and more upright than the Toaster Truck. */
+  const LEN = 4.92, WB = 2.95, WBELT = 0.86;
+  const frontOH = 0.80, rearOH = LEN - WB - frontOH;
+  const TIRE_R = 0.355, TIRE_W = 0.215;
   const zF = LEN * 0.5, zR = -LEN * 0.5;
   const zFW = zF - frontOH, zRW = zR + rearOH;
-  const WHEEL_X = WBELT - 0.04;
+  const WHEEL_X = WBELT - 0.03;
   const W = WBELT * 2;
   const BODY_IDS = ["cab", "hood", "bed", "tonneau", "bumper-f", "bumper-r", "glass", "lightbar"];
 
-  let _kit = null;
-  G.summerBodyKit = function () {
-    if (_kit) return _kit;
-    if (!G.buildCyberToaster || !G.mats) return null;
-    _kit = G.buildCyberToaster(G.mats, { scale: 1, split: true });
-    return _kit;
-  };
   G.summerBodyPartIds = function () { return BODY_IDS.slice(); };
   G.isSummerBodyPart = function (id) { return BODY_IDS.indexOf(id) >= 0; };
+  G.summerVehicleNames = { cyber: "Toaster Truck", project: "Sandcrab" };
+  G.defaultSummerCyberHome = function () { return { x: 1.35, y: 0, z: 9.6, yaw: 0 }; };
 
   G.SUMMER_PARTS = [
     { id: "lf-arm", name: "LF Toast Arm", group: "Suspension", bolts: 4, deps: [] },
@@ -23544,14 +23548,19 @@ window.addEventListener("load", () => {
 
   function mats() {
     const T = THREE();
-    const steel = new T.MeshPhysicalMaterial({
-      color: 0xe2e1dc, metalness: 0.84, roughness: 0.26,
-      envMap: G.envMap || null, envMapIntensity: 0.62,
-      clearcoat: 0.18, clearcoatRoughness: 0.32, side: T.DoubleSide
+    const paint = new T.MeshStandardMaterial({
+      color: 0x7aa392, roughness: 0.62, metalness: 0.12,
+      envMap: G.envMap || null, envMapIntensity: 0.35
     });
-    const steelDk = new T.MeshPhysicalMaterial({
-      color: 0xb8b6b0, metalness: 0.8, roughness: 0.32,
-      envMap: G.envMap || null, envMapIntensity: 0.5
+    const paintFade = new T.MeshStandardMaterial({
+      color: 0x9bb8a8, roughness: 0.74, metalness: 0.08,
+      envMap: G.envMap || null, envMapIntensity: 0.25
+    });
+    const rust = new T.MeshStandardMaterial({ color: 0x6a4a32, roughness: 0.92, metalness: 0.18 });
+    const primer = new T.MeshStandardMaterial({ color: 0x8a7a68, roughness: 0.88, metalness: 0.08 });
+    const steelDk = new T.MeshStandardMaterial({
+      color: 0x5a5854, metalness: 0.55, roughness: 0.48,
+      envMap: G.envMap || null, envMapIntensity: 0.4
     });
     const black = new T.MeshStandardMaterial({ color: 0x1a1a1c, roughness: 0.8, metalness: 0.3 });
     const clad = new T.MeshStandardMaterial({ color: 0x2a2d32, roughness: 0.6, metalness: 0.35 });
@@ -23568,42 +23577,47 @@ window.addEventListener("load", () => {
       rubberSide.map.wrapS = T.RepeatWrapping;
       rubberSide.color.set(0xffffff);
     }
-    const lip = new T.MeshStandardMaterial({ color: 0xc8c8cc, metalness: 0.85, roughness: 0.28, envMap: G.envMap || null });
-    const blade = new T.MeshStandardMaterial({ color: 0xd0d0d4, metalness: 0.8, roughness: 0.32, envMap: G.envMap || null });
-    const glass = new T.MeshPhysicalMaterial({
-      color: 0x7a90a8, metalness: 0.05, roughness: 0.06, transparent: true, opacity: 0.38,
-      envMap: G.envMap || null, envMapIntensity: 1.4, clearcoat: 1, clearcoatRoughness: 0.05, side: T.DoubleSide
+    const chrome = new T.MeshStandardMaterial({
+      color: 0xc5c8cc, metalness: 0.82, roughness: 0.28,
+      envMap: G.envMap || null, envMapIntensity: 0.7
     });
-    const ledW = new T.MeshStandardMaterial({ color: 0xf6f8ff, emissive: 0xf4f7ff, emissiveIntensity: 2.8, roughness: 0.22 });
-    const ledR = new T.MeshStandardMaterial({ color: 0xff2222, emissive: 0xff1515, emissiveIntensity: 2.4, roughness: 0.3 });
-    const seatM = new T.MeshStandardMaterial({ color: 0x2a2a30, roughness: 0.85, metalness: 0.05 });
-    const rust = new T.MeshStandardMaterial({ color: 0x6a4a32, roughness: 0.9, metalness: 0.2 });
+    const steelie = new T.MeshStandardMaterial({
+      color: 0x9a9084, metalness: 0.55, roughness: 0.45,
+      envMap: G.envMap || null, envMapIntensity: 0.4
+    });
+    const wood = new T.MeshStandardMaterial({ color: 0x8a6a44, roughness: 0.86, metalness: 0.02 });
+    const glass = new T.MeshPhysicalMaterial({
+      color: 0x6a8498, metalness: 0.05, roughness: 0.12, transparent: true, opacity: 0.42,
+      envMap: G.envMap || null, envMapIntensity: 1.1, clearcoat: 0.6, clearcoatRoughness: 0.2, side: T.DoubleSide
+    });
+    const ledW = new T.MeshStandardMaterial({ color: 0xf6f8ff, emissive: 0xf4f7ff, emissiveIntensity: 2.2, roughness: 0.22 });
+    const ledA = new T.MeshStandardMaterial({ color: 0xffb020, emissive: 0xff8a00, emissiveIntensity: 1.6, roughness: 0.35 });
+    const ledR = new T.MeshStandardMaterial({ color: 0xff2222, emissive: 0xff1515, emissiveIntensity: 2.0, roughness: 0.3 });
+    const seatM = new T.MeshStandardMaterial({ color: 0x5a4034, roughness: 0.9, metalness: 0.04 });
     const stand = new T.MeshStandardMaterial({ color: 0xd8a030, roughness: 0.55, metalness: 0.4 });
-    return { steel: steel, steelDk: steelDk, black: black, clad: clad, rubber: rubber, rubberSide: rubberSide, lip: lip, blade: blade, glass: glass, ledW: ledW, ledR: ledR, seat: seatM, rust: rust, stand: stand };
+    const canvas = new T.MeshStandardMaterial({ color: 0xc4b490, roughness: 0.88, metalness: 0 });
+    return {
+      paint: paint, paintFade: paintFade, rust: rust, primer: primer, steelDk: steelDk,
+      black: black, clad: clad, rubber: rubber, rubberSide: rubberSide, chrome: chrome,
+      steelie: steelie, wood: wood, glass: glass, ledW: ledW, ledA: ledA, ledR: ledR,
+      seat: seatM, stand: stand, canvas: canvas
+    };
   }
 
   function wheelMesh(M, side) {
     const T = THREE();
     const g = new T.Group();
-    const segs = 40;
+    const segs = 28;
     g.add(cyl(TIRE_R, TIRE_R, TIRE_W * 0.92, segs, M.rubber, 0, 0, 0, 0, 0, Math.PI / 2));
-    const sw = cyl(TIRE_R * 0.84, TIRE_R * 0.84, TIRE_W * 0.68, 32, M.rubberSide, 0, 0, 0, 0, 0, Math.PI / 2);
-    g.add(sw);
-    const ox = (side < 0 ? -1 : 1) * TIRE_W * 0.42;
-    g.add(cyl(TIRE_R * 0.55, TIRE_R * 0.55, 0.08, 24, M.black, ox * 0.4, 0, 0, 0, 0, Math.PI / 2));
-    const lipGeo = new T.CylinderGeometry(TIRE_R * 0.72, TIRE_R * 0.62, 0.07, 32, 1, true);
-    const lip = new T.Mesh(lipGeo, M.lip);
-    lip.rotation.z = Math.PI / 2;
-    lip.position.set(ox, 0, 0);
-    lip.castShadow = true;
-    g.add(lip);
-    for (let i = 0; i < 6; i++) {
-      const a = (i / 6) * Math.PI * 2;
-      const blade = box(0.04, 0.08, 0.42, M.blade, ox, Math.cos(a) * 0.22, Math.sin(a) * 0.22);
-      blade.rotation.x = a;
-      g.add(blade);
+    g.add(cyl(TIRE_R * 0.84, TIRE_R * 0.84, TIRE_W * 0.68, 24, M.rubberSide, 0, 0, 0, 0, 0, Math.PI / 2));
+    const ox = (side < 0 ? -1 : 1) * TIRE_W * 0.38;
+    g.add(cyl(TIRE_R * 0.52, TIRE_R * 0.52, 0.07, 18, M.steelie, ox * 0.35, 0, 0, 0, 0, Math.PI / 2));
+    /* Five-hole steelie, not the Toaster Truck's blade wheel. */
+    for (let i = 0; i < 5; i++) {
+      const a = (i / 5) * Math.PI * 2;
+      g.add(cyl(0.018, 0.018, 0.08, 8, M.black, ox, Math.cos(a) * 0.16, Math.sin(a) * 0.16, 0, 0, Math.PI / 2));
     }
-    g.add(cyl(0.08, 0.08, 0.07, 12, M.black, ox + 0.02 * Math.sign(ox || 1), 0, 0, 0, 0, Math.PI / 2));
+    g.add(cyl(0.06, 0.06, 0.06, 10, M.rust, ox + 0.01 * Math.sign(ox || 1), 0, 0, 0, 0, Math.PI / 2));
     g.userData.spin = true;
     return g;
   }
@@ -23611,109 +23625,126 @@ window.addEventListener("load", () => {
   function armMesh(M) {
     const T = THREE();
     const grp = new T.Group();
-    grp.add(box(0.12, 0.08, 0.62, M.black, 0, 0, 0));
-    grp.add(box(0.18, 0.16, 0.14, M.steelDk, 0, 0.12, 0.22));
-    grp.add(cyl(0.05, 0.05, 0.28, 8, M.steelDk, 0, 0.22, 0.22));
-    grp.add(cyl(0.07, 0.07, 0.1, 10, M.black, 0.16, 0, 0, 0, 0, Math.PI / 2));
+    grp.add(box(0.1, 0.07, 0.52, M.black, 0, 0, 0));
+    grp.add(box(0.16, 0.14, 0.12, M.steelDk, 0, 0.1, 0.18));
+    grp.add(cyl(0.045, 0.045, 0.24, 8, M.rust, 0, 0.18, 0.18));
+    grp.add(cyl(0.06, 0.06, 0.09, 10, M.black, 0.14, 0, 0, 0, 0, Math.PI / 2));
     return grp;
   }
 
-  function plateTex() {
+  function crabPlateTex() {
     const { c, ctx } = G.makeCanvas(512, 160);
-    ctx.fillStyle = "#f0d44a";
+    ctx.fillStyle = "#e8e0c8";
     ctx.fillRect(0, 0, 512, 160);
-    ctx.strokeStyle = "#1a1a12";
+    ctx.strokeStyle = "#3a3020";
     ctx.lineWidth = 10;
     ctx.strokeRect(8, 8, 496, 144);
-    ctx.fillStyle = "#1a1a12";
-    ctx.font = "bold 54px sans-serif";
+    ctx.fillStyle = "#3a3020";
+    ctx.font = "bold 58px sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText("THERAPY TOASTER", 256, 88);
+    ctx.fillText("SANDCRAB", 256, 88);
     ctx.font = "bold 18px sans-serif";
-    ctx.fillText("NORTH CAROLINA", 256, 28);
+    ctx.fillText("BEACH TOWN", 256, 28);
     return G.texLinear(c);
   }
 
   /* Sockets are in truck-local space: origin at ground under the frame center,
      +Z forward (out the garage toward the street), Y up. Frame sits on stands
-     so rail height is ~0.62 until the truck is lowered onto wheels. */
+     so rail height is ~0.56 until the Sandcrab is lowered onto wheels. */
   G.summerSockets = function () {
     const yRail = 0.56, yHub = TIRE_R;
     const xW = WHEEL_X;
-    /* Body panels are already in truck-local space; they attach at the origin.
-       aim is a look-at point for the socket highlight and align check. */
     function body(aim) { return { x: 0, y: 0, z: 0, ry: 0, identity: true, ax: aim[0], ay: aim[1], az: aim[2] }; }
     return {
-      "lf-arm":  { x:  xW, y: yHub + 0.12, z:  zFW, ry: 0 },
-      "rf-arm":  { x: -xW, y: yHub + 0.12, z:  zFW, ry: Math.PI },
-      "lr-arm":  { x:  xW, y: yHub + 0.12, z:  zRW, ry: 0 },
-      "rr-arm":  { x: -xW, y: yHub + 0.12, z:  zRW, ry: Math.PI },
+      "lf-arm":  { x:  xW, y: yHub + 0.1, z:  zFW, ry: 0 },
+      "rf-arm":  { x: -xW, y: yHub + 0.1, z:  zFW, ry: Math.PI },
+      "lr-arm":  { x:  xW, y: yHub + 0.1, z:  zRW, ry: 0 },
+      "rr-arm":  { x: -xW, y: yHub + 0.1, z:  zRW, ry: Math.PI },
       "brakes":  { x: 0, y: yHub, z: 0, ry: 0, hidden: true },
-      "steer":   { x: 0, y: yRail - 0.08, z: zFW + 0.15, ry: 0 },
-      "motor":   { x: 0, y: yRail - 0.02, z: zRW + 0.35, ry: 0 },
-      "juice":   { x: 0, y: yRail - 0.16, z: 0.05, ry: 0 },
+      "steer":   { x: 0, y: yRail - 0.08, z: zFW + 0.12, ry: 0 },
+      "motor":   { x: 0, y: yRail + 0.02, z: 0.55, ry: 0 },
+      "juice":   { x: 0, y: yRail - 0.14, z: -0.35, ry: 0 },
       "lf-wheel":{ x:  xW, y: yHub, z:  zFW, ry: 0 },
       "rf-wheel":{ x: -xW, y: yHub, z:  zFW, ry: Math.PI },
       "lr-wheel":{ x:  xW, y: yHub, z:  zRW, ry: 0 },
       "rr-wheel":{ x: -xW, y: yHub, z:  zRW, ry: Math.PI },
-      "cab":     body([0, 1.40, 0.40]),
-      "hood":    body([0, 1.14, 2.10]),
-      "bed":     body([0, 1.10, -1.40]),
-      "tonneau": body([0, 1.45, -1.20]),
-      "bumper-f":body([0, 0.52,  2.80]),
-      "bumper-r":body([0, 0.55, -2.80]),
-      "glass":   body([0, 1.45, 0.80]),
-      "lightbar":body([0, 1.90, 0.45]),
-      "seat":    { x: 0.38, y: 0.92, z: 0.45, ry: 0 }
+      "cab":     body([0, 1.30, 0.60]),
+      "hood":    body([0, 1.10, 1.70]),
+      "bed":     body([0, 1.00, -1.05]),
+      "tonneau": body([0, 1.38, -1.05]),
+      "bumper-f":body([0, 0.56,  2.30]),
+      "bumper-r":body([0, 0.56, -2.30]),
+      "glass":   body([0, 1.32, 1.05]),
+      "lightbar":body([0, 1.72, 0.55]),
+      "seat":    { x: 0.32, y: 0.88, z: 0.62, ry: 0 }
     };
+  };
+
+  function rustPatches(g, M, spots) {
+    spots.forEach(function (s) {
+      g.add(box(s[0], s[1], s[2], M.rust, s[3], s[4], s[5]));
+    });
+  }
+
+  /* Shared body layout so sockets, bumpers, cab, hood, and bed stay flush
+     at every build stage. Yaw 0, +Z forward, origin at ground under the frame. */
+  const L = {
+    yRail: 0.56,
+    cowlZ: 1.12,
+    grilleZ: 2.16,
+    cabRearZ: 0.08,
+    roofY: 1.68,
+    bedFrontZ: 0.07,
+    bedRearZ: -2.16,
+    bedFloorY: 0.86,
+    bedWall: 0.46,
+    bumpFY: 0.56,
+    bumpFZ: 2.30,
+    bumpRY: 0.56,
+    bumpRZ: -2.30
+  };
+  G.summerSandcrabLayout = L;
+  G.summerFleetSpec = function (id) {
+    if (id === "cyber") return { hx: 1.24, hz: 2.94, miny: 0.05, maxy: 2.05 };
+    return { hx: 0.96, hz: 2.52, minyLowered: 0.05, minyStand: 0.48, maxy: 1.9 };
   };
 
   G.buildSummerFrame = function () {
     const T = THREE();
     const M = mats();
     const g = new T.Group();
-    g.name = "SummerFrame";
-    const yRail = 0.56;
-    /* Main rails — tucked inside the 2.36 m body width. */
-    g.add(box(0.12, 0.14, LEN - 0.3, M.steelDk,  0.55, yRail, 0));
-    g.add(box(0.12, 0.14, LEN - 0.3, M.steelDk, -0.55, yRail, 0));
-    /* Crossmembers, lined up with the kart wheelbase. */
-    [zRW - 0.2, zRW + 0.9, 0, zFW - 0.9, zFW + 0.15].forEach(function (z) {
-      g.add(box(1.22, 0.1, 0.1, M.steelDk, 0, yRail, z));
+    g.name = "SandcrabFrame";
+    const yRail = L.yRail;
+    const railEnd = LEN * 0.5 - 0.14;
+    g.add(box(0.1, 0.12, LEN - 0.28, M.steelDk,  0.42, yRail, 0));
+    g.add(box(0.1, 0.12, LEN - 0.28, M.steelDk, -0.42, yRail, 0));
+    [zRW - 0.15, zRW + 0.7, 0.1, zFW - 0.55, zFW + 0.1, railEnd - 0.06, -railEnd + 0.06].forEach(function (z) {
+      g.add(box(0.96, 0.08, 0.09, M.rust, 0, yRail, z));
     });
-    /* Battery tunnel / spine */
-    g.add(box(0.7, 0.08, 3.2, M.black, 0, yRail - 0.12, 0));
-    /* Shock towers at the real axle stations. */
-    const xT = 0.82;
+    g.add(box(0.55, 0.07, 2.2, M.black, 0, yRail - 0.1, -0.2));
+    const xT = 0.62;
     [[xT, zFW], [-xT, zFW], [xT, zRW], [-xT, zRW]].forEach(function (p) {
-      g.add(box(0.16, 0.45, 0.16, M.steel, p[0], yRail + 0.28, p[1]));
-      g.add(box(0.22, 0.08, 0.22, M.steelDk, p[0], yRail + 0.52, p[1]));
+      g.add(box(0.14, 0.36, 0.14, M.steelDk, p[0], yRail + 0.22, p[1]));
+      g.add(box(0.2, 0.06, 0.2, M.primer, p[0], yRail + 0.42, p[1]));
     });
-    /* Motor mount */
-    g.add(box(0.7, 0.08, 0.5, M.black, 0, yRail, zRW + 0.35));
-    /* Cab hoop under the roof wedge (zCowl ~1.25, zCab ~-0.28). */
-    const zCowl = zF - LEN * 0.28, zCab = zF - LEN * 0.55;
-    g.add(box(1.55, 0.07, 0.07, M.steel, 0, 1.58, zCowl));
-    g.add(box(0.07, 1.00, 0.07, M.steel,  0.74, 1.08, zCowl));
-    g.add(box(0.07, 1.00, 0.07, M.steel, -0.74, 1.08, zCowl));
-    g.add(box(1.55, 0.07, 0.07, M.steel, 0, 1.62, zCab));
-    g.add(box(0.07, 1.04, 0.07, M.steel,  0.74, 1.10, zCab));
-    g.add(box(0.07, 1.04, 0.07, M.steel, -0.74, 1.10, zCab));
-    /* Sail rails following the cab-to-tail slope. */
-    const sail = box(0.06, 0.06, 2.5, M.steel,  0.7, 1.42, (zCab + zR) * 0.5);
-    sail.rotation.x = 0.18;
-    g.add(sail);
-    const sail2 = box(0.06, 0.06, 2.5, M.steel, -0.7, 1.42, (zCab + zR) * 0.5);
-    sail2.rotation.x = 0.18;
-    g.add(sail2);
-    /* Steering column stub */
-    const col = cyl(0.03, 0.03, 0.55, 8, M.black, 0.35, 0.95, zCowl - 0.1, 0.7, 0, 0);
-    g.add(col);
-    /* Jack stands (separate group so we can hide when lowered) */
+    /* Axle tubes: wheels bolt onto the visible ends. */
+    [[zFW], [zRW]].forEach(function (p) {
+      const z = p[0];
+      const span = WHEEL_X - 0.12;
+      g.add(cyl(0.04, 0.04, span * 2, 10, M.steelDk, 0, TIRE_R, z, 0, 0, Math.PI / 2));
+      g.add(cyl(0.055, 0.055, 0.06, 10, M.rust,  WHEEL_X - 0.08, TIRE_R, z, 0, 0, Math.PI / 2));
+      g.add(cyl(0.055, 0.055, 0.06, 10, M.rust, -WHEEL_X + 0.08, TIRE_R, z, 0, 0, Math.PI / 2));
+    });
+    /* Bumper mounts at the rail ends, frame height. */
+    g.add(box(0.08, 0.08, 0.16, M.steelDk,  0.42, yRail,  railEnd + 0.06));
+    g.add(box(0.08, 0.08, 0.16, M.steelDk, -0.42, yRail,  railEnd + 0.06));
+    g.add(box(0.08, 0.08, 0.16, M.steelDk,  0.42, yRail, -railEnd - 0.06));
+    g.add(box(0.08, 0.08, 0.16, M.steelDk, -0.42, yRail, -railEnd - 0.06));
+    g.add(box(0.62, 0.08, 0.55, M.black, 0, yRail, 0.55));
     const stands = new T.Group();
     stands.name = "jackStands";
-    [[0.7, zFW], [-0.7, zFW], [0.7, zRW], [-0.7, zRW]].forEach(function (p) {
+    [[0.55, zFW], [-0.55, zFW], [0.55, zRW], [-0.55, zRW]].forEach(function (p) {
       const s = new T.Group();
       s.add(box(0.22, 0.06, 0.22, M.stand, 0, 0.06, 0));
       s.add(box(0.28, 0.04, 0.08, M.stand, 0, 0.04, 0.14));
@@ -23727,8 +23758,227 @@ window.addEventListener("load", () => {
     g.userData.stands = stands;
     g.userData.mats = M;
     g.userData.sockets = G.summerSockets();
+    g.userData.vehicle = "project";
     return g;
   };
+
+  function addFender(g, M, side, z) {
+    const x = side * (W / 2 + 0.03);
+    g.add(box(0.22, 0.24, 0.88, M.paint, x, 0.94, z));
+    g.add(box(0.2, 0.18, 0.26, M.paint, x, 0.78, z + 0.44));
+    g.add(box(0.2, 0.18, 0.26, M.paint, x, 0.78, z - 0.44));
+    /* Lip over the tire. */
+    const T = THREE();
+    const lip = new T.Mesh(new T.CylinderGeometry(TIRE_R + 0.16, TIRE_R + 0.16, 0.18, 14, 1, true, 0, Math.PI), M.paint);
+    lip.rotation.z = Math.PI / 2;
+    lip.rotation.y = side > 0 ? 0 : Math.PI;
+    lip.position.set(x, TIRE_R, z);
+    lip.castShadow = true;
+    g.add(lip);
+  }
+
+  function cabMesh(M) {
+    const T = THREE();
+    const g = new T.Group();
+    const cabW = W - 0.02;
+    const z0 = L.cabRearZ, z1 = L.cowlZ;
+    const cabL = z1 - z0;
+    const cabZ = (z0 + z1) * 0.5;
+    const wallY = 0.78, wallH = 0.84;
+    /* Lower cab body. */
+    g.add(box(cabW, wallH, 0.09, M.paint, 0, wallY, z1 - 0.02)); /* cowl */
+    g.add(box(0.09, wallH, cabL, M.paint,  cabW / 2 - 0.04, wallY, cabZ));
+    g.add(box(0.09, wallH, cabL, M.paint, -cabW / 2 + 0.04, wallY, cabZ));
+    /* Solid rear bulkhead — this is the cab/bed junction. */
+    g.add(box(cabW, 1.22, 0.1, M.paint, 0, 0.96, z0 + 0.02));
+    /* Belt line. */
+    g.add(box(cabW + 0.02, 0.04, cabL + 0.04, M.paintFade, 0, 1.18, cabZ));
+    /* Door openings and handles. */
+    [1, -1].forEach(function (side) {
+      const x = side * (cabW / 2 + 0.005);
+      g.add(box(0.012, 0.72, 0.02, M.black, x, 0.86, z1 - 0.22));
+      g.add(box(0.012, 0.72, 0.02, M.black, x, 0.86, z0 + 0.22));
+      g.add(box(0.012, 0.02, cabL - 0.4, M.black, x, 1.18, cabZ));
+      g.add(box(0.04, 0.03, 0.08, M.chrome, x + side * 0.03, 0.92, cabZ + 0.15));
+    });
+    rustPatches(g, M, [
+      [0.16, 0.08, 0.22,  cabW / 2 - 0.01, 0.44, cabZ + 0.15],
+      [0.14, 0.1, 0.28, -cabW / 2 + 0.01, 0.40, cabZ - 0.1],
+      [0.2, 0.05, 0.16, 0.22, 0.36, z0 + 0.12]
+    ]);
+    /* Raked A-pillars: cowl (y 1.18, z 1.12) up to roof front (y 1.68, z 0.78). */
+    [1, -1].forEach(function (side) {
+      const p = box(0.07, 0.64, 0.08, M.paint, side * (cabW / 2 - 0.07), 1.42, 0.94);
+      p.rotation.x = -0.55;
+      g.add(p);
+    });
+    /* C-pillars, almost upright, tying the roof to the bulkhead. */
+    g.add(box(0.08, 0.52, 0.08, M.paint,  cabW / 2 - 0.08, 1.42, z0 + 0.08));
+    g.add(box(0.08, 0.52, 0.08, M.paint, -cabW / 2 + 0.08, 1.42, z0 + 0.08));
+    /* Roof with front and rear overhang, plus a slight brow. */
+    const roofL = cabL + 0.28;
+    const roofZ = cabZ - 0.02;
+    g.add(box(cabW + 0.06, 0.07, roofL, M.paintFade, 0, L.roofY, roofZ));
+    g.add(box(cabW - 0.08, 0.04, roofL - 0.1, M.paint, 0, L.roofY + 0.04, roofZ));
+    g.add(box(cabW + 0.04, 0.04, 0.12, M.paint, 0, L.roofY - 0.03, z1 + 0.06));
+    /* Mirrors on the A-pillars. */
+    [1, -1].forEach(function (side) {
+      const mir = new T.Group();
+      mir.add(cyl(0.014, 0.014, 0.12, 8, M.black, side * 0.05, 0, 0, 0, 0, Math.PI / 2));
+      mir.add(box(0.16, 0.1, 0.08, M.chrome, side * 0.14, 0.01, 0));
+      mir.add(box(0.12, 0.07, 0.02, M.black, side * 0.14, 0.01, -0.04));
+      mir.position.set(side * (cabW / 2 + 0.02), 1.22, 1.02);
+      g.add(mir);
+    });
+    return g;
+  }
+
+  function hoodMesh(M) {
+    const T = THREE();
+    const g = new T.Group();
+    const z0 = L.cowlZ, z1 = L.grilleZ, midZ = (z0 + z1) * 0.5;
+    const hoodL = z1 - z0;
+    /* Slightly sloped hood panel. */
+    const panel = box(W - 0.22, 0.07, hoodL + 0.04, M.paint, 0, 1.10, midZ);
+    panel.rotation.x = 0.08;
+    g.add(panel);
+    /* Cheek panels down to the fenders. */
+    g.add(box(0.1, 0.34, hoodL, M.paint,  (W - 0.28) / 2, 0.90, midZ));
+    g.add(box(0.1, 0.34, hoodL, M.paint, -(W - 0.28) / 2, 0.90, midZ));
+    addFender(g, M,  1, zFW);
+    addFender(g, M, -1, zFW);
+    /* Grille with chrome surround, vertical slats, no badge. */
+    g.add(box(0.86, 0.42, 0.07, M.chrome, 0, 0.84, z1));
+    g.add(box(0.78, 0.34, 0.05, M.black, 0, 0.84, z1 + 0.02));
+    for (let i = 0; i < 7; i++) {
+      g.add(box(0.02, 0.3, 0.03, M.chrome, -0.3 + i * 0.1, 0.84, z1 + 0.035));
+    }
+    /* Round headlights in chrome buckets, set into the fenders. */
+    [1, -1].forEach(function (side) {
+      const x = side * 0.62;
+      g.add(cyl(0.12, 0.12, 0.08, 18, M.chrome, x, 0.78, z1 + 0.04, Math.PI / 2, 0, 0));
+      g.add(cyl(0.095, 0.095, 0.03, 18, M.ledW, x, 0.78, z1 + 0.08, Math.PI / 2, 0, 0));
+    });
+    g.add(box(0.2, 0.06, 0.08, M.ledA, 0, 0.62, z1 + 0.05));
+    rustPatches(g, M, [[0.18, 0.04, 0.16, 0.28, 1.14, midZ - 0.15]]);
+    return g;
+  }
+
+  function bedMesh(M) {
+    const T = THREE();
+    const g = new T.Group();
+    const z1 = L.bedFrontZ, z0 = L.bedRearZ, bedL = z1 - z0, bedZ = (z0 + z1) * 0.5;
+    const bedW = W - 0.08, floorY = L.bedFloorY, wallH = L.bedWall;
+    g.add(box(bedW, 0.05, bedL, M.wood, 0, floorY, bedZ));
+    /* Lengthwise floor slats. */
+    for (let i = 0; i < 6; i++) {
+      const x = -bedW / 2 + 0.12 + i * ((bedW - 0.24) / 5);
+      g.add(box(0.08, 0.03, bedL - 0.08, M.wood, x, floorY + 0.03, bedZ));
+    }
+    /* Sidewalls and front bulkhead that kisses the cab. */
+    g.add(box(0.07, wallH, bedL, M.paint,  bedW / 2, floorY + wallH / 2, bedZ));
+    g.add(box(0.07, wallH, bedL, M.paint, -bedW / 2, floorY + wallH / 2, bedZ));
+    g.add(box(bedW, wallH, 0.07, M.paint, 0, floorY + wallH / 2, z1 - 0.02));
+    /* Tailgate. */
+    g.add(box(bedW - 0.02, wallH, 0.06, M.paint, 0, floorY + wallH / 2, z0 + 0.03));
+    /* Wooden cap rails. */
+    g.add(box(0.08, 0.05, bedL + 0.04, M.wood,  bedW / 2, floorY + wallH + 0.02, bedZ));
+    g.add(box(0.08, 0.05, bedL + 0.04, M.wood, -bedW / 2, floorY + wallH + 0.02, bedZ));
+    for (let i = 0; i < 4; i++) {
+      const z = z0 + 0.3 + i * (bedL - 0.5) / 3;
+      g.add(box(bedW + 0.06, 0.04, 0.05, M.wood, 0, floorY + wallH + 0.02, z));
+    }
+    addFender(g, M,  1, zRW);
+    addFender(g, M, -1, zRW);
+    /* Hand-lettered name on the tailgate, not a brand badge. */
+    const { c, ctx } = G.makeCanvas(512, 160);
+    ctx.fillStyle = "#6e8f80";
+    ctx.fillRect(0, 0, 512, 160);
+    ctx.fillStyle = "#f2ead4";
+    ctx.font = "bold 70px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("SANDCRAB", 256, 84);
+    const tex = G.texLinear(c);
+    const decal = box(0.92, 0.2, 0.02, new T.MeshStandardMaterial({
+      map: tex, roughness: 0.7, metalness: 0, emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.15
+    }), 0, floorY + wallH * 0.52, z0 - 0.01);
+    decal.castShadow = false;
+    g.add(decal);
+    rustPatches(g, M, [
+      [0.12, 0.2, 0.28,  bedW / 2, floorY + 0.12, bedZ + 0.35],
+      [0.1, 0.16, 0.22, -bedW / 2, floorY + 0.1, bedZ - 0.4]
+    ]);
+    return g;
+  }
+
+  function tonneauMesh(M) {
+    const T = THREE();
+    const g = new T.Group();
+    const z1 = L.bedFrontZ - 0.04, z0 = L.bedRearZ + 0.08, bedZ = (z0 + z1) * 0.5;
+    const y = L.bedFloorY + L.bedWall + 0.04;
+    g.add(box(W - 0.22, 0.04, z1 - z0, M.canvas, 0, y, bedZ));
+    g.add(box(W - 0.3, 0.02, 0.08, M.wood, 0, y + 0.03, z1 - 0.08));
+    g.add(box(W - 0.3, 0.02, 0.08, M.wood, 0, y + 0.03, z0 + 0.08));
+    return g;
+  }
+
+  function bumperF(M) {
+    const T = THREE();
+    const g = new T.Group();
+    const y = L.bumpFY, z = L.bumpFZ;
+    /* Chrome bar sits on the rail-height mounts, tight to the grille. */
+    g.add(box(W + 0.16, 0.12, 0.12, M.chrome, 0, y, z));
+    g.add(box(0.08, 0.16, 0.16, M.chrome,  (W + 0.08) / 2, y, z - 0.02));
+    g.add(box(0.08, 0.16, 0.16, M.chrome, -(W + 0.08) / 2, y, z - 0.02));
+    /* Brackets back to the frame rails. */
+    g.add(box(0.06, 0.06, 0.16, M.steelDk,  0.42, y, z - 0.12));
+    g.add(box(0.06, 0.06, 0.16, M.steelDk, -0.42, y, z - 0.12));
+    rustPatches(g, M, [[0.16, 0.05, 0.08, 0.5, y, z + 0.05]]);
+    return g;
+  }
+
+  function bumperR(M) {
+    const T = THREE();
+    const g = new T.Group();
+    const y = L.bumpRY, z = L.bumpRZ;
+    g.add(box(W + 0.16, 0.12, 0.12, M.chrome, 0, y, z));
+    g.add(box(0.08, 0.16, 0.16, M.chrome,  (W + 0.08) / 2, y, z + 0.02));
+    g.add(box(0.08, 0.16, 0.16, M.chrome, -(W + 0.08) / 2, y, z + 0.02));
+    g.add(box(0.06, 0.06, 0.16, M.steelDk,  0.42, y, z + 0.12));
+    g.add(box(0.06, 0.06, 0.16, M.steelDk, -0.42, y, z + 0.12));
+    g.add(cyl(0.05, 0.05, 0.07, 10, M.ledR,  0.55, y + 0.1, z - 0.08, Math.PI / 2, 0, 0));
+    g.add(cyl(0.05, 0.05, 0.07, 10, M.ledR, -0.55, y + 0.1, z - 0.08, Math.PI / 2, 0, 0));
+    const plateMat = new T.MeshBasicMaterial({ map: crabPlateTex() });
+    if (plateMat.map) plateMat.map.anisotropy = 8;
+    const plate = box(0.42, 0.16, 0.02, plateMat, 0, y, z - 0.08);
+    plate.castShadow = false;
+    g.add(plate);
+    return g;
+  }
+
+  function glassMesh(M) {
+    const T = THREE();
+    const g = new T.Group();
+    const cabW = W - 0.18;
+    /* Raked windshield matching the A-pillars. */
+    const windshield = box(cabW - 0.08, 0.52, 0.04, M.glass, 0, 1.42, 0.92);
+    windshield.rotation.x = -0.55;
+    g.add(windshield);
+    g.add(box(0.04, 0.38, 0.72, M.glass,  cabW / 2 - 0.02, 1.36, 0.58));
+    g.add(box(0.04, 0.38, 0.72, M.glass, -cabW / 2 + 0.02, 1.36, 0.58));
+    g.add(box(cabW - 0.1, 0.32, 0.04, M.glass, 0, 1.48, L.cabRearZ + 0.08));
+    return g;
+  }
+
+  function lightbarMesh(M) {
+    const T = THREE();
+    const g = new T.Group();
+    g.add(box(0.95, 0.08, 0.12, M.black, 0, L.roofY + 0.08, 0.55));
+    g.add(box(0.22, 0.06, 0.1, M.ledA, -0.28, L.roofY + 0.08, 0.55));
+    g.add(box(0.22, 0.06, 0.1, M.ledW, 0.28, L.roofY + 0.08, 0.55));
+    return g;
+  }
 
   G.buildSummerPartMesh = function (id) {
     const T = THREE();
@@ -23736,13 +23986,10 @@ window.addEventListener("load", () => {
     const g = new T.Group();
     g.userData.partId = id;
     if (id.indexOf("arm") >= 0) {
-      const a = armMesh(M);
-      g.add(a);
+      g.add(armMesh(M));
     } else if (id.indexOf("wheel") >= 0) {
-      if (G.buildAtWheel && G.mats) g.add(G.buildAtWheel(G.mats, TIRE_R, TIRE_W));
-      else g.add(wheelMesh(M, (id.indexOf("lf") === 0 || id.indexOf("lr") === 0) ? 1 : -1));
+      g.add(wheelMesh(M, (id.indexOf("lf") === 0 || id.indexOf("lr") === 0) ? 1 : -1));
     } else if (id === "brakes") {
-      /* Four calipers in a small crate-like cluster for the loose part; installed they attach per corner in apply. */
       for (let i = 0; i < 4; i++) {
         const c = new T.Group();
         c.add(box(0.16, 0.12, 0.22, M.black, 0, 0, 0));
@@ -23751,31 +23998,41 @@ window.addEventListener("load", () => {
         g.add(c);
       }
     } else if (id === "steer") {
-      g.add(box(1.15, 0.1, 0.12, M.black, 0, 0, 0));
-      g.add(cyl(0.05, 0.05, 0.5, 8, M.steelDk, 0.4, 0, 0, 0, 0, Math.PI / 2));
-      g.add(cyl(0.05, 0.05, 0.5, 8, M.steelDk, -0.4, 0, 0, 0, 0, Math.PI / 2));
+      g.add(box(1.05, 0.09, 0.11, M.black, 0, 0, 0));
+      g.add(cyl(0.045, 0.045, 0.42, 8, M.steelDk, 0.36, 0, 0, 0, 0, Math.PI / 2));
+      g.add(cyl(0.045, 0.045, 0.42, 8, M.steelDk, -0.36, 0, 0, 0, 0, Math.PI / 2));
     } else if (id === "motor") {
-      g.add(cyl(0.22, 0.22, 0.42, 24, M.steelDk, 0, 0.08, 0, 0, 0, Math.PI / 2));
-      g.add(box(0.5, 0.16, 0.34, M.clad, 0, -0.08, 0));
-      g.add(box(0.18, 0.18, 0.18, M.black, 0.28, 0.1, 0));
-      g.add(cyl(0.04, 0.04, 0.2, 8, M.black, -0.28, 0.16, 0.1));
+      g.add(box(0.42, 0.32, 0.58, M.steelDk, 0, 0.04, 0));
+      g.add(box(0.46, 0.08, 0.62, M.black, 0, 0.22, 0));
+      g.add(cyl(0.05, 0.05, 0.36, 10, M.black, 0.28, 0.08, 0, 0, 0, Math.PI / 2));
+      g.add(cyl(0.04, 0.04, 0.16, 8, M.rust, -0.18, 0.28, 0.12));
     } else if (id === "juice") {
-      g.add(box(1.15, 0.22, 2.4, M.clad, 0, 0, 0));
-      g.add(box(1.05, 0.04, 2.3, M.black, 0, 0.13, 0));
-      /* terminal posts */
-      g.add(cyl(0.03, 0.03, 0.08, 8, M.ledR, 0.4, 0.18, 1.05));
-      g.add(cyl(0.03, 0.03, 0.08, 8, M.steel, -0.4, 0.18, 1.05));
-    } else if (G.isSummerBodyPart && G.isSummerBodyPart(id)) {
-      const kit = G.summerBodyKit();
-      const src = kit && kit.parts && kit.parts[id];
-      if (src) g.add(src.clone(true));
-      else g.add(box(0.8, 0.4, 0.8, M.steel, 0, 0.2, 0));
+      g.add(box(0.9, 0.2, 1.6, M.clad, 0, 0, 0));
+      g.add(box(0.82, 0.04, 1.5, M.black, 0, 0.12, 0));
+      g.add(cyl(0.03, 0.03, 0.08, 8, M.ledR, 0.3, 0.16, 0.65));
+      g.add(cyl(0.03, 0.03, 0.08, 8, M.chrome, -0.3, 0.16, 0.65));
+    } else if (id === "cab") {
+      g.add(cabMesh(M));
+    } else if (id === "hood") {
+      g.add(hoodMesh(M));
+    } else if (id === "bed") {
+      g.add(bedMesh(M));
+    } else if (id === "tonneau") {
+      g.add(tonneauMesh(M));
+    } else if (id === "bumper-f") {
+      g.add(bumperF(M));
+    } else if (id === "bumper-r") {
+      g.add(bumperR(M));
+    } else if (id === "glass") {
+      g.add(glassMesh(M));
+    } else if (id === "lightbar") {
+      g.add(lightbarMesh(M));
     } else if (id === "seat") {
       g.add(box(0.5, 0.12, 0.5, M.seat, 0, 0, 0));
-      g.add(box(0.5, 0.55, 0.12, M.seat, 0, 0.28, -0.2));
-      g.add(box(0.46, 0.08, 0.12, M.black, 0, 0.52, -0.18));
+      g.add(box(0.5, 0.5, 0.12, M.seat, 0, 0.26, -0.2));
+      g.add(box(0.46, 0.08, 0.12, M.black, 0, 0.5, -0.18));
     } else {
-      g.add(box(0.4, 0.4, 0.4, M.steel, 0, 0, 0));
+      g.add(box(0.4, 0.4, 0.4, M.steelDk, 0, 0, 0));
     }
     g.traverse(function (m) {
       if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; }
@@ -23783,7 +24040,19 @@ window.addEventListener("load", () => {
     return g;
   };
 
-  /* World-space rest poses for loose parts around the garage / bench. */
+    /* Finished, already-built Cybertruck-style daily driver. Plate is baked into
+     the body (THERAPY TOASTER). Hide the kart-scale cabin skeletons. */
+  G.buildSummerCyberTruck = function () {
+    if (!G.buildCyberToaster || !G.mats) return new (THREE()).Group();
+    const g = G.buildCyberToaster(G.mats, { scale: 1 });
+    g.name = "ToasterTruck";
+    g.userData.vehicle = "cyber";
+    if (g.userData.cabDriver) g.userData.cabDriver.visible = false;
+    if (g.userData.loungeDriver) g.userData.loungeDriver.visible = false;
+    return g;
+  };
+
+  /* World-space rest poses for loose Sandcrab parts around the garage / bench. */
   G.summerPartSpawns = function (home) {
     const hx = home.x, hz = home.z;
     return {
@@ -23835,6 +24104,8 @@ window.addEventListener("load", () => {
     mode: "walk", /* walk | drive | menu */
     player: { x: 0, y: 0, z: 0, yaw: 0, pitch: 0, vx: 0, vz: 0 },
     truck: { x: 0, y: 0, z: 0, yaw: 0, speed: 0, steer: 0, vx: 0, vz: 0, lowered: false },
+    cyber: { x: 0, y: 0, z: 0, yaw: 0, speed: 0, steer: 0, vx: 0, vz: 0, lowered: true },
+    active: null, /* "cyber" | "project" | null when on foot */
     parts: {},
     held: null,
     look: null,
@@ -23970,13 +24241,126 @@ window.addEventListener("load", () => {
     return p.tight.some(function (t) { return !t; });
   }
 
-  function save() {
+  function driveSt() {
+    return (S.active === "cyber" && S.cyber) ? S.cyber : S.truck;
+  }
+  function projectDriveReady() { return driveReady(); }
+  function cyberHomePose() {
+    return (G.summerWorld && G.summerWorld.cyberHome) || (G.defaultSummerCyberHome && G.defaultSummerCyberHome()) || { x: 1.35, y: 0, z: 9.6, yaw: 0 };
+  }
+  function placeCyberHome() {
+    const home = cyberHomePose();
+    if (!S.cyber) S.cyber = { x: 0, y: 0, z: 0, yaw: 0, speed: 0, steer: 0, vx: 0, vz: 0, lowered: true };
+    S.cyber.x = home.x; S.cyber.y = home.y || 0; S.cyber.z = home.z;
+    S.cyber.yaw = home.yaw || 0; S.cyber.speed = 0; S.cyber.steer = 0; S.cyber.lowered = true;
+  }
+  function oldSaveWasProjectReady(data) {
+    if (!data || !data.parts) return false;
+    if (data.truck && data.truck.lowered) return true;
+    const need = (G.summerDriveReadyIds && G.summerDriveReadyIds()) || [];
+    for (let i = 0; i < need.length; i++) {
+      const p = data.parts[need[i]];
+      if (!p || p.state !== "installed") return false;
+      if ((p.tight || []).some(function (tt) { return !tt; })) return false;
+    }
+    return need.length > 0;
+  }
+
+  function inPitSlot(x, z, st) {
+    const pit = G.summerWorld && ((G.summerWorld.shop && G.summerWorld.shop.pit) || G.summerWorld._garagePit);
+    if (!pit || !st) return false;
+    /* Only the project on stands keeps a walk-in slot over the pit + street-side ladder. */
+    const px = pit.x, pz = pit.z, hw = (pit.w || 0.96) * 0.5 + 0.12, hl = (pit.l || 3.35) * 0.5 + 0.45;
+    return Math.abs(x - px) <= hw && z <= pz + hl && z >= pz - (pit.l || 3.35) * 0.5 - 0.1;
+  }
+  function fleetObbHit(st, spec, x, z, y0, y1, radius, lowered, allowPit) {
+    if (!st || !spec) return false;
+    const miny = lowered ? (spec.minyLowered != null ? spec.minyLowered : spec.miny) : (spec.minyStand != null ? spec.minyStand : spec.miny);
+    const maxy = spec.maxy;
+    if (y1 < miny || y0 > maxy) return false;
+    if (allowPit && !lowered && inPitSlot(x, z, st)) return false;
+    const dx = x - st.x, dz = z - st.z;
+    const cy = Math.cos(st.yaw || 0), sy = Math.sin(st.yaw || 0);
+    const lx = dx * cy - dz * sy;
+    const lz = dx * sy + dz * cy;
+    return Math.abs(lx) < spec.hx + radius && Math.abs(lz) < spec.hz + radius;
+  }
+  G.summerFleetHit = function (x, z, y0, y1, radius, skipId) {
+    const S0 = G.summer;
+    if (!S0) return null;
+    radius = radius || 0.28;
+    y0 = y0 || 0;
+    y1 = y1 == null ? y0 + 1.4 : y1;
+    const driving = S0.mode === "drive" ? (S0.active || "project") : null;
+    const skip = skipId || driving;
+    if (skip !== "project" && S0.truck) {
+      const spec = G.summerFleetSpec ? G.summerFleetSpec("project") : { hx: 0.96, hz: 2.52, minyStand: 0.48, minyLowered: 0.05, maxy: 1.9 };
+      if (fleetObbHit(S0.truck, spec, x, z, y0, y1, radius, !!S0.truck.lowered, true)) return "project";
+    }
+    if (skip !== "cyber" && S0.cyber) {
+      const spec = G.summerFleetSpec ? G.summerFleetSpec("cyber") : { hx: 1.24, hz: 2.94, miny: 0.05, maxy: 2.05 };
+      if (fleetObbHit(S0.cyber, spec, x, z, y0, y1, radius, true, false)) return "cyber";
+    }
+    return null;
+  };
+  G.summerAttachReport = function () {
+    const T = THREE();
+    const S0 = G.summer;
+    if (!S0 || !S0.frame || !S0.meshes) return null;
+    S0.frame.updateMatrixWorld(true);
+    function boxOf(id) {
+      const m = S0.meshes[id];
+      if (!m || !m.visible) return null;
+      m.updateMatrixWorld(true);
+      const b = new T.Box3().setFromObject(m);
+      if (!isFinite(b.min.x)) return null;
+      return {
+        miny: +b.min.y.toFixed(3), maxy: +b.max.y.toFixed(3),
+        minz: +b.min.z.toFixed(3), maxz: +b.max.z.toFixed(3),
+        cx: +((b.min.x + b.max.x) / 2).toFixed(3),
+        cy: +((b.min.y + b.max.y) / 2).toFixed(3),
+        cz: +((b.min.z + b.max.z) / 2).toFixed(3)
+      };
+    }
+    const hood = boxOf("hood"), bumpF = boxOf("bumper-f"), bumpR = boxOf("bumper-r");
+    const gapF = (hood && bumpF) ? +(bumpF.minz - hood.maxz).toFixed(3) : null;
+    const wheels = {};
+    (G.summerWheelIds ? G.summerWheelIds() : []).forEach(function (id) {
+      const m = S0.meshes[id];
+      if (!m || !installed(id)) return;
+      m.updateMatrixWorld(true);
+      const p = new T.Vector3();
+      m.getWorldPosition(p);
+      const st = S0.truck;
+      const dx = p.x - st.x, dz = p.z - st.z;
+      const cy = Math.cos(st.yaw || 0), sy = Math.sin(st.yaw || 0);
+      const lx = dx * cy - dz * sy;
+      const lz = dx * sy + dz * cy;
+      wheels[id] = { lx: +lx.toFixed(3), y: +p.y.toFixed(3), lz: +lz.toFixed(3) };
+    });
+    const ax = (G.summerDims && G.summerDims.WHEEL_X) || 0.83;
+    const wheelOnAxle = Object.keys(wheels).length ? Object.keys(wheels).every(function (id) {
+      return Math.abs(Math.abs(wheels[id].lx) - ax) < 0.12 && Math.abs(wheels[id].y - ((G.summerDims && G.summerDims.TIRE_R) || 0.355)) < 0.12;
+    }) : false;
+    return {
+      hood: hood, bumperF: bumpF, bumperR: bumpR,
+      frontGap: gapF,
+      frontLead: (hood && bumpF) ? +(bumpF.maxz - hood.maxz).toFixed(3) : null,
+      frontFlush: !!(hood && bumpF && (bumpF.maxz - hood.maxz) >= 0 && (bumpF.maxz - hood.maxz) <= 0.28),
+      rearAtRail: !!(bumpR && Math.abs(bumpR.cy - 0.56) < 0.16),
+      wheels: wheels, wheelOnAxle: wheelOnAxle
+    };
+  };
+
+    function save() {
     const data = {
-      v: 2,
+      v: 3,
       parts: {},
       inTruck: S.mode === "drive",
+      active: S.mode === "drive" ? (S.active || "project") : null,
       player: { x: S.player.x, y: S.player.y, z: S.player.z, yaw: S.player.yaw, pitch: S.player.pitch },
       truck: { x: S.truck.x, z: S.truck.z, yaw: S.truck.yaw, lowered: S.truck.lowered },
+      cyber: S.cyber ? { x: S.cyber.x, z: S.cyber.z, yaw: S.cyber.yaw } : null,
       radioOn: S.radioOn,
       tool: S.tool || null,
       firstDriveDone: !!S.firstDriveDone
@@ -24005,14 +24389,57 @@ window.addEventListener("load", () => {
         S.player.x = data.player.x; S.player.y = data.player.y; S.player.z = data.player.z;
         S.player.yaw = data.player.yaw || 0; S.player.pitch = data.player.pitch || 0;
       }
-      if (data.truck) {
-        S.truck.x = data.truck.x; S.truck.z = data.truck.z;
-        S.truck.yaw = data.truck.yaw || 0; S.truck.lowered = !!data.truck.lowered;
+      const readyOld = oldSaveWasProjectReady(data);
+      const pit = (G.summerWorld && G.summerWorld.truckHome) || { x: 4.3, z: 1.7, yaw: 0 };
+      if (data.v >= 3) {
+        if (data.truck) {
+          S.truck.x = data.truck.x; S.truck.z = data.truck.z;
+          S.truck.yaw = data.truck.yaw || 0; S.truck.lowered = !!data.truck.lowered;
+        }
+        if (data.cyber) {
+          S.cyber.x = data.cyber.x; S.cyber.z = data.cyber.z;
+          S.cyber.yaw = data.cyber.yaw || 0; S.cyber.y = 0; S.cyber.lowered = true;
+        } else placeCyberHome();
+        S.firstDriveDone = !!data.firstDriveDone;
+        S._wantDrive = !!data.inTruck;
+        S._wantActive = data.active || (data.inTruck ? "project" : null);
+      } else {
+        /* v1/v2: one truck. If it was finished, that body becomes the
+           driveway Toaster Truck (moved off the pit if it was still in the
+           garage). Mid-build progress stays on the Sandcrab over the pit. */
+        if (readyOld) {
+          const tx = data.truck ? data.truck.x : pit.x;
+          const tz = data.truck ? data.truck.z : pit.z;
+          const onPit = Math.hypot(tx - pit.x, tz - pit.z) < 3.2;
+          if (onPit) placeCyberHome();
+          else {
+            S.cyber.x = tx; S.cyber.z = tz;
+            S.cyber.yaw = (data.truck && data.truck.yaw) || 0;
+            S.cyber.y = 0; S.cyber.lowered = true; S.cyber.speed = 0;
+          }
+          S.truck.x = pit.x; S.truck.y = 0; S.truck.z = pit.z;
+          S.truck.yaw = pit.yaw || 0; S.truck.lowered = false; S.truck.speed = 0;
+          /* Fresh Sandcrab build; keep cash/life. Don't carry finished-body parts. */
+          Object.keys(S.parts).forEach(function (id) {
+            const p = S.parts[id];
+            p.state = "loose";
+            p.tight = (p.tight || []).map(function () { return false; });
+          });
+          S._freshProjectAfterMigrate = true;
+          S.firstDriveDone = false;
+          S._wantDrive = !!data.inTruck;
+          S._wantActive = data.inTruck ? "cyber" : null;
+        } else {
+          S.truck.x = pit.x; S.truck.y = 0; S.truck.z = pit.z;
+          S.truck.yaw = pit.yaw || 0; S.truck.lowered = false;
+          placeCyberHome();
+          S.firstDriveDone = false;
+          S._wantDrive = false;
+          S._wantActive = null;
+        }
       }
       S.radioOn = !!data.radioOn;
       S.tool = data.tool || null;
-      S.firstDriveDone = !!data.firstDriveDone;
-      S._wantDrive = !!data.inTruck;
       if (G.applySummerLife) G.applySummerLife(data);
       return true;
     } catch (e) { return false; }
@@ -24143,26 +24570,30 @@ window.addEventListener("load", () => {
   }
 
   function applyTruckPose() {
-    if (!S.frame) return;
-    S.frame.position.set(S.truck.x, S.truck.y, S.truck.z);
-    S.frame.rotation.y = S.truck.yaw;
-    S.frame.updateMatrixWorld(true);
+    if (S.frame) {
+      S.frame.position.set(S.truck.x, S.truck.y, S.truck.z);
+      S.frame.rotation.y = S.truck.yaw;
+      S.frame.updateMatrixWorld(true);
+    }
+    if (S.cyber && S.cyber.frame) {
+      S.cyber.frame.position.set(S.cyber.x, S.cyber.y || 0, S.cyber.z);
+      S.cyber.frame.rotation.y = S.cyber.yaw || 0;
+      S.cyber.frame.updateMatrixWorld(true);
+    }
   }
 
   function eyePos() {
     if (S.mode === "drive") {
+      const st = driveSt();
       const back = 6.4, up = 2.15;
-      const cy = Math.cos(S.truck.yaw), sy = Math.sin(S.truck.yaw);
-      /* yaw 0 = +Z, so back is -Z in local */
       return {
-        x: S.truck.x - sy * 0 - cy * 0 - Math.sin(S.truck.yaw) * 0 - Math.cos(S.truck.yaw) * 0,
-        /* forward is +Z rotated by yaw: (sin yaw, 0, cos yaw) */
-        camX: S.truck.x - Math.sin(S.truck.yaw) * back,
-        camY: S.truck.y + up,
-        camZ: S.truck.z - Math.cos(S.truck.yaw) * back,
-        lookX: S.truck.x + Math.sin(S.truck.yaw) * 4,
-        lookY: S.truck.y + 1.1,
-        lookZ: S.truck.z + Math.cos(S.truck.yaw) * 4
+        x: st.x,
+        camX: st.x - Math.sin(st.yaw) * back,
+        camY: (st.y || 0) + up,
+        camZ: st.z - Math.cos(st.yaw) * back,
+        lookX: st.x + Math.sin(st.yaw) * 4,
+        lookY: (st.y || 0) + 1.1,
+        lookZ: st.z + Math.cos(st.yaw) * 4
       };
     }
     const eye = S.sitting ? 1.12 : (S.swimming ? 0.42 : EYE);
@@ -24215,8 +24646,8 @@ window.addEventListener("load", () => {
 
   function followSun() {
     if (!G._sun) return;
-    const px = S.mode === "drive" ? S.truck.x : S.player.x;
-    const pz = S.mode === "drive" ? S.truck.z : S.player.z;
+    const px = S.mode === "drive" ? driveSt().x : S.player.x;
+    const pz = S.mode === "drive" ? driveSt().z : S.player.z;
     const tod = G.timeOfDay || "day";
     let hy = tod === "dusk" ? 13 : tod === "night" ? 28 : 42;
     let hx = tod === "dusk" ? 32 : tod === "night" ? 10 : 18;
@@ -24384,8 +24815,12 @@ window.addEventListener("load", () => {
     const shopFr = G.summerWorld.shop && G.summerWorld.shop.fridge;
     if (shopFr) consider("shop-fridge", "shop-fridge", shopFr.x, shopFr.y, shopFr.z, 0.7);
     if (G.summerWorld.door) consider("door", "door", G.summerWorld.door.x, G.summerWorld.door.y, G.summerWorld.door.z, 0.7);
-    const enter = enterPoint();
-    consider("enter", "enter", enter.x, enter.y, enter.z, 0.9);
+    const enterP = enterPoint(S.truck);
+    consider("enter", "project", enterP.x, enterP.y, enterP.z, 0.9);
+    if (S.cyber) {
+      const enterC = enterPoint(S.cyber);
+      consider("enter", "cyber", enterC.x, enterC.y, enterC.z, 0.95);
+    }
     if (G.raySummerLife) G.raySummerLife(consider);
     if (G.raySummerBuild) G.raySummerBuild(consider);
     return best;
@@ -24401,13 +24836,22 @@ window.addEventListener("load", () => {
     v.applyMatrix4(S.frame.matrixWorld);
     return v;
   }
-  function enterPoint() {
+  function enterPoint(st) {
+    st = st || driveSt();
     const side = 1.5;
     return {
-      x: S.truck.x + Math.cos(S.truck.yaw) * side,
-      y: S.truck.y + 0.8,
-      z: S.truck.z - Math.sin(S.truck.yaw) * side
+      x: st.x + Math.cos(st.yaw || 0) * side,
+      y: (st.y || 0) + 0.8,
+      z: st.z - Math.sin(st.yaw || 0) * side
     };
+  }
+  function vehicleReady(id) {
+    if (id === "cyber") return true;
+    return driveReady();
+  }
+  function vehicleLabel(id) {
+    const names = G.summerVehicleNames || { cyber: "Toaster Truck", project: "Sandcrab" };
+    return names[id] || id;
   }
 
   function dropHeld(toGround) {
@@ -24449,38 +24893,45 @@ window.addEventListener("load", () => {
     if (G.audio && G.audio.beep) G.audio.beep("go");
   }
 
-  function tryEnter() {
-    if (!driveReady()) {
+  function tryEnter(id) {
+    if (!id) {
+      if (driveReady()) id = "project";
+      else id = "cyber";
+    }
+    if (!vehicleReady(id)) {
       S.prompt = "Still missing: " + missingDrive().join(", ");
       S.promptT = 2.4;
       return false;
     }
+    S.active = id;
     S.mode = "drive";
-    S.truck.speed = 0;
+    const st = driveSt();
+    st.speed = 0;
     S.chase = null;
     if (document.exitPointerLock) document.exitPointerLock();
     if (G.audio && G.audio.beep) G.audio.beep("start");
-    if (!S.firstDriveDone) {
+    if (id === "project" && !S.firstDriveDone) {
       S.firstDriveDone = true;
       S.celebrateT = 5.8;
       S.celebrateTitle = "FIRST DRIVE";
-      S.celebrateSub = "Take it down to the beach!";
+      S.celebrateSub = "Take the Sandcrab down to the beach!";
       if (G.audio && G.audio.beep) G.audio.beep("go");
     }
     save();
     return true;
   }
   function tryExit() {
-    if (Math.abs(S.truck.speed) > 1.2) {
+    const st = driveSt();
+    if (Math.abs(st.speed || 0) > 1.2) {
       S.prompt = "Slow down first";
       S.promptT = 1.4;
       return false;
     }
     S.mode = "walk";
     S.chase = null;
-    const e = enterPoint();
+    const e = enterPoint(st);
     S.player.x = e.x; S.player.z = e.z; S.player.y = G.summerHeightAt(e.x, e.z);
-    S.player.yaw = S.truck.yaw + Math.PI / 2;
+    S.player.yaw = (st.yaw || 0) + Math.PI / 2;
     S.player.vy = 0;
     save();
     return true;
@@ -24681,9 +25132,10 @@ window.addEventListener("load", () => {
         if (G.audio && G.audio.beep) G.audio.beep("2");
       }
     } else if (hit && hit.kind === "enter") {
-      if (driveReady()) {
-        S.prompt = "E  Get in";
-        if (interactPressed()) tryEnter();
+      const vid = hit.id || "project";
+      if (vehicleReady(vid)) {
+        S.prompt = "E  Get in the " + vehicleLabel(vid);
+        if (interactPressed()) tryEnter(vid);
       } else {
         S.prompt = "Not ready: " + missingDrive().join(", ");
       }
@@ -24704,6 +25156,7 @@ window.addEventListener("load", () => {
   }
 
   function stepDrive(dt) {
+    const st = driveSt();
     const axis = G.input && G.input.axis;
     let accelAmt = axis ? G.input.axis("accel") : (G.input.down("accel") ? 1 : 0);
     let brakeAmt = axis ? G.input.axis("brake") : (G.input.down("brake") ? 1 : 0);
@@ -24716,7 +25169,6 @@ window.addEventListener("load", () => {
     }
     if (steerIn > 1) steerIn = 1;
     if (steerIn < -1) steerIn = -1;
-    const st = S.truck;
     const max = 16.5, acc = 7.5, brk = 14, fric = 2.2;
     if (accelAmt > 0) st.speed += acc * dt * accelAmt;
     if (brakeAmt > 0) st.speed -= (accelAmt > 0.2 ? 5 : brk) * dt * brakeAmt;
@@ -24746,6 +25198,8 @@ window.addEventListener("load", () => {
         if (y1 < c.miny || y0 > c.maxy) continue;
         if (x + r > c.minx && x - r < c.maxx && z + r > c.minz && z - r < c.maxz) return c;
       }
+      const other = G.summerFleetHit && G.summerFleetHit(x, z, y0, y1, r, S.active || "project");
+      if (other) return { tag: "fleet", id: other };
       return null;
     }
     const next = { x: st.x + dx, y: st.y || 0, z: st.z + dz };
@@ -24790,17 +25244,24 @@ window.addEventListener("load", () => {
     applyTruckPose();
 
     /* Spin wheels */
-    const wids = G.summerWheelIds();
-    const spin = st.speed * dt / Math.max(0.2, G.summerDims.TIRE_R);
-    wids.forEach(function (id) {
-      const m = S.meshes[id];
-      if (m && installed(id)) m.rotation.x -= spin;
-    });
+    const spinR = (S.active === "cyber") ? 0.4895 : ((G.summerDims && G.summerDims.TIRE_R) || 0.355);
+    const spin = st.speed * dt / Math.max(0.2, spinR);
+    if (S.active === "cyber" && S.cyber && S.cyber.frame && S.cyber.frame.userData.wheels) {
+      S.cyber.frame.userData.wheels.forEach(function (w) { if (w) w.rotation.x -= spin; });
+    } else {
+      const wids = G.summerWheelIds();
+      wids.forEach(function (id) {
+        const m = S.meshes[id];
+        if (m && installed(id)) m.rotation.x -= spin;
+      });
+    }
 
-    /* Loose bolts rattle / fail. */
+    /* Loose bolts rattle / fail — only the project Sandcrab can shed parts. */
     const loose = [];
+    if (S.active !== "cyber") {
     G.SUMMER_PARTS.forEach(function (def) { if (partLoose(def.id)) loose.push(def.id); });
-    if (loose.length && Math.abs(st.speed) > 7) {
+    }
+    if (S.active !== "cyber" && loose.length && Math.abs(st.speed) > 7) {
       S.rattleT += dt;
       if (S.rattleT > 2.4) {
         const id = loose[0];
@@ -24822,7 +25283,8 @@ window.addEventListener("load", () => {
       }
     } else S.rattleT = Math.max(0, S.rattleT - dt);
 
-    S.prompt = driveReady() ? "E  Get out" : "Something came loose";
+    if (S.active === "cyber") S.prompt = "E  Get out";
+    else S.prompt = driveReady() ? "E  Get out" : "Something came loose";
     if (interactPressed()) tryExit();
   }
 
@@ -24881,7 +25343,7 @@ window.addEventListener("load", () => {
         walking: S.mode === "walk",
         driving: S.mode === "drive",
         sprinting: !!(G.input && G.input.down("drift")),
-        moving: S.mode === "drive" ? Math.abs(S.truck.speed) > 0.4 : movingWalk,
+        moving: S.mode === "drive" ? Math.abs(driveSt().speed || 0) > 0.4 : movingWalk,
         work: !!S.working
       });
       if (life && life.block) {
@@ -24892,9 +25354,9 @@ window.addEventListener("load", () => {
       }
     }
     if (G.tickTownLife) {
-      G._townLifePlayer = { mode: S.mode, truck: S.truck, player: S.player };
-      const lx = S.mode === "drive" ? S.truck.x : S.player.x;
-      const lz = S.mode === "drive" ? S.truck.z : S.player.z;
+      G._townLifePlayer = { mode: S.mode, truck: driveSt(), player: S.player };
+      const lx = S.mode === "drive" ? driveSt().x : S.player.x;
+      const lz = S.mode === "drive" ? driveSt().z : S.player.z;
       G.tickTownLife(dt, lx, lz, S.time);
     }
     if (S.mode === "drive") stepDrive(dt);
@@ -24949,7 +25411,7 @@ window.addEventListener("load", () => {
     ctx.textAlign = "left";
     ctx.font = "600 11px system-ui,sans-serif";
     ctx.fillStyle = "#f0e6c8";
-    ctx.fillText("BUILD CHECKLIST", x + pad, y + 13);
+    ctx.fillText("SANDCRAB BUILD", x + pad, y + 13);
     let yy = y + 26;
     groups.forEach(function (g) {
       ctx.fillStyle = "#c8c0a8";
@@ -25031,7 +25493,7 @@ window.addEventListener("load", () => {
 
     /* Drive speed */
     if (S.mode === "drive") {
-      const mph = Math.abs(S.truck.speed) * 2.237;
+      const mph = Math.abs(driveSt().speed || 0) * 2.237;
       ctx.font = "700 28px system-ui,sans-serif";
       ctx.textAlign = "left";
       ctx.fillStyle = "#f4f0e4";
@@ -25301,14 +25763,28 @@ window.addEventListener("load", () => {
     G.summerWorld.root.add(S.frame);
     const home = G.summerWorld.truckHome;
     S.truck.x = home.x; S.truck.y = 0; S.truck.z = home.z; S.truck.yaw = home.yaw || 0;
+    S.cyber = S.cyber || { x: 0, y: 0, z: 0, yaw: 0, speed: 0, steer: 0, vx: 0, vz: 0, lowered: true };
+    if (G.buildSummerCyberTruck) {
+      S.cyber.frame = G.buildSummerCyberTruck();
+      G.summerWorld.root.add(S.cyber.frame);
+    }
+    placeCyberHome();
+    S.active = null;
     const spawn = G.summerWorld.spawn;
     S.player.x = spawn.x; S.player.y = 0; S.player.z = spawn.z; S.player.yaw = spawn.yaw; S.player.pitch = -0.08;
 
     const loaded = loadSave();
     if (G.initSummerLife) G.initSummerLife(loaded);
-    initParts(loaded);
+    initParts(loaded && !S._freshProjectAfterMigrate);
+    S._freshProjectAfterMigrate = false;
     applyTruckPose();
-    if (S._wantDrive && driveReady()) S.mode = "drive";
+    if (S._wantDrive) {
+      const want = S._wantActive || (driveReady() ? "project" : "cyber");
+      if (vehicleReady(want)) {
+        S.active = want;
+        S.mode = "drive";
+      }
+    }
 
     G.walkCam = new (THREE()).PerspectiveCamera(68, 16 / 9, 0.12, G.SURF_CITY_MAP ? 2800 : 400);
     G.driveCam = G.walkCam;
@@ -25333,9 +25809,13 @@ window.addEventListener("load", () => {
           parts[d.id] = { state: p.state, tight: p.tight.slice(), loose: partLoose(d.id) };
         });
         return {
-          mode: S.mode, driveReady: driveReady(), held: S.held,
+          mode: S.mode, driveReady: driveReady(), cyberReady: true,
+          active: S.active || null, held: S.held,
           player: { x: S.player.x, y: S.player.y, z: S.player.z, yaw: S.player.yaw },
           truck: { x: S.truck.x, y: S.truck.y, z: S.truck.z, yaw: S.truck.yaw, speed: S.truck.speed, lowered: S.truck.lowered },
+          cyber: S.cyber ? { x: S.cyber.x, y: S.cyber.y, z: S.cyber.z, yaw: S.cyber.yaw, speed: S.cyber.speed, lowered: !!S.cyber.lowered } : null,
+          projectName: (G.summerVehicleNames && G.summerVehicleNames.project) || "Sandcrab",
+          cyberName: (G.summerVehicleNames && G.summerVehicleNames.cyber) || "Toaster Truck",
           parts: parts, missing: missingDrive(),
           cash: S.cash, hunger: S.hunger,
           tool: S.tool || null, firstDriveDone: !!S.firstDriveDone,
@@ -25420,8 +25900,12 @@ window.addEventListener("load", () => {
         save();
       },
       isDriveReady: driveReady,
-      enterTruck() { return tryEnter(); },
+      enterTruck(id) { return tryEnter(id); },
       exitTruck() { return tryExit(); },
+      enterCyber() { return tryEnter("cyber"); },
+      enterProject() { return tryEnter("project"); },
+      fleetHit(x, z, y0, y1, r, skip) { return G.summerFleetHit ? G.summerFleetHit(x, z, y0, y1, r, skip) : null; },
+      attachReport() { return G.summerAttachReport ? G.summerAttachReport() : null; },
       traffic() {
         const w = G.summerWorld || {};
         return {
@@ -25437,11 +25921,12 @@ window.addEventListener("load", () => {
         if (!setup || !setup.ok) return { ok: false, reason: setup && setup.reason, dist: 0, aiCount: setup && setup.aiCount };
         if (!driveReady()) G.debug.summer.installAll(true);
         const placed = setup.truck;
+        S.active = "project";
         S.truck.x = placed.x; S.truck.z = placed.z; S.truck.yaw = placed.yaw; S.truck.y = 0; S.truck.speed = 0;
         S.mode = "drive";
         applyTruckPose();
         if (G.tickTownLife) {
-          G._townLifePlayer = { mode: S.mode, truck: S.truck, player: S.player };
+          G._townLifePlayer = { mode: S.mode, truck: driveSt(), player: S.player };
           G.tickTownLife(0.05, placed.x, placed.z, S.time || 1);
         }
         const before = { x: S.truck.x, z: S.truck.z };
@@ -25458,9 +25943,17 @@ window.addEventListener("load", () => {
         S.mode = "walk";
       },
       setTruck(x, z, yaw) {
-        if (x != null) S.truck.x = x;
-        if (z != null) S.truck.z = z;
-        if (yaw != null) S.truck.yaw = yaw;
+        const st = (S.mode === "drive") ? driveSt() : S.truck;
+        if (x != null) st.x = x;
+        if (z != null) st.z = z;
+        if (yaw != null) st.yaw = yaw;
+        applyTruckPose();
+      },
+      setCyber(x, z, yaw) {
+        if (!S.cyber) return;
+        if (x != null) S.cyber.x = x;
+        if (z != null) S.cyber.z = z;
+        if (yaw != null) S.cyber.yaw = yaw;
         applyTruckPose();
       },
       resetSave() { G.resetSummerSave(); },
@@ -25592,6 +26085,7 @@ window.addEventListener("load", () => {
   function restoreGarageFresh() {
     S.mode = "walk";
     S.held = null;
+    S.active = null;
     S.camOverride = null;
     const home = G.summerWorld.truckHome || { x: 3.55, y: 0, z: 1.7, yaw: 0 };
     S.truck.x = home.x;
@@ -25600,6 +26094,7 @@ window.addEventListener("load", () => {
     S.truck.yaw = home.yaw || 0;
     S.truck.speed = 0;
     S.truck.lowered = false;
+    placeCyberHome();
     const spawns = G.summerPartSpawns ? G.summerPartSpawns(home) : {};
     (G.SUMMER_PARTS || []).forEach(function (def) {
       const p = partState(def.id);
@@ -26408,17 +26903,122 @@ window.addEventListener("load", () => {
       const tz = shop ? shop.z + 3.2 : 13.8;
       S.player.yaw = Math.atan2(tx - S.player.x, tz - S.player.z);
       S.player.pitch = 0.08;
+    } else if (name === "cyber-driveway" || name === "toaster-truck") {
+      G._hideHud = true;
+      S.checklistOpen = false;
+      S.catalogOpen = false;
+      if (typeof dismissHint === "function") dismissHint();
+      if (G.resetSummerBuildFresh) G.resetSummerBuildFresh();
+      else restoreGarageFresh();
+      S.mode = "walk";
+      S.active = null;
+      const ch = cyberHomePose();
+      S.player.x = 4.6; S.player.y = 0; S.player.z = 14.6;
+      S.player.yaw = Math.atan2(ch.x - S.player.x, ch.z - S.player.z);
+      S.player.pitch = 0.06;
+      S.camOverride = { x: 4.85, y: 1.58, z: 14.9, lx: ch.x + 0.15, ly: 0.92, lz: ch.z - 0.2 };
+      if (G.walkCam) { G.walkCam.near = 0.1; G.walkCam.far = 500; G.walkCam.updateProjectionMatrix(); }
+      revealAround(ch.x, ch.z, 500);
+    } else if (name === "sandcrab-stands" || name === "project-stands") {
+      G._hideHud = true;
+      S.checklistOpen = false;
+      S.catalogOpen = false;
+      if (typeof dismissHint === "function") dismissHint();
+      if (G.resetSummerBuildFresh) G.resetSummerBuildFresh();
+      else restoreGarageFresh();
+      S.mode = "walk";
+      const home = G.summerWorld.truckHome || { x: 4.3, z: 1.7 };
+      S.player.x = home.x - 1.5; S.player.y = 0; S.player.z = home.z + 4.1;
+      S.player.yaw = Math.atan2(home.x - S.player.x, home.z - S.player.z);
+      S.player.pitch = 0.05;
+      S.camOverride = { x: home.x - 1.85, y: 1.48, z: home.z + 4.35, lx: home.x, ly: 0.88, lz: home.z - 0.15 };
+      if (G.walkCam) { G.walkCam.near = 0.1; G.walkCam.far = 400; G.walkCam.updateProjectionMatrix(); }
+      revealAround(home.x, home.z, 400);
+    } else if (name === "sandcrab-mid" || name === "project-mid") {
+      G._hideHud = true;
+      S.checklistOpen = true;
+      S.catalogOpen = false;
+      if (typeof dismissHint === "function") dismissHint();
+      if (G.resetSummerBuildFresh) G.resetSummerBuildFresh();
+      else restoreGarageFresh();
+      /* Mid-build: boxy cab and nose are on, still on stands, no wheels or bed. */
+      ["lf-arm","rf-arm","lr-arm","rr-arm","steer","cab","hood","bumper-f","seat"].forEach(function (id) {
+        if (G.debug && G.debug.summer && G.debug.summer.install) G.debug.summer.install(id, true);
+      });
+      S.mode = "walk";
+      const home = G.summerWorld.truckHome || { x: 4.3, z: 1.7 };
+      S.player.x = home.x - 2.2; S.player.y = 0; S.player.z = home.z + 3.6;
+      S.player.yaw = Math.atan2(home.x - S.player.x, (home.z + 0.8) - S.player.z);
+      S.player.pitch = 0.06;
+      S.camOverride = { x: home.x - 2.55, y: 1.38, z: home.z + 3.85, lx: home.x + 0.1, ly: 0.82, lz: home.z + 0.85 };
+      if (G.walkCam) { G.walkCam.near = 0.1; G.walkCam.far = 400; G.walkCam.updateProjectionMatrix(); }
+      revealAround(home.x, home.z, 400);
+    } else if (name === "sandcrab-drive" || name === "project-drive") {
+      G._hideHud = true;
+      S.checklistOpen = false;
+      S.catalogOpen = false;
+      if (typeof dismissHint === "function") dismissHint();
+      if (G.debug && G.debug.summer && G.debug.summer.installAll) G.debug.summer.installAll(true);
+      S.active = "project";
+      S.truck.x = 8.2; S.truck.z = 17.8; S.truck.y = 0; S.truck.yaw = -Math.PI * 0.58; S.truck.speed = 8;
+      applyTruckPose();
+      S.mode = "drive";
+      S.camOverride = { x: 12.2, y: 1.72, z: 21.6, lx: 7.2, ly: 1.05, lz: 16.4 };
+      if (G.walkCam) { G.walkCam.near = 0.1; G.walkCam.far = 500; G.walkCam.updateProjectionMatrix(); }
+      revealAround(8.2, 17.8, 500);
+    } else if (name === "sandcrab-front" || name === "project-front") {
+      G._hideHud = true;
+      S.checklistOpen = false;
+      S.catalogOpen = false;
+      if (typeof dismissHint === "function") dismissHint();
+      if (G.debug && G.debug.summer && G.debug.summer.installAll) G.debug.summer.installAll(true);
+      S.active = null;
+      S.mode = "walk";
+      /* Park to the right of the driveway Toaster Truck, out in the open. */
+      S.truck.x = 5.4; S.truck.z = 10.2; S.truck.y = 0; S.truck.yaw = 0; S.truck.speed = 0;
+      applyTruckPose();
+      S.camOverride = { x: 8.5, y: 1.48, z: 14.8, lx: 5.1, ly: 0.88, lz: 9.5 };
+      if (G.walkCam) { G.walkCam.near = 0.1; G.walkCam.far = 500; G.walkCam.updateProjectionMatrix(); }
+      revealAround(5.4, 10.2, 500);
+    } else if (name === "sandcrab-rear" || name === "project-rear") {
+      G._hideHud = true;
+      S.checklistOpen = false;
+      S.catalogOpen = false;
+      if (typeof dismissHint === "function") dismissHint();
+      if (G.debug && G.debug.summer && G.debug.summer.installAll) G.debug.summer.installAll(true);
+      S.active = null;
+      S.mode = "walk";
+      /* Rear faces the street so the camera stays in open gravel, not in the stairs. */
+      S.truck.x = 5.4; S.truck.z = 10.2; S.truck.y = 0; S.truck.yaw = Math.PI; S.truck.speed = 0;
+      applyTruckPose();
+      S.camOverride = { x: 8.5, y: 1.48, z: 14.8, lx: 5.1, ly: 0.88, lz: 9.5 };
+      if (G.walkCam) { G.walkCam.near = 0.1; G.walkCam.far = 500; G.walkCam.updateProjectionMatrix(); }
+      revealAround(5.4, 10.2, 500);
+    } else if (name === "both-trucks" || name === "fleet-driveway") {
+      G._hideHud = true;
+      S.checklistOpen = false;
+      S.catalogOpen = false;
+      if (typeof dismissHint === "function") dismissHint();
+      if (G.debug && G.debug.summer && G.debug.summer.installAll) G.debug.summer.installAll(true);
+      S.active = null;
+      S.mode = "walk";
+      const ch = cyberHomePose();
+      S.truck.x = 5.2; S.truck.y = 0; S.truck.z = ch.z; S.truck.yaw = 0; S.truck.speed = 0;
+      applyTruckPose();
+      S.camOverride = { x: 3.3, y: 1.55, z: 15.3, lx: 3.2, ly: 0.95, lz: 9.5 };
+      if (G.walkCam) { G.walkCam.near = 0.1; G.walkCam.far = 500; G.walkCam.updateProjectionMatrix(); }
+      revealAround(3.2, 9.6, 500);
     }
     if (G.updateSummerWaypoint) G.updateSummerWaypoint(0);
     updateWalkCam();
     followSun();
-    const cx = S.camOverride ? S.camOverride.x : (S.mode === "drive" ? S.truck.x : S.player.x);
-    const cz = S.camOverride ? S.camOverride.z : (S.mode === "drive" ? S.truck.z : S.player.z);
+    const cx = S.camOverride ? S.camOverride.x : (S.mode === "drive" ? driveSt().x : S.player.x);
+    const cz = S.camOverride ? S.camOverride.z : (S.mode === "drive" ? driveSt().z : S.player.z);
     if (G.tickSurfCityMap) G.tickSurfCityMap(cx, cz);
     if (G.tickCoastalLook) G.tickCoastalLook(cx, cz, 4.2);
     if (G.tickWater) G.tickWater(4.2);
     if (G.tickTownLife) {
-      G._townLifePlayer = { mode: S.mode, truck: S.truck, player: S.player };
+      G._townLifePlayer = { mode: S.mode, truck: driveSt(), player: S.player };
       G.tickTownLife(0.2, cx, cz, 6.8);
     }
     return G.debug.summer.state();
@@ -35669,6 +36269,7 @@ window.addEventListener("load", () => {
     s.bolt = null;
     s.alignT = 0;
     s.mode = "walk";
+    s.active = null;
     s.cash = 60;
     s.hunger = 82;
     const home = (G.summerWorld && G.summerWorld.truckHome) || { x: 4.3, z: 1.7, yaw: 0 };
@@ -35678,6 +36279,11 @@ window.addEventListener("load", () => {
     s.truck.yaw = home.yaw || 0;
     s.truck.speed = 0;
     s.truck.lowered = false;
+    const ch = (G.summerWorld && G.summerWorld.cyberHome) || (G.defaultSummerCyberHome && G.defaultSummerCyberHome()) || { x: 1.35, y: 0, z: 9.6, yaw: 0 };
+    if (s.cyber) {
+      s.cyber.x = ch.x; s.cyber.y = ch.y || 0; s.cyber.z = ch.z;
+      s.cyber.yaw = ch.yaw || 0; s.cyber.speed = 0; s.cyber.lowered = true;
+    }
     const spawns = G.summerPartSpawns ? G.summerPartSpawns(home) : {};
     (G.SUMMER_PARTS || []).forEach(function (def) {
       const p = partState(def.id);
