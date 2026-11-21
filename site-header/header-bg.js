@@ -1,4 +1,4 @@
-/* TT site header: OOK glitch background v6
+/* TT site header: OOK glitch background v6.1
    Same canvas as the Ashley Savvie / My One of a Kind glitch background
    (dark #05070d field, scanlines, grain, bursts, SYS_ERR ticks)
    behind the nav tabs on every page that does not already have its own
@@ -19,6 +19,8 @@
      (fit to width, no cover crop) over a dark blurred fill of the same image.
      The calm glitch canvas now covers the whole wallpaper area (inside
      #tt-topwall, under all content and tabs), not just the header strip.
+   - v6.1: the whole wall picture sits BELOW the nav tabs (measured at runtime),
+     full width, uncropped; Daily Glitch is nudged down only if needed to fit it.
    - /skullz and /mr-toastys-nft-wall unchanged from v3. Default dark-field
      pages (Ashley, Shop, About, ...) unchanged from v3.
 
@@ -245,14 +247,18 @@
         'background-color:#05070d!important;background-repeat:no-repeat,no-repeat!important;'+
         'background-image:url("'+WALL_2400_JPG+'"),url("'+WALL_FILL_JPG+'")!important;'+
         'background-image:image-set(url("'+WALL_2400_WEBP+'") type("image/webp"),url("'+WALL_2400_JPG+'") type("image/jpeg")),image-set(url("'+WALL_FILL_WEBP+'") type("image/webp"),url("'+WALL_FILL_JPG+'") type("image/jpeg"))!important;'+
-        'background-size:100% auto,cover!important;'+
-        'background-position:50% var(--tt-wall-y,50%),50% 50%!important;'+
+        'background-size:var(--tt-wall-w,100%) auto,cover!important;'+
+        'background-position:50% var(--tt-wall-top,50%),50% 50%!important;'+
       '}'+
       '@media (max-width:767px){html.'+CLS_WALL+' #'+TOPWALL_ID+' .tw-img{'+
         'background-image:url("'+WALL_1200_JPG+'"),url("'+WALL_FILL_JPG+'")!important;'+
         'background-image:image-set(url("'+WALL_1200_WEBP+'") type("image/webp"),url("'+WALL_1200_JPG+'") type("image/jpeg")),image-set(url("'+WALL_FILL_WEBP+'") type("image/webp"),url("'+WALL_FILL_JPG+'") type("image/jpeg"))!important;'+
-        'background-position:50% var(--tt-wall-y-m,72%),50% 50%!important;'+
+        'background-position:50% var(--tt-wall-top,72%),50% 50%!important;'+
       '}}'+
+      /* beats Home's html.tt-topwall body.homepage #tt-topwall{height:max(46.875vw,850px)!important} only once measured */
+      'html.'+CLS_WALL+'.tt-topwall body.homepage #siteWrapper #'+TOPWALL_ID+'.tt-wall-sized{height:var(--tt-wall-h)!important;}'+
+      /* v6.1: extra room above Daily Glitch (set at runtime) so the whole wall fits under the tabs */
+      'html.'+CLS_WALL+' #tt-notice{border-top:var(--tt-wall-push,0px) solid transparent!important;}'+
       'html.'+CLS_WALL+' #'+TOPWALL_ID+' #'+CV_ID+'{z-index:2;}'+
       'html.'+CLS_WALL+' #'+TOPWALL_ID+' #'+OV_ID+'{z-index:3;background:rgba(0,0,0,.03);}'+
       /* Ashley white-bar gap under the nav (same rules as the Ashley-only script). */+
@@ -307,7 +313,39 @@
 
   function wantAlpha(){return mode==='nft-banner'||calm();}
 
+  /* v6.1 Home: put the whole wall picture BELOW the nav tabs, full width, uncropped.
+     Measures the header bottom and the Daily Glitch box at runtime. If the gap is
+     shorter than the picture, Daily Glitch is pushed down just enough (transparent
+     top border on #tt-notice). Falls back to the CSS defaults if anything is missing. */
+  var WALL_RATIO=3552/1184,WALL_GAP=14,pushPx=0,placeT=[];
+  function placeWall(){
+    var root=D.documentElement,tw=D.getElementById(TOPWALL_ID);
+    if(!root||!tw||mode!=='home-overlay'){return;}
+    var img=tw.querySelector('.tw-img');if(!img)return;
+    var hd=D.querySelector('#header .header-announcement-bar-wrapper')||D.getElementById('header');
+    var box=D.querySelector('#tt-notice .ttdg-box')||D.getElementById('tt-notice');
+    if(!hd||!box)return;
+    var ir=img.getBoundingClientRect(),w=ir.width||tw.clientWidth;if(!w)return;
+    var navB=hd.getBoundingClientRect().bottom-ir.top;
+    var boxT=box.getBoundingClientRect().top-ir.top-pushPx; /* position without our push */
+    if(!(navB>0)||!(boxT>0))return;
+    var ih=w/WALL_RATIO,avail=boxT-navB-2*WALL_GAP,push=0,top;
+    if(avail>=ih){top=navB+WALL_GAP+(avail-ih)/2;}
+    else{push=Math.ceil(ih-avail);top=navB+WALL_GAP;}
+    if(Math.abs(push-pushPx)>1){pushPx=push;root.style.setProperty('--tt-wall-push',push+'px');}
+    img.style.setProperty('--tt-wall-top',Math.round(top)+'px');
+    img.style.setProperty('--tt-wall-w',Math.round(w)+'px');
+    /* Wall area (glitch canvas + bottom fade) runs from the top to just under the top of Daily Glitch. */
+    tw.style.setProperty('--tt-wall-h',Math.ceil(Math.max(top+ih+70,boxT+push+30))+'px');
+    tw.classList.add('tt-wall-sized');
+  }
+  function unplaceWall(){
+    var root=D.documentElement;if(root)root.style.removeProperty('--tt-wall-push');pushPx=0;
+    var tw=D.getElementById(TOPWALL_ID);if(tw){tw.classList.remove('tt-wall-sized');tw.style.removeProperty('--tt-wall-h');}
+    placeT.forEach(clearTimeout);placeT=[];
+  }
   function size(force){
+    if(cv&&wrap&&wrap.id===TOPWALL_ID)placeWall();
     if(!cv||!wrap||!ctx)return;
     var cw=wrap.clientWidth||innerWidth,ch=wrap.clientHeight||0;
     if(ch<8)ch=Math.max(8,(wrap.getBoundingClientRect().height||0));
@@ -479,7 +517,8 @@
     setActive(m);
     cv=D.createElement('canvas');cv.id=CV_ID;cv.setAttribute('aria-hidden','true');cv.setAttribute('role','presentation');
     ov=D.createElement('div');ov.id=OV_ID;ov.setAttribute('aria-hidden','true');
-    if(inWall){wrap.appendChild(cv);wrap.appendChild(ov);}
+    if(inWall){wrap.appendChild(cv);wrap.appendChild(ov);
+      placeT.forEach(clearTimeout);placeT=[300,1000,2500,5000].map(function(ms){return setTimeout(placeWall,ms);});}
     else{wrap.insertBefore(ov,wrap.firstChild);wrap.insertBefore(cv,wrap.firstChild);}
     ctx=cv.getContext('2d',{alpha:wantAlpha()});if(!ctx)return;
     pats=[];base=null;bc=null;burst=null;texts=[];nextB=0;nextT=0;lastW=0;lastH=0;fi=0;
@@ -519,6 +558,7 @@
     if(ro){try{ro.disconnect();}catch(e){}ro=null;}
     if(cv&&cv.parentNode)cv.parentNode.removeChild(cv);
     if(ov&&ov.parentNode)ov.parentNode.removeChild(ov);
+    if(wrap&&wrap.id===TOPWALL_ID)unplaceWall();
     cv=null;ov=null;ctx=null;wrap=null;cvMode='';
   }
   function unmount(){
