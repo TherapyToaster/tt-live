@@ -1,16 +1,23 @@
-/* TT site header: OOK glitch background v1
+/* TT site header: OOK glitch background v2
    Same canvas as the Ashley Savvie / My One of a Kind glitch background
    (dark #05070d field, scanlines, grain, RGB/mosh bursts, SYS_ERR ticks)
    behind the nav tabs on every page that does not already have its own
    header background.
 
+   v2 adds two modes, both keep the same overlay glitch animation under the tabs:
+   - NFT banner (/mr-toastys-nft-wall and /skullz, the "Mr. Toasty's NFTs" tab):
+     the neon MR. TOASTY shutter photo is the banner picture; the glitch paints
+     on top of it. Banner files live in this folder (nft-banner-2400/1200).
+   - Home overlay (/ and /home): the glitch paints over the #tt-topwall graffiti
+     wallpaper and under the nav tabs. Transparent canvas, no opaque fill, so
+     the mural stays visible. Does not touch the Tag Wall, embed, or #ttpw-root.
+
    Excluded (keep their existing header art):
-   - Home (/ and /home, collection 6a9884b8f61a583fee13721f): #tt-topwall graffiti mural
    - /arcade (collection 6ad5b63914df0c0376bddf45): neon sign CSS
    - /mr-toastys-merch: graffiti header, if that page returns (404 as of 2026-11-14)
-   - Any page whose .header-announcement-bar-wrapper already has a non-none
-     background-image from page CSS, or that has #tt-topwall / html.tt-topwall,
-     or a foreign canvas/video in the header wrap.
+   - Any other page whose .header-announcement-bar-wrapper already has a non-none
+     background-image from page CSS, or a foreign canvas/video in the header wrap.
+     Home's #tt-topwall is no longer treated as a reason to skip (overlay mode).
 
    Ashley Savvie (/ashleysavvie, collection 6aefb320e7defe1c4dfda59f) keeps the
    same look, including the white-bar gap fix under the nav.
@@ -22,6 +29,8 @@
 
    Replaces ashley-header/header-bg.js. Load once from sitewide Footer Code Injection:
    <script src="https://therapytoaster.github.io/tt-live/site-header/header-bg.js?c=SHORTSHA" defer></script>
+   Home does not need a tag in the Home code block; this file already runs sitewide
+   and survives hourly Home rebuilds.
 */
 (function(){
   if(window.self!==window.top)return;
@@ -29,31 +38,55 @@
   var CV_ID='tt-site-ook-cv';
   var OV_ID='tt-site-ook-ov';
   var CLS='tt-site-ook-header';
+  var CLS_NFT='tt-site-ook-nft';
+  var CLS_OVER='tt-site-ook-over';
   var SECTION='6aefb3e0dd29691c2e41cf91';
   var W=window, D=document, KEY='__ttSiteOokHeader';
   if(W[KEY]&&W[KEY].destroy)W[KEY].destroy();
 
   var EXCLUDE_CID={
-    'collection-6a9884b8f61a583fee13721f':1, /* Home */
     'collection-6ad5b63914df0c0376bddf45':1  /* ARTcade */
   };
-  var EXCLUDE_PATH=/^\/(arcade|home|mr-toastys-merch)\/?$/i;
+  var EXCLUDE_PATH=/^\/(arcade|mr-toastys-merch)\/?$/i;
+  var HOME_CID={
+    'collection-6a9884b8f61a583fee13721f':1
+  };
+  var NFT_CID={
+    'collection-6af6cf6c71c4ca6f54577e52':1, /* /mr-toastys-nft-wall */
+    'collection-6ad2fee94e898d331b4002bf':1  /* /skullz  (nav tab "Mr. Toasty's NFTs") */
+  };
+  var HOME_PATH=/^\/(home)?\/?$/i;
+  var NFT_PATH=/^\/(mr-toastys-nft-wall|skullz)\/?$/i;
+  var ASSET='https://therapytoaster.github.io/tt-live/site-header/';
+  var BANNER_2400_WEBP=ASSET+'nft-banner-2400.webp';
+  var BANNER_2400_JPG=ASSET+'nft-banner-2400.jpg';
+  var BANNER_1200_WEBP=ASSET+'nft-banner-1200.webp';
+  var BANNER_1200_JPG=ASSET+'nft-banner-1200.jpg';
 
-  function excludedPage(){
-    var b=D.body;
-    if(!b)return true;
-    if(b.classList.contains('sqs-edit-mode-active'))return true;
-    var id=b.id||'';
-    if(EXCLUDE_CID[id])return true;
-    for(var c in EXCLUDE_CID){if(EXCLUDE_CID[c]&&b.classList.contains(c))return true;}
-    var path=location.pathname||'';
-    if(path==='/'||EXCLUDE_PATH.test(path))return true;
+  var mode='off'; /* off | default | nft-banner | home-overlay */
+  var bannerImg=null, bannerTried=false, bannerWait=0;
+
+  function bodyIdClass(){
+    var b=D.body;if(!b)return '';
+    return (b.id||'')+' '+(b.className||'');
+  }
+  function hasCid(map){
+    var s=bodyIdClass();
+    for(var c in map){if(map[c]&&(s.indexOf(c)!==-1))return true;}
     return false;
+  }
+  function pageMode(){
+    var b=D.body;
+    if(!b)return 'off';
+    if(b.classList.contains('sqs-edit-mode-active'))return 'off';
+    var path=location.pathname||'';
+    if(EXCLUDE_PATH.test(path)||hasCid(EXCLUDE_CID))return 'off';
+    if(path==='/'||HOME_PATH.test(path)||hasCid(HOME_CID))return 'home-overlay';
+    if(NFT_PATH.test(path)||hasCid(NFT_CID))return 'nft-banner';
+    return 'default';
   }
 
   function hasOwnHeaderBg(wrapEl){
-    var root=D.documentElement;
-    if((root&&root.classList.contains('tt-topwall'))||D.getElementById('tt-topwall'))return true;
     var wrap=wrapEl||D.querySelector('#header .header-announcement-bar-wrapper')||D.querySelector('.header-announcement-bar-wrapper');
     if(!wrap)return false;
     var nodes=wrap.querySelectorAll('canvas,video');
@@ -65,24 +98,29 @@
     }
     var bg=(W.getComputedStyle?getComputedStyle(wrap).backgroundImage:'')||'';
     if(bg&&bg!=='none'){
-      if(root&&root.classList.contains(CLS))return false;
+      var root=D.documentElement;
+      if(root&&(root.classList.contains(CLS)||root.classList.contains(CLS_NFT)||root.classList.contains(CLS_OVER)))return false;
       return true;
     }
     return false;
   }
 
   function onPage(){
-    if(!D.body)return false;
-    if(excludedPage())return false;
+    var m=pageMode();
+    if(m==='off')return false;
+    if(m==='home-overlay'||m==='nft-banner')return true;
     if(hasOwnHeaderBg())return false;
     return true;
   }
 
-  function setActive(on){
+  function setActive(m){
     var root=D.documentElement;
     if(!root)return;
-    if(on)root.classList.add(CLS);
-    else root.classList.remove(CLS);
+    root.classList.remove(CLS,CLS_NFT,CLS_OVER);
+    if(!m||m==='off')return;
+    if(m==='nft-banner'){root.classList.add(CLS,CLS_NFT);}
+    else if(m==='home-overlay'){root.classList.add(CLS_OVER);}
+    else root.classList.add(CLS);
   }
 
   function removeLegacy(){
@@ -100,13 +138,16 @@
   }
 
   function ensureStyle(){
-    if(D.getElementById(STYLE_ID))return;
-    var host=D.head||D.documentElement;
-    if(!host)return;
-    var st=D.createElement('style');st.id=STYLE_ID;
+    var st=D.getElementById(STYLE_ID);
+    if(!st){
+      var host=D.head||D.documentElement;
+      if(!host)return;
+      st=D.createElement('style');st.id=STYLE_ID;
+      host.appendChild(st);
+    }
     st.textContent=
       '/* Site header: OOK glitch behind the nav tabs */'+
-      'html.'+CLS+' .header-announcement-bar-wrapper{'+
+      'html.'+CLS+':not(.'+CLS_NFT+'):not(.'+CLS_OVER+') .header-announcement-bar-wrapper{'+
         'position:relative;'+
         'background-color:#05070d!important;'+
         'background-image:'+
@@ -117,6 +158,29 @@
       'html.'+CLS+' .header-announcement-bar-wrapper .header-background{'+
         'background:transparent!important;background-color:transparent!important;background-image:none!important;'+
       '}'+
+      /* NFT tab: photo banner, glitch canvas + veil on top, tabs above that */+
+      'html.'+CLS+'.'+CLS_NFT+' .header-announcement-bar-wrapper{'+
+        'position:relative;'+
+        'background-color:#000!important;'+
+        'background-image:url("'+BANNER_2400_JPG+'")!important;'+
+        'background-image:-webkit-image-set(url("'+BANNER_2400_WEBP+'") 1x)!important;'+
+        'background-image:image-set(url("'+BANNER_2400_WEBP+'") type("image/webp"),url("'+BANNER_2400_JPG+'") type("image/jpeg"))!important;'+
+        'background-size:cover!important;'+
+        'background-position:50% 45%!important;'+
+        'background-repeat:no-repeat!important;'+
+      '}'+
+      '@media (max-width:800px){html.'+CLS+'.'+CLS_NFT+' .header-announcement-bar-wrapper{'+
+        'background-image:url("'+BANNER_1200_JPG+'")!important;'+
+        'background-image:image-set(url("'+BANNER_1200_WEBP+'") type("image/webp"),url("'+BANNER_1200_JPG+'") type("image/jpeg"))!important;'+
+      '}}'+
+      'html.'+CLS+'.'+CLS_NFT+' .header-announcement-bar-wrapper .header-background{'+
+        'background:transparent!important;background-color:transparent!important;background-image:none!important;'+
+      '}'+
+      /* Home: glitch over the graffiti wallpaper, under the tabs. Do not paint an opaque header fill. */+
+      'html.'+CLS_OVER+' .header-announcement-bar-wrapper{position:relative;}'+
+      'html.'+CLS_OVER+' .header-announcement-bar-wrapper .header-background{'+
+        'background:transparent!important;background-color:transparent!important;background-image:none!important;'+
+      '}'+
       '#'+CV_ID+'{'+
         'position:absolute;top:0;left:0;width:100%;height:100%;display:block;margin:0;padding:0;border:0;'+
         'pointer-events:none;z-index:0;image-rendering:pixelated;contain:strict;'+
@@ -125,16 +189,19 @@
         'position:absolute;inset:0;pointer-events:none;z-index:1;'+
         'background:rgba(0,0,0,.32);'+
       '}'+
-      'html.'+CLS+' .header-announcement-bar-wrapper > .header-inner{'+
+      'html.'+CLS_NFT+' #'+OV_ID+'{background:rgba(0,0,0,.26);}'+
+      'html.'+CLS_OVER+' #'+OV_ID+'{background:rgba(0,0,0,.08);}'+
+      'html.'+CLS+' .header-announcement-bar-wrapper > .header-inner,'+
+      'html.'+CLS_NFT+' .header-announcement-bar-wrapper > .header-inner,'+
+      'html.'+CLS_OVER+' .header-announcement-bar-wrapper > .header-inner{'+
         'position:relative;z-index:2;'+
       '}'+
-      'html.'+CLS+' .header-title-logo img{'+
+      'html.'+CLS+' .header-title-logo img,html.'+CLS_NFT+' .header-title-logo img,html.'+CLS_OVER+' .header-title-logo img{'+
         'filter:drop-shadow(0 0 6px #000) drop-shadow(0 1px 2px #000);'+
       '}'+
       /* Ashley white-bar gap under the nav (same rules as the Ashley-only script). */+
       '[data-section-id="'+SECTION+'"] .content-wrapper{padding-top:0!important}'+
       '[data-section-id="'+SECTION+'"] .section-background{background:#000!important}';
-    host.appendChild(st);
   }
 
   var cv=null,ov=null,ctx=null,wrap=null,raf=0,ro=null,rq=0,startedHooks=false;
@@ -147,6 +214,41 @@
   function hx(n){var s='';while(s.length<n)s+='0123456789ABCDEF'[R()*16|0];return s;}
   function word(){var r=R();return r<.3?'SYS_ERR':r<.5?'SYS_ERR 0x'+hx(4):r<.7?'0x'+hx(6):r<.85?hx(2)+' '+hx(2)+' '+hx(2)+' '+hx(2):'ERR_'+hx(3)+' // SIGNAL';}
 
+  function drawCover(g,img,w,h){
+    if(!img||!img.naturalWidth){g.fillStyle='#000';g.fillRect(0,0,w,h);return;}
+    var iw=img.naturalWidth,ih=img.naturalHeight,s=Math.max(w/iw,h/ih);
+    var dw=iw*s,dh=ih*s;
+    g.drawImage(img,(w-dw)/2,(h-dh)/2-h*0.02,dw,dh);
+  }
+
+  function paintBase(){
+    if(!bc||!base)return;
+    var overlay=mode==='home-overlay';
+    var nft=mode==='nft-banner';
+    if(overlay){
+      bc.clearRect(0,0,width,height);
+      bc.fillStyle='rgba(0,0,0,.06)';bc.fillRect(0,0,width,height);
+      bc.fillStyle='rgba(0,0,0,.16)';for(var y=0;y<height;y+=3)bc.fillRect(0,y,width,1);
+      return;
+    }
+    if(nft){
+      bc.fillStyle='#000';bc.fillRect(0,0,width,height);
+      drawCover(bc,bannerImg,width,height);
+      var g=bc.createRadialGradient(width*.5,height*.45,height*.2,width*.5,height*.45,Math.max(width,height)*.75);
+      g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.35)');bc.fillStyle=g;bc.fillRect(0,0,width,height);
+      bc.fillStyle='rgba(0,0,0,.14)';for(y=0;y<height;y+=3)bc.fillRect(0,y,width,1);
+      return;
+    }
+    bc.fillStyle='#05070d';bc.fillRect(0,0,width,height);
+    g=bc.createRadialGradient(width*.5,-height*.1,0,width*.5,-height*.1,height*1.2);
+    g.addColorStop(0,'rgba(96,70,20,.30)');g.addColorStop(1,'rgba(96,70,20,0)');bc.fillStyle=g;bc.fillRect(0,0,width,height);
+    g=bc.createRadialGradient(width*.5,height*.5,height*.3,width*.5,height*.5,Math.max(width,height)*.8);
+    g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.55)');bc.fillStyle=g;bc.fillRect(0,0,width,height);
+    bc.fillStyle='rgba(0,0,0,.28)';for(y=0;y<height;y+=3)bc.fillRect(0,y,width,1);
+  }
+
+  function wantAlpha(){return mode==='nft-banner'||mode==='home-overlay';}
+
   function size(force){
     if(!cv||!wrap||!ctx)return;
     var cw=wrap.clientWidth||innerWidth,ch=wrap.clientHeight||0;
@@ -158,20 +260,16 @@
     width=Math.max(48,Math.round(cw*k));height=Math.max(24,Math.round(ch*k));
     cv.width=width;cv.height=height;cv.style.width='100%';cv.style.height='100%';
     ctx.imageSmoothingEnabled=false;
-    if(!base){base=D.createElement('canvas');bc=base.getContext('2d');}
+    if(!base){base=D.createElement('canvas');bc=base.getContext('2d',{alpha:true});}
     base.width=width;base.height=height;
-    bc.fillStyle='#05070d';bc.fillRect(0,0,width,height);
-    var g=bc.createRadialGradient(width*.5,-height*.1,0,width*.5,-height*.1,height*1.2);
-    g.addColorStop(0,'rgba(96,70,20,.30)');g.addColorStop(1,'rgba(96,70,20,0)');bc.fillStyle=g;bc.fillRect(0,0,width,height);
-    g=bc.createRadialGradient(width*.5,height*.5,height*.3,width*.5,height*.5,Math.max(width,height)*.8);
-    g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.55)');bc.fillStyle=g;bc.fillRect(0,0,width,height);
-    bc.fillStyle='rgba(0,0,0,.28)';for(var y=0;y<height;y+=3)bc.fillRect(0,y,width,1);
+    paintBase();
     if(!pats.length)for(var f=0;f<4;f++){
       var nc=D.createElement('canvas');nc.width=nc.height=96;var nx=nc.getContext('2d'),id=nx.createImageData(96,96),p=id.data;
       for(var i=0;i<p.length;i+=4){var v=R()*255|0;p[i]=v;p[i+1]=v*.94|0;p[i+2]=v*.82|0;p[i+3]=R()<.5?0:(R()*34|0);}
       nx.putImageData(id,0,0);pats.push(ctx.createPattern(nc,'repeat'));
     }
     tracks=[{y:R()*height,v:height*.05,h:Math.max(3,height*.018)},{y:R()*height,v:height*.085,h:Math.max(2,height*.008)}];
+    if(mode==='home-overlay')ctx.clearRect(0,0,width,height);
     ctx.drawImage(base,0,0);if(rmq.matches)still();
   }
 
@@ -221,13 +319,19 @@
   }
   function draw(t,dt){
     var b=burst&&t-burst.t<burst.d?burst:null;if(burst&&!b)burst=null;
-    ctx.globalAlpha=b?.4:.8;ctx.drawImage(base,0,0);ctx.globalAlpha=1;
-    fi++;noise(.55);
+    var overlay=mode==='home-overlay';
+    if(overlay){
+      ctx.clearRect(0,0,width,height);
+      ctx.globalAlpha=.85;ctx.drawImage(base,0,0);ctx.globalAlpha=1;
+    }else{
+      ctx.globalAlpha=b?.4:.8;ctx.drawImage(base,0,0);ctx.globalAlpha=1;
+    }
+    fi++;noise(overlay?.32:.55);
     for(var i=0;i<tracks.length;i++){
       var k=tracks[i];k.y+=k.v*dt/1000;if(k.y>height+k.h)k.y=-k.h*2;
       var yy=k.y|0,hh=Math.max(1,k.h|0);
       if(yy>=0&&yy+hh<=height){ctx.globalAlpha=.6;ctx.drawImage(cv,0,yy,width,hh,2+S*4,yy,width,hh);ctx.globalAlpha=1;}
-      ctx.fillStyle='rgba(236,233,223,.035)';ctx.fillRect(0,yy,width,hh);
+      ctx.fillStyle='rgba(236,233,223,'+(overlay?.025:.035)+')';ctx.fillRect(0,yy,width,hh);
       for(var j=0;j<3;j++){ctx.fillStyle='rgba(255,212,0,'+(.05+R()*.06)+')';ctx.fillRect(R()*width,yy+R()*hh,4+R()*width*.06,1);}
     }
     if(!burst&&t>=nextB)newBurst(t);
@@ -240,7 +344,8 @@
   }
   function still(){
     if(!ctx||!base)return;
-    ctx.globalAlpha=1;ctx.drawImage(base,0,0);noise(.6);var sv=burst;newBurst(0);var b=burst;
+    if(mode==='home-overlay')ctx.clearRect(0,0,width,height);
+    ctx.globalAlpha=1;ctx.drawImage(base,0,0);noise(mode==='home-overlay'?.35:.6);var sv=burst;newBurst(0);var b=burst;
     for(var s=0;s<b.sl.length;s++)if(b.sl[s].k!=='mosh')slice(b.sl[s],.5);blocks(mob?4:8,.12);burst=sv;nextB=0;
     for(var i=0;i<(mob?2:3);i++)txt({s:word(),x:R()*width*.8,y:10+R()*Math.max(8,height-14),c:'255,212,0',a:.2},true);
   }
@@ -259,30 +364,62 @@
     }
   }
 
+  function loadBanner(done){
+    if(bannerImg&&bannerImg.complete&&bannerImg.naturalWidth){done();return;}
+    if(bannerWait){return;}
+    bannerTried=true;
+    var urls=mob?[BANNER_1200_JPG,BANNER_2400_JPG]:[BANNER_2400_JPG,BANNER_1200_JPG];
+    var i=0;
+    function tryNext(){
+      if(i>=urls.length){done();return;}
+      var im=new Image();
+      im.onload=function(){bannerImg=im;bannerWait=0;done();};
+      im.onerror=function(){i++;tryNext();};
+      bannerWait=im;
+      im.src=urls[i];
+    }
+    tryNext();
+  }
 
   function mount(){
     removeLegacy();
+    var m=pageMode();
+    mode=m;
     if(!onPage()||!D.body){unmount();return;}
     ensureStyle();
     wrap=D.querySelector('#header .header-announcement-bar-wrapper')||D.querySelector('.header-announcement-bar-wrapper');
     if(!wrap)return;
-    /* Re-check own bg now that we have the wrap, before adding our class. */
-    if(hasOwnHeaderBg(wrap)){unmount();return;}
-    setActive(true);
-    if(cv&&cv.isConnected&&cv.parentNode===wrap){size(false);startLoop();return;}
+    /* Re-check own bg now that we have the wrap, before adding our class.
+       Home overlay and the NFT banner are allowed even when #tt-topwall or a
+       CSS background is present (we are the ones setting the NFT background). */
+    if(m==='default'&&hasOwnHeaderBg(wrap)){unmount();return;}
+    setActive(m);
+    if(cv&&cv.isConnected&&cv.parentNode===wrap){
+      if(m==='nft-banner'&&!(bannerImg&&bannerImg.naturalWidth)){
+        loadBanner(function(){paintBase();size(true);startLoop();});
+      }else{size(false);startLoop();}
+      return;
+    }
     var host=wrap;
     unmountCanvasOnly();
     wrap=host;
-    setActive(true);
+    mode=m;
+    setActive(m);
     cv=D.createElement('canvas');cv.id=CV_ID;cv.setAttribute('aria-hidden','true');cv.setAttribute('role','presentation');
     ov=D.createElement('div');ov.id=OV_ID;ov.setAttribute('aria-hidden','true');
     wrap.insertBefore(ov,wrap.firstChild);
     wrap.insertBefore(cv,wrap.firstChild);
-    ctx=cv.getContext('2d',{alpha:false});if(!ctx)return;
+    ctx=cv.getContext('2d',{alpha:wantAlpha()});if(!ctx)return;
     pats=[];base=null;bc=null;burst=null;texts=[];nextB=0;nextT=0;lastW=0;lastH=0;fi=0;
     vis=!D.hidden;onScreen=true;
-    size(true);
-    if(rmq.matches)still();else startLoop();
+    function after(){
+      size(true);
+      if(rmq.matches)still();else startLoop();
+    }
+    if(m==='nft-banner'){
+      size(true);
+      loadBanner(function(){paintBase();after();});
+    }else after();
     if(!unvis){
       unvis=function(){vis=!D.hidden;if(vis)startLoop();else stopLoop();};
       D.addEventListener('visibilitychange',unvis);
@@ -314,7 +451,8 @@
   }
   function unmount(){
     unmountCanvasOnly();
-    setActive(false);
+    setActive('off');
+    mode='off';
     removeLegacy();
   }
 
@@ -325,7 +463,7 @@
     if(unrs){W.removeEventListener('resize',unrs);unrs=null;}
     clearTimeout(rq);
     var st=D.getElementById(STYLE_ID);if(st&&st.parentNode)st.parentNode.removeChild(st);
-    setActive(false);
+    setActive('off');
     if(W[KEY]===api)delete W[KEY];
   }
 
@@ -345,10 +483,11 @@
     }catch(e){}
   }
 
-  var api={mount:mount,unmount:unmount,destroy:destroy,onPage:onPage};
+  var api={mount:mount,unmount:unmount,destroy:destroy,onPage:onPage,pageMode:pageMode};
   W[KEY]=api;
   function boot(){
     neuterAshley();
+    mode=pageMode();
     ensureStyle();
     hook();
     onNav();
