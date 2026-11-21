@@ -1,4 +1,6 @@
-/* TT site header: OOK glitch background v6.3
+/* TT site header: OOK glitch background v6.4
+   v6.4: TT IMG FIX now also sets the Home "Dress like Mr. Toasty" card pictures
+   to ME Halo Tee + Acid Cap Smoke Tee (site-header/dress-card-*-v1.webp/.jpg).
    v6.3: adds the TT GOTTEM block at the end (Home: click any big R in
    Coty's name to play a "HA GOTTEM" clip). Nothing else changed.
    v6.2: adds the TT IMG FIX block at the end of this file (dead Shopify
@@ -677,7 +679,27 @@
     var bg=root.querySelectorAll('[style*="cdn.shopify.com"]');
     for(var j=0;j<bg.length;j++)fixBg(bg[j]);
     fixDrop();
+    fixCard();
   }
+  /* v6.4: Home "Dress like Mr. Toasty" card shows ME Halo Tee + Acid Cap Smoke Tee
+     (dark-background copies hosted in tt-live/site-header). The card is one link
+     to /shop, so the pictures do not link individually. */
+  var CARD=[
+    {src:'https://therapytoaster.github.io/tt-live/site-header/dress-card-me-halo-v1.webp',jpg:'https://therapytoaster.github.io/tt-live/site-header/dress-card-me-halo-v1.jpg',alt:'ME Halo Tee'},
+    {src:'https://therapytoaster.github.io/tt-live/site-header/dress-card-acid-cap-smoke-v1.webp',jpg:'https://therapytoaster.github.io/tt-live/site-header/dress-card-acid-cap-smoke-v1.jpg',alt:'Acid Cap Smoke Tee'}
+  ];
+  function fixCard(){
+    var ims=D.querySelectorAll('#ttmerch .ttm-thumbs img');
+    for(var i=0;i<ims.length&&i<CARD.length;i++){
+      var im=ims[i],c=CARD[i],cur=im.getAttribute('src')||'';
+      if(cur===c.src||cur===c.jpg)continue;
+      im.removeAttribute('srcset');
+      im.setAttribute('alt',c.alt);
+      im.setAttribute('data-tt-card','v64');
+      im.setAttribute('src',c.src);
+    }
+  }
+  D.addEventListener('error',function(e){var t=e.target;if(t&&t.tagName==='IMG'&&t.getAttribute('data-tt-card')){for(var i=0;i<CARD.length;i++){if(t.getAttribute('src')===CARD[i].src){t.setAttribute('src',CARD[i].jpg);}}}},true);
   var q=0;
   function soon(){if(q)return;q=setTimeout(function(){q=0;scan(D);},300);}
   D.addEventListener('error',function(e){var t=e.target;if(t&&t.tagName==='IMG'){fixImg(t);}},true);
