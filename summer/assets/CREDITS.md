@@ -132,3 +132,8 @@ Existing game credits (truck photos, OSM, etc.) remain in the repo-root `CREDITS
 - Loblolly pine: `pine_1`–`pine_3` (same pack)
 - Wax myrtle: `bush_1`, `bush_2`, `shrub` (Quaternius bushes + Poly Haven shrub_03)
 - Distant trees use camera-facing impostors (LOD) beyond about 90 m from the house; near trees stay instanced meshes.
+
+## Audio
+- All sound (engine, surf, wind, gulls, tools, garage radio) is synthesized at
+  runtime with the Web Audio API in `src/11-summer-audio.js`. No recorded
+  audio files are used.
