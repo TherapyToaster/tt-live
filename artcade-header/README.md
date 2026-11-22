@@ -17,3 +17,9 @@ Load with a cache-buster, e.g. `https://therapytoaster.github.io/tt-live/artcade
 - `header-mobile.jpg` / `header-mobile.webp` — 1200px wide, slightly tighter vertical crop around the lettering
 
 The original CSS snippet also lives in `/workspace/artcade-tabs-bg/artcade-header-bg-v1.html`. Do not load this folder as a page.
+
+## Neon glow + flicker (not live until the ARTcade Code block is pasted)
+
+- `neon-glow-desktop.webp` / `neon-glow-mobile.webp` — letter glow overlays (screen-blended)
+- `neon-mask-desktop.webp` / `neon-mask-mobile.webp` — letter + halo masks for the flicker-off dim
+- CSS and a 4-line pause-on-hidden script live in `paste/arcadeneon1/08-arcade-452-neon.html` (appended to the current /arcade Code block). Load the webps with `?c=neon1`.
