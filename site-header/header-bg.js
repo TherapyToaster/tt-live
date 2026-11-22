@@ -1,4 +1,9 @@
-/* TT site header: OOK glitch background v6.12
+/* TT site header: OOK glitch background v6.13
+   v6.13: on mobile the CRT tile grows to the Daily Glitch content width
+   (at least the Don't Click + video group), centered, with Vibes docked
+   under it so it stays clear of the toys and the Toaster Radio bar.
+   Desktop behavior is unchanged from v6.12. Neon A, sparks and nav D
+   are unchanged.
    v6.12: TT TV grows to at least the Don't Click + video group (and never
    below 200px on desktop). The Vibes button moves under the TV so it no
    longer caps the tile. Neon A, sparks and nav D are unchanged.
@@ -1800,19 +1805,19 @@
   if(D.readyState==='loading')D.addEventListener('DOMContentLoaded',boot);else boot();
 })();
 /* /TT NAV */
-/* TT TV v1.2 (header-bg.js v6.12-tv) =====
+/* TT TV v1.3 (header-bg.js v6.13-tv) =====
    Home only. Places a framed CRT tile with Coty's looping smiley-TV clip
    in the Mr. Toasty's Daily Glitch area. Desktop: sits in the left padding
    beside the Daily Glitch card when that gutter can fit the tile; otherwise
    the card shifts just enough, or the tile wraps to a centered row under
    the card and toys if the gutter is too thin (mid-desktop). Mobile:
-   stacks under Don't Click + the header video. Width tracks the live
-   measured #tt-dont-row (Don't Click + header video group) on desktop,
-   floored at 200px (the original tile), and grows to fill leftover left
-   gutter when that's larger. Mobile tracks .tt-dont. The Vibes button is
-   moved under the TV so it no longer limits the tile, and is restored if
-   this block is off. The Daily Glitch card, Don't Click button and header
-   video stay clickable and uncovered.
+   stacks under Don't Click + the header video, sized to the notice
+   content width (at least the side-by-side Don't Click + video group)
+   and kept square. The Vibes button is moved under the TV on every
+   breakpoint so it no longer limits the tile or collides with the
+   Toaster Radio bar, and is restored if this block is off. Desktop
+   sizing is unchanged from v1.2. The Daily Glitch card, Don't Click
+   button and header video stay clickable and uncovered.
    OFF unless:
      - the footer script URL:  header-bg.js?c=<sha>&neon=A&sparks=1&nav=D&tv=1
      - a preview URL on Home:  /?tttv=1   (also off; kept for the tab session)
@@ -1862,7 +1867,7 @@
     +"body.homepage #tt-crt-col #ttbgm.tt-crt-vibes{"
     +"position:static!important;transform:none!important;top:auto!important;bottom:auto!important;left:auto!important;right:auto!important;margin:0!important;z-index:5}"
     +"@media screen and (max-width:799px){"
-    +"body.homepage #tt-crt-col{order:0;width:100%;margin:14px auto 10px}"
+    +"body.homepage #tt-crt-col{order:0;width:100%;margin:14px auto 0;padding-bottom:var(--tt-crt-radio,80px)}"
     +"body.homepage #tt-crt{border-width:2px;box-shadow:-3px 0 0 rgba(255,40,60,.75),3px 0 0 rgba(0,240,255,.65),0 0 10px rgba(255,212,0,.25)}"
     +"}"
     +"@media (prefers-reduced-motion:reduce){"
@@ -1894,10 +1899,40 @@
     io=new IntersectionObserver(onVis,{root:null,rootMargin:'80px 0px',threshold:0.2});
     io.observe(tile);
   }
+  function contentW(n){
+    n=n||D.getElementById('tt-notice');
+    if(!n)return 0;
+    var cs=getComputedStyle(n),pl=parseFloat(cs.paddingLeft)||0,pr=parseFloat(cs.paddingRight)||0;
+    var w=n.clientWidth-pl-pr;
+    if(!(w>0)){
+      var box=n.querySelector('.ttdg-box')||D.getElementById('tt-dont-row');
+      if(box)w=box.getBoundingClientRect().width;
+    }
+    return w>0?w:0;
+  }
+  function toysW(){
+    var row=D.getElementById('tt-dont-row');
+    if(!row)return 0;
+    var dont=row.querySelector('.tt-dont'),hv=row.querySelector('.tt-hv');
+    if(dont&&hv){
+      var a=dont.getBoundingClientRect(),b=hv.getBoundingClientRect();
+      return Math.max(a.right,b.right)-Math.min(a.left,b.left);
+    }
+    if(dont)return dont.getBoundingClientRect().width;
+    return 0;
+  }
+  function radioClear(){
+    var r=D.getElementById('ttmp')||D.querySelector('#ttmp, [aria-label*="Toaster Radio"]');
+    if(!r)return 80;
+    var h=r.getBoundingClientRect().height;
+    return Math.max(80,Math.ceil((h||60)+20));
+  }
   function targetW(){
     if(isMob()){
-      var b=D.querySelector('#tt-dont-row .tt-dont')||D.querySelector('body.homepage .tt-dont');
-      return b?b.getBoundingClientRect().width:0;
+      var cw=contentW(),tw=toysW();
+      var want=cw>0?cw:tw;
+      if(tw>0)want=Math.max(want,tw);
+      return want>0?Math.floor(want):0;
     }
     var row=D.getElementById('tt-dont-row');
     var w=row?row.getBoundingClientRect().width:0;
@@ -1934,9 +1969,9 @@
     var v=D.getElementById('ttbgm');
     var c=colEl||D.getElementById('tt-crt-col');
     if(!v)return;
-    /* Desktop: dock under the TV. Mobile: leave the original fixed corner
-       (above Toaster Radio) so it does not collide with the radio bar. */
-    if(on&&c&&!isMob()){
+    /* Dock under the TV on every breakpoint so a full-width mobile tile
+       cannot collide with the old mid-left / bottom-left fixed corner. */
+    if(on&&c){
       if(!vibesHome){vibesHome=v.parentNode;vibesNext=v.nextSibling;}
       if(v.parentNode!==c)c.appendChild(v);
       v.classList.add('tt-crt-vibes');
@@ -1960,9 +1995,11 @@
       if(isMob()){
         n.classList.remove('tt-crt-wrap');
         n.style.paddingLeft='';
+        if(colEl)colEl.style.setProperty('--tt-crt-radio',radioClear()+'px');
         setSize(want);
         return;
       }
+      if(colEl)colEl.style.removeProperty('--tt-crt-radio');
       var pad=naturalPad(n),gap=noticeGap(n),left=EDGE;
       var gutter=Math.floor(pad-gap-left);
       if(gutter>=DESK_MIN&&want<=gutter){
@@ -1978,7 +2015,7 @@
         setSize(want);
         n.style.paddingLeft=left+'px';
       }
-    }finally{sizing=false;parkVibes(!isMob());}
+    }finally{sizing=false;parkVibes(true);}
   }
   function observe(){
     if(!W.ResizeObserver)return;
