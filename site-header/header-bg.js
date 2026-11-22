@@ -1,4 +1,8 @@
-/* TT site header: OOK glitch background v6.15
+/* TT site header: OOK glitch background v6.16
+   v6.16: Neon A on the Home wall uses a quicker punchy pulse (sharp
+   brighten, fast decay, short rest) instead of the v6.15 5.2s breath.
+   Brightness and everything else are unchanged. B, C, sparks, nav D,
+   TV and bio are unchanged.
    v6.15: Neon A on the Home wall is a brighter slow breath (glow + halo
    swell over 5.2s, no flicker). B, C, sparks, nav D, TV and bio are unchanged.
    v6.14: adds the TT BIO CRT block at the end (desktop Home only: a
@@ -947,7 +951,7 @@
    OFF by default. Pick a variant with:
      - the footer script URL:  header-bg.js?c=<sha>&neon=A   (A, B or C)
      - a preview URL on Home:  /?ttneon=A   (also B, C, off; kept for the tab session)
-   A = Neon breath (v6.15): brighter tubes, slow 5.2s glow and halo swell, no flicker
+   A = Neon pulse (v6.16): brighter tubes, punchy 1.8s throb (sharp brighten, fast decay, short rest)
    B = Neon bloom: soft bloom + slow pink/cyan/yellow color sweep along the tubes + faint scanlines
    C = Neon sparks: soft bloom + little sparks dripping off the tubes + rare electric arcs
    Sits above the wall picture and under the glitch canvas; pointer-events:none, so
@@ -991,12 +995,12 @@
       '#tt-neon .r-halo{clip-path:inset(0 41% 84% 37%);}'+
       '#tt-neon .r-sign{clip-path:inset(74% 2% 4% 76%);}'+
       '#tt-neon .r-big{clip-path:polygon(0 0,37% 0,37% 16%,59% 16%,59% 0,100% 0,100% 74%,76% 74%,76% 100%,0 100%);}'+
-      /* A: brighter slow breath (no flicker). ttnBreath keyframes below stay for B. */
+      /* A: punchy pulse (same brightness as v6.15). ttnBreath keyframes below stay for B. */
       '#tt-neon.v-A .tn-glow,#tt-neon.v-A .tn-tube{transform-origin:50% 50%;will-change:opacity,transform;}'+
-      '#tt-neon.v-A .tn-glow{opacity:.82;animation:ttnBreathGlow 5.2s ease-in-out infinite;}'+
-      '#tt-neon.v-A .tn-tube{opacity:.62;animation:ttnBreathTube 5.2s ease-in-out infinite;}'+
-      '@keyframes ttnBreathGlow{0%,100%{opacity:.72;transform:scale(1)}50%{opacity:1;transform:scale(1.06)}}'+
-      '@keyframes ttnBreathTube{0%,100%{opacity:.52;transform:scale(1)}50%{opacity:.88;transform:scale(1.03)}}'+
+      '#tt-neon.v-A .tn-glow{opacity:.82;animation:ttnPulseGlow 1.8s linear infinite;}'+
+      '#tt-neon.v-A .tn-tube{opacity:.62;animation:ttnPulseTube 1.8s linear infinite;}'+
+      '@keyframes ttnPulseGlow{0%,40%,100%{opacity:.72;transform:scale(1)}8%{opacity:1;transform:scale(1.06)}22%{opacity:.78;transform:scale(1.012)}}'+
+      '@keyframes ttnPulseTube{0%,40%,100%{opacity:.52;transform:scale(1)}8%{opacity:.88;transform:scale(1.03)}22%{opacity:.58;transform:scale(1.008)}}'+
       '@keyframes ttnBreath{0%,100%{opacity:.55}50%{opacity:.75}}'+
       /* B: bloom + color sweep + scanlines */
       '#tt-neon.v-B .tn-glow{opacity:.55;animation:ttnBreath 6s ease-in-out infinite;}'+
