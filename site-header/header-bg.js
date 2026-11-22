@@ -1,4 +1,6 @@
-/* TT site header: OOK glitch background v6.14
+/* TT site header: OOK glitch background v6.15
+   v6.15: Neon A on the Home wall is a brighter slow breath (glow + halo
+   swell over 5.2s, no flicker). B, C, sparks, nav D, TV and bio are unchanged.
    v6.14: adds the TT BIO CRT block at the end (desktop Home only: a
    glitch-style CRT bezel around the Therapy Space name and bio,
    OFF unless ?bio=1 on this script's URL or ?ttbio=1 on the page).
@@ -945,12 +947,12 @@
    OFF by default. Pick a variant with:
      - the footer script URL:  header-bg.js?c=<sha>&neon=A   (A, B or C)
      - a preview URL on Home:  /?ttneon=A   (also B, C, off; kept for the tab session)
-   A = Neon buzz: tubes glow, the halo and the M(R)TOASTY sign flicker now and then
+   A = Neon breath (v6.15): brighter tubes, slow 5.2s glow and halo swell, no flicker
    B = Neon bloom: soft bloom + slow pink/cyan/yellow color sweep along the tubes + faint scanlines
    C = Neon sparks: soft bloom + little sparks dripping off the tubes + rare electric arcs
    Sits above the wall picture and under the glitch canvas; pointer-events:none, so
    links and the wall-sign GOTTEM hotspot still work. prefers-reduced-motion: static
-   bloom only. Animations pause when the tab is hidden or the wall is off screen. */
+   bright glow only. Animations pause when the tab is hidden or the wall is off screen. */
 (function(){
   var W=window,D=document;
   if(W.__ttNeon)return;W.__ttNeon=1;
@@ -989,18 +991,13 @@
       '#tt-neon .r-halo{clip-path:inset(0 41% 84% 37%);}'+
       '#tt-neon .r-sign{clip-path:inset(74% 2% 4% 76%);}'+
       '#tt-neon .r-big{clip-path:polygon(0 0,37% 0,37% 16%,59% 16%,59% 0,100% 0,100% 74%,76% 74%,76% 100%,0 100%);}'+
-      /* A: buzz + flicker */
-      '#tt-neon.v-A .tn-glow{opacity:.62;}#tt-neon.v-A .tn-tube{opacity:.42;}'+
-      '#tt-neon.v-A .r-big.tn-glow{animation:ttnBreath 5.5s ease-in-out infinite;}'+
-      '#tt-neon.v-A .r-halo.tn-glow,#tt-neon.v-A .r-halo.tn-tube{animation:ttnFlkA 7.3s steps(1,end) infinite;}'+
-      '#tt-neon.v-A .r-halo.tn-dim{animation:ttnDimA 7.3s steps(1,end) infinite;}'+
-      '#tt-neon.v-A .r-sign.tn-glow,#tt-neon.v-A .r-sign.tn-tube{animation:ttnFlkB 11.7s steps(1,end) infinite;}'+
-      '#tt-neon.v-A .r-sign.tn-dim{animation:ttnDimB 11.7s steps(1,end) infinite;}'+
+      /* A: brighter slow breath (no flicker). ttnBreath keyframes below stay for B. */
+      '#tt-neon.v-A .tn-glow,#tt-neon.v-A .tn-tube{transform-origin:50% 50%;will-change:opacity,transform;}'+
+      '#tt-neon.v-A .tn-glow{opacity:.82;animation:ttnBreathGlow 5.2s ease-in-out infinite;}'+
+      '#tt-neon.v-A .tn-tube{opacity:.62;animation:ttnBreathTube 5.2s ease-in-out infinite;}'+
+      '@keyframes ttnBreathGlow{0%,100%{opacity:.72;transform:scale(1)}50%{opacity:1;transform:scale(1.06)}}'+
+      '@keyframes ttnBreathTube{0%,100%{opacity:.52;transform:scale(1)}50%{opacity:.88;transform:scale(1.03)}}'+
       '@keyframes ttnBreath{0%,100%{opacity:.55}50%{opacity:.75}}'+
-      '@keyframes ttnFlkA{0%{opacity:.7}61%{opacity:.7}62%{opacity:.05}63%{opacity:.8}64.5%{opacity:0}66%{opacity:.85}67%{opacity:.25}68%{opacity:.75}88%{opacity:.7}88.6%{opacity:.1}89.2%{opacity:.7}100%{opacity:.7}}'+
-      '@keyframes ttnDimA{0%{opacity:0}62%{opacity:.7}63%{opacity:0}64.5%{opacity:.8}66%{opacity:0}67%{opacity:.45}68%{opacity:0}88.6%{opacity:.6}89.2%{opacity:0}100%{opacity:0}}'+
-      '@keyframes ttnFlkB{0%{opacity:.75}40%{opacity:.75}40.6%{opacity:.08}41.2%{opacity:.8}42%{opacity:.15}43.4%{opacity:.8}79%{opacity:.75}79.4%{opacity:0}82%{opacity:0}82.4%{opacity:.4}82.8%{opacity:0}83.6%{opacity:.85}100%{opacity:.75}}'+
-      '@keyframes ttnDimB{0%{opacity:0}40.6%{opacity:.65}41.2%{opacity:0}42%{opacity:.55}43.4%{opacity:0}79.4%{opacity:.82}82.4%{opacity:.3}82.8%{opacity:.82}83.6%{opacity:0}100%{opacity:0}}'+
       /* B: bloom + color sweep + scanlines */
       '#tt-neon.v-B .tn-glow{opacity:.55;animation:ttnBreath 6s ease-in-out infinite;}'+
       '#tt-neon .tn-sweep{inset:0;overflow:hidden;'+mk+'mix-blend-mode:screen;opacity:.8;}'+
@@ -1016,7 +1013,7 @@
       /* C: sparks canvas + bloom */
       '#tt-neon.v-C .tn-glow{opacity:.5;}'+
       '#tt-neon canvas{left:-2%;top:-2%;width:104%;height:110%;display:block;}'+
-      '@media (prefers-reduced-motion:reduce){#tt-neon *{animation:none!important}#tt-neon .tn-dim{opacity:0!important}}';
+      '@media (prefers-reduced-motion:reduce){#tt-neon *{animation:none!important;transform:none!important}#tt-neon .tn-dim{opacity:0!important}#tt-neon.v-A .tn-glow{opacity:.90}#tt-neon.v-A .tn-tube{opacity:.70}}';
     (D.head||D.documentElement).appendChild(s);
   }
   var el=null,cur='',box=null;
@@ -1048,7 +1045,7 @@
     css();
     el=D.createElement('div');el.id='tt-neon';el.className='v-'+v;el.setAttribute('aria-hidden','true');
     if(v==='A'){
-      ['r-big','r-halo','r-sign'].forEach(function(r){if(r!=='r-big')layer('tn-dim '+r);layer('tn-glow '+r);layer('tn-tube '+r);});
+      layer('tn-glow');layer('tn-tube');
     }else if(v==='B'){
       layer('tn-glow');layer('tn-tube').style.opacity='.18';
       layer('tn-sweep').appendChild(D.createElement('i'));
