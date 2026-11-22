@@ -1,4 +1,8 @@
-/* TT site header: OOK glitch background v6.10
+/* TT site header: OOK glitch background v6.11
+   v6.11: TT TV tile width syncs to the measured Don't Click / video
+   column (desktop) or Don't Click button (mobile) via ResizeObserver,
+   capped so it never overlaps the Daily Glitch card or the Vibes button.
+   Neon A, sparks and nav D are unchanged.
    v6.10: adds the TT TV block at the end (optional CRT smiley loop in the
    Home Daily Glitch area, OFF unless ?tv=1 on this script's URL or ?tttv=1
    on the page). Neon A, sparks and nav D are unchanged.
@@ -1793,13 +1797,18 @@
   if(D.readyState==='loading')D.addEventListener('DOMContentLoaded',boot);else boot();
 })();
 /* /TT NAV */
-/* TT TV v1 (header-bg.js v6.10-tv) =====
+/* TT TV v1.1 (header-bg.js v6.11-tv) =====
    Home only. Places a framed CRT tile with Coty's looping smiley-TV clip
-   in the Mr. Toasty's Daily Glitch area. Desktop (>=1366px, including
-   1440): sits in the left padding, to the left of the Daily Glitch card,
-   so the card, Don't Click button and header video keep their size and
-   clicks. Mid desktop (800-1365): wraps to a centered row under the card
-   and toys. Mobile: stacks under Don't Click + the header video.
+   in the Mr. Toasty's Daily Glitch area. Desktop: sits in the left padding
+   beside the Daily Glitch card when that gutter can fit the tile; otherwise
+   wraps to a centered row under the card and toys. Mobile: stacks under
+   Don't Click + the header video. Width is not a guessed px value: it
+   tracks the live measured width of #tt-dont-row (the Don't Click + header
+   video column) on desktop, or .tt-dont on mobile, via ResizeObserver, and
+   stays a square. If the left gutter is too narrow to match that width
+   without overlapping the Daily Glitch card or the Vibes button, the tile
+   uses as much of the gutter as fits (or wraps below). The card, Don't
+   Click button and header video keep their size and clicks.
    OFF unless:
      - the footer script URL:  header-bg.js?c=<sha>&neon=A&sparks=1&nav=D&tv=1
      - a preview URL on Home:  /?tttv=1   (also off; kept for the tab session)
@@ -1818,6 +1827,7 @@
   var WEBM=B+'crt-smiley.webm'+Q;
   var MP4=B+'crt-smiley.mp4'+Q;
   var rmq=W.matchMedia?matchMedia('(prefers-reduced-motion: reduce)'):{matches:false};
+  var VIBES_GAP=16;
   function wanted(){
     var v='';
     try{var m=/[?&]tttv=(1|on|true|off)\b/i.exec(location.search);
@@ -1834,30 +1844,28 @@
     if(D.getElementById('tt-tv-css'))return;
     var s=D.createElement('style');s.id='tt-tv-css';
     s.textContent=""
-    +"#tt-crt{box-sizing:border-box;position:relative;z-index:3;flex:0 0 auto;width:200px;height:200px;margin:0;padding:0;border:3px solid #FFD400;background:#05070d;background-image:url('"+POSTER+"');background-size:cover;background-position:center;overflow:hidden;line-height:0;box-shadow:-5px 0 0 rgba(255,40,60,.75),5px 0 0 rgba(0,240,255,.65),0 0 18px rgba(255,212,0,.3)}"
+    +"#tt-crt{box-sizing:border-box;position:relative;z-index:3;flex:0 0 auto;width:var(--tt-crt-s,180px);height:var(--tt-crt-s,180px);margin:0;padding:0;border:3px solid #FFD400;background:#05070d;background-image:url('"+POSTER+"');background-size:cover;background-position:center;overflow:hidden;line-height:0;box-shadow:-5px 0 0 rgba(255,40,60,.75),5px 0 0 rgba(0,240,255,.65),0 0 18px rgba(255,212,0,.3)}"
     +"#tt-crt video,#tt-crt img{display:block;width:100%;height:100%;margin:0;padding:0;border:0;object-fit:cover;background:transparent}"
     +"#tt-crt.tt-crt-on video{visibility:visible}"
     +"#tt-crt.tt-crt-still video{display:none}"
     +"#tt-crt.tt-crt-still img{display:block}"
     +"#tt-crt img{display:none}"
-    +"@media screen and (min-width:1366px){"
-    +"body.homepage #tt-notice.ttdg-moved.tt-crt-host{padding-left:140px!important}"
-    +"body.homepage #tt-crt{order:-1;width:200px;height:200px;margin:0}"
-    +"}"
-    +"@media screen and (min-width:800px) and (max-width:1365px){"
-    +"body.homepage #tt-notice.ttdg-moved.tt-crt-host{flex-wrap:wrap}"
-    +"body.homepage #tt-crt{order:3;width:180px;height:180px;margin:12px auto 0}"
-    +"}"
+    +"body.homepage #tt-crt{order:-1}"
+    +"body.homepage #tt-notice.ttdg-moved.tt-crt-host.tt-crt-wrap{flex-wrap:wrap}"
+    +"body.homepage #tt-notice.ttdg-moved.tt-crt-host.tt-crt-wrap::before{content:\"\";flex:0 0 100%;order:2;height:0;overflow:hidden;pointer-events:none;border:0;margin:0;padding:0}"
+    +"body.homepage #tt-notice.ttdg-moved.tt-crt-host.tt-crt-wrap #tt-crt{order:3;margin:12px auto 0}"
     +"@media screen and (max-width:799px){"
-    +"body.homepage #tt-crt{width:160px;height:160px;margin:14px auto 4px;border-width:2px;box-shadow:-3px 0 0 rgba(255,40,60,.75),3px 0 0 rgba(0,240,255,.65),0 0 10px rgba(255,212,0,.25)}"
+    +"body.homepage #tt-crt{order:0;margin:14px auto 4px;border-width:2px;box-shadow:-3px 0 0 rgba(255,40,60,.75),3px 0 0 rgba(0,240,255,.65),0 0 10px rgba(255,212,0,.25)}"
     +"}"
     +"@media (prefers-reduced-motion:reduce){"
     +"#tt-crt{box-shadow:-4px 0 0 rgba(255,40,60,.75),4px 0 0 rgba(0,240,255,.65)}"
     +"}";
     (D.head||D.documentElement).appendChild(s);
   }
-  var tile=null,vid=null,io=null,wantPlay=false;
+  var tile=null,vid=null,io=null,wantPlay=false,ro=null,sizing=false,natCache=null,natVw=-1;
   function reduced(){return !!(rmq&&rmq.matches);}
+  function vw(){return W.innerWidth||D.documentElement.clientWidth||320;}
+  function isMob(){return vw()<800;}
   function play(){
     if(!vid||reduced()||!wantPlay)return;
     var p=vid.play();
@@ -1877,6 +1885,83 @@
     }
     io=new IntersectionObserver(onVis,{root:null,rootMargin:'80px 0px',threshold:0.2});
     io.observe(tile);
+  }
+  function targetW(){
+    if(isMob()){
+      var b=D.querySelector('#tt-dont-row .tt-dont')||D.querySelector('body.homepage .tt-dont');
+      return b?b.getBoundingClientRect().width:0;
+    }
+    var row=D.getElementById('tt-dont-row');
+    return row?row.getBoundingClientRect().width:0;
+  }
+  function noticeGap(n){
+    var g=parseFloat(getComputedStyle(n).columnGap||getComputedStyle(n).gap);
+    return isFinite(g)&&g>0?g:20;
+  }
+  function naturalPad(n){
+    var w=vw();
+    if(natCache!=null&&w===natVw)return natCache;
+    var prev=n.style.paddingLeft;
+    n.style.paddingLeft='';
+    natCache=parseFloat(getComputedStyle(n).paddingLeft)||0;
+    n.style.paddingLeft=prev;
+    natVw=w;
+    return natCache;
+  }
+  function minLeft(){
+    var v=D.getElementById('ttbgm');
+    if(!v||!v.isConnected||getComputedStyle(v).display==='none')return 16;
+    var r=v.getBoundingClientRect();
+    if(!r.width||r.left>vw()*0.5)return 16;
+    return Math.ceil(r.right+VIBES_GAP);
+  }
+  function setSize(w){
+    if(!tile)return;
+    w=Math.round(w);
+    tile.style.width=w+'px';
+    tile.style.height=w+'px';
+    tile.style.setProperty('--tt-crt-s',w+'px');
+  }
+  function fit(){
+    if(sizing||!tile||!tile.isConnected)return;
+    var n=D.getElementById('tt-notice');
+    if(!n)return;
+    var want=targetW();
+    if(!(want>0))return;
+    sizing=true;
+    try{
+      if(isMob()){
+        n.classList.remove('tt-crt-wrap');
+        n.style.paddingLeft='';
+        setSize(want);
+        return;
+      }
+      var pad=naturalPad(n),gap=noticeGap(n),left=minLeft();
+      var maxW=Math.floor(pad-gap-left);
+      if(maxW>=want-0.5){
+        n.classList.remove('tt-crt-wrap');
+        n.style.paddingLeft=Math.round(pad-want-gap)+'px';
+        setSize(want);
+      }else if(maxW>=48){
+        n.classList.remove('tt-crt-wrap');
+        n.style.paddingLeft=Math.round(left)+'px';
+        setSize(maxW);
+      }else{
+        n.classList.add('tt-crt-wrap');
+        n.style.paddingLeft='';
+        setSize(want);
+      }
+    }finally{sizing=false;}
+  }
+  function observe(){
+    if(!W.ResizeObserver)return;
+    if(!ro)ro=new ResizeObserver(function(){fit();});
+    var n=D.getElementById('tt-notice');
+    var row=D.getElementById('tt-dont-row');
+    var b=row&&row.querySelector('.tt-dont');
+    if(n)ro.observe(n);
+    if(row)ro.observe(row);
+    if(b)ro.observe(b);
   }
   function build(){
     if(tile&&tile.isConnected)return tile;
@@ -1936,19 +2021,23 @@
       else n.appendChild(el);
     }
     n.classList.add('tt-crt-host');
+    observe();
+    fit();
     watch();
     return true;
   }
   function clear(){
     var n=D.getElementById('tt-notice');
-    if(n)n.classList.remove('tt-crt-host');
+    if(n){n.classList.remove('tt-crt-host','tt-crt-wrap');n.style.paddingLeft='';}
+    if(ro){try{ro.disconnect();}catch(e){}ro=null;}
     if(io){try{io.disconnect();}catch(e){}io=null;}
-    pause();wantPlay=false;
+    pause();wantPlay=false;natCache=null;natVw=-1;
     if(tile&&tile.parentNode)tile.parentNode.removeChild(tile);
   }
   function apply(){
     if(!D.body)return;
     if(!wanted()||!isHome()){clear();return;}
+    natCache=null;natVw=-1;
     place();
   }
   var tries=0,tid=0;
@@ -1961,7 +2050,7 @@
     bootPlace();
     if(!place())tid=setInterval(bootPlace,100);
     W.addEventListener('load',apply);
-    W.addEventListener('resize',function(){apply();});
+    W.addEventListener('resize',function(){natCache=null;natVw=-1;fit();});
     D.addEventListener('visibilitychange',function(){
       if(D.hidden)pause();
       else if(wantPlay)play();
