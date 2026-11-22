@@ -1836,7 +1836,8 @@
   try{if(me&&me.src){var m=/[?&]tv=(1|on|true|off)\b/i.exec(me.src);if(m)srcOn=m[1].toLowerCase()!=='off';}}catch(e){}
   var B='https://therapytoaster.github.io/tt-live/site-header/media/',Q='?v=1';
   var POSTER=B+'crt-smiley-poster.jpg'+Q;
-  var WEBM=B+'crt-smiley.webm'+Q;
+  var crt2=false;try{crt2=!!(me&&me.src&&/[?&]crt2=1\b/.test(me.src));}catch(e){}
+  var WEBM=B+(crt2?'crt-smiley-v2.webm':'crt-smiley.webm')+Q;   /* &crt2=1: re-encoded smaller webm (same look) */
   var MP4=B+'crt-smiley.mp4'+Q;
   var rmq=W.matchMedia?matchMedia('(prefers-reduced-motion: reduce)'):{matches:false};
   var EDGE=16,DESK_MIN=200;
