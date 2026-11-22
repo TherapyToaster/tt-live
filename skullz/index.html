@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.21.1"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="skullz-version" content="0.21.2"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <link rel="icon" href="data:,"><title>MR. TOASTY'S NO SIGNAL SKULLZ — Therapy Toaster</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Anton&family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
@@ -17038,6 +17038,59 @@ body.touch.playing #hud{
   setTimeout(hookWorld, 0);
   setTimeout(hookWorld, 400);
   setTimeout(maybeLoad, 0);
+})();
+
+// v0.21.2 — swap sold SkulRz PFP #4002 for Coty's SkulRz PFP #4648.
+// Catalog and NFT atlases live in media/static/nft/. Old gallery saves that
+// still reference skulrz-4002 are remapped to skulrz-4648 (deduped) so they
+// do not break; a missing new id would be dropped by galLoad's existing filter.
+(function(){
+  const VER='0.21.2';
+  const MAP={'skulrz-4002':'skulrz-4648'};
+  function stampVer(){
+    if(typeof TT!=='object') return;
+    // Later 0.21.0/0.21.1 atlas callbacks must not downgrade the live version.
+    try{
+      Object.defineProperty(TT,'ver',{get:function(){return VER}, set:function(){}, configurable:true, enumerable:true});
+      Object.defineProperty(TT,'liveVer',{get:function(){return VER}, set:function(){}, configurable:true, enumerable:true});
+    }catch(e){ TT.ver=VER; TT.liveVer=VER; }
+    TT.artSwapVer=VER;
+  }
+  stampVer();
+
+  function remapList(arr){
+    if(!arr||!arr.length) return arr||[];
+    const out=[], seen=new Set();
+    for(let i=0;i<arr.length;i++){
+      const id=MAP[arr[i]]||arr[i];
+      if(!seen.has(id)){ seen.add(id); out.push(id); }
+    }
+    return out;
+  }
+  function needsMap(arr){
+    if(!arr) return false;
+    for(let i=0;i<arr.length;i++) if(MAP[arr[i]]) return true;
+    return false;
+  }
+  function migrateGallerySave(){
+    if(typeof load!=='function'||typeof save!=='function') return;
+    const g=load('skullz_gallery',{});
+    if(!g||(!needsMap(g.ids)&&!needsMap(g.seen))) return;
+    if(g.ids) g.ids=remapList(g.ids);
+    if(g.seen) g.seen=remapList(g.seen);
+    save('skullz_gallery',g);
+  }
+  function hookGalLoad(){
+    if(typeof galLoad!=='function'||galLoad._v0212) return;
+    const _gl=galLoad;
+    galLoad=function(){
+      migrateGallerySave();
+      return _gl.apply(this,arguments);
+    };
+    galLoad._v0212=1;
+  }
+  hookGalLoad();
+  migrateGallerySave();
 })();
 </script>
 </body></html>
