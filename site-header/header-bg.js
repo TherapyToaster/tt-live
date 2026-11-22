@@ -1,4 +1,7 @@
-/* TT site header: OOK glitch background v6.8
+/* TT site header: OOK glitch background v6.9
+   v6.9: TT SPARKS drip, pop and spawn a little slower so they linger
+   (same look, still OFF unless ?sparks=1 / ?ttsparks=1). Neon A and nav D
+   are unchanged.
    v6.8: TT NAV gains option D (A's rounded neon-tube shell + B's glitch/VHS
    interior), OFF unless ?nav=D on this script's URL or ?ttnav=D on the page.
    A, B and C are unchanged.
@@ -1130,7 +1133,7 @@
   if(D.readyState==='loading')D.addEventListener('DOMContentLoaded',boot);else boot();
 })();
 /* /TT NEON */
-/* TT SPARKS v1 (header-bg.js v6.6-sparks) =====
+/* TT SPARKS v1.1 (header-bg.js v6.9-sparks) =====
    Home only. Extends the wall neon down the rest of the page: a soft neon
    rim on the main cards, embers drifting off the wall and section edges,
    little pops and an occasional flicker. OFF unless:
@@ -1139,7 +1142,7 @@
    One fixed canvas, pointer-events:none, so GOTTEM Rs, the Dress like card,
    tickers, ARTcade and embeds stay clickable and uncovered. prefers-reduced-motion:
    static rims only. Animations pause when the tab is hidden. Particle count
-   is capped, and lower on mobile. */
+   is capped, and lower on mobile. v1.1: ~38% slower drip/pop, slightly longer life, a bit less frequent spawn. */
 (function(){
   var W=window,D=document;
   if(W.__ttSparks)return;W.__ttSparks=1;
@@ -1225,8 +1228,8 @@
     var n=burst?(4+Math.random()*6|0):1;
     for(var i=0;i<n;i++){
       var ang=burst?Math.random()*Math.PI*2:(Math.random()-.5)*1.2+Math.PI/2;
-      var spd=(burst?70:36)+Math.random()*(burst?110:70);
-      sp.push({x:x,y:y,vx:Math.cos(ang)*spd*k,vy:Math.sin(ang)*spd*k,l:0,L:(burst?.4:.7)+Math.random()*(burst?.45:.7),c:c,s:(1.6+Math.random()*1.8)*k});
+      var spd=(burst?44:22)+Math.random()*(burst?68:44);
+      sp.push({x:x,y:y,vx:Math.cos(ang)*spd*k,vy:Math.sin(ang)*spd*k,l:0,L:(burst?.5:.88)+Math.random()*(burst?.55:.88),c:c,s:(1.6+Math.random()*1.8)*k});
     }
   }
   function mkArc(t){
@@ -1236,7 +1239,7 @@
       var p=onEdge(t,a+(b-a)*i/n),j=i&&i<n?1:0;
       segs.push([p.x+(Math.random()-.5)*10*k*j,p.y+(Math.random()-.5)*10*k*j]);
     }
-    return {s:segs,l:0,L:.22+.18*Math.random(),c:t.c};
+    return {s:segs,l:0,L:.28+.22*Math.random(),c:t.c};
   }
   function cap(){
     var mob=(cw/k)<700,m=mob?40:90;
@@ -1269,19 +1272,19 @@
     cx.globalCompositeOperation='lighter';cx.lineCap='round';cx.lineJoin='round';
     if(list.length)drawRims(list,t);
     if(!rmq.matches){
-      var rate=(mob?12:24)*dt;
+      var rate=(mob?9:18)*dt;
       if(wallY>-1&&wallY>-40*k&&wallY<vh+20*k){
-        var wr=rate*.95;while(wr>0){if(Math.random()<wr){var wx=wallX+wallW*(.08+.84*Math.random());emit(wx,wallY,PAL[Math.random()*PAL.length|0],false);var last=sp[sp.length-1];last.vy=Math.abs(last.vy)*.8+40*k;last.vx+=(Math.random()-.5)*16*k;}wr-=1;}
+        var wr=rate*.95;while(wr>0){if(Math.random()<wr){var wx=wallX+wallW*(.08+.84*Math.random());emit(wx,wallY,PAL[Math.random()*PAL.length|0],false);var last=sp[sp.length-1];last.vy=Math.abs(last.vy)*.8+25*k;last.vx+=(Math.random()-.5)*10*k;}wr-=1;}
       }
       var er=rate*.85;while(er>0){if(Math.random()<er&&list.length){var g=list[Math.random()*list.length|0],p=onEdge(g,Math.random());emit(p.x,p.y,g.c,false);}er-=1;}
-      if(t>nextBurst&&list.length){var b=list[Math.random()*list.length|0],bp=onEdge(b,Math.random());emit(bp.x,bp.y,b.c,true);nextBurst=t+1600+Math.random()*2800;}
-      if(t>nextArc&&list.length&&!mob){arcs.push(mkArc(list[Math.random()*list.length|0]));nextArc=t+1800+Math.random()*3200;}
+      if(t>nextBurst&&list.length){var b=list[Math.random()*list.length|0],bp=onEdge(b,Math.random());emit(bp.x,bp.y,b.c,true);nextBurst=t+2000+Math.random()*3500;}
+      if(t>nextArc&&list.length&&!mob){arcs.push(mkArc(list[Math.random()*list.length|0]));nextArc=t+2250+Math.random()*4000;}
       if(t>nextFlick&&list.length){flick={i:Math.random()*list.length|0,v:.12+Math.random()*.15,until:t+70+Math.random()*90};nextFlick=t+2200+Math.random()*3800;}
       if(flick&&t>flick.until)flick=null;
       cap();
       for(var i=sp.length-1;i>=0;i--){
         var s=sp[i];s.l+=dt;if(s.l>s.L){sp.splice(i,1);continue;}
-        s.vy+=80*k*dt;s.x+=s.vx*dt;s.y+=s.vy*dt;s.vx*=(1-dt*.4);
+        s.vy+=50*k*dt;s.x+=s.vx*dt;s.y+=s.vy*dt;s.vx*=(1-dt*.4);
         var a=1-s.l/s.L,tl=.28;
         cx.strokeStyle='rgba('+s.c+','+(a*.32).toFixed(3)+')';cx.lineWidth=s.s*2;
         cx.beginPath();cx.moveTo(s.x,s.y);cx.lineTo(s.x-s.vx*tl,s.y-s.vy*tl);cx.stroke();
