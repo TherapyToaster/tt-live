@@ -878,7 +878,7 @@ html body #footer-sections > .page-section[data-section-id="6a988533c6d1d146aaea
 }
 #footer-sections #block-8d3362138183360d2425{
   --social-icons-justify-content:center;
-  --social-icons-dimension:42px;
+  --social-icons-dimension:48px;
   --social-icons-gap:32px;
   --si-scale:1;
 }
@@ -889,27 +889,44 @@ html body #footer-sections > .page-section[data-section-id="6a988533c6d1d146aaea
   width:auto!important;
 }
 #footer-sections #block-8d3362138183360d2425 .sqs-svg-icon--wrapper{
-  width:42px!important;
-  height:42px!important;
+  width:48px!important;
+  height:48px!important;
   box-sizing:border-box;
-  display:grid!important;
-  place-items:center;
+  position:relative!important;
+  display:block!important;
+  overflow:hidden!important;
   border:1px solid rgba(255,212,0,.7)!important;
   background:rgba(0,0,0,.7)!important;
-  box-shadow:0 0 12px rgba(255,212,0,.2),inset 0 0 8px rgba(255,212,0,.08);
+  box-shadow:0 0 16px rgba(255,212,0,.35),0 0 6px rgba(255,212,0,.5),inset 0 0 8px rgba(255,212,0,.08);
   border-radius:2px;
 }
+/* Squarespace absolutely pins the inner div at top/left, and the sprite
+   glyph only fills ~40% of the 64x64 viewBox. Fill the tile, then size the
+   SVG so the visible glyph is ~22px and perfectly centered. */
 #footer-sections #block-8d3362138183360d2425 .sqs-svg-icon--wrapper > div{
+  position:absolute!important;
+  inset:0!important;
+  width:auto!important;
+  height:auto!important;
+  display:block!important;
   transform:none!important;
-  width:26px!important;
-  height:26px!important;
-  display:grid!important;
-  place-items:center;
+  overflow:visible!important;
 }
 #footer-sections #block-8d3362138183360d2425 .sqs-svg-icon--social{
-  width:26px!important;
-  height:26px!important;
+  position:absolute!important;
+  top:50%!important;
+  left:50%!important;
+  right:auto!important;
+  bottom:auto!important;
+  width:52px!important;
+  height:52px!important;
+  margin:0!important;
   display:block!important;
+  overflow:visible!important;
+  transform:translate(-50%,-50%)!important;
+}
+#footer-sections #block-8d3362138183360d2425 .sqs-use--icon{
+  fill:#FFD400!important;
 }
 #footer-sections #block-8d3362138183360d2425 .sqs-svg-icon--wrapper:hover,
 #footer-sections #block-8d3362138183360d2425 .sqs-svg-icon--wrapper:focus-visible{
