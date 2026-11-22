@@ -1,0 +1,416 @@
+<!-- TT "My One of a Kind" PAGE v3 (glitch theme + animated glitch background canvas, black + X yellow): one full-page Code block, inline CSS only (no Custom CSS needed).
+     Dedicated to my wife Ashley (@AshleySavvie). Images hotlinked from pbs.twimg.com (Coty's & Ashley's own posts).
+     Full-width fix = same :has() pattern as the Glitch Art page, wrapper id #tt-ook. No shake/jitter: only a slow scanline drift
+     and a soft, occasional RGB flicker on the hero title; both off under prefers-reduced-motion. All decoration is CSS-only. -->
+<style>
+.fluid-engine:has(#tt-ook){grid-template-rows:auto!important;grid-auto-rows:auto!important}
+.fe-block:has(#tt-ook){grid-column:2 / -2!important;grid-row:1 / auto!important;height:auto!important;min-height:0!important}
+.fe-block:has(#tt-ook) .sqs-block,.fe-block:has(#tt-ook) .sqs-block-content{width:100%;height:auto!important}
+.sqs-block:has(#tt-ook){padding-left:0!important;padding-right:0!important}
+#tt-ook{--y:#FFD400;--y2:rgba(255,212,0,.32);--r:#ff3b4a;--c:#00e5ff;--bg:#05070d;--pn:#0a0d16;--tx:#eeebe1;--mut:#bdb9ad;
+ --mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,"Liberation Mono",monospace;
+ position:relative;isolation:isolate;width:100%;max-width:1200px;margin:0 auto;padding:64px 26px 52px;box-sizing:border-box;border-radius:6px;overflow:hidden;
+ color:var(--tx);font-family:inherit;text-align:left;
+ background:
+  linear-gradient(90deg,rgba(0,229,255,.05),transparent 14%,transparent 86%,rgba(255,59,74,.06)),
+  radial-gradient(ellipse at 50% -12%,rgba(255,212,0,.17),transparent 55%),
+  radial-gradient(ellipse at 50% 112%,rgba(255,212,0,.07),transparent 50%),
+  rgba(5,7,13,.9);
+ border:1px solid rgba(255,212,0,.9);
+ box-shadow:-3px 0 0 rgba(0,229,255,.45),3px 0 0 rgba(255,59,74,.5),0 0 0 6px #000,0 0 50px rgba(255,212,0,.10)}
+/* CRT scanlines (slow drift) + VHS noise: behind the content so text stays crisp */
+#tt-ook:before{content:"";position:absolute;top:-4px;right:0;bottom:0;left:0;z-index:-1;pointer-events:none;will-change:transform;
+ background:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 3px,rgba(0,0,0,.25) 3px 4px);
+ animation:ook-scan .875s linear infinite}
+#tt-ook:after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.09;mix-blend-mode:screen;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.4 -.25'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+  linear-gradient(180deg,transparent 0 31%,rgba(255,212,0,.25) 31% 31.25%,transparent 31.25% 67%,rgba(0,229,255,.22) 67% 67.18%,transparent 67.18%)}
+@keyframes ook-scan{from{transform:translateY(0)}to{transform:translateY(4px)}} /* v3: compositor-only drift (same speed as v2, no repaint) */
+#tt-ook *{box-sizing:border-box}
+#tt-ook a{color:var(--y);text-underline-offset:3px}
+/* kicker = yellow tape label */
+#tt-ook .ook-kick{display:table;margin:0 auto 22px;padding:6px 16px 5px;text-align:center;font-family:var(--mono);font-size:12.5px;font-weight:700;letter-spacing:.3em;
+ text-transform:uppercase;color:#000;background:var(--y);transform:rotate(-1.2deg);
+ box-shadow:-3px 0 0 var(--c),3px 0 0 var(--r); background-image:repeating-linear-gradient(90deg,rgba(0,0,0,.10) 0 2px,transparent 2px 9px)}
+/* hero title: RGB split + static glitch slices */
+#tt-ook .ook-h{position:relative;margin:0 auto 12px;text-align:center;font-family:inherit;font-weight:900;line-height:.98;letter-spacing:.01em;
+ font-size:clamp(44px,9.4vw,116px);color:var(--y);
+ text-shadow:-3px 0 rgba(0,229,255,.55),3px 0 rgba(255,59,74,.6),0 0 30px rgba(255,212,0,.30)}
+#tt-ook .ook-h span{position:absolute;inset:0;pointer-events:none;opacity:.42;text-shadow:none}
+#tt-ook .ook-h .s1{clip-path:inset(18% 0 66% 0);transform:translateX(-6px);color:var(--c);animation:ook-flick 11s ease-in-out infinite}
+#tt-ook .ook-h .s2{clip-path:inset(62% 0 20% 0);transform:translateX(6px);color:var(--r);animation:ook-flick 11s ease-in-out 5.5s infinite}
+@keyframes ook-flick{0%,82%,100%{opacity:.42}88%{opacity:.85}93%{opacity:.18}}
+#tt-ook .ook-heart{display:block;margin:6px auto 20px;width:34px;height:34px;filter:drop-shadow(-2px 0 rgba(0,229,255,.6)) drop-shadow(2px 0 rgba(255,59,74,.65)) drop-shadow(0 0 10px rgba(255,212,0,.35))}
+#tt-ook .ook-ded{max-width:720px;margin:0 auto 46px;text-align:center;font-size:clamp(17px,2.2vw,21px);line-height:1.6;color:var(--tx)}
+#tt-ook .ook-ded b{background:var(--y);color:#000;padding:1px 9px;font-weight:800;box-shadow:-2px 0 0 var(--c),2px 0 0 var(--r)}
+/* story panels with corrupted corner brackets */
+#tt-ook .ook-story{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;max-width:1000px;margin:0 auto 56px;counter-reset:ook}
+#tt-ook .ook-sec{position:relative;counter-increment:ook;background:linear-gradient(180deg,rgba(255,212,0,.045),transparent 40%),var(--pn);border:1px solid rgba(255,212,0,.18);padding:24px 22px 20px}
+#tt-ook .ook-sec:before{content:"0" counter(ook) " //";position:absolute;top:-1px;right:-1px;padding:3px 8px;font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:#000;background:var(--y)}
+#tt-ook .ook-sec:after,#tt-ook .ook-fig a.ook-img:before{content:"";position:absolute;inset:-5px;pointer-events:none;
+ background:
+  linear-gradient(var(--y),var(--y)) 0 0/18px 2px,linear-gradient(var(--y),var(--y)) 0 0/2px 18px,
+  linear-gradient(var(--y),var(--y)) 100% 100%/18px 2px,linear-gradient(var(--y),var(--y)) 100% 100%/2px 18px,
+  linear-gradient(var(--c),var(--c)) 22px 0/6px 2px,linear-gradient(var(--r),var(--r)) calc(100% - 22px) 100%/6px 2px,
+  linear-gradient(var(--y),var(--y)) 0 100%/10px 2px,linear-gradient(var(--y),var(--y)) 0 calc(100% - 4px)/2px 6px;
+ background-repeat:no-repeat}
+#tt-ook .ook-sec h2{margin:0 0 10px;padding-right:56px;font-family:inherit;font-size:21px;line-height:1.25;font-weight:800;color:var(--y);letter-spacing:.01em;
+ text-shadow:-1px 0 rgba(0,229,255,.45),1px 0 rgba(255,59,74,.5)}
+#tt-ook .ook-sec p{margin:0 0 10px;font-size:16px;line-height:1.7;color:var(--tx)}
+#tt-ook .ook-sec p:last-child{margin-bottom:0}
+#tt-ook .ook-sec em{color:#fff;font-style:normal;background:linear-gradient(transparent 62%,rgba(255,212,0,.35) 62%)}
+/* section heads with glitch-slice divider above */
+#tt-ook .ook-h3{position:relative;margin:0 0 22px;padding-top:30px;text-align:center;font-family:inherit;font-size:clamp(26px,3.6vw,38px);font-weight:900;color:var(--y);
+ text-shadow:-2px 0 rgba(0,229,255,.5),2px 0 rgba(255,59,74,.55)}
+#tt-ook .ook-h3:before,#tt-ook .ook-follow:before{content:"";position:absolute;top:0;left:50%;width:min(560px,92%);height:9px;transform:translateX(-50%);pointer-events:none;
+ background:
+  linear-gradient(90deg,transparent 0 6%,var(--y) 6% 41%,transparent 41% 44%,var(--y) 44% 94%,transparent 94%) 0 3px/100% 2px,
+  linear-gradient(90deg,transparent 0 20%,var(--c) 20% 33%,transparent 33%) 0 0/100% 2px,
+  linear-gradient(90deg,transparent 0 58%,var(--r) 58% 76%,transparent 76%) 0 7px/100% 2px,
+  linear-gradient(90deg,transparent 0 39%,var(--y) 39% 47%,transparent 47%) 9px 6px/100% 3px;
+ background-repeat:no-repeat}
+/* showcase */
+#tt-ook .ook-pair{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:22px;max-width:880px;margin:0 auto 34px}
+#tt-ook .ook-amp{font-family:var(--mono);font-size:42px;font-weight:900;color:var(--y);text-shadow:-3px 0 rgba(0,229,255,.6),3px 0 rgba(255,59,74,.65)}
+#tt-ook .ook-fig{margin:0;min-width:0}
+#tt-ook .ook-fig a.ook-img{position:relative;display:block;border:1px solid rgba(255,212,0,.55);background:#000;cursor:zoom-in;transition:border-color .25s,box-shadow .25s}
+#tt-ook .ook-fig a.ook-img:after{content:"";position:absolute;inset:0;pointer-events:none;
+ background:repeating-linear-gradient(0deg,rgba(0,0,0,.16) 0 1px,transparent 1px 3px),linear-gradient(90deg,rgba(0,229,255,.10),transparent 8%,transparent 92%,rgba(255,59,74,.12))}
+#tt-ook .ook-fig a.ook-img:hover,#tt-ook .ook-fig a.ook-img:focus-visible{border-color:var(--y);box-shadow:-4px 0 0 rgba(0,229,255,.55),4px 0 0 rgba(255,59,74,.6),0 0 24px rgba(255,212,0,.22);outline:none}
+#tt-ook .ook-fig img{display:block;width:100%;height:auto;aspect-ratio:3/4;object-fit:cover;object-position:center}
+#tt-ook .ook-pair img{aspect-ratio:3/4}
+#tt-ook .ook-pair img.tat{object-position:50% 85%}
+#tt-ook .ook-fig figcaption{margin:12px 2px 0;font-size:14px;line-height:1.5;color:var(--mut)}
+#tt-ook .ook-fig figcaption b{display:inline-block;margin:0 4px 3px 0;padding:1px 7px;color:#000;background:var(--y);font-weight:800;transform:rotate(-1deg);box-shadow:2px 2px 0 rgba(255,59,74,.55)}
+#tt-ook .ook-fig figcaption a{font-family:var(--mono);font-size:12.5px;white-space:nowrap}
+#tt-ook .ook-gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:22px 18px;margin:0 0 58px}
+/* quotes */
+#tt-ook .ook-qs{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px;margin:0 0 56px}
+#tt-ook .ook-q{margin:0;padding:20px 18px 14px;background:#000;border:1px solid rgba(255,212,0,.22);border-left:3px solid var(--y);position:relative;
+ box-shadow:inset 0 1px 0 rgba(255,212,0,.08)}
+#tt-ook .ook-q:before{content:"\201C";position:absolute;top:-8px;left:12px;font-size:56px;line-height:1;color:var(--y);font-family:Georgia,serif;
+ text-shadow:-2px 0 rgba(0,229,255,.6),2px 0 rgba(255,59,74,.6)}
+#tt-ook .ook-q p{margin:16px 0 12px;font-size:16px;line-height:1.6;color:#fff}
+#tt-ook .ook-q cite{display:block;padding-top:8px;border-top:1px dashed rgba(255,212,0,.22);font-style:normal;font-family:var(--mono);font-size:12.5px;color:var(--mut)}
+#tt-ook .ook-q cite a{text-decoration:none;border-bottom:1px solid rgba(255,212,0,.5)}
+#tt-ook .ook-q.her{border-left-color:var(--c);border-color:rgba(0,229,255,.25) rgba(0,229,255,.25) rgba(0,229,255,.25) var(--c)}
+#tt-ook .ook-q.her:before{color:var(--c);text-shadow:-2px 0 rgba(255,212,0,.6),2px 0 rgba(255,59,74,.6)}
+/* follow her */
+#tt-ook .ook-follow{position:relative;text-align:center;padding:40px 16px 6px}
+#tt-ook .ook-follow p{margin:0 0 18px;font-size:17px;color:var(--tx)}
+#tt-ook .ook-btn{display:inline-flex;align-items:center;gap:14px;padding:12px 26px 12px 12px;background:var(--y);color:#000!important;text-decoration:none!important;
+ font-weight:900;font-size:clamp(18px,2.6vw,24px);border-radius:4px;border:2px solid #000;
+ box-shadow:-5px 0 0 var(--c),5px 0 0 var(--r),0 0 0 4px #000,0 0 0 5px rgba(255,212,0,.6),0 12px 34px rgba(255,212,0,.22);transition:box-shadow .25s}
+#tt-ook .ook-btn:hover,#tt-ook .ook-btn:focus-visible{box-shadow:-7px 0 0 var(--c),7px 0 0 var(--r),0 0 0 4px #000,0 0 0 6px var(--y),0 14px 40px rgba(255,212,0,.35);outline:none}
+#tt-ook .ook-btn img{width:52px;height:52px;border-radius:2px;border:2px solid #000;object-fit:cover}
+#tt-ook .ook-btn svg{width:22px;height:22px;flex:none}
+#tt-ook .ook-follow .ook-sign{margin:28px 0 0;text-align:center;font-size:15px;color:var(--y);opacity:.9;letter-spacing:.02em}
+/* lightbox (moved to <body> by the script so Squarespace transforms can't trap it) */
+.ook-lb{position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;padding:56px 16px 20px;
+ background:repeating-linear-gradient(0deg,rgba(255,255,255,.02) 0 1px,transparent 1px 3px),rgba(3,4,8,.95);font-family:inherit}
+.ook-lb.on{display:flex}
+.ook-lb img{max-width:min(94vw,1100px);max-height:78vh;width:auto;height:auto;border:2px solid #FFD400;border-radius:2px;box-shadow:-5px 0 0 rgba(0,229,255,.5),5px 0 0 rgba(255,59,74,.55);background:#000}
+.ook-lb .cap{max-width:760px;text-align:center;color:#eeebe1;font-size:15px;line-height:1.45}
+.ook-lb .cap a{color:#FFD400}
+.ook-lb button{position:absolute;background:#FFD400;color:#000;border:2px solid #000;border-radius:3px;width:46px;height:46px;font-size:24px;font-weight:900;line-height:1;cursor:pointer;box-shadow:-2px 0 0 #00e5ff,2px 0 0 #ff3b4a}
+.ook-lb .x{top:12px;right:12px}.ook-lb .p{left:12px;top:50%;transform:translateY(-50%)}.ook-lb .n{right:12px;top:50%;transform:translateY(-50%)}
+/* v3: animated glitch BACKGROUND on this page's section (canvas lives in .section-background; only that layer animates) */
+.page-section:has(#tt-ook) .section-border,.page-section:has(#tt-ook) .section-background{background-color:#05070d!important}
+.page-section:has(#tt-ook) .section-background{background-image:
+  repeating-linear-gradient(0deg,rgba(255,255,255,.022) 0 1px,transparent 1px 4px),
+  radial-gradient(ellipse at 50% 0%,rgba(92,66,18,.30),transparent 60%),
+  radial-gradient(ellipse at 50% 100%,rgba(60,40,12,.22),transparent 60%)!important}
+.page-section:has(#tt-ook) .section-background-overlay{display:none!important}
+.page-section:has(#tt-ook) .section-background .ook-bgcv{position:absolute;top:0;left:0;width:100%;height:100vh;display:block;margin:0;padding:0;border:0;
+ pointer-events:none;image-rendering:pixelated;will-change:transform;contain:strict}
+@media (max-width:640px){
+ #tt-ook{padding:40px 14px 32px;box-shadow:-2px 0 0 rgba(0,229,255,.45),2px 0 0 rgba(255,59,74,.5)}
+ #tt-ook .ook-kick{font-size:11px;letter-spacing:.2em;padding:5px 12px 4px}
+ #tt-ook .ook-h{text-shadow:-2px 0 rgba(0,229,255,.55),2px 0 rgba(255,59,74,.6),0 0 22px rgba(255,212,0,.3)}
+ #tt-ook .ook-h .s1{transform:translateX(-3px)}#tt-ook .ook-h .s2{transform:translateX(3px)}
+ #tt-ook .ook-story{grid-template-columns:1fr;gap:18px}
+ #tt-ook .ook-pair{grid-template-columns:1fr;gap:8px}
+ #tt-ook .ook-amp{text-align:center;font-size:30px;transform:rotate(90deg)}
+ #tt-ook .ook-gal{grid-template-columns:1fr 1fr;gap:18px 12px}
+ #tt-ook .ook-gal figcaption{font-size:12.5px}
+ #tt-ook .ook-sec{padding:22px 16px 16px}
+ #tt-ook .ook-sec h2{font-size:19px}
+ #tt-ook .ook-btn{padding:9px 16px 9px 9px;gap:10px}
+ #tt-ook .ook-btn img{width:42px;height:42px}
+ .ook-lb .p,.ook-lb .n{top:auto;bottom:14px;transform:none}
+}
+@media (prefers-reduced-motion:reduce){
+ #tt-ook:before,#tt-ook .ook-h .s1,#tt-ook .ook-h .s2{animation:none}
+ #tt-ook .ook-btn,#tt-ook .ook-fig a.ook-img{transition:none}
+}
+</style>
+
+<div id="tt-ook">
+<p class="ook-kick">a love letter in glitch &amp; ink</p>
+<h1 class="ook-h" aria-label="My One of a Kind">My One of a Kind<span class="s1" aria-hidden="true">My One of a Kind</span><span class="s2" aria-hidden="true">My One of a Kind</span></h1>
+<svg class="ook-heart" viewBox="0 0 24 24" aria-hidden="true"><path fill="#FFD400" d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.2 4.4 2.6h1.8c.8-1.4 2.3-2.6 4.4-2.6 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z"/></svg>
+<p class="ook-ded">For my wife, <b>Ashley</b> (<a href="https://x.com/AshleySavvie" target="_blank" rel="noopener">@AshleySavvie</a>).<br>23 years together, and the true artist in this house.</p>
+
+<div class="ook-story">
+ <section class="ook-sec">
+  <h2>She was the artist first</h2>
+  <p>Back in high school, before we were even dating, my wife painted three guys for me. Meet one of them below: pale round head, big dark eyes, and the most serious little frown you've ever seen.</p>
+  <p>I play around with glitches. <em>My wife is the true artist.</em></p>
+ </section>
+ <section class="ook-sec">
+  <h2>23 years later</h2>
+  <p>23 years later, after an accident that changed the course of my journey, I got her guys tattooed onto my arm, straight from the real painting she did.</p>
+  <p>Her signature came along too, inked right under them. Now her art goes everywhere I go.</p>
+ </section>
+ <section class="ook-sec">
+  <h2>High-school sweethearts</h2>
+  <p>She painted the two of us back when we were high-school sweethearts. She painted me a clown in high school too (I call him the Sad Clown).</p>
+  <p>Fun fact: before this year, the last concert I'd been to was with my now-wife, when I was 15 or 16, back in like 2005.</p>
+ </section>
+ <section class="ook-sec">
+  <h2>The little things</h2>
+  <p>She took a collector's box I was about to throw away and made something out of it for me. She's such a thoughtful person.</p>
+  <p>When she's in the back seat, my hand is right there for hers. And like my loving wife tells me: <em>angles matter.</em></p>
+ </section>
+</div>
+
+<h2 class="ook-h3">Her art &amp; my arm</h2>
+<div class="ook-pair">
+ <figure class="ook-fig">
+  <a class="ook-img" href="https://pbs.twimg.com/media/HUcBVF-XMAAOPrX?format=jpg&amp;name=large" data-cap="Her original painting, signed in the corner. One of the 3 guys she painted for me in high school."><img src="https://pbs.twimg.com/media/HUcBVF-XMAAOPrX?format=jpg&amp;name=medium" alt="Ashley's original painting: a pale figure with a round head, big dark eyes and a frown, on a dark streaked background, signed in the corner" loading="lazy" width="900" height="1200"></a>
+  <figcaption><b>The original.</b> Her painting, her signature. <a href="https://x.com/TherapyToaster/status/2109656944038306015" target="_blank" rel="noopener">View post &rarr;</a></figcaption>
+ </figure>
+ <div class="ook-amp" aria-hidden="true">&rarr;</div>
+ <figure class="ook-fig">
+  <a class="ook-img" href="https://pbs.twimg.com/amplify_video_thumb/2109656411835686912/img/fsOza2mgvYKOSbxo.jpg" data-cap="On my arm: her guy, with her signature inked underneath."><img class="tat" src="https://pbs.twimg.com/amplify_video_thumb/2109656411835686912/img/fsOza2mgvYKOSbxo.jpg" alt="Coty's forearm tattoo of the same figure in color, with Ashley's signature tattooed beneath it" loading="lazy" width="360" height="640"></a>
+  <figcaption><b>The tattoo.</b> Signature and all. <a href="https://x.com/TherapyToaster/status/2109656944038306015/video/1" target="_blank" rel="noopener">Watch the clip &rarr;</a></figcaption>
+ </figure>
+</div>
+
+<div class="ook-gal">
+ <figure class="ook-fig">
+  <a class="ook-img" href="https://pbs.twimg.com/media/HUrmPvHWIAAxNAQ?format=jpg&amp;name=large" data-cap="Me and Midnight. Cat and tatt, both because of her."><img src="https://pbs.twimg.com/media/HUrmPvHWIAAxNAQ?format=jpg&amp;name=medium" alt="Black cat Midnight resting on Coty's tattooed forearm" loading="lazy" width="896" height="1200"></a>
+  <figcaption><b>Midnight &amp; the ink.</b> Both because of her. <a href="https://x.com/TherapyToaster/status/2110752536164463021" target="_blank" rel="noopener">Post &rarr;</a></figcaption>
+ </figure>
+ <figure class="ook-fig">
+  <a class="ook-img" href="https://pbs.twimg.com/media/HUrmPgPXoAAY3yl?format=jpg&amp;name=large" data-cap="Two of her guys hanging on the wall right behind me."><img src="https://pbs.twimg.com/media/HUrmPgPXoAAY3yl?format=jpg&amp;name=medium" alt="Coty in a cap and gold sunglasses next to two of Ashley's paintings of the guys" loading="lazy" width="896" height="1195"></a>
+  <figcaption><b>Her guys, on my wall.</b> <a href="https://x.com/TherapyToaster/status/2110752536164463021" target="_blank" rel="noopener">Post &rarr;</a></figcaption>
+ </figure>
+ <figure class="ook-fig">
+  <a class="ook-img" href="https://pbs.twimg.com/media/HS7N0lfXoAAARKd?format=jpg&amp;name=large" data-cap="Her painting of the two of us as high-school sweethearts."><img src="https://pbs.twimg.com/media/HS7N0lfXoAAARKd?format=jpg&amp;name=medium" alt="Ashley's colorful pop-art style painting of the couple as high-school sweethearts" loading="lazy" width="679" height="1200"></a>
+  <figcaption><b>Us, painted by her.</b> High-school sweethearts. <a href="https://x.com/AshleySavvie/status/2102844388523303136" target="_blank" rel="noopener">Her post &rarr;</a></figcaption>
+ </figure>
+ <figure class="ook-fig">
+  <a class="ook-img" href="https://pbs.twimg.com/media/HUsKtCYXAAIhHXB?format=jpg&amp;name=large" data-cap="The Sad Clown, as I call him. She painted him for me in high school."><img src="https://pbs.twimg.com/media/HUsKtCYXAAIhHXB?format=jpg&amp;name=medium" alt="Ashley's painting of a sad clown in front of an American flag" loading="lazy" width="900" height="1200"></a>
+  <figcaption><b>The Sad Clown.</b> Painted for me in high school. <a href="https://x.com/AshleySavvie/status/2110792637229769125" target="_blank" rel="noopener">Her post &rarr;</a></figcaption>
+ </figure>
+ <figure class="ook-fig">
+  <a class="ook-img" href="https://pbs.twimg.com/media/HUcCOSNXwAAWfXY?format=jpg&amp;name=large" data-cap="My glitch take on her guy: the first card in an idea I'm playing with, a run tied to her real painting."><img src="https://pbs.twimg.com/media/HUcCOSNXwAAWfXY?format=jpg&amp;name=medium" alt="Glitch-style collector's card version of Ashley's painted figure" loading="lazy" width="896" height="1200"></a>
+  <figcaption><b>My glitch take.</b> Her guy, my pixels. <a href="https://x.com/TherapyToaster/status/2109657426756506025" target="_blank" rel="noopener">Post &rarr;</a></figcaption>
+ </figure>
+</div>
+
+<h2 class="ook-h3">In our own words</h2>
+<div class="ook-qs">
+ <blockquote class="ook-q"><p>My wife is the true Artist. She did the 3 guys paintings before we dated in high school and then 23 years later I got them tattoo on my arm.</p><cite>Me &middot; <a href="https://x.com/TherapyToaster/status/2110618127423979859" target="_blank" rel="noopener">Oct 15, 2026</a></cite></blockquote>
+ <blockquote class="ook-q"><p>&hellip;my 3 guy that @AshleySavvie drew for me and 23 years later I got them tattooed onto me after an accident that changed the course of my journey.</p><cite>Me &middot; <a href="https://x.com/TherapyToaster/status/2109656944038306015" target="_blank" rel="noopener">Oct 12, 2026</a></cite></blockquote>
+ <blockquote class="ook-q"><p>Both are because of @AshleySavvie</p><cite>Me, on my cat and my tatt &middot; <a href="https://x.com/TherapyToaster/status/2110770758217785558" target="_blank" rel="noopener">Oct 15, 2026</a></cite></blockquote>
+ <blockquote class="ook-q"><p>She's such a thoughtful person 😊</p><cite>Me &middot; <a href="https://x.com/TherapyToaster/status/2108756022193988038" target="_blank" rel="noopener">Oct 9, 2026</a></cite></blockquote>
+ <blockquote class="ook-q"><p>Like my loving wife @AshleySavvie tells me, Angles matter.</p><cite>Me &middot; <a href="https://x.com/TherapyToaster/status/2108579160545263859" target="_blank" rel="noopener">Oct 9, 2026</a></cite></blockquote>
+ <blockquote class="ook-q her"><p>Even from the back seat, his hand is right there for mine. &hellip; So thankful @TherapyToaster does the same with me.</p><cite>Ashley &middot; <a href="https://x.com/AshleySavvie/status/2111518360299008427" target="_blank" rel="noopener">Oct 17, 2026</a></cite></blockquote>
+ <blockquote class="ook-q her"><p>I painted this for @TherapyToaster in high school..</p><cite>Ashley, on the Sad Clown &middot; <a href="https://x.com/AshleySavvie/status/2110792637229769125" target="_blank" rel="noopener">Oct 15, 2026</a></cite></blockquote>
+ <blockquote class="ook-q her"><p>That is pretty cool..I have to say..</p><cite>Ashley, on the tattoo post &middot; <a href="https://x.com/AshleySavvie/status/2109667855625031800" target="_blank" rel="noopener">Oct 12, 2026</a></cite></blockquote>
+</div>
+
+<style>/* TT OOK v4: "Ashley's Art" (inline; her images are never filtered, cropped, skewed or animated) */
+#tt-ook .ook-art{max-width:1060px;margin:0 auto 56px}
+#tt-ook .oa-cap{max-width:680px;margin:-6px auto 26px;text-align:center;font-size:16.5px;line-height:1.65;color:var(--tx)}
+#tt-ook .oa-cap q{color:#fff;quotes:"\201C" "\201D";background:linear-gradient(transparent 62%,rgba(255,212,0,.32) 62%)}
+#tt-ook .oa-grid{column-count:3;column-gap:18px}
+#tt-ook .oa-f{break-inside:avoid;-webkit-column-break-inside:avoid;display:inline-block;width:100%;margin:0 0 20px;padding:8px;background:#000;border:1px solid rgba(255,212,0,.28);
+ box-shadow:-2px 0 0 rgba(0,229,255,.28),2px 0 0 rgba(255,59,74,.3)}
+#tt-ook .oa-it{display:block;cursor:zoom-in;outline:none;border:1px solid transparent;transition:border-color .2s}
+#tt-ook .oa-it:hover,#tt-ook .oa-it:focus-visible{border-color:var(--y)}
+#tt-ook .oa-it img{display:block;width:100%;height:auto;background:#0a0d16}
+#tt-ook .oa-f figcaption{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 10px;margin:9px 2px 1px;font-size:14px;line-height:1.35;color:var(--mut)}
+#tt-ook .oa-f figcaption b{color:var(--y);font-weight:800;letter-spacing:.01em}
+#tt-ook .oa-f figcaption a{font-family:var(--mono);font-size:12px;white-space:nowrap;text-decoration:none;border-bottom:1px solid rgba(255,212,0,.45)}
+@media (max-width:900px){#tt-ook .oa-grid{column-count:2}}
+@media (max-width:640px){#tt-ook .oa-grid{column-count:2;column-gap:10px}#tt-ook .oa-f{padding:5px;margin-bottom:12px}#tt-ook .oa-f figcaption{font-size:12.5px}#tt-ook .oa-f figcaption a{font-size:11px}#tt-ook .oa-cap{font-size:15.5px}}
+.ook-alb{position:fixed;inset:0;z-index:100001;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;padding:58px 16px 22px;box-sizing:border-box;
+ background:repeating-linear-gradient(0deg,rgba(255,255,255,.02) 0 1px,transparent 1px 3px),rgba(3,4,8,.95);font-family:inherit}
+.ook-alb.on{display:flex}
+.ook-alb img{max-width:min(94vw,1200px);max-height:74vh;width:auto;height:auto;border:2px solid #FFD400;border-radius:2px;background:#000;box-shadow:-5px 0 0 rgba(0,229,255,.45),5px 0 0 rgba(255,59,74,.5)}
+.ook-alb .oa-lc{max-width:760px;text-align:center;color:#eeebe1;font-size:15px;line-height:1.5}
+.ook-alb .oa-lc b{display:block;color:#FFD400;font-size:17px;margin-bottom:2px}
+.ook-alb .oa-xb{display:inline-block;margin-top:2px;padding:8px 16px;background:#FFD400;color:#000!important;font-weight:800;font-size:15px;text-decoration:none!important;border:2px solid #000;border-radius:3px;box-shadow:-3px 0 0 #00e5ff,3px 0 0 #ff3b4a}
+.ook-alb .oa-xb:hover,.ook-alb .oa-xb:focus-visible{box-shadow:-4px 0 0 #00e5ff,4px 0 0 #ff3b4a,0 0 0 4px rgba(255,212,0,.35);outline:none}
+.ook-alb button{position:absolute;background:#FFD400;color:#000;border:2px solid #000;border-radius:3px;width:46px;height:46px;font-size:24px;font-weight:900;line-height:1;cursor:pointer;box-shadow:-2px 0 0 #00e5ff,2px 0 0 #ff3b4a}
+.ook-alb .x{top:12px;right:12px}.ook-alb .p{left:12px;top:50%;transform:translateY(-50%)}.ook-alb .n{right:12px;top:50%;transform:translateY(-50%)}
+@media (max-width:640px){.ook-alb .p,.ook-alb .n{top:auto;bottom:14px;transform:none}.ook-alb{padding-bottom:74px}.ook-alb img{max-height:62vh}}
+@media (prefers-reduced-motion:reduce){#tt-ook .oa-it{transition:none}}
+</style>
+<h2 class="ook-h3">Ashley&#39;s Art</h2>
+<div class="ook-art" id="ook-art">
+<p class="oa-cap">Paint, string, and whole walls turned into trees. These are a few of the pieces Ashley has shared on Twitter, each with her own words, from the painting she did of us as high-school sweethearts to the tree she painted in her daughter&#39;s room. Tap any piece to see it bigger.</p>
+<div class="oa-grid">
+ <figure class="oa-f"><a class="oa-it" href="https://pbs.twimg.com/media/HS7N0lfXoAAARKd?format=jpg&amp;name=large" data-post="https://x.com/AshleySavvie/status/2102844388523303136" data-t="High-School Sweethearts" data-cap="This was a painting..I did of @TherapyToaster and I when we were high-school sweethearts.."><img src="https://pbs.twimg.com/media/HS7N0lfXoAAARKd?format=jpg&amp;name=medium" alt="Ashley&#x27;s colorful painting of Coty and her as high-school sweethearts" width="2169" height="3832" loading="lazy" decoding="async"></a><figcaption><b>High-School Sweethearts</b><a href="https://x.com/AshleySavvie/status/2102844388523303136" target="_blank" rel="noopener">Her post &#8599;</a></figcaption></figure>
+ <figure class="oa-f"><a class="oa-it" href="https://pbs.twimg.com/media/HUsKtCYXAAIhHXB?format=jpg&amp;name=large" data-post="https://x.com/AshleySavvie/status/2110792637229769125" data-t="The Sad Clown" data-cap="I painted this  for @TherapyToaster in high school school.."><img src="https://pbs.twimg.com/media/HUsKtCYXAAIhHXB?format=jpg&amp;name=medium" alt="Ashley&#x27;s painting of a sad clown in front of an American flag" width="3000" height="4000" loading="lazy" decoding="async"></a><figcaption><b>The Sad Clown</b><a href="https://x.com/AshleySavvie/status/2110792637229769125" target="_blank" rel="noopener">Her post &#8599;</a></figcaption></figure>
+ <figure class="oa-f"><a class="oa-it" href="https://pbs.twimg.com/media/HP7ohyGWkAA4O6J?format=jpg&amp;name=large" data-post="https://x.com/AshleySavvie/status/2089362950255530379" data-t="Acrylic &amp; Dipped String" data-cap="One of the paintings I did..acrylic paint and dipped string in glue and paint"><img src="https://pbs.twimg.com/media/HP7ohyGWkAA4O6J?format=jpg&amp;name=medium" alt="Ashley&#x27;s abstract acrylic painting with string lines, hanging on a wall" width="1495" height="2776" loading="lazy" decoding="async"></a><figcaption><b>Acrylic &amp; Dipped String</b><a href="https://x.com/AshleySavvie/status/2089362950255530379" target="_blank" rel="noopener">Her post &#8599;</a></figcaption></figure>
+ <figure class="oa-f"><a class="oa-it" href="https://pbs.twimg.com/media/HUt8_bYXYAAQjTk?format=jpg&amp;name=large" data-post="https://x.com/AshleySavvie/status/2110918310862680528" data-t="Cherry Blossom Tree" data-cap="This is the tree I had painted in the daughters room..the first 2 is the finished version..the second 2 was when I was still working on it.."><img src="https://pbs.twimg.com/media/HUt8_bYXYAAQjTk?format=jpg&amp;name=medium" alt="Close-up of Ashley&#x27;s painted tree mural: a brown trunk with pink blossoms and a blue butterfly" width="1602" height="1889" loading="lazy" decoding="async"></a><figcaption><b>Cherry Blossom Tree</b><a href="https://x.com/AshleySavvie/status/2110918310862680528" target="_blank" rel="noopener">Her post &#8599;</a></figcaption></figure>
+ <figure class="oa-f"><a class="oa-it" href="https://pbs.twimg.com/media/HP2obsnXYAAmq-v?format=jpg&amp;name=large" data-post="https://x.com/AshleySavvie/status/2089011005783220422" data-t="Branches Overhead" data-cap="Part of tree i had painted when I did daughter&#x27;s room"><img src="https://pbs.twimg.com/media/HP2obsnXYAAmq-v?format=jpg&amp;name=medium" alt="Ashley&#x27;s mural branches with pink blossoms and butterflies reaching across the top of a wall" width="3250" height="1638" loading="lazy" decoding="async"></a><figcaption><b>Branches Overhead</b><a href="https://x.com/AshleySavvie/status/2089011005783220422" target="_blank" rel="noopener">Her post &#8599;</a></figcaption></figure>
+ <figure class="oa-f"><a class="oa-it" href="https://pbs.twimg.com/media/HPuSUTnXUAEQZzf?format=jpg&amp;name=large" data-post="https://x.com/AshleySavvie/status/2088423757022888100" data-t="Blossoms on Teal" data-cap="This is when I painted the tree in my daughter&#x27;s room.."><img src="https://pbs.twimg.com/media/HPuSUTnXUAEQZzf?format=jpg&amp;name=medium" alt="Painted branches with pink blossoms on a teal wall in her daughter&#x27;s room" width="1884" height="4080" loading="lazy" decoding="async"></a><figcaption><b>Blossoms on Teal</b><a href="https://x.com/AshleySavvie/status/2088423757022888100" target="_blank" rel="noopener">Her post &#8599;</a></figcaption></figure>
+ <figure class="oa-f"><a class="oa-it" href="https://pbs.twimg.com/media/HPuSUriWQAAVAiC?format=jpg&amp;name=large" data-post="https://x.com/AshleySavvie/status/2088423757022888100" data-t="Work in Progress" data-cap="This is when I painted the tree in my daughter&#x27;s room.."><img src="https://pbs.twimg.com/media/HPuSUriWQAAVAiC?format=jpg&amp;name=medium" alt="The tree mural while Ashley was still painting it, branches spreading across a corner of the room" width="1884" height="4080" loading="lazy" decoding="async"></a><figcaption><b>Work in Progress</b><a href="https://x.com/AshleySavvie/status/2088423757022888100" target="_blank" rel="noopener">Her post &#8599;</a></figcaption></figure>
+ <figure class="oa-f"><a class="oa-it" href="https://pbs.twimg.com/media/HPxIbxCWAAELUTL?format=jpg&amp;name=large" data-post="https://x.com/AshleySavvie/status/2088623975232372936" data-t="The Nursery Tree" data-cap="Part of my first child&#x27;s nursery I had painted"><img src="https://pbs.twimg.com/media/HPxIbxCWAAELUTL?format=jpg&amp;name=medium" alt="Ashley&#x27;s dark tree mural in a green nursery with a swing hanging from a branch" width="4096" height="2526" loading="lazy" decoding="async"></a><figcaption><b>The Nursery Tree</b><a href="https://x.com/AshleySavvie/status/2088623975232372936" target="_blank" rel="noopener">Her post &#8599;</a></figcaption></figure>
+ <figure class="oa-f"><a class="oa-it" href="https://pbs.twimg.com/media/HPxIbXvWIAAgku1?format=jpg&amp;name=large" data-post="https://x.com/AshleySavvie/status/2088623975232372936" data-t="Nursery Tree, Wide" data-cap="Part of my first child&#x27;s nursery I had painted"><img src="https://pbs.twimg.com/media/HPxIbXvWIAAgku1?format=jpg&amp;name=medium" alt="Wide view of the nursery mural: dark branches across a green wall with a birdhouse" width="4096" height="1638" loading="lazy" decoding="async"></a><figcaption><b>Nursery Tree, Wide</b><a href="https://x.com/AshleySavvie/status/2088623975232372936" target="_blank" rel="noopener">Her post &#8599;</a></figcaption></figure>
+</div>
+</div>
+
+<div class="ook-follow">
+ <p>The real artist behind all of this:</p>
+ <a class="ook-btn" href="https://x.com/AshleySavvie" target="_blank" rel="noopener">
+  <img src="https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@4290f253cac805b9acba23c3ada7af67d75f8879/speed/media/ashley-avatar-T8DaKmsx-400.jpg" alt="" width="52" height="52">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#000" d="M18.24 2.25h3.31l-7.23 8.26 8.5 11.24h-6.66l-5.21-6.82-5.97 6.82H1.67l7.73-8.84L1.25 2.25h6.83l4.71 6.23 5.45-6.23zm-1.16 17.52h1.83L7.08 4.13H5.12l11.96 15.64z"/></svg>
+  <span>Follow her on Twitter: @AshleySavvie</span>
+ </a>
+ <p class="ook-sign">Love you, Ashley. My one of a kind. &mdash; Coty</p>
+</div>
+</div>
+
+<script>(function(){
+  var root=document.getElementById('tt-ook');if(!root||root.dataset.ookInit)return;root.dataset.ookInit='1';
+  var items=[].slice.call(root.querySelectorAll('a.ook-img'));if(!items.length)return;
+  var old=document.querySelector('body > .ook-lb');if(old)old.remove();
+  var lb=document.createElement('div');lb.className='ook-lb';lb.setAttribute('role','dialog');lb.setAttribute('aria-modal','true');lb.setAttribute('aria-label','Image viewer');
+  lb.innerHTML='<button class="x" type="button" aria-label="Close">&times;</button><button class="p" type="button" aria-label="Previous">&lsaquo;</button><img alt=""><div class="cap"></div><button class="n" type="button" aria-label="Next">&rsaquo;</button>';
+  document.body.appendChild(lb);
+  var im=lb.querySelector('img'),cap=lb.querySelector('.cap'),cur=0,last=null;
+  function show(i){cur=(i+items.length)%items.length;var a=items[cur],t=a.querySelector('img');im.src=a.href;im.alt=t?t.alt:'';cap.textContent=a.getAttribute('data-cap')||'';}
+  function open(i){last=document.activeElement;show(i);lb.classList.add('on');document.documentElement.style.overflow='hidden';lb.querySelector('.x').focus();}
+  function close(){lb.classList.remove('on');document.documentElement.style.overflow='';if(last&&last.focus)last.focus();}
+  items.forEach(function(a,i){a.addEventListener('click',function(e){if(e.button||e.metaKey||e.ctrlKey||e.shiftKey)return;e.preventDefault();open(i);});});
+  lb.querySelector('.x').addEventListener('click',close);
+  lb.querySelector('.p').addEventListener('click',function(){show(cur-1);});
+  lb.querySelector('.n').addEventListener('click',function(){show(cur+1);});
+  lb.addEventListener('click',function(e){if(e.target===lb)close();});
+  document.addEventListener('keydown',function(e){if(!lb.classList.contains('on'))return;
+    if(e.key==='Escape'){e.preventDefault();close();}else if(e.key==='ArrowRight'){show(cur+1);}else if(e.key==='ArrowLeft'){show(cur-1);}});
+  var sx=0,sy=0;
+  lb.addEventListener('touchstart',function(e){if(e.touches.length===1){sx=e.touches[0].clientX;sy=e.touches[0].clientY;}},{passive:true});
+  lb.addEventListener('touchend',function(e){var t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;
+    if(Math.abs(dx)>45&&Math.abs(dx)>Math.abs(dy)*1.2)show(cur+(dx<0?1:-1));else if(dy>90&&Math.abs(dy)>Math.abs(dx)*1.5)close();},{passive:true});
+})();</script>
+<script>(function(){
+  /* TT OOK glitch background v3: canvas behind the content, ~24fps cap, paused when hidden/offscreen, static frame for reduced motion. */
+  var root=document.getElementById('tt-ook');if(!root)return;
+  var sec=root.closest('.page-section'),bg=sec&&sec.querySelector('.section-background');if(!bg||!window.requestAnimationFrame)return;
+  var old=bg.querySelector('canvas.ook-bgcv');if(old){if(old._stop)old._stop();old.remove();}
+  var cv=document.createElement('canvas');cv.className='ook-bgcv';cv.setAttribute('aria-hidden','true');cv.setAttribute('role','presentation');bg.appendChild(cv);
+  var ctx=cv.getContext('2d',{alpha:false});if(!ctx)return;
+  var rmq=window.matchMedia?matchMedia('(prefers-reduced-motion: reduce)'):{matches:false};
+  var base=document.createElement('canvas'),bc=base.getContext('2d'),pats=[],W=0,H=0,S=.5,vh=0,lastW=0,mob=false,FPS=24;
+  var R=Math.random,raf=0,last=0,vis=!document.hidden,onScreen=true,nextB=0,burst=null,texts=[],nextT=0,fi=0,tracks=[];
+  var st={n:0,ms:0,max:0};cv._s=st;
+  var COL=['255,212,0','255,59,74','0,229,255','236,233,223'];
+  function hx(n){var s='';while(s.length<n)s+='0123456789ABCDEF'[R()*16|0];return s;}
+  function word(){var r=R();return r<.3?'SYS_ERR':r<.5?'SYS_ERR 0x'+hx(4):r<.7?'0x'+hx(6):r<.85?hx(2)+' '+hx(2)+' '+hx(2)+' '+hx(2):'ERR_'+hx(3)+' // SIGNAL';}
+  function size(force){
+    var cw=bg.clientWidth||innerWidth,sh=sec.offsetHeight||innerHeight,h=Math.min(innerHeight,sh);
+    if(!force&&cw===lastW&&Math.abs(h-vh)<120&&W){place();return;}
+    lastW=cw;vh=h;mob=cw<700;FPS=mob?20:24;
+    var d=Math.min(window.devicePixelRatio||1,2),k=(mob?.42:.5)*d,cap=mob?200000:520000;
+    if(cw*k*vh*k>cap)k=Math.sqrt(cap/(cw*vh));S=k;
+    W=Math.max(48,Math.round(cw*k));H=Math.max(48,Math.round(vh*k));
+    cv.width=W;cv.height=H;cv.style.height=vh+'px';ctx.imageSmoothingEnabled=false;
+    base.width=W;base.height=H;
+    bc.fillStyle='#05070d';bc.fillRect(0,0,W,H);
+    var g=bc.createRadialGradient(W*.5,-H*.1,0,W*.5,-H*.1,H*1.1);g.addColorStop(0,'rgba(96,70,20,.30)');g.addColorStop(1,'rgba(96,70,20,0)');bc.fillStyle=g;bc.fillRect(0,0,W,H);
+    g=bc.createRadialGradient(W*.5,H*.5,H*.3,W*.5,H*.5,Math.max(W,H)*.8);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.55)');bc.fillStyle=g;bc.fillRect(0,0,W,H);
+    bc.fillStyle='rgba(0,0,0,.28)';for(var y=0;y<H;y+=3)bc.fillRect(0,y,W,1);
+    if(!pats.length)for(var f=0;f<4;f++){var nc=document.createElement('canvas');nc.width=nc.height=96;var nx=nc.getContext('2d'),id=nx.createImageData(96,96),p=id.data;
+      for(var i=0;i<p.length;i+=4){var v=R()*255|0;p[i]=v;p[i+1]=v*.94|0;p[i+2]=v*.82|0;p[i+3]=R()<.5?0:(R()*34|0);}nx.putImageData(id,0,0);pats.push(ctx.createPattern(nc,'repeat'));}
+    tracks=[{y:R()*H,v:H*.05,h:Math.max(3,H*.018)},{y:R()*H,v:H*.085,h:Math.max(2,H*.008)}];
+    ctx.drawImage(base,0,0);place();if(rmq.matches)still();
+  }
+  function place(){var r=bg.getBoundingClientRect(),y=Math.max(0,Math.min(-r.top,(bg.offsetHeight||vh)-vh));cv.style.transform='translate3d(0,'+Math.round(y)+'px,0)';}
+  function newBurst(t){var n=(mob?3:4)+(R()*(mob?3:5)|0),sl=[];
+    for(var i=0;i<n;i++){var r=R();sl.push({y:R()*H,h:Math.max(1,(R()<.6?R()*.012:R()*.05)*H),x:R()<.5?0:R()*W*.6,w:W*(.25+R()*.75),c:COL[R()*3|0],a:.07+R()*.15,
+      sw:R()<.4?(R()<.5?-1:1)*W*(.3+R()*.5):0,t0:R()*.45,k:r<.45?'band':r<.75?'rgb':'mosh',sh:(R()<.5?-1:1)*(3+R()*W*.04)});}
+    burst={t:t,d:170+R()*330,sl:sl};nextB=t+2000+R()*3000;}
+  function blocks(n,a){for(var i=0;i<n;i++){var w=4+R()*W*.035,h=2+R()*H*.02,x=R()*W,y=R()*H,o=1+R()*3;
+    ctx.fillStyle='rgba(255,59,74,'+a+')';ctx.fillRect(x-o,y,w,h);ctx.fillStyle='rgba(0,229,255,'+a+')';ctx.fillRect(x+o,y,w,h);
+    if(R()<.4){ctx.fillStyle='rgba(255,212,0,'+a*.8+')';ctx.fillRect(x,y+h*.3,w*.6,Math.max(1,h*.4));}}}
+  function slice(s,p){var x=s.x+s.sw*p;
+    if(s.k==='mosh'){var yy=Math.max(0,Math.min(H-1,s.y|0)),hh=Math.max(1,Math.min(H-yy,s.h*2|0));ctx.globalAlpha=.85;ctx.drawImage(cv,0,yy,W,hh,s.sh,yy,W,hh);ctx.globalAlpha=1;
+      ctx.fillStyle='rgba('+s.c+','+s.a*.5+')';ctx.fillRect(x,yy,s.w,1);return;}
+    if(s.k==='rgb'){var o=2+S*6;ctx.globalCompositeOperation='lighter';
+      ctx.fillStyle='rgba(255,59,74,'+s.a+')';ctx.fillRect(x-o,s.y,s.w,s.h);ctx.fillStyle='rgba(0,229,255,'+s.a+')';ctx.fillRect(x+o,s.y,s.w,s.h);
+      ctx.globalCompositeOperation='source-over';return;}
+    ctx.fillStyle='rgba('+s.c+','+s.a+')';ctx.fillRect(x,s.y,s.w,s.h);
+    ctx.fillStyle='rgba('+s.c+','+s.a*1.6+')';ctx.fillRect(x,s.y,s.w,Math.max(1,S));}
+  function txt(o,on){if(!on)return;ctx.font=Math.max(6,Math.round(12*S))+'px ui-monospace,Menlo,Consolas,"Liberation Mono",monospace';
+    ctx.fillStyle='rgba(255,59,74,'+o.a*.5+')';ctx.fillText(o.s,o.x-1,o.y);ctx.fillStyle='rgba(0,229,255,'+o.a*.5+')';ctx.fillText(o.s,o.x+1,o.y);
+    ctx.fillStyle='rgba('+o.c+','+o.a+')';ctx.fillText(o.s,o.x,o.y);}
+  function noise(a){ctx.save();ctx.globalAlpha=a;ctx.translate(-(R()*96|0),-(R()*96|0));ctx.fillStyle=pats[fi%pats.length];ctx.fillRect(0,0,W+96,H+96);ctx.restore();}
+  function draw(t,dt){
+    var b=burst&&t-burst.t<burst.d?burst:null;if(burst&&!b)burst=null;
+    ctx.globalAlpha=b?.4:.8;ctx.drawImage(base,0,0);ctx.globalAlpha=1;   /* partial fade = datamosh smear trails */
+    fi++;noise(.55);
+    for(var i=0;i<tracks.length;i++){var k=tracks[i];k.y+=k.v*dt/1000;if(k.y>H+k.h)k.y=-k.h*2;var yy=k.y|0,hh=Math.max(1,k.h|0);
+      if(yy>=0&&yy+hh<=H){ctx.globalAlpha=.6;ctx.drawImage(cv,0,yy,W,hh,2+S*4,yy,W,hh);ctx.globalAlpha=1;}
+      ctx.fillStyle='rgba(236,233,223,.035)';ctx.fillRect(0,yy,W,hh);
+      for(var j=0;j<3;j++){ctx.fillStyle='rgba(255,212,0,'+(.05+R()*.06)+')';ctx.fillRect(R()*W,yy+R()*hh,4+R()*W*.06,1);}}
+    if(!burst&&t>=nextB)newBurst(t);
+    if(b){var p=(t-b.t)/b.d;for(var s=0;s<b.sl.length;s++)if(p>=b.sl[s].t0)slice(b.sl[s],p);blocks(mob?5:10,.10+R()*.08);}
+    if(t>=nextT&&texts.length<(mob?2:4)){texts.push({s:word(),x:R()*W*.85,y:8+R()*(H-12),c:R()<.6?'255,212,0':R()<.5?'236,233,223':'0,229,255',a:.14+R()*.14,t:t,d:350+R()*800});nextT=t+(mob?1800:1100)+R()*2600;}
+    for(var q=texts.length-1;q>=0;q--){var o=texts[q],age=t-o.t;if(age>o.d){texts.splice(q,1);continue;}txt(o,((age/70)|0)%4!==1);}
+  }
+  function still(){ctx.globalAlpha=1;ctx.drawImage(base,0,0);noise(.6);var sv=burst;newBurst(0);var b=burst;
+    for(var s=0;s<b.sl.length;s++)if(b.sl[s].k!=='mosh')slice(b.sl[s],.5);blocks(mob?4:8,.12);burst=sv;nextB=0;
+    for(var i=0;i<(mob?2:3);i++)txt({s:word(),x:R()*W*.8,y:10+R()*(H-14),c:'255,212,0',a:.2},true);}
+  function loop(t){raf=requestAnimationFrame(loop);var iv=1000/FPS;if(last&&t-last<iv)return;var dt=last?Math.min(120,t-last):16;last=last&&t-last<iv*2?t-((t-last)%iv):t;
+    if(!cv.isConnected){stop();return;}var t0=performance.now();draw(t,dt);var ms=performance.now()-t0;st.n++;st.ms+=ms;if(ms>st.max)st.max=ms;}
+  function start(){if(!raf&&vis&&onScreen&&!rmq.matches){last=0;if(!nextB)nextB=performance.now()+1200;raf=requestAnimationFrame(loop);}}
+  function stop(){if(raf)cancelAnimationFrame(raf);raf=0;}
+  cv._stop=stop;cv._force=function(){burst=null;nextB=0;};
+  size(true);
+  if(rmq.matches)still();else start();
+  if(rmq.addEventListener)rmq.addEventListener('change',function(){if(rmq.matches){stop();still();}else start();});
+  document.addEventListener('visibilitychange',function(){vis=!document.hidden;if(vis)start();else stop();});
+  if('IntersectionObserver' in window)new IntersectionObserver(function(e){onScreen=e[e.length-1].isIntersecting;if(onScreen)start();else stop();}).observe(sec);
+  addEventListener('scroll',place,{passive:true});
+  var rq=0;function rs(){clearTimeout(rq);rq=setTimeout(function(){size(false);},150);}
+  addEventListener('resize',rs);if(window.ResizeObserver)new ResizeObserver(rs).observe(sec);
+})();</script>
+
+<script>(function(){
+  /* TT OOK v4 Ashley's Art lightbox: window singleton, so the site's soft navigation can re-run it without double-init or leaks */
+  var W=window,D=document,K='__ttOokArt';if(W[K]&&W[K].stop)W[K].stop();
+  var root=D.getElementById('ook-art');if(!root)return;
+  var items=[].slice.call(root.querySelectorAll('a.oa-it'));if(!items.length)return;
+  [].slice.call(D.querySelectorAll('body > .ook-alb')).forEach(function(o){o.remove();});
+  var lb=D.createElement('div');lb.className='ook-alb';lb.setAttribute('role','dialog');lb.setAttribute('aria-modal','true');lb.setAttribute('aria-label',"Ashley's art viewer");
+  lb.innerHTML='<button class="x" type="button" aria-label="Close">&times;</button><button class="p" type="button" aria-label="Previous">&lsaquo;</button><img alt=""><div class="oa-lc"><b></b><span></span><br><a class="oa-xb" target="_blank" rel="noopener">View post on Twitter &#8599;</a></div><button class="n" type="button" aria-label="Next">&rsaquo;</button>';
+  D.body.appendChild(lb);
+  var im=lb.querySelector('img'),tt=lb.querySelector('.oa-lc b'),cp=lb.querySelector('.oa-lc span'),xb=lb.querySelector('.oa-xb'),cur=0,last=null,api;
+  function show(i){cur=(i+items.length)%items.length;var a=items[cur],t=a.querySelector('img'),p=a.getAttribute('data-post')||'';
+    im.src=a.href;im.alt=t?t.alt:'';tt.textContent=a.getAttribute('data-t')||'';var c=a.getAttribute('data-cap');cp.textContent=c?'\u201C'+c+'\u201D \u2014 Ashley':'';
+    if(/^https:\/\/x\.com\/AshleySavvie\/status\/\d+$/.test(p)){xb.href=p;xb.hidden=false;}else{xb.removeAttribute('href');xb.hidden=true;}}
+  function open(i){last=D.activeElement;show(i);lb.classList.add('on');D.documentElement.style.overflow='hidden';lb.querySelector('.x').focus();}
+  function close(){if(!lb.classList.contains('on'))return;lb.classList.remove('on');D.documentElement.style.overflow='';if(last&&last.focus&&last.isConnected)last.focus();}
+  function onKey(e){if(!root.isConnected){stop();return;}if(!lb.classList.contains('on'))return;
+    if(e.key==='Escape'){e.preventDefault();close();}else if(e.key==='ArrowRight'){show(cur+1);}else if(e.key==='ArrowLeft'){show(cur-1);}}
+  function stop(){close();D.removeEventListener('keydown',onKey);if(lb.parentNode)lb.remove();if(W[K]===api)W[K]=null;}
+  items.forEach(function(a,i){a.addEventListener('click',function(e){if(e.button||e.metaKey||e.ctrlKey||e.shiftKey)return;e.preventDefault();open(i);});});
+  lb.querySelector('.x').addEventListener('click',close);
+  lb.querySelector('.p').addEventListener('click',function(){show(cur-1);});
+  lb.querySelector('.n').addEventListener('click',function(){show(cur+1);});
+  lb.addEventListener('click',function(e){if(e.target===lb)close();});
+  var sx=0,sy=0;
+  lb.addEventListener('touchstart',function(e){if(e.touches.length===1){sx=e.touches[0].clientX;sy=e.touches[0].clientY;}},{passive:true});
+  lb.addEventListener('touchend',function(e){var t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;
+    if(Math.abs(dx)>45&&Math.abs(dx)>Math.abs(dy)*1.2)show(cur+(dx<0?1:-1));else if(dy>90&&Math.abs(dy)>Math.abs(dx)*1.5)close();},{passive:true});
+  D.addEventListener('keydown',onKey);
+  api={stop:stop,root:root,lb:lb};W[K]=api;
+})();</script>
+<!-- /TT My One of a Kind v3 -->

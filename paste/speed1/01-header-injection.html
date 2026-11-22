@@ -1,0 +1,186 @@
+<link rel="preload" href="https://file.squarespace-cdn.com/content/v2/namespaces/fonts/libraries/sqsp/assets/965710dc-13da-459c-ae08-8c4637b44267/latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="https://file.squarespace-cdn.com/content/v2/namespaces/fonts/libraries/sqsp/assets/c8e5d1ad-81b6-48b9-a934-7d681ff1bd5d/latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preconnect" href="https://therapytoaster.github.io">
+<script id="tt-early-v1">(function(){var p=(location.pathname||"/").toLowerCase().replace(/\/+$/,"");if(p!==""&&p!=="/home")return;var A="https://therapytoaster.github.io/tt-live/site-header/home-wall-v2-",m=window.matchMedia&&matchMedia("(max-width:767px)").matches;[[A+(m?"1200":"2400")+".webp","high"],[A+"fill.webp","low"]].forEach(function(x){var l=document.createElement("link");l.rel="preload";l.as="image";l.type="image/webp";l.href=x[0];l.setAttribute("fetchpriority",x[1]);document.head.appendChild(l);});})();</script>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@TherapyToaster">
+<meta name="twitter:creator" content="@TherapyToaster">
+<script>
+/* Runtime fix for browsers/tools that read the DOM (Twitter's crawler does NOT run JS; this is only cosmetic/defensive). */
+(function(){var m=document.querySelectorAll('meta[name="twitter:card"]');for(var i=0;i<m.length;i++)m[i].setAttribute('content','summary_large_image')})();
+</script>
+<!-- /TT SHARE CARD v1 -->
+<!-- TT FIXES v1: YellowBlankey avatar + long header video -->
+<script>
+(function(){
+var AV='https://therapytoaster.github.io/tt-live/crew/yellowblankey.jpg?v=2',
+    LV='https://therapytoaster.github.io/tt-live/header/therapytoaster-header-long.mp4',
+    LP='https://therapytoaster.github.io/tt-live/header/poster-long.jpg';
+function fix(){
+ document.querySelectorAll('img[src*="2110228931383115776/CVgFJD6V"]').forEach(function(i){i.src=AV;});
+ document.querySelectorAll('video').forEach(function(v){
+  var s=v.getAttribute('src')||'', so=v.querySelector('source[src*="header-480-nozoom"]');
+  if(s.indexOf('header-480-nozoom')>-1){v.src=LV;v.poster=LP;try{v.load();v.play&&v.play().catch(function(){});}catch(e){}}
+  else if(so){so.src=LV;v.poster=LP;try{v.load();v.play&&v.play().catch(function(){});}catch(e){}}
+ });
+}
+fix();document.addEventListener('DOMContentLoaded',fix);window.addEventListener('load',fix);
+var ttq=0;new MutationObserver(function(){if(ttq)return;ttq=requestAnimationFrame(function(){ttq=0;fix();});}).observe(document.documentElement,{childList:true,subtree:true});
+})();
+</script>
+<!-- /TT FIXES v1 -->
+<!-- TT ARCADE INTRO GUARD v1 -->
+<style>html.tt-not-arc #tt-intro{display:none!important}html.tt-not-arc.tt-intro-lock,html.tt-not-arc.tt-intro-lock body{overflow:auto!important}</style>
+<script>(function(){function c(){var a=/^\/arcade\/?$/.test(location.pathname);document.documentElement.classList.toggle('tt-not-arc',!a);if(!a){var x=document.getElementById('tt-intro');if(x)x.remove();document.documentElement.classList.remove('tt-intro-lock');}}c();new MutationObserver(c).observe(document.documentElement,{childList:true,subtree:true});})();</script>
+<!-- /TT ARCADE INTRO GUARD v1 -->
+<!-- TT NAV FOLDER FIX v1 -->
+<style>.header-nav-folder-title,.header-nav-folder-title-text,.header-nav-folder-title *{color:#fff!important;opacity:1!important}.header-nav-folder-title:hover .header-nav-folder-title-text,.header-nav-item--folder:hover .header-nav-folder-title-text{color:#FFD400!important}</style>
+<!-- /TT NAV FOLDER FIX v1 -->
+<!-- TT SHOP HIDE HAT v1 -->
+<style>a[href*="/products/trucker-cap"]{display:none!important}</style>
+<script>(function(){if(location.pathname.indexOf('/shop')!==0)return;function h(){document.querySelectorAll('a[href*="/products/trucker-cap"]').forEach(function(a){var c=a.closest('[class*="card"],li,article')||a;c.style.display='none';});}h();new MutationObserver(h).observe(document.documentElement,{childList:true,subtree:true});})();</script>
+<!-- TT FLAT NAV v1 -->
+<style>#mr-toastys-store,#mr-toastys-art{display:none!important}a[href="/pinterest"],a[href="/insider-threat"],a[href="https://glitchmeme.com"]{display:none!important}</style>
+<script>(function(){var M={"mr-toastys-store":"/shop","mr-toastys-art":"/toasted-art"};
+function f(){Object.keys(M).forEach(function(id){
+document.querySelectorAll('.header-nav-item--folder').forEach(function(it){if(it.querySelector('#'+id)&&!it.dataset.ttflat){it.dataset.ttflat=1;var b=it.querySelector('button,.header-nav-folder-title');if(b){b.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();location.href=M[id];},true);b.style.cursor='pointer';}}});
+document.querySelectorAll('[data-folder-id="/'+id+'"],a[data-folder-id="'+id+'"]').forEach(function(a){if(!a.dataset.ttflat){a.dataset.ttflat=1;a.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();location.href=M[id];},true);}});
+document.querySelectorAll('.header-menu-nav-folder-content a, .header-menu-nav-item a').forEach(function(a){var h=a.getAttribute('href')||'';if(h==='/'+id&&!a.dataset.ttflat){a.dataset.ttflat=1;a.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();location.href=M[id];},true);}});
+});}
+f();new MutationObserver(f).observe(document.documentElement,{childList:true,subtree:true});})();</script>
+<!-- TT HIDE GAMESGROK v1 -->
+<style>.ta-gb,a[href*="x.com/gamesgrokbuild"]{display:none!important}</style>
+<!-- TT HEADER CLIP ALL v1 -->
+
+<style id="tt-hca-css">
+body:not(.homepage) .header-title-text,body:not(.homepage) .header-title-logo{position:relative;cursor:pointer}
+body:not(.homepage) .header-title-text a,body:not(.homepage) .header-title-logo a{cursor:pointer}
+.tt-hca-hint{position:absolute;left:50%;bottom:-2px;transform:translateX(-50%);z-index:2;font:700 7px/1 Arial,sans-serif;letter-spacing:.02em;color:#FFD400;background:rgba(0,0,0,.6);padding:2px 4px;border-radius:3px;white-space:nowrap;pointer-events:none;text-transform:lowercase}
+.tt-hca-fs{position:fixed;inset:0;z-index:2147483647;background:#000;display:none;align-items:center;justify-content:center}
+.tt-hca-fs.tt-hca-open{display:flex}
+.tt-hca-fs video{width:100%;height:100%;max-width:100vw;max-height:100vh;max-height:100dvh;object-fit:contain;background:#000}
+.tt-hca-x{position:absolute;top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));z-index:3;width:44px;height:44px;border:0;border-radius:50%;background:rgba(0,0,0,.55);color:#FFD400;font:400 34px/44px Arial,sans-serif;cursor:pointer;padding:0}
+.tt-hca-x:focus-visible{outline:2px solid #FFD400;outline-offset:2px}
+html.tt-hca-lock,html.tt-hca-lock body{overflow:hidden}
+</style>
+<script>
+(function(){
+  if(window.__ttHdrClipAll)return;window.__ttHdrClipAll=1;
+  var SRC="https://therapytoaster.github.io/tt-live/header/therapytoaster-header-long.mp4";
+  var POSTER="https://therapytoaster.github.io/tt-live/header/poster-nozoom.jpg";
+  var SEL='.header-title-text,.header-title-logo';
+  var fs,v,last;
+  function build(){
+    fs=document.createElement('div');fs.className='tt-hca-fs';
+    fs.setAttribute('role','dialog');fs.setAttribute('aria-modal','true');fs.setAttribute('aria-label',"I just beat the case, I'm back");
+    v=document.createElement('video');v.src=SRC;v.poster='https://therapytoaster.github.io/tt-live/header/poster-long.jpg';v.loop=true;v.preload='none';
+    v.playsInline=true;v.setAttribute('playsinline','');v.setAttribute('webkit-playsinline','');
+    v.setAttribute('aria-label',"I just beat the case, I'm back");
+    var x=document.createElement('button');x.type='button';x.className='tt-hca-x';x.setAttribute('aria-label','Close video');x.innerHTML='&times;';
+    x.addEventListener('click',function(e){e.stopPropagation();close();});
+    fs.addEventListener('click',function(e){if(e.target===fs)close();});
+    fs.appendChild(v);fs.appendChild(x);document.body.appendChild(fs);
+  }
+  function open(){
+    if(!fs)build();
+    last=document.activeElement;
+    fs.classList.add('tt-hca-open');document.documentElement.classList.add('tt-hca-lock');
+    try{v.currentTime=0;}catch(e){}
+    v.muted=false;
+    var p=v.play();
+    if(p&&p.catch)p.catch(function(){v.muted=true;v.play().catch(function(){});});
+    try{var rf=fs.requestFullscreen||fs.webkitRequestFullscreen;if(rf){var r=rf.call(fs);if(r&&r.catch)r.catch(function(){});}}catch(e){}
+    fs.querySelector('.tt-hca-x').focus();
+  }
+  function close(){
+    if(!fs||!fs.classList.contains('tt-hca-open'))return;
+    fs.classList.remove('tt-hca-open');document.documentElement.classList.remove('tt-hca-lock');
+    v.pause();
+    try{var d=document;if(d.fullscreenElement||d.webkitFullscreenElement){(d.exitFullscreen||d.webkitExitFullscreen).call(d);}}catch(e){}
+    if(last&&last.focus)try{last.focus();}catch(e){}
+  }
+  function start(){
+    var b=document.body;if(!b||b.classList.contains('homepage'))return;
+    document.querySelectorAll('header '+SEL.split(',').join(',header ')).forEach(function(el){
+      if(el.querySelector('.tt-hca-hint'))return;
+      var h=document.createElement('span');h.className='tt-hca-hint';h.textContent='tap to play';el.appendChild(h);
+    });
+    document.addEventListener('click',function(e){
+      if(e.button||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;
+      var t=e.target&&e.target.closest&&e.target.closest(SEL);
+      if(!t||!t.closest('header'))return;
+      e.preventDefault();e.stopPropagation();open();
+    },true);
+    document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});
+    document.addEventListener('fullscreenchange',function(){if(!document.fullscreenElement&&fs&&fs.classList.contains('tt-hca-open')){/* stay open as overlay */}});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
+})();
+</script>
+<!-- TT AREA54 MOVE v2 -->
+
+<style>
+body.homepage .tt-a54-hide,.tt-a54-hide{display:none!important}
+#tt-a54-music h2 svg{width:1em;height:1em;vertical-align:-.14em;margin-right:.2em}
+#tt-a54-music a svg.tti{width:16px;height:16px;vertical-align:-2px;margin-right:4px}
+#tt-a54-music a svg.a54-ext{width:14px;height:14px;vertical-align:-2px;margin-left:4px}
+</style>
+<script>
+(function(){
+var CARD="<div style=\"text-align:center;max-width:520px;margin:0 auto 50px;background:#111;border:2px solid #FFD400;border-radius:14px;padding:22px\"><h2 style=\"color:#FFD400;margin:0 0 6px\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 18v-6a9 9 0 0 1 18 0v6\"/><path d=\"M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z\"/></svg>Area54.fm Live</h2><p style=\"color:#dee3de;margin:0 0 14px\">America's Chill Radio. Press play.</p><audio controls preload=\"none\" style=\"width:100%\"><source src=\"https://s2.radio.co/sf146c37f4/listen\" type=\"audio/mpeg\"></audio><p style=\"margin:12px 0 0\"><a href=\"https://area54.fm/\" target=\"_blank\" rel=\"noopener\" style=\"color:#FFD400\"><svg class=\"tti\" viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" aria-hidden=\"true\" focusable=\"false\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M16.247 7.761a6 6 0 0 1 0 8.478\"/><path d=\"M19.075 4.933a10 10 0 0 1 0 14.134\"/><path d=\"M4.925 19.067a10 10 0 0 1 0-14.134\"/><path d=\"M7.753 16.239a6 6 0 0 1 0-8.478\"/><circle cx=\"12\" cy=\"12\" r=\"2\"/></svg>Visit Area54.fm<svg class=\"a54-ext\" viewBox=\"0 0 24 24\" width=\"14\" height=\"14\" aria-hidden=\"true\" focusable=\"false\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M7 17L17 7\"/><path d=\"M8 7h9v9\"/></svg></a></p></div>";
+function isHome(){return document.body&&(document.body.classList.contains('homepage')||location.pathname==='/'||location.pathname==='');}
+function isMusic(){return /^\/music\/?$/.test(location.pathname);}
+function main(){return document.getElementById('page')||document.querySelector('main')||document.body;}
+function run(){
+ var m=main(); if(!m) return;
+ if(isHome()){
+  m.querySelectorAll('h2').forEach(function(h){
+   if((h.textContent||'').indexOf('Area54.fm Live')<0||h.closest('#tt-a54-music')) return;
+   var d=h.parentElement; if(d&&d.tagName==='DIV'&&!d.classList.contains('tt-a54-hide')) d.classList.add('tt-a54-hide');
+  });
+ }
+ if(isMusic()&&!document.getElementById('tt-a54-music')){
+  var anchor=m.querySelector('#tt-mus section.tm-pl')||m.querySelector('#tt-mus')||m.querySelector('.sqs-block');
+  if(!anchor) return;
+  var w=document.createElement('div'); w.id='tt-a54-music'; w.style.margin='26px auto 0'; w.innerHTML=CARD;
+  anchor.parentNode.insertBefore(w,anchor.nextSibling);
+ }
+}
+var t;function soon(){clearTimeout(t);t=setTimeout(run,50);}
+function start(){run();
+ new MutationObserver(soon).observe(document.body,{childList:true,subtree:true});
+ window.addEventListener('popstate',soon);window.addEventListener('pageshow',soon);
+ ['pushState','replaceState'].forEach(function(k){var o=history[k];history[k]=function(){var r=o.apply(this,arguments);soon();return r;};});
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
+})();
+</script>
+<style>
+#ttshop .tt-fs-hide{display:none!important}
+#ttshop .tt-fs{margin:40px auto 10px;max-width:960px;text-align:center;font-family:inherit}
+#ttshop .tt-fs-strip{background:#000;border:2px solid #FFD400;border-radius:10px;padding:18px 16px;color:#FFD400;font-weight:900;letter-spacing:.12em;font-size:clamp(17px,3.2vw,28px);text-transform:uppercase;text-shadow:0 0 6px rgba(255,212,0,.85),0 0 18px rgba(255,212,0,.45);box-shadow:0 0 14px rgba(255,212,0,.35),inset 0 0 14px rgba(255,212,0,.15)}
+#ttshop .tt-fs-sub{color:#fff;opacity:.85;margin:14px 0 18px;font-size:15px;letter-spacing:.04em}
+#ttshop .tt-fs-sub b{color:#FFD400}
+#ttshop .tt-fs-btn{display:inline-block;background:#FFD400;color:#000!important;font-weight:900;text-decoration:none!important;padding:13px 26px;border-radius:999px;letter-spacing:.08em;text-transform:uppercase;box-shadow:0 0 16px rgba(255,212,0,.6);transition:box-shadow .2s,transform .2s}
+#ttshop .tt-fs-btn:hover{box-shadow:0 0 28px rgba(255,212,0,.95);transform:translateY(-2px)}
+#ttshop .tt-fs-contact{color:#FFD400;background:#000;font-size:15px;font-weight:700;letter-spacing:.03em;margin:18px auto 0;max-width:640px;line-height:1.5;text-shadow:0 0 6px rgba(255,212,0,.5)}
+#ttshop .tt-fs-contact a{color:#FFD400!important;text-decoration:underline!important;text-underline-offset:3px;text-shadow:0 0 6px rgba(255,212,0,.9),0 0 16px rgba(255,212,0,.5);word-break:break-all;animation:none!important}
+#ttshop .tt-fs-contact a:hover{text-shadow:0 0 10px rgba(255,212,0,1),0 0 24px rgba(255,212,0,.7)}
+#ttshop .tt-fs-note{color:#aaa;font-size:13px;margin-top:14px}
+</style>
+<style id="tt-home-bg-style">
+html.tt-home-bg #page .section-background,html.tt-home-bg #page .section-border{opacity:0!important}
+html.tt-home-bg body{background:#000!important}
+#tt-home-bg{position:fixed;inset:0;width:100vw;height:100vh;z-index:-1;pointer-events:none;display:block;background:#000}
+html.tt-home-bg #siteWrapper,html.tt-home-bg #page{position:relative;z-index:0;background:transparent!important}
+</style>
+<!-- TT SEO LD v1 -->
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "Person", "@id": "https://www.therapytoaster.com/#coty", "name": "Coty Lake", "alternateName": ["Mr. Toasty", "TherapyToaster"], "description": "U.S. Army veteran, husband, dad of 4 and glitch artist behind Therapy Toaster.", "url": "https://www.therapytoaster.com/about", "sameAs": ["https://x.com/TherapyToaster"]}, {"@type": "Organization", "@id": "https://www.therapytoaster.com/#brand", "name": "Therapy Toaster", "alternateName": "Mr. Toasty's Therapy Toaster", "description": "Disabled Veteran Owned and Operated brand by Coty Lake (Mr. Toasty): original glitch art, art tees, music and games.", "url": "https://www.therapytoaster.com/", "founder": {"@id": "https://www.therapytoaster.com/#coty"}, "sameAs": ["https://x.com/TherapyToaster", "https://therapytoaster.myshopify.com/"]}, {"@type": "WebSite", "name": "Mr. Toasty's Therapy Toaster", "url": "https://www.therapytoaster.com/", "publisher": {"@id": "https://www.therapytoaster.com/#brand"}}]}</script>
+<style id="tt-hca-off">body:not(.homepage) .tt-hca-hint{display:none!important}body:not(.homepage) .header-title-text,body:not(.homepage) .header-title-logo,body:not(.homepage) .header-title-text a,body:not(.homepage) .header-title-logo a{cursor:pointer!important}</style>
+<script>(function(){window.addEventListener('click',function(e){var b=document.body;if(!b||b.classList.contains('homepage'))return;var t=e.target&&e.target.closest&&e.target.closest('.header-title-text,.header-title-logo');if(t&&t.closest('header'))e.stopPropagation();},true);})();</script>
+<!-- /TT header tap-to-play OFF v1 -->
+<link rel="preload" as="image" type="image/webp" fetchpriority="high" media="(min-width:768px)" href="https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@e2d52be7710e12f398f1d72d8ada86cb8147f131/assets/home-graffiti/mr-toasty-wall-3200.webp">
+<link rel="preload" as="image" type="image/webp" fetchpriority="high" media="(max-width:767px)" href="https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@e2d52be7710e12f398f1d72d8ada86cb8147f131/assets/home-graffiti/mr-toasty-wall-mobile.webp">
+<style>html.tt-home-boot{background:#000}html.tt-home-boot:not(.tt-home-ready) #siteWrapper{opacity:0;animation:ttHomeBoot 0s 2.5s forwards}@keyframes ttHomeBoot{to{opacity:1}}</style>
+<script>(function(){if(!/^\/(home\/?)?$/.test(location.pathname))return;var h=document.documentElement,img=0,t0=Date.now();h.classList.add('tt-home-boot');var src=matchMedia('(max-width:767px)').matches?'mobile':'3200';var i=new Image();i.onload=i.onerror=function(){img=1;};i.src='https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@e2d52be7710e12f398f1d72d8ada86cb8147f131/assets/home-graffiti/mr-toasty-wall-'+src+'.webp';(function chk(){if((h.classList.contains('tt-topwall')&&img)||Date.now()-t0>2500){h.classList.add('tt-home-ready');return;}requestAnimationFrame(chk);})();})();</script>
+<!-- /TT HOME FIRST PAINT v1 -->
