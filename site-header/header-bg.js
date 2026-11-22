@@ -1,4 +1,7 @@
-/* TT site header: OOK glitch background v6.9
+/* TT site header: OOK glitch background v6.10
+   v6.10: adds the TT TV block at the end (optional CRT smiley loop in the
+   Home Daily Glitch area, OFF unless ?tv=1 on this script's URL or ?tttv=1
+   on the page). Neon A, sparks and nav D are unchanged.
    v6.9: TT SPARKS drip, pop and spawn a little slower so they linger
    (same look, still OFF unless ?sparks=1 / ?ttsparks=1). Neon A and nav D
    are unchanged.
@@ -1790,3 +1793,182 @@
   if(D.readyState==='loading')D.addEventListener('DOMContentLoaded',boot);else boot();
 })();
 /* /TT NAV */
+/* TT TV v1 (header-bg.js v6.10-tv) =====
+   Home only. Places a framed CRT tile with Coty's looping smiley-TV clip
+   in the Mr. Toasty's Daily Glitch area. Desktop (>=1366px, including
+   1440): sits in the left padding, to the left of the Daily Glitch card,
+   so the card, Don't Click button and header video keep their size and
+   clicks. Mid desktop (800-1365): wraps to a centered row under the card
+   and toys. Mobile: stacks under Don't Click + the header video.
+   OFF unless:
+     - the footer script URL:  header-bg.js?c=<sha>&neon=A&sparks=1&nav=D&tv=1
+     - a preview URL on Home:  /?tttv=1   (also off; kept for the tab session)
+   muted autoplay loop playsinline, preload=metadata, starts when it
+   scrolls into view, pauses off-screen. prefers-reduced-motion: static
+   poster only, no playback. pointer-events stay on the tile, so the
+   Daily Glitch, Don't Click, header video, Vibes and embeds stay clickable. */
+(function(){
+  var W=window,D=document;
+  if(W.__ttTv)return;W.__ttTv=1;
+  try{if(W.self!==W.top)return;}catch(e){return;}
+  var me=D.currentScript,srcOn=false;
+  try{if(me&&me.src){var m=/[?&]tv=(1|on|true|off)\b/i.exec(me.src);if(m)srcOn=m[1].toLowerCase()!=='off';}}catch(e){}
+  var B='https://therapytoaster.github.io/tt-live/site-header/media/',Q='?v=1';
+  var POSTER=B+'crt-smiley-poster.jpg'+Q;
+  var WEBM=B+'crt-smiley.webm'+Q;
+  var MP4=B+'crt-smiley.mp4'+Q;
+  var rmq=W.matchMedia?matchMedia('(prefers-reduced-motion: reduce)'):{matches:false};
+  function wanted(){
+    var v='';
+    try{var m=/[?&]tttv=(1|on|true|off)\b/i.exec(location.search);
+      if(m){v=m[1].toLowerCase();sessionStorage.setItem('tttv',v);}
+      else v=sessionStorage.getItem('tttv')||'';}catch(e){}
+    if(v)return v!=='off';
+    return srcOn;
+  }
+  function isHome(){
+    var p=(location.pathname||'/').replace(/\/+$/,'')||'/';
+    return p==='/'||p==='/home'||(D.body&&D.body.classList.contains('homepage'));
+  }
+  function css(){
+    if(D.getElementById('tt-tv-css'))return;
+    var s=D.createElement('style');s.id='tt-tv-css';
+    s.textContent=""
+    +"#tt-crt{box-sizing:border-box;position:relative;z-index:3;flex:0 0 auto;width:200px;height:200px;margin:0;padding:0;border:3px solid #FFD400;background:#05070d;background-image:url('"+POSTER+"');background-size:cover;background-position:center;overflow:hidden;line-height:0;box-shadow:-5px 0 0 rgba(255,40,60,.75),5px 0 0 rgba(0,240,255,.65),0 0 18px rgba(255,212,0,.3)}"
+    +"#tt-crt video,#tt-crt img{display:block;width:100%;height:100%;margin:0;padding:0;border:0;object-fit:cover;background:transparent}"
+    +"#tt-crt.tt-crt-on video{visibility:visible}"
+    +"#tt-crt.tt-crt-still video{display:none}"
+    +"#tt-crt.tt-crt-still img{display:block}"
+    +"#tt-crt img{display:none}"
+    +"@media screen and (min-width:1366px){"
+    +"body.homepage #tt-notice.ttdg-moved.tt-crt-host{padding-left:140px!important}"
+    +"body.homepage #tt-crt{order:-1;width:200px;height:200px;margin:0}"
+    +"}"
+    +"@media screen and (min-width:800px) and (max-width:1365px){"
+    +"body.homepage #tt-notice.ttdg-moved.tt-crt-host{flex-wrap:wrap}"
+    +"body.homepage #tt-crt{order:3;width:180px;height:180px;margin:12px auto 0}"
+    +"}"
+    +"@media screen and (max-width:799px){"
+    +"body.homepage #tt-crt{width:160px;height:160px;margin:14px auto 4px;border-width:2px;box-shadow:-3px 0 0 rgba(255,40,60,.75),3px 0 0 rgba(0,240,255,.65),0 0 10px rgba(255,212,0,.25)}"
+    +"}"
+    +"@media (prefers-reduced-motion:reduce){"
+    +"#tt-crt{box-shadow:-4px 0 0 rgba(255,40,60,.75),4px 0 0 rgba(0,240,255,.65)}"
+    +"}";
+    (D.head||D.documentElement).appendChild(s);
+  }
+  var tile=null,vid=null,io=null,wantPlay=false;
+  function reduced(){return !!(rmq&&rmq.matches);}
+  function play(){
+    if(!vid||reduced()||!wantPlay)return;
+    var p=vid.play();
+    if(p&&p.catch)p.catch(function(){});
+  }
+  function pause(){if(vid&&!vid.paused)vid.pause();}
+  function onVis(entries){
+    var hit=false;
+    if(entries){for(var i=0;i<entries.length;i++)if(entries[i].isIntersecting)hit=true;}
+    wantPlay=hit&&!D.hidden;
+    if(wantPlay)play();else pause();
+  }
+  function watch(){
+    if(io||!tile||!W.IntersectionObserver){
+      if(!W.IntersectionObserver){wantPlay=true;play();}
+      return;
+    }
+    io=new IntersectionObserver(onVis,{root:null,rootMargin:'80px 0px',threshold:0.2});
+    io.observe(tile);
+  }
+  function build(){
+    if(tile&&tile.isConnected)return tile;
+    tile=D.getElementById('tt-crt');
+    if(!tile){
+      tile=D.createElement('figure');
+      tile.id='tt-crt';
+      tile.className='tt-crt';
+      tile.setAttribute('aria-label','Glitch art of a melting smiley on a retro TV');
+    }
+    var still=reduced();
+    tile.classList.toggle('tt-crt-still',still);
+    if(still){
+      if(vid){pause();if(vid.parentNode)vid.parentNode.removeChild(vid);vid=null;}
+      var img=tile.querySelector('img');
+      if(!img){
+        img=D.createElement('img');
+        img.alt='';
+        img.setAttribute('aria-hidden','true');
+        img.src=POSTER;
+        img.decoding='async';
+        tile.appendChild(img);
+      }
+    }else{
+      var img=tile.querySelector('img');
+      if(img&&img.parentNode)img.parentNode.removeChild(img);
+      if(!vid){
+        vid=D.createElement('video');
+        vid.setAttribute('muted','');vid.muted=true;vid.defaultMuted=true;
+        vid.setAttribute('loop','');vid.loop=true;
+        vid.setAttribute('playsinline','');vid.setAttribute('webkit-playsinline','');vid.playsInline=true;
+        vid.preload='metadata';
+        vid.setAttribute('poster',POSTER);
+        vid.setAttribute('aria-hidden','true');
+        vid.controls=false;
+        vid.disablePictureInPicture=true;
+        vid.setAttribute('disablepictureinpicture','');
+        vid.setAttribute('controlslist','nodownload nofullscreen noremoteplayback');
+        var s1=D.createElement('source');s1.src=WEBM;s1.type='video/webm';
+        var s2=D.createElement('source');s2.src=MP4;s2.type='video/mp4';
+        vid.appendChild(s1);vid.appendChild(s2);
+        vid.addEventListener('playing',function(){if(tile)tile.classList.add('tt-crt-on');});
+        tile.appendChild(vid);
+      }
+    }
+    return tile;
+  }
+  function place(){
+    if(!wanted()||!isHome())return false;
+    var n=D.getElementById('tt-notice');
+    if(!n||!n.isConnected||!n.classList.contains('ttdg-moved'))return false;
+    css();
+    var el=build();
+    var row=D.getElementById('tt-dont-row');
+    if(el.parentNode!==n||(row&&el.previousElementSibling!==row)||(!row&&n.lastElementChild!==el)){
+      if(row&&row.parentNode===n)n.insertBefore(el,row.nextSibling);
+      else n.appendChild(el);
+    }
+    n.classList.add('tt-crt-host');
+    watch();
+    return true;
+  }
+  function clear(){
+    var n=D.getElementById('tt-notice');
+    if(n)n.classList.remove('tt-crt-host');
+    if(io){try{io.disconnect();}catch(e){}io=null;}
+    pause();wantPlay=false;
+    if(tile&&tile.parentNode)tile.parentNode.removeChild(tile);
+  }
+  function apply(){
+    if(!D.body)return;
+    if(!wanted()||!isHome()){clear();return;}
+    place();
+  }
+  var tries=0,tid=0;
+  function bootPlace(){
+    if(place()||++tries>40){if(tid)clearInterval(tid);tid=0;return;}
+  }
+  function boot(){
+    if(!wanted())return;
+    css();
+    bootPlace();
+    if(!place())tid=setInterval(bootPlace,100);
+    W.addEventListener('load',apply);
+    W.addEventListener('resize',function(){apply();});
+    D.addEventListener('visibilitychange',function(){
+      if(D.hidden)pause();
+      else if(wantPlay)play();
+    });
+    if(rmq.addEventListener)rmq.addEventListener('change',function(){tile=null;vid=null;apply();watch();});
+    ['mercury:load','mercury:navigate'].forEach(function(ev){W.addEventListener(ev,function(){tries=0;apply();});D.addEventListener(ev,function(){tries=0;apply();});});
+  }
+  if(D.readyState==='loading')D.addEventListener('DOMContentLoaded',boot);else boot();
+})();
+/* /TT TV */
