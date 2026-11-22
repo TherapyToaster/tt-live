@@ -1,0 +1,7 @@
+Squarespace sitewide footer text block (appears on every page, including /ashleysavvie).
+Do not open or edit Ashley's page Code block. Change only this sitewide footer text block.
+
+Section: fe-6a988533c6d1d146aaea1e54
+Block:   block-5a494580313222096fa8  (website-component-id 5a494580313222096fa8)
+Current: Disabled Veteran Owned and Operated
+Proposed: Proudly Veteran-Owned

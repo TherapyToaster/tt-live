@@ -1,0 +1,14 @@
+{
+  "notes": "Apply in Squarespace SEO Settings / page SEO. Do not change biographical 'U.S. Army veteran' descriptions or the About title 'Army Veteran & Artist'.",
+  "home": {
+    "where": "SEO Settings > Search appearance, or Home page SEO title / title format",
+    "current_title": "Mr. Toasty's Therapy Toaster | Disabled Veteran Owned and Operated",
+    "proposed_title": "Mr. Toasty's Therapy Toaster | Proudly Veteran-Owned"
+  },
+  "shop": {
+    "where": "/shop page SEO title (Settings or page SEO)",
+    "current_title": "Disabled Veteran Owned and Operated Art Tees | Mr. Toasty's Shop | Mr. Toasty's Therapy Toaster",
+    "proposed_title": "Proudly Veteran-Owned Art Tees | Mr. Toasty's Shop | Mr. Toasty's Therapy Toaster",
+    "description_unchanged": "Original glitch and skull art tees, patches and stickers by Coty Lake (Mr. Toasty), a U.S. Army veteran. Printed on demand. Free US shipping on orders $69+."
+  }
+}

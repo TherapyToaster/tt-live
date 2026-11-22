@@ -1,0 +1,92 @@
+{
+  "store": "Mr. Toasty's Shop (therapytoaster.myshopify.com)",
+  "do_not_apply_until_approved": true,
+  "scope": "descriptionHtml only; titles, SEO, themes, policies, pages, collections, ticker, and store name are unchanged",
+  "replace": {
+    "from": "Disabled Veteran Owned and Operated",
+    "to": "Proudly Veteran-Owned"
+  },
+  "products": [
+    {
+      "id": "gid://shopify/Product/9782387572790",
+      "legacy_id": 9782387572790,
+      "handle": "insider-threads-x-tank",
+      "title": "Insider Threads X Tank",
+      "url": "https://therapytoaster.myshopify.com/products/insider-threads-x-tank",
+      "current_description_html": "<p>Breathable Bella+Canvas jersey tank with the lockup on the left chest.</p><p>Built for the grind, kept clean. All black with one small Insider Threads lockup: the official Mr. Toasty neon sign over INSIDER THREADS with the thread struck through it, ACTIVE X WEAR underneath. No loud graphics, nothing on the back. Just gear that shows up every day like you do. Insider Threads X Active Wear by Mr. Toasty. Disabled Veteran Owned and Operated. Follow @TherapyToaster on Twitter.</p>",
+      "proposed_description_html": "<p>Breathable Bella+Canvas jersey tank with the lockup on the left chest.</p><p>Built for the grind, kept clean. All black with one small Insider Threads lockup: the official Mr. Toasty neon sign over INSIDER THREADS with the thread struck through it, ACTIVE X WEAR underneath. No loud graphics, nothing on the back. Just gear that shows up every day like you do. Insider Threads X Active Wear by Mr. Toasty. Proudly Veteran-Owned. Follow @TherapyToaster on Twitter.</p>"
+    },
+    {
+      "id": "gid://shopify/Product/9782400286774",
+      "legacy_id": 9782400286774,
+      "handle": "insider-threads-x-performance-tee",
+      "title": "Insider Threads X Performance Tee",
+      "url": "https://therapytoaster.myshopify.com/products/insider-threads-x-performance-tee",
+      "current_description_html": "<p>Moisture-wicking A4 performance tee with the lockup on the left chest.</p><p>Built for the grind, kept clean. All black with one small Insider Threads lockup: the official Mr. Toasty neon sign over INSIDER THREADS with the thread struck through it, ACTIVE X WEAR underneath. No loud graphics, nothing on the back. Just gear that shows up every day like you do. Insider Threads X Active Wear by Mr. Toasty. Disabled Veteran Owned and Operated. Follow @TherapyToaster on Twitter.</p>",
+      "proposed_description_html": "<p>Moisture-wicking A4 performance tee with the lockup on the left chest.</p><p>Built for the grind, kept clean. All black with one small Insider Threads lockup: the official Mr. Toasty neon sign over INSIDER THREADS with the thread struck through it, ACTIVE X WEAR underneath. No loud graphics, nothing on the back. Just gear that shows up every day like you do. Insider Threads X Active Wear by Mr. Toasty. Proudly Veteran-Owned. Follow @TherapyToaster on Twitter.</p>"
+    },
+    {
+      "id": "gid://shopify/Product/9782407364662",
+      "legacy_id": 9782407364662,
+      "handle": "insider-threads-x-hoodie",
+      "title": "Insider Threads X Hoodie",
+      "url": "https://therapytoaster.myshopify.com/products/insider-threads-x-hoodie",
+      "current_description_html": "<p>Heavyweight Cotton Heritage pullover with the lockup on the left chest, for warm-ups and cold walks home.</p><p>Built for the grind, kept clean. All black with one small Insider Threads lockup: the official Mr. Toasty neon sign over INSIDER THREADS with the thread struck through it, ACTIVE X WEAR underneath. No loud graphics, nothing on the back. Just gear that shows up every day like you do. Insider Threads X Active Wear by Mr. Toasty. Disabled Veteran Owned and Operated. Follow @TherapyToaster on Twitter.</p>",
+      "proposed_description_html": "<p>Heavyweight Cotton Heritage pullover with the lockup on the left chest, for warm-ups and cold walks home.</p><p>Built for the grind, kept clean. All black with one small Insider Threads lockup: the official Mr. Toasty neon sign over INSIDER THREADS with the thread struck through it, ACTIVE X WEAR underneath. No loud graphics, nothing on the back. Just gear that shows up every day like you do. Insider Threads X Active Wear by Mr. Toasty. Proudly Veteran-Owned. Follow @TherapyToaster on Twitter.</p>"
+    },
+    {
+      "id": "gid://shopify/Product/9782589161526",
+      "legacy_id": 9782589161526,
+      "handle": "insider-threads-x-athletic-shorts",
+      "title": "Insider Threads X Athletic Shorts",
+      "url": "https://therapytoaster.myshopify.com/products/insider-threads-x-athletic-shorts",
+      "current_description_html": "<p>Lightweight all-over-print athletic shorts with the lockup on the left hip. Clean black back.</p><p>Built for the grind, kept clean. All black with one small Insider Threads lockup: the official Mr. Toasty neon sign over INSIDER THREADS with the thread struck through it, ACTIVE X WEAR underneath. No loud graphics, nothing on the back. Just gear that shows up every day like you do. Insider Threads X Active Wear by Mr. Toasty. Disabled Veteran Owned and Operated. Follow @TherapyToaster on Twitter.</p>",
+      "proposed_description_html": "<p>Lightweight all-over-print athletic shorts with the lockup on the left hip. Clean black back.</p><p>Built for the grind, kept clean. All black with one small Insider Threads lockup: the official Mr. Toasty neon sign over INSIDER THREADS with the thread struck through it, ACTIVE X WEAR underneath. No loud graphics, nothing on the back. Just gear that shows up every day like you do. Insider Threads X Active Wear by Mr. Toasty. Proudly Veteran-Owned. Follow @TherapyToaster on Twitter.</p>"
+    },
+    {
+      "id": "gid://shopify/Product/9782600073270",
+      "legacy_id": 9782600073270,
+      "handle": "insider-threads-x-leggings",
+      "title": "Insider Threads X Leggings",
+      "url": "https://therapytoaster.myshopify.com/products/insider-threads-x-leggings",
+      "current_description_html": "<p>Squat-ready all-over-print leggings with the lockup on the left hip. Nothing on the seat.</p><p>Built for the grind, kept clean. All black with one small Insider Threads lockup: the official Mr. Toasty neon sign over INSIDER THREADS with the thread struck through it, ACTIVE X WEAR underneath. No loud graphics, nothing on the back. Just gear that shows up every day like you do. Insider Threads X Active Wear by Mr. Toasty. Disabled Veteran Owned and Operated. Follow @TherapyToaster on Twitter.</p>",
+      "proposed_description_html": "<p>Squat-ready all-over-print leggings with the lockup on the left hip. Nothing on the seat.</p><p>Built for the grind, kept clean. All black with one small Insider Threads lockup: the official Mr. Toasty neon sign over INSIDER THREADS with the thread struck through it, ACTIVE X WEAR underneath. No loud graphics, nothing on the back. Just gear that shows up every day like you do. Insider Threads X Active Wear by Mr. Toasty. Proudly Veteran-Owned. Follow @TherapyToaster on Twitter.</p>"
+    },
+    {
+      "id": "gid://shopify/Product/9782610329654",
+      "legacy_id": 9782610329654,
+      "handle": "insider-threads-x-sports-bra",
+      "title": "Insider Threads X Sports Bra",
+      "url": "https://therapytoaster.myshopify.com/products/insider-threads-x-sports-bra",
+      "current_description_html": "<p>Supportive all-over-print sports bra with the lockup centered on the chest.</p><p>Built for the grind, kept clean. All black with one small Insider Threads lockup: the official Mr. Toasty neon sign over INSIDER THREADS with the thread struck through it, ACTIVE X WEAR underneath. No loud graphics, nothing on the back. Just gear that shows up every day like you do. Insider Threads X Active Wear by Mr. Toasty. Disabled Veteran Owned and Operated. Follow @TherapyToaster on Twitter.</p>",
+      "proposed_description_html": "<p>Supportive all-over-print sports bra with the lockup centered on the chest.</p><p>Built for the grind, kept clean. All black with one small Insider Threads lockup: the official Mr. Toasty neon sign over INSIDER THREADS with the thread struck through it, ACTIVE X WEAR underneath. No loud graphics, nothing on the back. Just gear that shows up every day like you do. Insider Threads X Active Wear by Mr. Toasty. Proudly Veteran-Owned. Follow @TherapyToaster on Twitter.</p>"
+    },
+    {
+      "id": "gid://shopify/Product/9782629924918",
+      "legacy_id": 9782629924918,
+      "handle": "insider-threads-x-gym-sack",
+      "title": "Insider Threads X Gym Sack",
+      "url": "https://therapytoaster.myshopify.com/products/insider-threads-x-gym-sack",
+      "current_description_html": "<p>15x17 drawstring gym sack with the lockup centered.</p><p>Built for the grind, kept clean. All black with one small Insider Threads lockup: the official Mr. Toasty neon sign over INSIDER THREADS with the thread struck through it, ACTIVE X WEAR underneath. No loud graphics, nothing on the back. Just gear that shows up every day like you do. Insider Threads X Active Wear by Mr. Toasty. Disabled Veteran Owned and Operated. Follow @TherapyToaster on Twitter.</p>",
+      "proposed_description_html": "<p>15x17 drawstring gym sack with the lockup centered.</p><p>Built for the grind, kept clean. All black with one small Insider Threads lockup: the official Mr. Toasty neon sign over INSIDER THREADS with the thread struck through it, ACTIVE X WEAR underneath. No loud graphics, nothing on the back. Just gear that shows up every day like you do. Insider Threads X Active Wear by Mr. Toasty. Proudly Veteran-Owned. Follow @TherapyToaster on Twitter.</p>"
+    },
+    {
+      "id": "gid://shopify/Product/9782637854774",
+      "legacy_id": 9782637854774,
+      "handle": "insider-threads-x-gym-towel",
+      "title": "Insider Threads X Gym Towel",
+      "url": "https://therapytoaster.myshopify.com/products/insider-threads-x-gym-towel",
+      "current_description_html": "<p>28x16 hand towel for the bench, with the lockup centered.</p><p>Built for the grind, kept clean. All black with one small Insider Threads lockup: the official Mr. Toasty neon sign over INSIDER THREADS with the thread struck through it, ACTIVE X WEAR underneath. No loud graphics, nothing on the back. Just gear that shows up every day like you do. Insider Threads X Active Wear by Mr. Toasty. Disabled Veteran Owned and Operated. Follow @TherapyToaster on Twitter.</p>",
+      "proposed_description_html": "<p>28x16 hand towel for the bench, with the lockup centered.</p><p>Built for the grind, kept clean. All black with one small Insider Threads lockup: the official Mr. Toasty neon sign over INSIDER THREADS with the thread struck through it, ACTIVE X WEAR underneath. No loud graphics, nothing on the back. Just gear that shows up every day like you do. Insider Threads X Active Wear by Mr. Toasty. Proudly Veteran-Owned. Follow @TherapyToaster on Twitter.</p>"
+    },
+    {
+      "id": "gid://shopify/Product/9782650929206",
+      "legacy_id": 9782650929206,
+      "handle": "insider-threads-x-bottle",
+      "title": "Insider Threads X Bottle",
+      "url": "https://therapytoaster.myshopify.com/products/insider-threads-x-bottle",
+      "current_description_html": "<p>17oz black stainless steel bottle with the lockup on the front.</p><p>Built for the grind, kept clean. All black with one small Insider Threads lockup: the official Mr. Toasty neon sign over INSIDER THREADS with the thread struck through it, ACTIVE X WEAR underneath. No loud graphics, nothing on the back. Just gear that shows up every day like you do. Insider Threads X Active Wear by Mr. Toasty. Disabled Veteran Owned and Operated. Follow @TherapyToaster on Twitter.</p>",
+      "proposed_description_html": "<p>17oz black stainless steel bottle with the lockup on the front.</p><p>Built for the grind, kept clean. All black with one small Insider Threads lockup: the official Mr. Toasty neon sign over INSIDER THREADS with the thread struck through it, ACTIVE X WEAR underneath. No loud graphics, nothing on the back. Just gear that shows up every day like you do. Insider Threads X Active Wear by Mr. Toasty. Proudly Veteran-Owned. Follow @TherapyToaster on Twitter.</p>"
+    }
+  ]
+}
