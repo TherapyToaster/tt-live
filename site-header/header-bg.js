@@ -947,7 +947,7 @@
       if(m){v=m[1].toUpperCase();sessionStorage.setItem('ttneon',v);}
       else v=sessionStorage.getItem('ttneon')||'';}catch(e){}
     v=v||srcV||DEFAULT;
-    return (v==='A'||v==='B'||v==='C'||v==='D')?v:'';
+    return (v==='A'||v==='B'||v==='C')?v:'';
   }
   function isHome(){
     var p=(location.pathname||'/').replace(/\/+$/,'')||'/';
@@ -1368,7 +1368,7 @@
       if(m){v=m[1].toUpperCase();sessionStorage.setItem('ttnav',v);}
       else v=sessionStorage.getItem('ttnav')||'';}catch(e){}
     v=v||srcV||DEFAULT;
-    return (v==='A'||v==='B'||v==='C')?v:'';
+    return (v==='A'||v==='B'||v==='C'||v==='D')?v:'';
   }
   function css(){
     if(D.getElementById('tt-nav-css'))return;
