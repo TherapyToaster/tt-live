@@ -1,4 +1,7 @@
-/* TT site header: OOK glitch background v6.11
+/* TT site header: OOK glitch background v6.12
+   v6.12: TT TV grows to at least the Don't Click + video group (and never
+   below 200px on desktop). The Vibes button moves under the TV so it no
+   longer caps the tile. Neon A, sparks and nav D are unchanged.
    v6.11: TT TV tile width syncs to the measured Don't Click / video
    column (desktop) or Don't Click button (mobile) via ResizeObserver,
    capped so it never overlaps the Daily Glitch card or the Vibes button.
@@ -1797,25 +1800,25 @@
   if(D.readyState==='loading')D.addEventListener('DOMContentLoaded',boot);else boot();
 })();
 /* /TT NAV */
-/* TT TV v1.1 (header-bg.js v6.11-tv) =====
+/* TT TV v1.2 (header-bg.js v6.12-tv) =====
    Home only. Places a framed CRT tile with Coty's looping smiley-TV clip
    in the Mr. Toasty's Daily Glitch area. Desktop: sits in the left padding
    beside the Daily Glitch card when that gutter can fit the tile; otherwise
-   wraps to a centered row under the card and toys. Mobile: stacks under
-   Don't Click + the header video. Width is not a guessed px value: it
-   tracks the live measured width of #tt-dont-row (the Don't Click + header
-   video column) on desktop, or .tt-dont on mobile, via ResizeObserver, and
-   stays a square. If the left gutter is too narrow to match that width
-   without overlapping the Daily Glitch card or the Vibes button, the tile
-   uses as much of the gutter as fits (or wraps below). The card, Don't
-   Click button and header video keep their size and clicks.
+   the card shifts just enough, or the tile wraps to a centered row under
+   the card and toys if the gutter is too thin (mid-desktop). Mobile:
+   stacks under Don't Click + the header video. Width tracks the live
+   measured #tt-dont-row (Don't Click + header video group) on desktop,
+   floored at 200px (the original tile), and grows to fill leftover left
+   gutter when that's larger. Mobile tracks .tt-dont. The Vibes button is
+   moved under the TV so it no longer limits the tile, and is restored if
+   this block is off. The Daily Glitch card, Don't Click button and header
+   video stay clickable and uncovered.
    OFF unless:
      - the footer script URL:  header-bg.js?c=<sha>&neon=A&sparks=1&nav=D&tv=1
      - a preview URL on Home:  /?tttv=1   (also off; kept for the tab session)
    muted autoplay loop playsinline, preload=metadata, starts when it
    scrolls into view, pauses off-screen. prefers-reduced-motion: static
-   poster only, no playback. pointer-events stay on the tile, so the
-   Daily Glitch, Don't Click, header video, Vibes and embeds stay clickable. */
+   poster only, no playback. */
 (function(){
   var W=window,D=document;
   if(W.__ttTv)return;W.__ttTv=1;
@@ -1827,7 +1830,7 @@
   var WEBM=B+'crt-smiley.webm'+Q;
   var MP4=B+'crt-smiley.mp4'+Q;
   var rmq=W.matchMedia?matchMedia('(prefers-reduced-motion: reduce)'):{matches:false};
-  var VIBES_GAP=16;
+  var EDGE=16,DESK_MIN=200;
   function wanted(){
     var v='';
     try{var m=/[?&]tttv=(1|on|true|off)\b/i.exec(location.search);
@@ -1844,25 +1847,30 @@
     if(D.getElementById('tt-tv-css'))return;
     var s=D.createElement('style');s.id='tt-tv-css';
     s.textContent=""
-    +"#tt-crt{box-sizing:border-box;position:relative;z-index:3;flex:0 0 auto;width:var(--tt-crt-s,180px);height:var(--tt-crt-s,180px);margin:0;padding:0;border:3px solid #FFD400;background:#05070d;background-image:url('"+POSTER+"');background-size:cover;background-position:center;overflow:hidden;line-height:0;box-shadow:-5px 0 0 rgba(255,40,60,.75),5px 0 0 rgba(0,240,255,.65),0 0 18px rgba(255,212,0,.3)}"
+    +"#tt-crt-col{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;box-sizing:border-box;flex:0 0 auto;margin:0;padding:0;position:relative;z-index:3}"
+    +"#tt-crt{box-sizing:border-box;position:relative;z-index:3;flex:0 0 auto;width:var(--tt-crt-s,200px);height:var(--tt-crt-s,200px);margin:0;padding:0;border:3px solid #FFD400;background:#05070d;background-image:url('"+POSTER+"');background-size:cover;background-position:center;overflow:hidden;line-height:0;box-shadow:-5px 0 0 rgba(255,40,60,.75),5px 0 0 rgba(0,240,255,.65),0 0 18px rgba(255,212,0,.3)}"
     +"#tt-crt video,#tt-crt img{display:block;width:100%;height:100%;margin:0;padding:0;border:0;object-fit:cover;background:transparent}"
     +"#tt-crt.tt-crt-on video{visibility:visible}"
     +"#tt-crt.tt-crt-still video{display:none}"
     +"#tt-crt.tt-crt-still img{display:block}"
     +"#tt-crt img{display:none}"
-    +"body.homepage #tt-crt{order:-1}"
+    +"body.homepage #tt-crt-col{order:-1}"
     +"body.homepage #tt-notice.ttdg-moved.tt-crt-host.tt-crt-wrap{flex-wrap:wrap}"
     +"body.homepage #tt-notice.ttdg-moved.tt-crt-host.tt-crt-wrap::before{content:\"\";flex:0 0 100%;order:2;height:0;overflow:hidden;pointer-events:none;border:0;margin:0;padding:0}"
-    +"body.homepage #tt-notice.ttdg-moved.tt-crt-host.tt-crt-wrap #tt-crt{order:3;margin:12px auto 0}"
+    +"body.homepage #tt-notice.ttdg-moved.tt-crt-host.tt-crt-wrap #tt-crt-col{order:3;margin:12px auto 0}"
+    +"body.homepage #tt-crt-col #ttbgm,"
+    +"body.homepage #tt-crt-col #ttbgm.tt-crt-vibes{"
+    +"position:static!important;transform:none!important;top:auto!important;bottom:auto!important;left:auto!important;right:auto!important;margin:0!important;z-index:5}"
     +"@media screen and (max-width:799px){"
-    +"body.homepage #tt-crt{order:0;margin:14px auto 4px;border-width:2px;box-shadow:-3px 0 0 rgba(255,40,60,.75),3px 0 0 rgba(0,240,255,.65),0 0 10px rgba(255,212,0,.25)}"
+    +"body.homepage #tt-crt-col{order:0;width:100%;margin:14px auto 10px}"
+    +"body.homepage #tt-crt{border-width:2px;box-shadow:-3px 0 0 rgba(255,40,60,.75),3px 0 0 rgba(0,240,255,.65),0 0 10px rgba(255,212,0,.25)}"
     +"}"
     +"@media (prefers-reduced-motion:reduce){"
     +"#tt-crt{box-shadow:-4px 0 0 rgba(255,40,60,.75),4px 0 0 rgba(0,240,255,.65)}"
     +"}";
     (D.head||D.documentElement).appendChild(s);
   }
-  var tile=null,vid=null,io=null,wantPlay=false,ro=null,sizing=false,natCache=null,natVw=-1;
+  var tile=null,colEl=null,vid=null,io=null,wantPlay=false,ro=null,sizing=false,natCache=null,natVw=-1,vibesHome=null,vibesNext=null;
   function reduced(){return !!(rmq&&rmq.matches);}
   function vw(){return W.innerWidth||D.documentElement.clientWidth||320;}
   function isMob(){return vw()<800;}
@@ -1892,7 +1900,8 @@
       return b?b.getBoundingClientRect().width:0;
     }
     var row=D.getElementById('tt-dont-row');
-    return row?row.getBoundingClientRect().width:0;
+    var w=row?row.getBoundingClientRect().width:0;
+    return w>0?Math.max(w,DESK_MIN):0;
   }
   function noticeGap(n){
     var g=parseFloat(getComputedStyle(n).columnGap||getComputedStyle(n).gap);
@@ -1908,19 +1917,37 @@
     natVw=w;
     return natCache;
   }
-  function minLeft(){
-    var v=D.getElementById('ttbgm');
-    if(!v||!v.isConnected||getComputedStyle(v).display==='none')return 16;
-    var r=v.getBoundingClientRect();
-    if(!r.width||r.left>vw()*0.5)return 16;
-    return Math.ceil(r.right+VIBES_GAP);
-  }
   function setSize(w){
     if(!tile)return;
     w=Math.round(w);
     tile.style.width=w+'px';
     tile.style.height=w+'px';
     tile.style.setProperty('--tt-crt-s',w+'px');
+  }
+  function col(){
+    if(colEl&&colEl.isConnected)return colEl;
+    colEl=D.getElementById('tt-crt-col');
+    if(!colEl){colEl=D.createElement('div');colEl.id='tt-crt-col';}
+    return colEl;
+  }
+  function parkVibes(on){
+    var v=D.getElementById('ttbgm');
+    var c=colEl||D.getElementById('tt-crt-col');
+    if(!v)return;
+    /* Desktop: dock under the TV. Mobile: leave the original fixed corner
+       (above Toaster Radio) so it does not collide with the radio bar. */
+    if(on&&c&&!isMob()){
+      if(!vibesHome){vibesHome=v.parentNode;vibesNext=v.nextSibling;}
+      if(v.parentNode!==c)c.appendChild(v);
+      v.classList.add('tt-crt-vibes');
+    }else if(vibesHome){
+      try{
+        if(vibesNext&&vibesNext.parentNode===vibesHome)vibesHome.insertBefore(v,vibesNext);
+        else vibesHome.appendChild(v);
+      }catch(e){if(D.body)D.body.appendChild(v);}
+      v.classList.remove('tt-crt-vibes');
+      vibesHome=null;vibesNext=null;
+    }
   }
   function fit(){
     if(sizing||!tile||!tile.isConnected)return;
@@ -1936,22 +1963,22 @@
         setSize(want);
         return;
       }
-      var pad=naturalPad(n),gap=noticeGap(n),left=minLeft();
-      var maxW=Math.floor(pad-gap-left);
-      if(maxW>=want-0.5){
+      var pad=naturalPad(n),gap=noticeGap(n),left=EDGE;
+      var gutter=Math.floor(pad-gap-left);
+      if(gutter>=DESK_MIN&&want<=gutter){
         n.classList.remove('tt-crt-wrap');
-        n.style.paddingLeft=Math.round(pad-want-gap)+'px';
-        setSize(want);
-      }else if(maxW>=48){
-        n.classList.remove('tt-crt-wrap');
-        n.style.paddingLeft=Math.round(left)+'px';
-        setSize(maxW);
-      }else{
+        setSize(gutter);
+        n.style.paddingLeft=left+'px';
+      }else if(gutter<DESK_MIN){
         n.classList.add('tt-crt-wrap');
         n.style.paddingLeft='';
         setSize(want);
+      }else{
+        n.classList.remove('tt-crt-wrap');
+        setSize(want);
+        n.style.paddingLeft=left+'px';
       }
-    }finally{sizing=false;}
+    }finally{sizing=false;parkVibes(!isMob());}
   }
   function observe(){
     if(!W.ResizeObserver)return;
@@ -2015,11 +2042,14 @@
     if(!n||!n.isConnected||!n.classList.contains('ttdg-moved'))return false;
     css();
     var el=build();
+    var c=col();
+    if(el.parentNode!==c||c.firstElementChild!==el)c.insertBefore(el,c.firstChild);
     var row=D.getElementById('tt-dont-row');
-    if(el.parentNode!==n||(row&&el.previousElementSibling!==row)||(!row&&n.lastElementChild!==el)){
-      if(row&&row.parentNode===n)n.insertBefore(el,row.nextSibling);
-      else n.appendChild(el);
+    if(c.parentNode!==n||(row&&c.previousElementSibling!==row)||(!row&&n.lastElementChild!==c)){
+      if(row&&row.parentNode===n)n.insertBefore(c,row.nextSibling);
+      else n.appendChild(c);
     }
+    parkVibes(true);
     n.classList.add('tt-crt-host');
     observe();
     fit();
@@ -2027,12 +2057,14 @@
     return true;
   }
   function clear(){
+    parkVibes(false);
     var n=D.getElementById('tt-notice');
     if(n){n.classList.remove('tt-crt-host','tt-crt-wrap');n.style.paddingLeft='';}
     if(ro){try{ro.disconnect();}catch(e){}ro=null;}
     if(io){try{io.disconnect();}catch(e){}io=null;}
     pause();wantPlay=false;natCache=null;natVw=-1;
-    if(tile&&tile.parentNode)tile.parentNode.removeChild(tile);
+    if(colEl&&colEl.parentNode)colEl.parentNode.removeChild(colEl);
+    else if(tile&&tile.parentNode)tile.parentNode.removeChild(tile);
   }
   function apply(){
     if(!D.body)return;
