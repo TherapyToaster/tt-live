@@ -23,7 +23,9 @@
     kart: "kart",
     bo: "burnt-offerings",
     crumb: "crumb-dungeon",
-    pf: "prize-floor"
+    pf: "prize-floor",
+    summer: "summer",
+    tb: "toasty-bros"
   };
 
   var CFG = {

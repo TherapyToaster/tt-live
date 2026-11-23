@@ -1,6 +1,6 @@
 /* Mr. Toasty: Toasty Bros — arcade card + overlay player for therapytoaster.com/arcade.
    Load with one tag: <script src="https://therapytoaster.github.io/tt-live/toasty-bros/arcade-card.js"></script>
-   Inserts the featured card AFTER the Toasty's Prize Floor card (fallbacks: after Crumb Dungeon,
+   Inserts the featured card AFTER the Toaster Summer card, or after Toasty's Prize Floor if Summer is not on the page (fallbacks: after Crumb Dungeon,
    after Burnt Offerings, after CyberToaster Kart, after Toaster Pit, after Crypt, after Skullz,
    after any .tt-ns, then before .ta-grid) once, re-checks under Squarespace soft navigation, and
    opens the game in a .tt-ns-ov overlay.
@@ -43,6 +43,10 @@ var CARD='<button type="button" class="tt-ns-shot" data-tb-play aria-label="Play
  '<p class="tt-ns-keys">ARROWS / WASD MOVE &middot; Z / SPACE JUMP &middot; X / SHIFT RUN + FIRE &middot; C SPECIAL &middot; V MELEE &middot; ENTER START / PAUSE &middot; GAMEPAD OK &middot; PHONES: TOUCH CONTROLS</p></div>';
 
 function anchor(root){
+  /* Sit under Toaster Summer when that card is present so both scripts
+     do not fight for the slot immediately after Prize Floor. */
+  var summer=root.querySelector("[data-summer-card]");
+  if(summer)return{parent:summer.parentNode,ref:summer.nextSibling};
   var pf=root.querySelector("[data-pf-card]");
   if(pf)return{parent:pf.parentNode,ref:pf.nextSibling};
   var crumb=root.querySelector("[data-crumb-card]");
@@ -57,7 +61,7 @@ function anchor(root){
   if(crypt)return{parent:crypt.parentNode,ref:crypt.nextSibling};
   var sk=root.querySelector("[data-sk-card]");
   if(sk)return{parent:sk.parentNode,ref:sk.nextSibling};
-  var ns=root.querySelector(".tt-ns:not([data-sk-card]):not([data-crypt-card]):not([data-pit-card]):not([data-kart-card]):not([data-bo-card]):not([data-crumb-card]):not([data-pf-card]):not([data-tb-card])");
+  var ns=root.querySelector(".tt-ns:not([data-sk-card]):not([data-crypt-card]):not([data-pit-card]):not([data-kart-card]):not([data-bo-card]):not([data-crumb-card]):not([data-pf-card]):not([data-summer-card]):not([data-tb-card])");
   if(ns)return{parent:ns.parentNode,ref:ns.nextSibling};
   var grid=root.querySelector(".ta-grid");
   if(grid)return{parent:grid.parentNode,ref:grid};
@@ -87,7 +91,7 @@ function insert(){
 
 function close(){
   var o=document.getElementById("tt-tb-ov");if(o)o.remove();
-  if(!document.getElementById("tt-sk-ov")&&!document.getElementById("tt-crypt-ov")&&!document.getElementById("tt-pit-ov")&&!document.getElementById("tt-kart-ov")&&!document.getElementById("tt-bo-ov")&&!document.getElementById("tt-crumb-ov")&&!document.getElementById("tt-pf-ov")&&!document.getElementById("tt-ns-ov"))
+  if(!document.getElementById("tt-sk-ov")&&!document.getElementById("tt-crypt-ov")&&!document.getElementById("tt-pit-ov")&&!document.getElementById("tt-kart-ov")&&!document.getElementById("tt-bo-ov")&&!document.getElementById("tt-crumb-ov")&&!document.getElementById("tt-pf-ov")&&!document.getElementById("tt-summer-ov")&&!document.getElementById("tt-ns-ov"))
     document.documentElement.classList.remove("tt-ns-lock");
 }
 function focusFrame(f){
@@ -122,7 +126,7 @@ window.addEventListener("mercury:load",check);
 window.addEventListener("load",insert);
 /* soft-nav safety net + wait for the Prize Floor (or Crumb Dungeon / Burnt Offerings / Kart /
    Toaster Pit / Crypt / Skullz) card so order stays Skullz, Crypt, Toaster Pit, CyberToaster Kart,
-   Burnt Offerings, Skullz: Crumb Dungeon, Toasty's Prize Floor, Mr. Toasty: Toasty Bros */
+   Burnt Offerings, Skullz: Crumb Dungeon, Toasty's Prize Floor, Toaster Summer, Mr. Toasty: Toasty Bros */
 try{
   new MutationObserver(function(){
     var root=document.getElementById("tt-arc");if(!root)return;

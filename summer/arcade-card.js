@@ -39,7 +39,7 @@ showStyle();
 var THUMB=U+"arcade-thumb.jpg?v="+ART_V;
 var CARD='<button type="button" class="tt-ns-shot" data-summer-play aria-label="Play '+NAME+'" style="background-image:url('+THUMB+')"><span class="tt-ns-new">NEW</span></button>'+
  '<div><p class="tt-ns-k">// new machine</p><h2 class="tt-ns-t">'+NAME+'</h2>'+
- '<p class="tt-ns-d">Build and drive your Cybertruck around Surf City in an original My Summer Car-style sandbox.</p>'+
+ '<p class="tt-ns-d">Bolt a stainless truck together in the garage, then cruise summer Surf City. Gigs, shops, hunger &mdash; don&#39;t pass out toasted.</p>'+
  '<button type="button" class="tt-ns-play" data-summer-play>&#9654; PLAY</button>'+
  '<a class="tt-ns-new-tab" href="'+LIVE+'" target="_blank" rel="noopener">open in new tab &#8599;</a>'+
  '<p class="tt-ns-keys">WASD / ARROWS MOVE &middot; E INTERACT &middot; SPACE JUMP / HANDBRAKE &middot; H HELP &middot; ESC MENU</p></div>';
@@ -59,7 +59,7 @@ function anchor(root){
   if(crypt)return{parent:crypt.parentNode,ref:crypt.nextSibling};
   var sk=root.querySelector("[data-sk-card]");
   if(sk)return{parent:sk.parentNode,ref:sk.nextSibling};
-  var ns=root.querySelector(".tt-ns:not([data-sk-card]):not([data-crypt-card]):not([data-pit-card]):not([data-kart-card]):not([data-bo-card]):not([data-crumb-card]):not([data-pf-card]):not([data-summer-card])");
+  var ns=root.querySelector(".tt-ns:not([data-sk-card]):not([data-crypt-card]):not([data-pit-card]):not([data-kart-card]):not([data-bo-card]):not([data-crumb-card]):not([data-pf-card]):not([data-tb-card]):not([data-summer-card])");
   if(ns)return{parent:ns.parentNode,ref:ns.nextSibling};
   var grid=root.querySelector(".ta-grid");
   if(grid)return{parent:grid.parentNode,ref:grid};
@@ -89,7 +89,7 @@ function insert(){
 
 function close(){
   var o=document.getElementById("tt-summer-ov");if(o)o.remove();
-  if(!document.getElementById("tt-sk-ov")&&!document.getElementById("tt-crypt-ov")&&!document.getElementById("tt-pit-ov")&&!document.getElementById("tt-kart-ov")&&!document.getElementById("tt-bo-ov")&&!document.getElementById("tt-crumb-ov")&&!document.getElementById("tt-pf-ov")&&!document.getElementById("tt-ns-ov"))
+  if(!document.getElementById("tt-sk-ov")&&!document.getElementById("tt-crypt-ov")&&!document.getElementById("tt-pit-ov")&&!document.getElementById("tt-kart-ov")&&!document.getElementById("tt-bo-ov")&&!document.getElementById("tt-crumb-ov")&&!document.getElementById("tt-pf-ov")&&!document.getElementById("tt-tb-ov")&&!document.getElementById("tt-ns-ov"))
     document.documentElement.classList.remove("tt-ns-lock");
 }
 function focusFrame(f){
@@ -125,7 +125,7 @@ window.addEventListener("load",insert);
 /* soft-nav safety net + wait for Prize Floor (or Crumb / Burnt Offerings / Kart /
    Toaster Pit / Crypt / Skullz) so order stays Skullz, Crypt, Toaster Pit,
    CyberToaster Kart, Burnt Offerings, Skullz: Crumb Dungeon, Toasty's Prize Floor,
-   Toaster Summer */
+   Toaster Summer, Mr. Toasty: Toasty Bros */
 try{
   new MutationObserver(function(){
     var root=document.getElementById("tt-arc");if(!root)return;
