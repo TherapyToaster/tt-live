@@ -1,0 +1,97 @@
+<!-- TT SHOP NEW TEES v22 -->
+<script>(function(){if(!/^\/shop\/?$/.test(location.pathname))return;
+/* v22 — one entry per product. Array order is the /shop grid order.
+   To drop a product later, delete that one line from ITEMS (and paste this block over v21 / v22).
+   Cards already in the page that are not in ITEMS are removed, so this list is the source of truth.
+   NFT collab tees stay on /nfts-to-tees-collab; Ashley's line stays on /ashleysavvie.
+   Coty approved dropping the 21 shortlist shirts; they are omitted here so /shop will not link them. */
+/* v22 image fix: every card uses the current Shopify CDN featured image.
+   9 broken (404) mockups, 6 stale/mismatched mockups, and 17 github.io hosts were updated.
+   add() now updates img/title/price/sizes on cards already in the grid (the base /shop
+   Code block still has Mr. Toasty's Graphic Tee with a 404 image). */
+
+var S="https://therapytoaster.myshopify.com/products/";
+var Z=["S","M","L","XL","2XL"];
+var ITEMS=[
+{title:"Insider Threads X Tank",handle:"insider-threads-x-tank",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/insider-threads-x-tank-v5-model.jpg?v=1795203238",price:"$29.99 USD",sizes:["XS","S","M","L","XL","2XL"]},
+{title:"Insider Threads X Performance Tee",handle:"insider-threads-x-performance-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/insider-threads-x-performance-tee-v5-model.jpg?v=1795203238",price:"$32.99 USD",sizes:["S","M","L","XL","2XL","3XL","4XL"]},
+{title:"Insider Threads X Hoodie",handle:"insider-threads-x-hoodie",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/insider-threads-x-hoodie-v5-model.jpg?v=1795203238",price:"$54.99 USD",sizes:["S","M","L","XL","2XL","3XL"]},
+{title:"Insider Threads X Athletic Shorts",handle:"insider-threads-x-athletic-shorts",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/insider-threads-x-athletic-shorts-v5-model.jpg?v=1795203238",price:"$46.99 USD",sizes:["XS","S","M","L","XL","2XL","3XL"]},
+{title:"Insider Threads X Leggings",handle:"insider-threads-x-leggings",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/insider-threads-x-leggings-v5-model.jpg?v=1795203238",price:"$39.99 USD",sizes:["XS","S","M","L","XL"]},
+{title:"Insider Threads X Sports Bra",handle:"insider-threads-x-sports-bra",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/insider-threads-x-sports-bra-v5-model.jpg?v=1795203238",price:"$38.99 USD",sizes:["XS","S","M","L","XL","2XL"]},
+{title:"Insider Threads X Gym Sack",handle:"insider-threads-x-gym-sack",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/insider-threads-x-gym-sack-v5-model.jpg?v=1795203238",price:"$27.99 USD",sizes:["One Size"]},
+{title:"Insider Threads X Gym Towel",handle:"insider-threads-x-gym-towel",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/insider-threads-x-gym-towel-v5-model.jpg?v=1795203237",price:"$19.99 USD",sizes:["One Size"]},
+{title:"Insider Threads X Bottle",handle:"insider-threads-x-bottle",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/insider-threads-x-bottle-v5-model.jpg?v=1795203238",price:"$36.99 USD",sizes:["One Size"]},
+{title:"Hooded Yellow Skullz Tee",handle:"hooded-yellow-skullz-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/unisex-staple-t-shirt-black-front-6af98c32dc081.jpg?v=1794739257",price:"$17.76 USD",sizes:Z},
+{title:"Toasty Cap Skullz Tee",handle:"toasty-cap-skullz-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/unisex-staple-t-shirt-black-front-6af98d2d34703.jpg?v=1794739508",price:"$17.76 USD",sizes:Z},
+{title:"X-Eyes Skull Tee",handle:"x-eyes-skull-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/unisex-staple-t-shirt-black-front-6af98dd7231ba.jpg?v=1794739677",price:"$17.76 USD",sizes:Z},
+{title:"M®ToaSty Logo Patch",handle:"mrtoasty-logo-patch",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/embroidered-patches-black-rectangle-3.5x2.25-front-6aedac9540006.jpg?v=1793961113",price:"$9.99 USD",sizes:["3.5″×2.25″"]},
+{title:"M®ToaSty Logo Sticker",handle:"mrtoasty-logo-sticker",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/kiss-cut-stickers-white-3x3-default-6aebb4462147d.jpg?v=1793832015",price:"$2.99 USD",sizes:["3″×3″","4″×4″"]},
+{title:"M®ToaSty Bumper Magnet",handle:"car-magnets",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/car-magnets-white-7.5x4.5-front-6aedab386b7a4.jpg?v=1793960764",price:"$3.99 USD",sizes:["7.5″×4.5″"]},
+{title:"M®ToaSty Die-Cut Magnet",handle:"m®toasty-die-cut-magnet",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/die-cut-magnets-white-6x6-front-6aebd8d16789c.jpg?v=1793841373",price:"$6.99 USD",sizes:["6″×6″"]},
+{title:"Smoking Kills Tee",handle:"smoking-kills-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/unisex-staple-t-shirt-black-front-6afa04a4b9018.jpg?v=1794770091",price:"$17.76 USD",sizes:Z},
+{title:"Acid Flame Skull Tee",handle:"acid-flame-skull-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/shirt21-blend-mockup.png?v=1793940752",price:"$17.76 USD",sizes:Z},
+{title:"Trust Everyone Tee",handle:"trust-everyone-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/trust-everyone-tee-mockup.png?v=1794045849",price:"$17.76 USD",sizes:Z},
+{title:"Hive Mind Skull Tee",handle:"hive-mind-skull-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/unisex-staple-t-shirt-black-front-6af99e778f48f.jpg?v=1794743934",price:"$17.76 USD",sizes:Z},
+{title:"Cosmic Halo Skull Tee",handle:"cosmic-halo-skull-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/unisex-staple-t-shirt-black-front-6af99a9b3dfb2.jpg?v=1794742945",price:"$17.76 USD",sizes:Z},
+{title:"Flaming Signal Tear Tee",handle:"flaming-signal-tear-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/flaming-signal-tear-tee-mockup.png?v=1794054070",price:"$17.76 USD",sizes:Z},
+{title:"Chrome Flame Skull Tee",handle:"chrome-flame-skull-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/unisex-staple-t-shirt-black-front-6af999fa5354b.jpg?v=1794742785",price:"$17.76 USD",sizes:Z},
+{title:"Cherry Bomb Skull Tee",handle:"cherry-bomb-skull-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/unisex-staple-t-shirt-black-front-6af9996c53714.jpg?v=1794742643",price:"$17.76 USD",sizes:Z},
+{title:"Smoke Break Reaper Tee",handle:"smoke-break-reaper-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/smoke-break-reaper-tee-mockup.png?v=1794074631",price:"$17.76 USD",sizes:Z},
+{title:"Purple Haze Halo Tee",handle:"purple-haze-halo-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/purple-haze-halo-tee-mockup.png?v=1794074631",price:"$17.76 USD",sizes:Z},
+{title:"Golden Fracture Tee",handle:"golden-fracture-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/unisex-staple-t-shirt-black-front-6af9fe193f146.jpg?v=1794768416",price:"$17.76 USD",sizes:Z},
+{title:"XX Static Smile Tee",handle:"xx-static-smile-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/unisex-staple-t-shirt-black-front-6afa028349bba.jpg?v=1794769546",price:"$17.76 USD",sizes:Z},
+{title:"Nice and Toasty Tee",handle:"nice-and-toasty-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/unisex-staple-t-shirt-black-front-6af99ef5a07e3.jpg?v=1794744061",price:"$17.76 USD",sizes:Z},
+{title:"VHS Static Skull Tee",handle:"vhs-static-skull-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/unisex-staple-t-shirt-black-front-6afa0164540d2.jpg?v=1794769259",price:"$17.76 USD",sizes:Z},
+{title:"Hers Tee",handle:"hers-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/unisex-staple-t-shirt-black-front-6af99c55ecd4d.jpg?v=1794743389",price:"$17.76 USD",sizes:Z},
+{title:"His Tee",handle:"his-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/unisex-staple-t-shirt-black-front-6af99de01b7f3.jpg?v=1794743783",price:"$17.76 USD",sizes:Z},
+{title:"Toasty Hood Tee",handle:"toasty-hood-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/toasty-hood-tee-mockup.png?v=1794111740",price:"$17.76 USD",sizes:Z},
+{title:"Gold Grill ACID Cap Tee",handle:"gold-grill-acid-cap-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/unisex-staple-t-shirt-black-front-6af99aeacd722.jpg?v=1794743025",price:"$17.76 USD",sizes:Z},
+{title:"Therapy Toaster ACID Seal Tee",handle:"therapy-toaster-acid-seal-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/unisex-staple-t-shirt-black-front-6af9ffda3d7df.jpg?v=1794768864",price:"$17.76 USD",sizes:Z},
+{title:"Creators Gonna Create Tee",handle:"creators-gonna-create-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/creators-gonna-create-tee-mockup.png?v=1794216867",price:"$17.76 USD",sizes:Z},
+{title:"Subway Skull Commute Tee",handle:"subway-skull-commute-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/unisex-staple-t-shirt-black-front-6af99fa9b6151.jpg?v=1794744240",price:"$17.76 USD",sizes:Z},
+{title:"Always Watching Melt Skull Tee",handle:"always-watching-melt-skull-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/unisex-staple-t-shirt-black-front-6af9981cc3ffe.jpg?v=1794742307",price:"$17.76 USD",sizes:Z},
+{title:"Won't Give Up Hood Tee",handle:"wont-give-up-hood-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/wont-give-up-hood-tee-mockup.png?v=1795139458",price:"$17.76 USD",sizes:Z},
+{title:"Glitched Angel Tee",handle:"glitched-angel-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/glitched-angel-tee-mockup.png?v=1795139459",price:"$17.76 USD",sizes:Z},
+{title:"Cosmic Cloud Skull Tee",handle:"cosmic-cloud-skull-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/cosmic-cloud-skull-tee-mockup.png?v=1795139551",price:"$17.76 USD",sizes:Z},
+{title:"Hooded Hello Toasty Tee",handle:"hooded-hello-toasty-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/hooded-hello-toasty-tee-mockup.png?v=1795139551",price:"$17.76 USD",sizes:Z},
+{title:"Dare to Think Yourself Tee",handle:"dare-to-think-yourself-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/dare-to-think-yourself-tee-mockup.png?v=1795139552",price:"$17.76 USD",sizes:Z},
+{title:"Yellow Ink Smoke Skull Tee",handle:"yellow-ink-smoke-skull-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/yellow-ink-smoke-skull-tee-mockup.png?v=1795139552",price:"$17.76 USD",sizes:Z},
+{title:"Gold Halo Prayer Tee",handle:"gold-halo-prayer-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/gold-halo-prayer-tee-mockup.png?v=1795139460",price:"$17.76 USD",sizes:Z},
+{title:"Out of Air Astronaut Tee",handle:"out-of-air-astronaut-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/shirt17-blend-mockup.png?v=1793776187",price:"$17.76 USD",sizes:Z},
+{title:"Just Thinking Tee",handle:"just-thinking-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/shirt22-blend-mockup.png?v=1793940754",price:"$17.76 USD",sizes:Z},
+{title:"Glitch David Tee",handle:"glitch-david-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/shirt12-blend-mockup.png?v=1793571730",price:"$17.76 USD",sizes:Z},
+{title:"Acid Drip Skeleton Tee",handle:"acid-drip-skeleton-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/shirt15-blend-mockup.png?v=1793769469",price:"$17.76 USD",sizes:Z},
+{title:"Kind Gesture Skeleton Tee",handle:"kind-gesture-skeleton-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/shirt14-blend-mockup.png?v=1793761209",price:"$17.76 USD",sizes:Z},
+{title:"Hello Mr. Toasty Tee",handle:"hello-mr-toasty-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/unisex-staple-t-shirt-black-front-6afa0413ed0c8.jpg?v=1794769946",price:"$17.76 USD",sizes:Z},
+{title:"Acid Cap Smoke Tee",handle:"acid-cap-smoke-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/shirt24-blend-mockup.png?v=1793940757",price:"$17.76 USD",sizes:Z},
+{title:"ME Halo Tee",handle:"me-halo-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/shirt10-blend-mockup.png?v=1793487198",price:"$17.76 USD",sizes:Z},
+{title:"Let It. Tee - Black",handle:"let-it-tee-black",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/let-it-tee-mockup.png?v=1793419628",price:"$17.76 USD",sizes:Z},
+{title:"Be Kind 404 Tee",handle:"be-kind-404-tee",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/shirt5-blend-mockup.png?v=1793487198",price:"$17.76 USD",sizes:Z},
+{title:"Mr. Toasty's Graphic Tee",handle:"unisex-t-shirt",img:"https://cdn.shopify.com/s/files/1/0787/6860/3190/files/mr-toasty-tee-blend-mockup.png?v=1793421323",price:"$17.76 USD",sizes:["XS","S","M","L","XL","2XL","3XL","4XL","5XL"]},
+];
+function e(s){return String(s).replace(/[&<>"']/g,function(c){return "&#"+c.charCodeAt(0)+";";});}
+function handleOf(href){var h=(href||"").split("/products/")[1]||"";h=h.split(/[?#]/)[0];try{h=decodeURIComponent(h);}catch(err){}return h;}
+function add(){
+var g=document.getElementById("ttshop-grid");if(!g||!g.querySelector(".card"))return;
+var want={};for(var i=0;i<ITEMS.length;i++)want[ITEMS[i].handle]=i;
+function findCard(handle){var as=g.querySelectorAll("a[href*='/products/']");for(var i=0;i<as.length;i++){if(handleOf(as[i].getAttribute("href"))===handle)return as[i].closest(".card")||as[i].closest("[class*='card']");}return null;}
+function fill(card,it,url){var img=card.querySelector("img");if(img){if(img.getAttribute("src")!==it.img)img.setAttribute("src",it.img);img.setAttribute("alt",it.title);}var t=card.querySelector(".t");if(t)t.textContent=it.title;var p=card.querySelector(".p");if(p)p.textContent=it.price;var sz=card.querySelector(".sz");if(sz)sz.innerHTML=(it.sizes||Z).map(function(s){return "<span>"+e(s)+"</span>";}).join("");var a=card.querySelector("a.btn, a[href*='/products/']");if(a)a.setAttribute("href",url);}
+for(var j=0;j<ITEMS.length;j++){
+var it=ITEMS[j],url=S+it.handle;
+var existing=findCard(it.handle);
+if(existing){fill(existing,it,url);continue;}
+var b=document.createElement("div");b.className="card";
+b.innerHTML='<img src="'+e(it.img)+'" alt="'+e(it.title)+'" loading="lazy"><div class="body"><p class="t">'+e(it.title)+'</p><div class="p">'+e(it.price)+'</div><div class="sz">'+(it.sizes||Z).map(function(s){return "<span>"+e(s)+"</span>";}).join("")+'</div><a class="btn" href="'+e(url)+'" target="_blank" rel="noopener">Buy on Shopify &rarr;</a></div>';
+g.appendChild(b);
+}
+[].slice.call(g.querySelectorAll(".card")).forEach(function(c){var a=c.querySelector("a.btn"),h=handleOf(a&&a.getAttribute("href"));if(!Object.prototype.hasOwnProperty.call(want,h))c.remove();});
+var k=[].slice.call(g.children).filter(function(x){return x.classList&&x.classList.contains("card");}).map(function(x,o){var a=x.querySelector("a.btn"),h=handleOf(a&&a.getAttribute("href")),r=Object.prototype.hasOwnProperty.call(want,h)?want[h]:999;return{x:x,r:r,o:o};});
+var q=k.slice().sort(function(a,b){return a.r-b.r||a.o-b.o});if(q.some(function(v,i){return v.x!==k[i].x;}))q.forEach(function(v){g.appendChild(v.x);});
+tile();
+}
+function tile(){if(document.getElementById("ttshop-xaw-tile"))return;var host=document.querySelector("#ttshop a.collab");if(!host||!host.parentNode)return;var a=document.createElement("a");a.id="ttshop-xaw-tile";a.className="collab";a.href="https://therapytoaster.myshopify.com/collections/insider-threads-active-wear";a.target="_blank";a.rel="noopener";a.innerHTML='<img src="https://cdn.shopify.com/s/files/1/0787/6860/3190/collections/insider-threads-x-banner-desktop.jpg?v=1795163598" alt="Insider Threads X Active Wear" width="2400" height="800" loading="lazy"><span class="bar"><span class="meta">9 pieces · from $19.99</span><span class="btn">Shop Insider Threads X &rarr;</span></span>';host.parentNode.insertBefore(a,host.nextSibling);}
+add();document.addEventListener("DOMContentLoaded",add);window.addEventListener("load",add);
+var n=0,t=setInterval(function(){add();if(++n>40)clearInterval(t);},250);
+})();</script>
+<!-- /TT SHOP NEW TEES v22 -->
