@@ -29,7 +29,7 @@ try{
  if(document.getElementById("tt-clip-css"))return;
  var st=document.createElement("style");st.id="tt-clip-css";
  st.textContent="#tt-arc .tt-ns-shot video.tt-clip{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover;pointer-events:none;opacity:0;transition:opacity .45s;z-index:0;background:transparent;border:0}"+
-  "#tt-arc .tt-ns-shot video.tt-clip.on{opacity:1}#tt-arc .tt-ns-shot .tt-ns-new{position:relative;z-index:1}";
+  "#tt-arc .tt-ns-shot video.tt-clip.on{opacity:1}";
  (document.head||document.documentElement).appendChild(st);
 })();
 var io=("IntersectionObserver" in window)?new IntersectionObserver(function(es){
