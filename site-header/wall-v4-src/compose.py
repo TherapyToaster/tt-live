@@ -9,6 +9,8 @@ d.rounded_rectangle((875,-50,1405,214),40,fill=0); d.rounded_rectangle((1822,583
 mask=mask.filter(ImageFilter.GaussianBlur(16))
 def rgb(p): return np.array(Image.open(p).convert('RGB')).astype(float)
 B=rgb('r-base.png'); base=B*(1-bar)+bar*(O*0.6)
+# Preserve the sticker/halo and official-logo pixels (including their bars).
+mm=np.array(mask)[...,None]/255; base=base*mm+O*(1-mm)
 bim=Image.fromarray(base.clip(0,255).astype('uint8')); bim.save('/workspace/neon-wall-v2/readable/home-wall-v4-2400.png')
 for w in (2400,1200):
     im=bim if w==2400 else bim.resize((1200,400),Image.LANCZOS)
