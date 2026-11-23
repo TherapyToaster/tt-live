@@ -17,7 +17,7 @@
   var lsKey = attr("data-ls-key"), lsField = attr("data-ls-field");
   var T = window.__ttHSTest || null;
   var prefix = (T && T.prefix) || "";
-  var TOK = {"hiscore-skullz":"7bed766f-5cd0-4c81-9811-2be5ae6f0b67","hiscore-crypt":"48ea78d4-658a-41e1-ae0a-246f308187e9","hiscore-toaster-pit":"dcd4ffaa-78f9-4ac8-8aa8-de801286867b","hiscore-burnt-offerings":"1d4eb20a-2ece-44fe-b08e-873a8321b2c5","hiscore-crumb-dungeon":"496809da-06d5-4723-9672-33aa23c808f3","hiscore-prize-floor":"e7db62f7-e813-4a18-904f-c559b4e7d3f3","hiscore-mars":"148bbd6e-c7d2-417e-9f61-bbd0d33fa39c","hiscore-feed":"6e13914b-17ce-4e1c-ae9b-8ffd8db1ccdd","hiscore-bite":"337c603b-ca98-4cbc-abc0-9c74d13735cc"};
+  var TOK = {"hiscore-skullz":"7bed766f-5cd0-4c81-9811-2be5ae6f0b67","hiscore-crypt":"48ea78d4-658a-41e1-ae0a-246f308187e9","hiscore-toaster-pit":"dcd4ffaa-78f9-4ac8-8aa8-de801286867b","hiscore-burnt-offerings":"1d4eb20a-2ece-44fe-b08e-873a8321b2c5","hiscore-crumb-dungeon":"496809da-06d5-4723-9672-33aa23c808f3","hiscore-prize-floor":"e7db62f7-e813-4a18-904f-c559b4e7d3f3","hiscore-mars":"148bbd6e-c7d2-417e-9f61-bbd0d33fa39c","hiscore-feed":"6e13914b-17ce-4e1c-ae9b-8ffd8db1ccdd","hiscore-bite":"337c603b-ca98-4cbc-abc0-9c74d13735cc","hiscore-tb":"152b34e3-ab67-4111-bbe2-d7c8a6d1c6c0"};
   var tokens = (T && T.tokens) || TOK;
   var BASE = "https://abacus.jasoncameron.dev", NS = "therapytoaster", CAP = 99999999;
   var key = (prefix + "hiscore-" + slug).slice(0, 64);
