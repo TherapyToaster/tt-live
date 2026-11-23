@@ -1,4 +1,10 @@
-/* TT site header: OOK glitch background v6.18
+/* TT site header: OOK glitch background v6.19
+   v6.19: adds Home wall 4 (home-wall-v4): the same shutter neon wall with
+   THERAPY TOASTER redrawn as readable blue/red/yellow neon-tube bubble
+   letters (clear T crossbars and stems), shutter bars lightened over the
+   letters, Hello sticker + halo and the official logo untouched (GOTTEM R
+   spot unchanged). Pick with &wall=4 (or ?ttwall=4 for a tab preview).
+   Neon A pulse uses site-header/neon/v4/. Without &wall= same as v6.17.
    v6.18: optional new Home wall pictures where THERAPY TOASTER reads at a
    glance (graffiti lettering + neon tubes, Hello sticker + official neon
    logo kept bottom-right so the GOTTEM R hotspot is unchanged). Picked by
@@ -119,9 +125,9 @@
 (function(){
   /* TT WALL v1 (v6.18): which Home wall picture. v2 = original shutter wall. */
   var W=window,D=document,k='v2',src='',pg='';
-  var MAP={'1':'v3a','2':'v3b','3':'v3c'};
-  try{var me=D.currentScript;if(me&&me.src){var m=/[?&]wall=([123]|off)\b/i.exec(me.src);if(m)src=m[1].toLowerCase();}}catch(e){}
-  try{var q=/[?&]ttwall=([123]|off)\b/i.exec(location.search);
+  var MAP={'1':'v3a','2':'v3b','3':'v3c','4':'v4'};
+  try{var me=D.currentScript;if(me&&me.src){var m=/[?&]wall=([1234]|off)\b/i.exec(me.src);if(m)src=m[1].toLowerCase();}}catch(e){}
+  try{var q=/[?&]ttwall=([1234]|off)\b/i.exec(location.search);
     if(q){pg=q[1].toLowerCase();sessionStorage.setItem('ttwall',pg);}else pg=sessionStorage.getItem('ttwall')||'';}catch(e){}
   var v=pg||src;if(MAP[v])k=MAP[v];
   W.__ttWallKey=k;
@@ -883,7 +889,7 @@
     var img=tw.querySelector('.tw-img');if(!img)return null;
     var rc=img.getBoundingClientRect();if(!rc.width||!rc.height)return null;
     var cs=getComputedStyle(img);
-    if(!/home-wall-v(2|3[abc])-/.test(cs.backgroundImage||''))return null;
+    if(!/home-wall-v(2|3[abc]|4)-/.test(cs.backgroundImage||''))return null;
     var sz=(cs.backgroundSize||'').split(',')[0].trim().split(/\s+/)[0]||'100%';
     var bw=/%$/.test(sz)?rc.width*parseFloat(sz)/100:(parseFloat(sz)||rc.width);
     var bh=bw/3;
@@ -1050,7 +1056,7 @@
     var img=tw.querySelector('.tw-img');if(!img)return null;
     var rc=img.getBoundingClientRect(),tr=tw.getBoundingClientRect();if(!rc.width||!rc.height)return null;
     var cs=getComputedStyle(img);
-    if(!/home-wall-v(2|3[abc])-/.test(cs.backgroundImage||''))return null;
+    if(!/home-wall-v(2|3[abc]|4)-/.test(cs.backgroundImage||''))return null;
     var sz=(cs.backgroundSize||'').split(',')[0].trim().split(/\s+/)[0]||'100%';
     var bw=/%$/.test(sz)?rc.width*parseFloat(sz)/100:(parseFloat(sz)||rc.width),bh=bw/3;
     var px=(cs.backgroundPositionX||'50%').split(',')[0].trim(),py=(cs.backgroundPositionY||'50%').split(',')[0].trim();
