@@ -1,4 +1,11 @@
-/* TT site header: OOK glitch background v6.21
+/* TT site header: OOK glitch background v6.22
+   v6.22: Home Daily Glitch CRT tile plays a single 7.5s square 600x600
+   loop (site-header/media/crt-glitchswap.{webm,mp4} + poster) that
+   holds Coty's melting-smiley clip, punches through a short RGB-split /
+   scanline / static glitch, holds the yellow skull clip, then glitches
+   back and repeats. Square tile sizing and width tracking are unchanged
+   from v6.21. Aria label updated. Neon A, sparks, nav D, bio and walls
+   are unchanged.
    v6.21: Home Daily Glitch CRT tile stays on Coty's skull-TV clip
    (site-header/media/crt-skull.{webm,mp4} + poster, recropped to a
    1:1 600x600 square so the skull face is centered and fully visible)
@@ -1853,9 +1860,10 @@
   if(D.readyState==='loading')D.addEventListener('DOMContentLoaded',boot);else boot();
 })();
 /* /TT NAV */
-/* TT TV v1.5 (header-bg.js v6.21-tv) =====
-   Home only. Places a framed CRT tile with Coty's looping skull-TV clip
-   in the Mr. Toasty's Daily Glitch area. Desktop: sits in the left padding
+/* TT TV v1.6 (header-bg.js v6.22-tv) =====
+   Home only. Places a framed CRT tile with Coty's looping glitch-swap
+   clip (smiley TV, punchy glitch, skull TV, glitch back) in the
+   Mr. Toasty's Daily Glitch area. Desktop: sits in the left padding
    beside the Daily Glitch card when that gutter can fit the tile; otherwise
    the card shifts just enough, or the tile wraps to a centered row under
    the card and toys if the gutter is too thin (mid-desktop). Mobile:
@@ -1880,10 +1888,10 @@
   try{if(W.self!==W.top)return;}catch(e){return;}
   var me=D.currentScript,srcOn=false;
   try{if(me&&me.src){var m=/[?&]tv=(1|on|true|off)\b/i.exec(me.src);if(m)srcOn=m[1].toLowerCase()!=='off';}}catch(e){}
-  var B='https://therapytoaster.github.io/tt-live/site-header/media/',Q='?v=2';
-  var POSTER=B+'crt-skull-poster.jpg'+Q;
-  var WEBM=B+'crt-skull.webm'+Q;
-  var MP4=B+'crt-skull.mp4'+Q;
+  var B='https://therapytoaster.github.io/tt-live/site-header/media/',Q='?v=1';
+  var POSTER=B+'crt-glitchswap-poster.jpg'+Q;
+  var WEBM=B+'crt-glitchswap.webm'+Q;
+  var MP4=B+'crt-glitchswap.mp4'+Q;
   var rmq=W.matchMedia?matchMedia('(prefers-reduced-motion: reduce)'):{matches:false};
   var EDGE=16,DESK_MIN=200;
   function wanted(){
@@ -2084,7 +2092,7 @@
       tile=D.createElement('figure');
       tile.id='tt-crt';
       tile.className='tt-crt';
-      tile.setAttribute('aria-label','Glitch art of a yellow skull on a retro TV');
+      tile.setAttribute('aria-label','Glitch art TV switching between a melting smiley and a yellow skull');
     }
     var still=reduced();
     tile.classList.toggle('tt-crt-still',still);
@@ -2186,7 +2194,7 @@
    it, without changing the text or moving the Squarespace blocks (so the
    hourly Home rebuild and the HA GOTTEM click on the ® stay intact).
    Mobile layout is left alone. The bezel hugs the live text box, stays
-   clear of the Daily Glitch card, the skull TV / Vibes, Choose Your Path,
+   clear of the Daily Glitch card, the glitch-swap TV / Vibes, Choose Your Path,
    Toaster Radio and the Chipotle card, and plays a short power-on when it
    scrolls into view. Subtle flicker, RGB-split and glitch slices run on
    the text; prefers-reduced-motion gets a static frame only.
