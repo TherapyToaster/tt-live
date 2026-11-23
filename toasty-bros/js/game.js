@@ -101,12 +101,13 @@ let POLE = null, BOOTH = null;
 const PH = { walkMax: 1.5625, runMax: 2.5625, walkAcc: 0.0371, runAcc: 0.0557, rel: 0.0508, skid: 0.1016, maxFall: 4.5 };
 function jumpParams(av){ if (av < 1.0) return [-4.0, 0.125, 0.4375]; if (av < 2.3) return [-4.0, 0.117, 0.375]; return [-5.0, 0.156, 0.5625]; }
 
+const MAX_HP = 3; // v0.8.1: every bro takes 3 hits; Toast Armor / Oven Mitt are extra shields on top
 function newPlayer(x, y){
   return { x, y, vx: 0, vy: 0, w: 12, h: 15, size: 0, facing: 1, onGround: true, jumpHeld: false, gHold: 0.125, gFall: 0.4375,
     airMax: PH.walkMax, skid: false, anim: 0, inv: 0, star: 0, crouch: false, dead: false, morph: 0, morphDir: 0, combo: 0, jumpBuf: 0,
     throwT: 0, ctrl: 'normal', ctrlT: 0, prevY: 0, plat: null, slick: false, boost: 0, dropT: 0,
     bro: G.curBro || 'toasty', spec: 3, cool: 0, mcool: 0, scool: 0, melT: 0, wall: 0, wallG: 0, wallD: 0, wjLock: 0,
-    slam: 0, dash: 0, jet: 0, mirror: 0, roll: 0, armorFx: 0, dashHitBoss: false };
+    slam: 0, dash: 0, jet: 0, mirror: 0, roll: 0, armorFx: 0, dashHitBoss: false, hp: MAX_HP, hpFx: 0 };
 }
 function newGame(levelId){
   G.score = 0; G.coins = 0; G.lives = 3; G.carrySize = 0; G.checkpoint = false; G.levelId = levelId || '1-1'; G.deaths = 0;
@@ -138,7 +139,8 @@ function startLevel(){
   LV = LEVELS[G.levelId]; AREAS = LV.build(); lv = null; P = null;
   G.state = 'play'; G.stateT = 0; G.paused = false; G.lf = 0;
   enterArea(LV.start.area);
-  const stx = (G.checkpoint && LV.checkpoint) ? LV.checkpoint - 2 : LV.start.tx;
+  let stx = (G.checkpoint && LV.checkpoint) ? LV.checkpoint - 2 : LV.start.tx;
+  if (G.checkpoint && LV.checkpoint){ let k = stx; while (k > 1 && surfaceRow(k) >= 15) k--; if (surfaceRow(k) < 15) stx = k; } // v0.8.1: never respawn over a pit (1-3's checkpoint sat above falling platforms)
   const sy = surfaceRow(stx) * TS;
   grand = rng(7 + LEVEL_ORDER.indexOf(G.levelId) * 101 + G.deaths * 13 + G.rescued * 3);
   P = newPlayer(stx * TS + 2, sy - 15);
@@ -281,16 +283,22 @@ function spawnItem(type, x, y){
 function hurt(){
   if (P.inv > 0 || P.star > 0 || P.ctrl !== 'normal' || P.dead || P.dash > 0 || P.roll > 0 || P.slam) return;
   if (P.mitt){ P.mitt = false; P.inv = 100; G.mittBlocks = (G.mittBlocks || 0) + 1; A.sfx('mitt'); burst(P.x + 6, P.y + 6, 12, [BUM.E, BUM.E2, BUM.P], 2); popup(P.x - 24, P.y - 12, 'OVEN MITT: BLOCKED!', BUM.E2); return; } // v0.7 World 5 pickup
-  if (P.size > 0){ P.size = 0; P.inv = 130; A.sfx('clang'); A.sfx('shrink'); burst(P.x + 6, P.y + 6, 12, ['#d7dbe3', '#ffffff', '#8b909c'], 2); popup(P.x - 10, P.y - 12, 'ARMOR!', '#d7dbe3'); }
-  else die();
+  if (P.size > 0){ P.size = 0; P.inv = 130; A.sfx('clang'); A.sfx('shrink'); burst(P.x + 6, P.y + 6, 12, ['#d7dbe3', '#ffffff', '#8b909c'], 2); popup(P.x - 10, P.y - 12, 'ARMOR!', '#d7dbe3'); return; }
+  P.hp = Math.max(0, (P.hp === undefined ? MAX_HP : P.hp) - 1); P.hpFx = 40; G.hits = (G.hits || 0) + 1;
+  if (P.hp <= 0){ die(); return; }
+  // v0.8.1: lose a health pip: invulnerability flash + a small knockback hop (a caller's own bounce / shove still wins)
+  P.inv = 120; A.sfx('shrink'); burst(P.x + 6, P.y + 6, 10, ['#ff2045', '#ffffff', '#ffb0bc'], 1.8);
+  // knockback only from the ground: a mid-air hit keeps your jump arc, so a hit over a pit never shoves you into it
+  if (P.onGround){ if (Math.abs(P.vx) <= 2) P.vx = -P.facing * 1.2; P.vy = Math.min(P.vy, -2); P.onGround = false; P.plat = null; }
 }
+function healFull(){ if (P){ P.hp = MAX_HP; P.hpFx = 40; } }
 function grow(to){
   P.size = to > 0 ? 1 : 0; P.armorFx = 40; // v0.4: Toast Armor is an extra hit, the bro keeps its size
 }
 function die(){
   if (G.state === 'dying') return;
   if (DEBUG) G.deathCause = (new Error().stack || '').split('\n').slice(2, 5).map(l => l.trim().replace(/\(.*game\.js:/, '(').replace(/^at /, '')).join(' < ');
-  G.state = 'dying'; G.stateT = 0; P.dead = true; P.star = 0; P.vx = 0; P.vy = 0; G.carrySize = 0; G.deaths++;
+  G.state = 'dying'; G.stateT = 0; P.dead = true; P.hp = 0; P.star = 0; P.vx = 0; P.vy = 0; G.carrySize = 0; G.deaths++;
   A.stopMusic(); A.sfx('die'); bumpHi(); writeSave();
 }
 function onPatch(p){
@@ -304,7 +312,7 @@ function updatePlayer(){
   if (p.throwT > 0) p.throwT--;
   if (p.boost > 0) p.boost--;
   if (p.dropT > 0) p.dropT--;
-  if (p.armorFx > 0) p.armorFx--;
+  if (p.armorFx > 0) p.armorFx--; if (p.hpFx > 0) p.hpFx--;
   if (p.wjLock > 0) p.wjLock--;
   if (p.ctrl !== 'normal'){ p.prevY = p.y; return updateCtrl(); }
   // ride platforms
@@ -1235,7 +1243,7 @@ function freeCage(tx, ty){
   const locked = BRO_IDS.filter(id => !save.unlocked.includes(id));
   let isNew = null;
   if (locked.length){ const want = lv.cageBro[key]; isNew = locked.includes(want) ? want : locked[0]; save.unlocked.push(isNew); save.unlocked = BRO_IDS.filter(id => save.unlocked.includes(id)); writeSave(); }
-  G.rescued++; G.lives++; G.reserve.push(pickBro());
+  G.rescued++; G.lives++; G.reserve.push(pickBro()); healFull();
   const to = pickBro(save.unlocked.length > 1 ? P.bro : null);
   swapBro(to);
   G.broFlash = { t: 0, name: BROS[to].name, isNew: isNew ? BROS[isNew].name : null };
@@ -1265,7 +1273,7 @@ function updateEscape(){
     boom(x, y, 22, { power: 9, dmg: 0, owner: 'esc' });
   }
   if (e.t % 40 === 0) A.sfx('alarm');
-  if (P && !P.dead && P.ctrl === 'normal' && P.x + P.w < e.front + 10){ P.inv = 0; P.size = 0; hurt(); }
+  if (P && !P.dead && P.ctrl === 'normal' && P.x + P.w < e.front + 10){ P.size = 0; P.mitt = false; die(); } // TOASTED! stays an instant loss
   if (lv.exitTx && P.ctrl === 'normal' && P.x >= lv.exitTx * TS){
     G.escape = null; G.escaped = true; G.castleEnd = true; G.endT = 0; P.ctrl = 'wait'; P.vx = 0; A.stopMusic(); A.setTempo(1); A.sfx('clear');
     for (let i = 0; i < 6; i++) boom(lv.exitTx * TS - 40 - i * 24, (6 + (i % 3) * 2) * TS, 26, { power: 0, dmg: 0, owner: 'p', delay: i * 5 });
@@ -4657,6 +4665,7 @@ function drawHUD(){
   drawText(g, pad(G.score, 6), 24, 15, '#ffffff', 1, sh);
   if (inPlay){ for (let i = 0; i < 3; i++){ const on = i < P.spec; g.fillStyle = '#000'; g.fillRect(4 + i * 6, 21, 5, 5); g.fillStyle = on ? BROS[bro].color : '#2a3046'; g.fillRect(5 + i * 6, 22, 3, 3); }
     if (P.size > 0){ g.fillStyle = '#000'; g.fillRect(23, 23, 7, 7); g.fillStyle = '#d7dbe3'; g.fillRect(24, 24, 5, 4); g.fillRect(25, 28, 3, 1); }
+    drawHealth(4, 31);
     drawText(g, 'FREED ' + G.rescued, 32, 24, '#00e5ff', 1, sh); }
   drawText(g, 'SKULLZ', 76, 6, '#FFD400', 1, sh);
   g.drawImage(S.coin, 76, 14); drawText(g, 'X' + pad(G.coins, 2), 87, 15, '#ffffff', 1, sh);
@@ -4665,6 +4674,17 @@ function drawHUD(){
   drawText(g, 'TIME', 218, 6, '#FFD400', 1, sh);
   const tcol = G.state === 'play' && G.time <= 100 && (G.frame >> 4) % 2 ? '#ff0040' : '#ffffff';
   drawText(g, G.state === 'title' ? '' : pad(G.time, 3), 221, 15, tcol, 1, sh);
+}
+// v0.8.1 health: 3 little toast-red hearts under the special pips (x 4..26, y 31..37; clear of the name slot, FREED and the armor icon)
+function drawHealth(x0, y0){
+  const hp = P.dead ? 0 : (P.hp === undefined ? MAX_HP : P.hp), blink = P.hpFx > 0 && (P.hpFx >> 2) % 2;
+  for (let i = 0; i < MAX_HP; i++){
+    const x = x0 + i * 8, on = i < hp, lost = i === hp && blink;
+    g.fillStyle = '#000'; g.fillRect(x, y0, 7, 7);
+    g.fillStyle = lost ? '#ffffff' : on ? '#ff2045' : '#2a3046';
+    g.fillRect(x + 1, y0 + 1, 2, 2); g.fillRect(x + 4, y0 + 1, 2, 2); g.fillRect(x + 1, y0 + 2, 5, 2); g.fillRect(x + 2, y0 + 4, 3, 1); g.fillRect(x + 3, y0 + 5, 1, 1);
+    if (on && !lost){ g.fillStyle = '#ffb0bc'; g.fillRect(x + 1, y0 + 1, 1, 1); }
+  }
 }
 function drawDialog(){
   const d = G.dialog; if (!d) return;
@@ -5295,9 +5315,9 @@ window.TT = {
   get btn(){ return btn; }, danger(...a){ return danger(...a); }, coilState(r, f){ return coilState(r, f); },
   step(n, buttons){ forced = buttons || {}; for (let i = 0; i < (n || 1); i++) frame(); forced = null; return TT.snap(); },
   render, setForced(b){ forced = b; },
-  snap(){ return { state: G.state, level: G.levelId, area: G.area, x: P ? +P.x.toFixed(2) : null, y: P ? +P.y.toFixed(2) : null, vx: P ? +P.vx.toFixed(4) : null, vy: P ? +P.vy.toFixed(4) : null, onGround: P ? P.onGround : null, size: P ? P.size : null, ctrl: P ? P.ctrl : null, lives: G.lives, coins: G.coins, score: G.score, time: G.time, camX, enemies: enemies.length, deaths: G.deaths, boss: BOSS ? { kind: BOSS.kind, hp: BOSS.hp, state: BOSS.state, dead: BOSS.dead, dying: BOSS.dying, dents: BOSS.dents } : null, boost: P ? P.boost : 0, bro: P ? P.bro : G.curBro, spec: P ? P.spec : 0, rescued: G.rescued, escape: !!G.escape, wall: P ? P.wall : 0 }; },
+  snap(){ return { state: G.state, level: G.levelId, area: G.area, x: P ? +P.x.toFixed(2) : null, y: P ? +P.y.toFixed(2) : null, vx: P ? +P.vx.toFixed(4) : null, vy: P ? +P.vy.toFixed(4) : null, onGround: P ? P.onGround : null, size: P ? P.size : null, hp: P ? P.hp : null, ctrl: P ? P.ctrl : null, lives: G.lives, coins: G.coins, score: G.score, time: G.time, camX, enemies: enemies.length, deaths: G.deaths, boss: BOSS ? { kind: BOSS.kind, hp: BOSS.hp, state: BOSS.state, dead: BOSS.dead, dying: BOSS.dying, dents: BOSS.dents } : null, boost: P ? P.boost : 0, bro: P ? P.bro : G.curBro, spec: P ? P.spec : 0, rescued: G.rescued, escape: !!G.escape, wall: P ? P.wall : 0 }; },
   warp(tx, ty){ P.x = tx * TS + 2; P.y = (ty !== undefined ? ty : (function(){ if (!isSolid(tx, 14)) return surfaceRow(tx); let y = 14; while (y > 0 && isSolid(tx, y - 1)) y--; return y; })()) * TS - P.h; P.vx = 0; P.vy = 0; P.plat = null; camX = lv.camLock ? 0 : Math.max(0, Math.min(P.x - 100, lv.w * TS - W)); if (G.camLockX !== null) camX = Math.min(camX, G.camLockX); for (const s of lv.spawns) if (s.x * TS < camX) s.done = true; enemies = enemies.filter(e => e.x > camX); },
-  give(size){ grow(size); P.morph = 0; },
+  give(size){ grow(size); P.morph = 0; }, hurt(){ hurt(); }, die(){ die(); }, get MAX_HP(){ return MAX_HP; },
   clearEnemies(){ enemies = []; for (const s of lv.spawns) s.done = true; },
   tileAt: (x, y) => tileAt(x, y),
   startLevel(id, size){ G.levelId = id; G.checkpoint = false; G.carrySize = size || 0; startLevel(); },
