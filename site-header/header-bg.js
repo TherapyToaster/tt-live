@@ -1,4 +1,10 @@
-/* TT site header: OOK glitch background v6.20
+/* TT site header: OOK glitch background v6.21
+   v6.21: Home Daily Glitch CRT tile stays on Coty's skull-TV clip
+   (site-header/media/crt-skull.{webm,mp4} + poster, recropped to a
+   1:1 600x600 square so the skull face is centered and fully visible)
+   and restores the pre-v6.20 square tile sizing (same 1:1 box and
+   width tracking as the old smiley TV). Aria label unchanged from
+   v6.20. Neon A, sparks, nav D, bio and walls are unchanged.
    v6.20: Home Daily Glitch CRT tile swaps Coty's smiley-TV loop for his
    new yellow glitch-skull CRT clip (site-header/media/crt-skull.{webm,mp4}
    + poster). The tile is now 9:16 portrait to match the new footage
@@ -1847,18 +1853,17 @@
   if(D.readyState==='loading')D.addEventListener('DOMContentLoaded',boot);else boot();
 })();
 /* /TT NAV */
-/* TT TV v1.4 (header-bg.js v6.20-tv) =====
+/* TT TV v1.5 (header-bg.js v6.21-tv) =====
    Home only. Places a framed CRT tile with Coty's looping skull-TV clip
    in the Mr. Toasty's Daily Glitch area. Desktop: sits in the left padding
    beside the Daily Glitch card when that gutter can fit the tile; otherwise
    the card shifts just enough, or the tile wraps to a centered row under
    the card and toys if the gutter is too thin (mid-desktop). Mobile:
    stacks under Don't Click + the header video, sized to the notice
-   content width (at least the side-by-side Don't Click + video group).
-   The tile is 9:16 portrait to match the clip (v1.3 was square 1:1).
-   Width tracking is the same as v1.3; height follows 9:16, capped on
-   mobile and wrap-under so the taller clip does not dominate the page.
-   The Vibes button is moved under the TV on every
+   content width (at least the side-by-side Don't Click + video group)
+   and kept square. The clip itself is a 1:1 crop of the skull TV.
+   Width tracking and 1:1 sizing match v1.3 (the smiley tile). The Vibes
+   button is moved under the TV on every
    breakpoint so it no longer limits the tile or collides with the
    Toaster Radio bar, and is restored if this block is off. The Daily
    Glitch card, Don't Click button and header video stay clickable and
@@ -1875,7 +1880,7 @@
   try{if(W.self!==W.top)return;}catch(e){return;}
   var me=D.currentScript,srcOn=false;
   try{if(me&&me.src){var m=/[?&]tv=(1|on|true|off)\b/i.exec(me.src);if(m)srcOn=m[1].toLowerCase()!=='off';}}catch(e){}
-  var B='https://therapytoaster.github.io/tt-live/site-header/media/',Q='?v=1';
+  var B='https://therapytoaster.github.io/tt-live/site-header/media/',Q='?v=2';
   var POSTER=B+'crt-skull-poster.jpg'+Q;
   var WEBM=B+'crt-skull.webm'+Q;
   var MP4=B+'crt-skull.mp4'+Q;
@@ -1898,8 +1903,8 @@
     var s=D.createElement('style');s.id='tt-tv-css';
     s.textContent=""
     +"#tt-crt-col{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;box-sizing:border-box;flex:0 0 auto;margin:0;padding:0;position:relative;z-index:3}"
-    +"#tt-crt{box-sizing:border-box;position:relative;z-index:3;flex:0 0 auto;width:var(--tt-crt-w,200px);height:var(--tt-crt-h,356px);aspect-ratio:9/16;margin:0;padding:0;border:3px solid #FFD400;background:#05070d;background-image:url('"+POSTER+"');background-size:cover;background-position:center;overflow:hidden;line-height:0;box-shadow:-5px 0 0 rgba(255,40,60,.75),5px 0 0 rgba(0,240,255,.65),0 0 18px rgba(255,212,0,.3)}"
-    +"#tt-crt video,#tt-crt img{display:block;width:100%;height:100%;margin:0;padding:0;border:0;object-fit:cover;object-position:center;background:transparent}"
+    +"#tt-crt{box-sizing:border-box;position:relative;z-index:3;flex:0 0 auto;width:var(--tt-crt-s,200px);height:var(--tt-crt-s,200px);margin:0;padding:0;border:3px solid #FFD400;background:#05070d;background-image:url('"+POSTER+"');background-size:cover;background-position:center;overflow:hidden;line-height:0;box-shadow:-5px 0 0 rgba(255,40,60,.75),5px 0 0 rgba(0,240,255,.65),0 0 18px rgba(255,212,0,.3)}"
+    +"#tt-crt video,#tt-crt img{display:block;width:100%;height:100%;margin:0;padding:0;border:0;object-fit:cover;background:transparent}"
     +"#tt-crt.tt-crt-on video{visibility:visible}"
     +"#tt-crt.tt-crt-still video{display:none}"
     +"#tt-crt.tt-crt-still img{display:block}"
@@ -1997,16 +2002,12 @@
     natVw=w;
     return natCache;
   }
-  function setSize(w, capH){
+  function setSize(w){
     if(!tile)return;
     w=Math.round(w);
-    var h=Math.round(w*16/9);
-    if(capH&&h>capH){h=Math.round(capH);w=Math.round(h*9/16);}
-    if(w<1)w=1;if(h<1)h=1;
     tile.style.width=w+'px';
-    tile.style.height=h+'px';
-    tile.style.setProperty('--tt-crt-w',w+'px');
-    tile.style.setProperty('--tt-crt-h',h+'px');
+    tile.style.height=w+'px';
+    tile.style.setProperty('--tt-crt-s',w+'px');
   }
   function col(){
     if(colEl&&colEl.isConnected)return colEl;
@@ -2045,7 +2046,7 @@
         n.classList.remove('tt-crt-wrap');
         n.style.paddingLeft='';
         if(colEl)colEl.style.setProperty('--tt-crt-radio',radioClear()+'px');
-        setSize(want, Math.round(Math.min(want*1.4, 520)));
+        setSize(want);
         return;
       }
       if(colEl)colEl.style.removeProperty('--tt-crt-radio');
@@ -2053,15 +2054,15 @@
       var gutter=Math.floor(pad-gap-left);
       if(gutter>=DESK_MIN&&want<=gutter){
         n.classList.remove('tt-crt-wrap');
-        setSize(gutter, 640);
+        setSize(gutter);
         n.style.paddingLeft=left+'px';
       }else if(gutter<DESK_MIN){
         n.classList.add('tt-crt-wrap');
         n.style.paddingLeft='';
-        setSize(want, Math.round(Math.min(want*1.4, 560)));
+        setSize(want);
       }else{
         n.classList.remove('tt-crt-wrap');
-        setSize(want, 640);
+        setSize(want);
         n.style.paddingLeft=left+'px';
       }
     }finally{sizing=false;parkVibes(true);}
