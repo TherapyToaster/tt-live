@@ -1,4 +1,12 @@
-/* TT site header: OOK glitch background v6.17
+/* TT site header: OOK glitch background v6.18
+   v6.18: optional new Home wall pictures where THERAPY TOASTER reads at a
+   glance (graffiti lettering + neon tubes, Hello sticker + official neon
+   logo kept bottom-right so the GOTTEM R hotspot is unchanged). Picked by
+   &wall=1|2|3 on this script's URL (or ?ttwall=1|2|3|off on the page for a
+   tab-session preview). 1 = Neon Throw-Up (home-wall-v3a), 2 = Wildstyle
+   Piece (v3b), 3 = Brush Tag Tubes (v3c). Neon A uses the matching
+   glow/tube layers (site-header/neon/v3a|v3b|v3c/), same 2.2s light-only
+   pulse, no motion. Without &wall= everything is exactly v6.17.
    v6.17: Neon A lighting-only pulse (opacity on the glow/tube overlays,
    2.2s cycle, quicker rise than fall). No scale, translate or shadow
    spread — the sign stays still. Peak brightness matches v6.15.
@@ -109,6 +117,16 @@
    the full-page Home scroll glitch lives in the Home code block.
 */
 (function(){
+  /* TT WALL v1 (v6.18): which Home wall picture. v2 = original shutter wall. */
+  var W=window,D=document,k='v2',src='',pg='';
+  var MAP={'1':'v3a','2':'v3b','3':'v3c'};
+  try{var me=D.currentScript;if(me&&me.src){var m=/[?&]wall=([123]|off)\b/i.exec(me.src);if(m)src=m[1].toLowerCase();}}catch(e){}
+  try{var q=/[?&]ttwall=([123]|off)\b/i.exec(location.search);
+    if(q){pg=q[1].toLowerCase();sessionStorage.setItem('ttwall',pg);}else pg=sessionStorage.getItem('ttwall')||'';}catch(e){}
+  var v=pg||src;if(MAP[v])k=MAP[v];
+  W.__ttWallKey=k;
+})();
+(function(){
   if(window.self!==window.top)return;
   var STYLE_ID='tt-site-ook-header-css';
   var CV_ID='tt-site-ook-cv';
@@ -140,9 +158,10 @@
   var BANNER_1200_JPG=ASSET+'nft-banner-1200.jpg';
   var CLS_OVL='tt-site-ook-ovl'; /* v6: overlay-only on a page's own header */
   var CLS_WALL='tt-site-ook-wall'; /* v6: Home wallpaper swap */
-  var WALL_2400_WEBP=ASSET+'home-wall-v2-2400.webp', WALL_2400_JPG=ASSET+'home-wall-v2-2400.jpg';
-  var WALL_1200_WEBP=ASSET+'home-wall-v2-1200.webp', WALL_1200_JPG=ASSET+'home-wall-v2-1200.jpg';
-  var WALL_FILL_WEBP=ASSET+'home-wall-v2-fill.webp', WALL_FILL_JPG=ASSET+'home-wall-v2-fill.jpg';
+  var WK=W.__ttWallKey||'v2'; /* v6.18 */
+  var WALL_2400_WEBP=ASSET+'home-wall-'+WK+'-2400.webp', WALL_2400_JPG=ASSET+'home-wall-'+WK+'-2400.jpg';
+  var WALL_1200_WEBP=ASSET+'home-wall-'+WK+'-1200.webp', WALL_1200_JPG=ASSET+'home-wall-'+WK+'-1200.jpg';
+  var WALL_FILL_WEBP=ASSET+'home-wall-'+WK+'-fill.webp', WALL_FILL_JPG=ASSET+'home-wall-'+WK+'-fill.jpg';
   var TOPWALL_ID='tt-topwall';
 
   var mode='off'; /* off | default | nft-banner | home-overlay | overlay */
@@ -864,7 +883,7 @@
     var img=tw.querySelector('.tw-img');if(!img)return null;
     var rc=img.getBoundingClientRect();if(!rc.width||!rc.height)return null;
     var cs=getComputedStyle(img);
-    if(!/home-wall-v2/.test(cs.backgroundImage||''))return null;
+    if(!/home-wall-v(2|3[abc])-/.test(cs.backgroundImage||''))return null;
     var sz=(cs.backgroundSize||'').split(',')[0].trim().split(/\s+/)[0]||'100%';
     var bw=/%$/.test(sz)?rc.width*parseFloat(sz)/100:(parseFloat(sz)||rc.width);
     var bh=bw/3;
@@ -968,7 +987,8 @@
   var DEFAULT='';
   var me=D.currentScript,srcV='';
   try{if(me&&me.src){var m=/[?&]neon=([abc]|off)\b/i.exec(me.src);if(m)srcV=m[1].toUpperCase();}}catch(e){}
-  var B='https://therapytoaster.github.io/tt-live/site-header/neon/',Q='?v=1';
+  var WK=W.__ttWallKey||'v2';
+  var B='https://therapytoaster.github.io/tt-live/site-header/neon/'+(WK==='v2'?'':WK+'/'),Q='?v=1';
   var GLOW=B+'neon-glow-800.webp'+Q,TUBES=B+'neon-tubes-1600.webp'+Q,MASK=B+'neon-mask-800.webp'+Q;
   var PTS='55ng14wlo05d1c1ca7s0hvao0ai6o07lc01gd5818yb42hvp029eak2a39802ay00323s05ntg01f0c02ofk0dhhk1fx341bfn817w3k1fyf00ja8s0fb0g2gpjs18n4w22yeg05phw27q701790s16whc1bp80150ko0chrk13lyg03neg09zoc029t401ytw08jfk2gvno18yh417q3428xj40exhc217mo04j9c08s542fsas0duso0db3w1gn3s09uow0jf500d7sk15lck0id2o2cdqw1ibk00d90c14pgg0c41g04tb00c3y81c2sw03efk0detk1d90g1dusk0743g1ibu826v8s1epxk08em41jctc0fn7o1am0o1dhps0h0u028w2029bvc25d1g1a76o021ag0fqtc08h741j6n40e1i40inwg09dcs1cpc01j7vk0a0i421l5o08cbs2f6y4088i81fuu009t3s284tw2gegs0dm7w0f9ws09d3c25rhg03ehc0fw2s0dcjw1agvc04lww025xs07v3k19an42euzg28zpc167sc1482g01f040a7880cbk01dtvg1g8h82jnw82etjk06j4o1gui80be481c6og2fye41ixsc07bik0bgl01hui40c9040c98c14aeo0ea1821yus0etl80c31w1558o03i640a9og09kis27dy41326o0hln404jg80j96g2haa407cqo03g0409fko2f9s02c2q01c8zc0fuwo27osk2caaw2bby419avo1dkzk0drcw01tuc0g61w2202009au01a49s29anc279101e9vs0fs0003sc001cl80h6u804bn009qvs1ccio11g8g03x9g0er2o021ac066sc28oik18ddk17mc02jgdo07npk14j800c6jg0h3481gobk12tgw08bb80dtow022lc0diy80925k1c7vs17ynw2enjo2j43k0b70g24quk08r4c13yi007sk424gok0e09o0bmqk17jsg126400ce7o1536s17oyg1690w1dsbw0dmf8190so13lv009ue42cp3c177lo1eisc08dk026u8c15hy41dxew0dqdk02m2g0bz5g21clc0ck9415gg40akgg09udk2fdlo0a3142gn3411yu00ehfc22dig0gm3k2544s0cahs1fn7k1auew0d3zw144h00fqss0chos14fhw0df8k090x41echk26yy81hmmw0h9b00iy282h1wo01rdg0alw00focs0j7vo0fia81fjr40f4zc0jcmo0a3cg03pjk0dvbk07tms156r806nu41d8ug1dw6g0a4es0dgbs19z9c282og0g5to06rjg17hi81gc842a3ew0gycw29x6w03uso05phs2a7yg2fepc1hn282ezwg19up0087ao2bbp4022io0epuw0hkd414fg80fzsk0ca2c1j1o02iiyk0a23c0dso4132fk0ighs0b36g0fb0c17q8o159b40e7eo05j6c1dkzc09ecc2i7uo0hln809pgk2a77009pxg046xs03d8w07p0c14vro0jbnc2i3zg0hj6c07xbw19rvg2592809ks01geds1a77404i1807f7c0c1tk1jlf029lrc227jw0beew190pc2a0vo088fo1cae429y1427md42dtoo0etl40f4zg0e7og09fl82azgw0ht9s0hlts2d6ho1gpk01hltg28n782dbbc17sek1b95w09n6g1c97417qcg0jk702b6pc0gxz8024xk0fsaw0aib018h1023lv40euz825bis02dbs05e7g05ld80g11g38yrk09n941gwz001noc0fcdg08x2o2be600ahzo0fr4s07l8c1ials28ksw1cfao1dkzo04gsw0d1o01276s0bbmo03m600g5t0139lg0j8ww0fr4c0eb783ecfo3esjk2j92s24bn4094hg2c5c828esg2ikhc29mzk2ekpg0a9ow0doq80cdqs15p1g029p408fyk19e9w2';
   var PAL=['90,200,255','255,90,120','255,212,0','255,255,255'];
@@ -1030,7 +1050,7 @@
     var img=tw.querySelector('.tw-img');if(!img)return null;
     var rc=img.getBoundingClientRect(),tr=tw.getBoundingClientRect();if(!rc.width||!rc.height)return null;
     var cs=getComputedStyle(img);
-    if(!/home-wall-v2/.test(cs.backgroundImage||''))return null;
+    if(!/home-wall-v(2|3[abc])-/.test(cs.backgroundImage||''))return null;
     var sz=(cs.backgroundSize||'').split(',')[0].trim().split(/\s+/)[0]||'100%';
     var bw=/%$/.test(sz)?rc.width*parseFloat(sz)/100:(parseFloat(sz)||rc.width),bh=bw/3;
     var px=(cs.backgroundPositionX||'50%').split(',')[0].trim(),py=(cs.backgroundPositionY||'50%').split(',')[0].trim();
