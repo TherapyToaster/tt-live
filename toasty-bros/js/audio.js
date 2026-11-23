@@ -1,0 +1,519 @@
+// Original procedural WebAudio chiptune + SFX for Mr. Toasty: Toasty Bros. No samples, no external assets.
+'use strict';
+const AudioSys = (function(){
+  let ctx = null, master, musicBus, sfxBus, noiseBuf, pulse25, pulse12, leadBus, echoSend;
+  let current = null, playing = false, step = 0, nextT = 0, timer = null, tempoMul = 1, mode = 'normal', humNodes = [];
+  const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+  function init(){
+    if (ctx) return true;
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return false;
+    try { ctx = new AC(); } catch (e) { return false; }
+    master = ctx.createGain(); master.gain.value = 0.55; master.connect(ctx.destination);
+    musicBus = ctx.createGain(); musicBus.gain.value = 0.32; musicBus.connect(master);
+    sfxBus = ctx.createGain(); sfxBus.gain.value = 0.5; sfxBus.connect(master);
+    // lead bus with a short "spring" echo send (World 2 surf flavor)
+    leadBus = ctx.createGain(); leadBus.gain.value = 1; leadBus.connect(musicBus);
+    echoSend = ctx.createGain(); echoSend.gain.value = 0; leadBus.connect(echoSend);
+    const dl = ctx.createDelay(1), fb = ctx.createGain(), lp = ctx.createBiquadFilter();
+    dl.delayTime.value = 0.15; fb.gain.value = 0.38; lp.type = 'lowpass'; lp.frequency.value = 2600;
+    echoSend.connect(dl); dl.connect(lp); lp.connect(fb); fb.connect(dl); lp.connect(musicBus);
+    noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+    const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    pulse25 = makePulse(0.25); pulse12 = makePulse(0.125);
+    return true;
+  }
+  function makePulse(duty){
+    const n = 48, re = new Float32Array(n), im = new Float32Array(n);
+    for (let k = 1; k < n; k++) re[k] = (2 / (k * Math.PI)) * Math.sin(k * Math.PI * duty);
+    return ctx.createPeriodicWave(re, im);
+  }
+  // v0.5: iOS needs resume() inside a user gesture and a (silent) sound started in that same gesture; also recover from 'interrupted'
+  let primed = false;
+  function unlock(){
+    if (!init()) return;
+    if (ctx.state === 'suspended' || ctx.state === 'interrupted'){ try { const p = ctx.resume(); if (p && p.catch) p.catch(() => {}); } catch (e) {} }
+    if (!primed){ primed = true; try { const b = ctx.createBuffer(1, 1, 22050), s = ctx.createBufferSource(); s.buffer = b; s.connect(ctx.destination); s.start(0); } catch (e) {} }
+  }
+  function ready(){ return ctx && ctx.state === 'running'; }
+  function osc(type, f0, f1, t0, dur, vol, dest, sustain){
+    const o = ctx.createOscillator();
+    if (type === 'p25') o.setPeriodicWave(pulse25); else if (type === 'p12') o.setPeriodicWave(pulse12); else o.type = type;
+    o.frequency.setValueAtTime(f0, t0);
+    if (f1 && f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t0 + dur);
+    const gn = ctx.createGain();
+    gn.gain.setValueAtTime(vol, t0);
+    if (sustain) gn.gain.setValueAtTime(vol, t0 + dur * sustain);
+    gn.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(gn); gn.connect(dest || sfxBus); o.start(t0); o.stop(t0 + dur + 0.03);
+    return o;
+  }
+  function noise(t0, dur, vol, ftype, freq, dest, f1){
+    const s = ctx.createBufferSource(); s.buffer = noiseBuf;
+    const f = ctx.createBiquadFilter(); f.type = ftype || 'highpass'; f.frequency.setValueAtTime(freq || 1000, t0);
+    if (f1) f.frequency.exponentialRampToValueAtTime(f1, t0 + dur);
+    const gn = ctx.createGain(); gn.gain.setValueAtTime(vol, t0); gn.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    s.connect(f); f.connect(gn); gn.connect(dest || sfxBus); s.start(t0, Math.random() * 1.5); s.stop(t0 + dur + 0.03);
+  }
+  function seq(notes, t, dt, type, vol, len){ notes.forEach((m, i) => { if (m) osc(type || 'p25', mtof(m), null, t + i * dt, len || dt * 0.95, vol || 0.2, sfxBus, 0.6); }); }
+
+  // ---- Songs (all original). Format: lead [step, midi, len], roots per bar, minor flags, style knobs. ----
+  const SONGS = {
+    // "Static Breakfast" — World 1 overworld, E minor
+    w1_over: { bpm: 144, steps: 128, wave: 'p25', vol: 0.17, bass: 'bounce', arp: 'late', hum: 'crt', kick: [0, 7, 8], snare: [4, 12], hat: 'odd', stab: true,
+      lead: [[0,76,1],[2,71,1],[4,76,1],[5,79,1],[7,78,2],[10,76,1],[11,74,1],[13,71,3],[16,69,1],[18,71,1],[20,74,2],[23,71,1],[24,69,1],[25,67,1],[27,64,2],[30,67,2],
+        [32,76,1],[34,71,1],[36,76,1],[37,79,1],[39,81,2],[42,79,1],[43,78,1],[45,76,3],[48,74,1],[50,71,1],[52,67,1],[53,69,1],[54,71,2],[57,69,1],[58,67,1],[59,66,1],[60,64,4],
+        [64,67,1],[65,67,1],[67,71,1],[69,74,2],[72,79,2],[74,78,1],[75,76,1],[76,74,2],[79,71,1],[80,72,2],[83,72,1],[84,76,2],[87,79,2],[90,76,1],[91,72,1],[93,69,3],
+        [96,71,1],[97,71,1],[98,71,1],[100,74,2],[103,78,2],[106,81,2],[109,78,1],[110,74,2],[112,76,1],[114,76,1],[115,75,1],[116,76,2],[119,71,1],[120,67,2],[123,64,1],[124,64,1]],
+      roots: [40, 36, 45, 47, 43, 36, 38, 40], minor: [1, 0, 1, 0, 0, 0, 0, 1] },
+    // "Conveyor Lullaby" — Toast Factory underground variant: slow, plucky, clanky
+    w1_under: { bpm: 118, steps: 64, wave: 'triangle', vol: 0.3, bass: 'ostinato', arp: 'none', hum: 'drone', kick: [0, 8], snare: [], clank: [4, 12], hat: 'even', stab: false,
+      lead: [[0,64,1],[3,67,1],[6,70,2],[10,69,1],[12,67,1],[14,64,2],[16,62,1],[19,64,1],[22,67,2],[26,64,1],[28,59,3],
+        [32,64,1],[35,67,1],[38,70,2],[42,72,1],[44,70,1],[46,69,2],[48,67,1],[50,64,1],[52,62,1],[54,64,4],[60,59,1],[62,58,1]],
+      roots: [40, 40, 36, 35], minor: [1, 1, 0, 0] },
+    // "Acid Rain Neon" — rooftop variant: fast arps and rain hiss
+    w1_sky: { bpm: 152, steps: 64, wave: 'p25', vol: 0.15, bass: 'pulse', arp: 'all', hum: 'rain', kick: [0, 6, 8, 14], snare: [4, 12], hat: 'odd', stab: true,
+      lead: [[0,71,2],[2,74,2],[4,78,3],[8,76,1],[10,74,1],[12,71,4],[16,69,2],[18,71,2],[20,74,3],[24,73,1],[26,71,1],[28,66,4],
+        [32,71,2],[34,74,2],[36,78,2],[38,81,3],[42,79,1],[44,78,4],[48,76,2],[50,74,2],[52,73,2],[54,71,6],[62,66,2]],
+      roots: [47, 43, 38, 42], minor: [1, 0, 0, 0] },
+    // "Broadcast Tower" — castle: tritone crawl
+    w1_castle: { bpm: 132, steps: 64, wave: 'p25', vol: 0.15, bass: 'pulse', arp: 'none', hum: 'crt', kick: [0, 8], snare: [12], hat: 'odd', stab: true,
+      lead: [[0,64,2],[2,70,2],[4,69,1],[5,68,1],[6,67,2],[8,64,2],[10,70,2],[12,71,4],[16,64,2],[18,70,2],[20,69,1],[21,68,1],[22,67,2],[24,63,2],[26,62,2],[28,64,4],
+        [32,65,2],[34,71,2],[36,70,1],[37,69,1],[38,68,2],[40,65,2],[42,71,2],[44,72,4],[48,64,2],[50,70,2],[52,76,2],[54,75,2],[56,70,2],[58,69,2],[60,64,4]],
+      roots: [40, 40, 41, 40], minor: [1, 1, 1, 1] },
+    // "Insider Threat" — THE GLITCH boss: castle motif, faster and heavier
+    w1_boss: { bpm: 170, steps: 64, wave: 'p25', vol: 0.15, bass: 'pulse', arp: 'all', hum: 'crt', kick: [0, 4, 8, 10, 12], snare: [4, 12], hat: 'all', stab: true,
+      lead: [[0,64,1],[1,70,1],[2,64,1],[3,70,1],[4,69,2],[6,68,2],[8,64,1],[9,76,1],[10,75,2],[12,70,4],[16,64,1],[17,70,1],[18,64,1],[19,70,1],[20,71,2],[22,72,2],[24,71,2],[26,70,2],[28,64,4],
+        [32,65,1],[33,71,1],[34,65,1],[35,71,1],[36,70,2],[38,69,2],[40,65,1],[41,77,1],[42,76,2],[44,71,4],[48,76,2],[50,75,2],[52,70,2],[54,69,2],[56,64,2],[58,63,2],[60,58,4]],
+      roots: [40, 40, 41, 46], minor: [1, 1, 1, 1] },
+    // ---------------- World 2: TOASTER KART (surf-rock chiptune: tremolo-picked lead + spring echo) ----------------
+    // "Monday Errands" — 2-1 suburb, G major cruising tune
+    w2_suburb: { bpm: 150, steps: 128, wave: 'p25', vol: 0.15, bass: 'surf', arp: 'late', hum: 'none', kick: [0, 8, 10], snare: [4, 12], hat: 'all', stab: false, trem: true, echo: 0.3, tom: [13, 14, 15],
+      lead: [[0,67,2],[2,71,1],[3,74,1],[4,79,3],[8,78,1],[9,76,1],[10,74,2],[12,71,4],
+        [16,72,2],[18,76,2],[20,79,2],[22,76,1],[23,74,1],[24,72,2],[26,71,2],[28,69,4],
+        [32,67,2],[34,71,1],[35,74,1],[36,79,3],[40,81,1],[41,79,1],[42,78,2],[44,79,4],
+        [48,74,2],[50,78,2],[52,81,4],[56,79,1],[57,78,1],[58,76,1],[59,74,1],[60,74,4],
+        [64,71,2],[66,74,2],[68,76,4],[72,79,2],[74,76,2],[76,74,4],
+        [80,72,2],[82,76,2],[84,79,3],[87,76,1],[88,72,2],[90,71,2],[92,72,4],
+        [96,74,1],[97,74,1],[98,78,2],[100,81,2],[102,78,2],[104,79,2],[106,81,2],[108,83,4],
+        [112,79,2],[114,74,2],[116,71,2],[118,74,2],[120,79,6]],
+      roots: [43, 48, 43, 50, 40, 48, 50, 43], minor: [0, 0, 0, 0, 1, 0, 0, 0] },
+    // "Toaster Tide" — 2-2 boardwalk & pier, E dorian surf stomp
+    w2_tide: { bpm: 160, steps: 64, wave: 'p12', vol: 0.15, bass: 'surf', arp: 'none', hum: 'surf', kick: [0, 6, 8], snare: [4, 12], hat: 'odd', stab: true, trem: true, echo: 0.42, tom: [12, 13, 14, 15],
+      lead: [[0,64,1],[1,64,1],[2,67,1],[3,69,1],[4,71,2],[6,69,1],[7,67,1],[8,64,2],[10,62,1],[11,64,1],[12,64,4],
+        [16,64,1],[17,64,1],[18,67,1],[19,69,1],[20,71,2],[22,74,1],[23,76,1],[24,74,2],[26,71,1],[27,69,1],[28,71,4],
+        [32,69,1],[33,69,1],[34,73,1],[35,76,1],[36,81,3],[39,79,1],[40,76,2],[42,73,1],[43,71,1],[44,69,4],
+        [48,71,1],[49,71,1],[50,75,1],[51,78,1],[52,83,3],[55,81,1],[56,78,2],[58,75,1],[59,74,1],[60,71,4]],
+      roots: [40, 40, 45, 47], minor: [1, 1, 0, 0] },
+    // "Under the Pier" — 2-2 under-pier section: slow, drippy, echoey
+    w2_under: { bpm: 112, steps: 64, wave: 'triangle', vol: 0.3, bass: 'ostinato', arp: 'none', hum: 'surf', kick: [0, 8], snare: [], clank: [6, 14], hat: 'even', stab: false, echo: 0.5,
+      lead: [[0,69,2],[3,72,1],[4,76,3],[8,74,2],[10,72,2],[12,69,4],[16,65,2],[19,69,1],[20,72,3],[24,71,2],[26,69,2],[28,65,4],
+        [32,67,2],[35,71,1],[36,74,3],[40,72,2],[42,71,2],[44,67,4],[48,68,2],[50,71,2],[52,76,6],[58,74,2],[60,71,4]],
+      roots: [45, 41, 43, 40], minor: [1, 0, 0, 0] },
+    // "Graveyard Shuffle" — 2-3, spooky-goofy chromatic creep in D minor
+    w2_grave: { bpm: 132, steps: 64, wave: 'p12', vol: 0.15, bass: 'walk', arp: 'none', hum: 'spook', kick: [0, 8], snare: [4, 12], hat: 'even', stab: true, echo: 0.3,
+      lead: [[0,62,1],[2,65,1],[4,69,1],[5,68,1],[6,67,1],[7,66,1],[8,65,2],[10,62,2],[12,74,1],[13,73,1],[14,74,2],
+        [16,62,1],[18,65,1],[20,69,1],[21,70,1],[22,69,1],[23,68,1],[24,69,4],[28,57,2],[30,61,2],
+        [32,58,1],[34,62,1],[36,65,1],[37,66,1],[38,65,1],[39,64,1],[40,62,2],[42,65,2],[44,70,4],
+        [48,69,1],[49,68,1],[50,67,1],[51,66,1],[52,65,1],[53,64,1],[54,63,1],[55,62,1],[56,61,4],[60,64,1],[62,69,2]],
+      roots: [38, 38, 34, 33], minor: [1, 1, 0, 0] },
+    // "Toaster Fortress" — 2-4 junkyard bridge, E phrygian surf march
+    w2_castle: { bpm: 140, steps: 64, wave: 'p25', vol: 0.15, bass: 'surf', arp: 'none', hum: 'drone', kick: [0, 3, 8, 11], snare: [4, 12], hat: 'odd', stab: true, trem: true, echo: 0.25,
+      lead: [[0,64,2],[2,65,2],[4,64,1],[5,67,1],[6,65,2],[8,64,4],[12,71,2],[14,70,2],
+        [16,65,2],[18,69,2],[20,72,3],[23,71,1],[24,69,2],[26,65,2],[28,64,4],
+        [32,64,2],[34,65,2],[36,64,1],[37,67,1],[38,70,2],[40,71,4],[44,72,2],[46,71,2],
+        [48,67,2],[50,71,2],[52,74,3],[55,72,1],[56,71,2],[58,67,2],[60,64,4]],
+      roots: [40, 41, 40, 43], minor: [1, 0, 1, 0] },
+    // "Grand Toaster" — boss: rumbly engine bass, pounding drums
+    w2_boss: { bpm: 168, steps: 64, wave: 'p25', vol: 0.14, bass: 'rumble', arp: 'all', hum: 'rumble', kick: [0, 2, 4, 8, 10, 12], snare: [4, 12], hat: 'all', stab: true, echo: 0.15, tom: [14, 15],
+      lead: [[0,64,1],[1,64,1],[2,71,1],[3,64,1],[4,70,2],[6,69,2],[8,64,1],[9,64,1],[10,67,1],[11,69,1],[12,70,4],
+        [16,64,1],[17,64,1],[18,71,1],[19,64,1],[20,72,2],[22,71,2],[24,69,2],[26,67,2],[28,64,4],
+        [32,60,1],[33,60,1],[34,67,1],[35,60,1],[36,72,2],[38,71,2],[40,67,1],[41,67,1],[42,69,1],[43,71,1],[44,72,4],
+        [48,62,1],[49,62,1],[50,69,1],[51,62,1],[52,74,2],[54,72,2],[56,71,2],[58,69,2],[60,66,4]],
+      roots: [40, 40, 36, 38], minor: [1, 1, 0, 0] },
+    // ---- World 3: TOASTER PIT (all original, D minor; lo-fi creepy basement synth) ----
+    // "Graffiti Basement" — half-time lo-fi: lazy triangle bass, vinyl crackle, a thin pulse lead with long echo
+    w3_basement: { bpm: 84, steps: 64, wave: 'p12', vol: 0.11, bass: 'lofi', arp: 'none', hum: 'crackle', kick: [0, 10], snare: [8], hat: 'odd', echo: 0.35, pad: true,
+      lead: [[0,74,3],[4,72,1],[5,70,1],[6,69,4],[12,65,2],[14,67,2],[16,70,3],[20,69,1],[21,67,1],[22,65,4],[28,62,4],
+        [32,74,3],[36,77,2],[38,76,2],[40,74,4],[44,70,2],[46,72,2],[48,73,3],[52,76,1],[53,74,1],[54,73,4],[60,69,4]],
+      roots: [38, 34, 36, 33], minor: [1, 0, 0, 0] },
+    // "Toaster Wiring" — mains hum, clanky ostinato, nervous pulse riff
+    w3_wiring: { bpm: 112, steps: 64, wave: 'p25', vol: 0.12, bass: 'ostinato', arp: 'none', hum: 'mains', kick: [0, 4, 8, 12], snare: [4, 12], hat: 'all', clank: [6, 14], echo: 0.18,
+      lead: [[0,62,1],[1,65,1],[2,69,1],[3,65,1],[4,74,2],[6,73,2],[8,62,1],[9,65,1],[10,69,1],[11,65,1],[12,70,4],
+        [16,62,1],[17,65,1],[18,69,1],[19,65,1],[20,74,2],[22,76,2],[24,77,2],[26,76,1],[27,74,1],[28,73,4],
+        [32,65,1],[33,69,1],[34,72,1],[35,69,1],[36,77,2],[38,76,2],[40,64,1],[41,67,1],[42,70,1],[43,67,1],[44,73,4],
+        [48,62,1],[49,65,1],[50,69,1],[51,65,1],[52,74,2],[54,72,2],[56,70,2],[58,69,2],[60,62,4]],
+      roots: [38, 38, 41, 40], minor: [1, 1, 0, 1] },
+    // "Reel Tunnels" — walking bass, crackle, spinning arpeggios late in the loop
+    w3_reels: { bpm: 124, steps: 64, wave: 'p12', vol: 0.11, bass: 'walk', arp: 'late', hum: 'crackle', kick: [0, 6, 8, 14], snare: [4, 12], hat: 'odd', echo: 0.22,
+      lead: [[0,69,2],[2,70,1],[3,69,1],[4,67,2],[6,65,2],[8,64,2],[10,65,2],[12,62,4],
+        [16,67,2],[18,69,1],[19,67,1],[20,65,2],[22,64,2],[24,62,2],[26,64,2],[28,57,4],
+        [32,69,2],[34,72,1],[35,70,1],[36,69,2],[38,67,2],[40,69,2],[42,73,2],[44,76,4],
+        [48,74,2],[50,73,2],[52,70,2],[54,69,2],[56,67,2],[58,64,2],[60,62,4]],
+      roots: [38, 43, 45, 38], minor: [1, 1, 0, 1] },
+    // "Crumb Vault" — slow and heavy, tremolo lead, drone + pad
+    w3_vault: { bpm: 96, steps: 64, wave: 'p25', vol: 0.13, bass: 'lofi', arp: 'none', hum: 'drone', kick: [0, 8], snare: [12], hat: 'odd', trem: true, echo: 0.3, pad: true,
+      lead: [[0,62,4],[4,65,2],[6,64,2],[8,62,4],[12,61,4],[16,58,4],[20,62,2],[22,65,2],[24,64,8],
+        [32,62,4],[36,67,2],[38,65,2],[40,64,4],[44,70,4],[48,69,4],[52,68,2],[54,67,2],[56,61,8]],
+      roots: [38, 34, 31, 33], minor: [1, 0, 0, 0] },
+    // "The Breadlord" — boss: tritone bass (D / G#), pounding drums, chromatic lead
+    w3_boss: { bpm: 150, steps: 64, wave: 'p25', vol: 0.13, bass: 'tritone', arp: 'all', hum: 'rumble', kick: [0, 3, 8, 11], snare: [4, 12], hat: 'all', stab: true, tom: [14, 15], echo: 0.15,
+      lead: [[0,62,1],[1,62,1],[2,68,2],[4,67,1],[5,65,1],[6,62,2],[8,74,2],[10,68,2],[12,69,4],
+        [16,62,1],[17,62,1],[18,68,2],[20,70,1],[21,69,1],[22,68,2],[24,74,2],[26,75,2],[28,74,4],
+        [32,65,1],[33,65,1],[34,71,2],[36,70,1],[37,68,1],[38,65,2],[40,77,2],[42,71,2],[44,72,4],
+        [48,62,1],[49,62,1],[50,68,2],[52,69,1],[53,68,1],[54,67,2],[56,62,2],[58,68,2],[60,62,4]],
+      roots: [38, 38, 44, 38], minor: [1, 1, 1, 1] },
+    // ---- v0.6 World 4: TOASTER CARDS — a late-night jukebox gone wrong: original doo-wop-style I-vi-IV-V progressions,
+    // lounge organ chucks, warbly detuned lead (tape wow), tape hiss + fluorescent buzz. The boss theme is the 4-1 tune slowed down and distorted.
+    // "3 A.M. Special" — 4-1 Diner Floor
+    w4_diner: { bpm: 112, steps: 64, wave: 'triangle', vol: 0.26, bass: 'doowop', arp: 'none', hum: 'diner', kick: [0, 8], snare: [4, 12], hat: 'odd', stab: false, organ: true, warble: 18, stutter: true, pad: true, echo: 0.12,
+      lead: [[0,72,2],[2,76,2],[4,79,3],[8,81,1],[9,79,1],[10,76,2],[12,72,4],[16,69,2],[18,72,2],[20,76,3],[24,74,1],[25,72,1],[26,69,2],[28,72,4],
+        [32,77,2],[34,76,2],[36,74,2],[38,72,2],[40,69,3],[44,72,2],[46,74,2],[48,79,3],[52,77,1],[53,76,1],[54,74,2],[56,71,2],[58,74,2],[60,67,4]],
+      roots: [36, 33, 41, 43], minor: [0, 1, 0, 0] },
+    // "Grease Fire Shuffle" — 4-2 Kitchen + Grease Trap
+    w4_kitchen: { bpm: 132, steps: 64, wave: 'p25', vol: 0.15, bass: 'doowop', arp: 'none', hum: 'diner', kick: [0, 6, 8], snare: [4, 12], hat: 'odd', clank: [6, 14], stab: true, organ: true, warble: 12, stutter: true,
+      lead: [[0,74,1],[1,74,1],[2,78,2],[4,81,2],[6,78,1],[7,76,1],[8,74,2],[10,71,2],[12,74,4],[16,71,1],[17,71,1],[18,74,2],[20,78,2],[22,76,1],[23,74,1],[24,71,2],[26,69,2],[28,71,4],
+        [32,79,2],[34,78,1],[35,76,1],[36,74,2],[38,71,2],[40,74,2],[42,76,2],[44,79,4],[48,81,2],[50,79,1],[51,78,1],[52,76,2],[54,73,2],[56,76,2],[58,78,2],[60,69,4]],
+      roots: [38, 35, 43, 45], minor: [0, 1, 0, 0] },
+    // "Last Booth Ballad" — 4-3 The Last Booth
+    w4_booth: { bpm: 96, steps: 64, wave: 'triangle', vol: 0.27, bass: 'doowop', arp: 'none', hum: 'diner', kick: [0, 10], snare: [4, 12], hat: 'even', stab: false, organ: true, warble: 26, stutter: true, pad: true, echo: 0.2,
+      lead: [[0,69,3],[4,72,2],[6,71,1],[7,69,1],[8,76,4],[12,74,2],[14,72,2],[16,69,3],[20,72,2],[22,74,2],[24,77,4],[28,76,4],
+        [32,72,3],[36,76,2],[38,74,1],[39,72,1],[40,79,4],[44,76,4],[48,74,3],[52,71,2],[54,72,1],[55,74,1],[56,71,4],[60,67,4]],
+      roots: [33, 41, 36, 43], minor: [1, 0, 0, 0] },
+    // "Repairman's Rerun" — 4-4 castle: the 3 A.M. tune in a minor key, CRT whine
+    w4_repair: { bpm: 120, steps: 64, wave: 'p25', vol: 0.14, bass: 'doowop', arp: 'none', hum: 'crtwhine', kick: [0, 8], snare: [12], hat: 'odd', stab: true, organ: true, warble: 30, stutter: true,
+      lead: [[0,72,2],[2,75,2],[4,79,3],[8,80,1],[9,79,1],[10,75,2],[12,72,4],[16,68,2],[18,72,2],[20,75,3],[24,77,1],[25,75,1],[26,72,2],[28,75,4],
+        [32,77,2],[34,75,2],[36,73,2],[38,72,2],[40,68,3],[44,72,2],[46,74,2],[48,79,3],[52,77,1],[53,75,1],[54,74,2],[56,71,2],[58,74,2],[60,67,4]],
+      roots: [36, 32, 41, 43], minor: [1, 0, 1, 0] },
+    // "Evil Rerun" — boss: the same 3 A.M. Special, slowed down (pitch drops like stretched tape) and distorted, CRT whine
+    w4_boss: { bpm: 84, steps: 64, wave: 'sawtooth', vol: 0.09, bass: 'doowop', arp: 'all', hum: 'crtwhine', kick: [0, 6, 8, 14], snare: [4, 12], hat: 'all', stab: true, organ: true, warble: 45, stutter: true, dist: true, pitch: -3, tom: [14, 15], echo: 0.18,
+      lead: [[0,72,2],[2,76,2],[4,79,3],[8,81,1],[9,79,1],[10,76,2],[12,72,4],[16,69,2],[18,72,2],[20,76,3],[24,74,1],[25,72,1],[26,69,2],[28,72,4],
+        [32,77,2],[34,76,2],[36,74,2],[38,72,2],[40,69,3],[44,72,2],[46,74,2],[48,79,3],[52,77,1],[53,76,1],[54,74,2],[56,71,2],[58,74,2],[60,67,4]],
+      roots: [36, 33, 41, 43], minor: [0, 1, 0, 0] },
+    // ---- v0.7 World 5: SKULLZ BUMBO — a creepy-cute cardboard puppet-show march: pizzicato plucks, toy-piano chimes,
+    // kazoo / bassoon reeds, woodblock + cardboard-box percussion, a projector whir. The boss theme is the 5-1 march made
+    // heavier: buzzing distorted synth, a hive drone and a tick-tock clock.
+    // "Crumb Hatch March" — 5-1
+    w5_hatch: { bpm: 116, steps: 64, wave: 'triangle', vol: 0.3, bass: 'march', arp: 'none', hum: 'theater', kick: [0, 8], snare: [12], hat: 'none', pluck: true, toy: true, wood: [2, 6, 10, 14], box: [4, 12],
+      lead: [[0,74,1],[2,77,1],[4,81,2],[6,77,1],[8,74,1],[10,76,1],[12,77,2],[14,76,1],
+        [16,73,1],[18,76,1],[20,81,2],[22,79,1],[24,77,1],[26,76,1],[28,73,2],[30,69,1],
+        [32,74,1],[34,77,1],[36,81,1],[37,82,1],[38,81,2],[40,77,1],[42,74,1],[44,81,2],[46,79,1],
+        [48,79,1],[50,77,1],[52,74,2],[54,70,1],[56,73,1],[58,76,1],[60,74,3]],
+      roots: [38, 45, 38, 43], minor: [1, 0, 1, 1] },
+    // "Butter Drain Bassoon" — 5-2: kazoo lead over an oom-pah bassoon
+    w5_drain: { bpm: 100, steps: 64, wave: 'sawtooth', vol: 0.12, bass: 'march', arp: 'none', hum: 'theater', kick: [0, 8], snare: [4, 12], hat: 'none', kazoo: true, warble: 16, wood: [3, 11], box: [6, 14],
+      lead: [[0,79,2],[2,82,1],[3,81,1],[4,79,2],[6,74,2],[8,75,1],[9,77,1],[10,79,2],[12,74,4],
+        [16,75,2],[18,79,1],[19,82,1],[20,84,2],[22,82,2],[24,79,2],[26,77,2],[28,75,4],
+        [32,82,2],[34,81,1],[35,79,1],[36,77,2],[38,74,2],[40,77,2],[42,81,2],[44,82,4],
+        [48,81,2],[50,78,2],[52,74,2],[54,78,2],[56,81,2],[58,78,1],[59,77,1],[60,74,4]],
+      roots: [43, 39, 46, 38], minor: [1, 0, 0, 0] },
+    // "Cutlery Crypt Creep" — 5-3: tiptoe pizzicato, toy piano, tick-tock
+    w5_crypt: { bpm: 92, steps: 64, wave: 'triangle', vol: 0.3, bass: 'march', arp: 'none', hum: 'theater', kick: [0], snare: [8], hat: 'none', pluck: true, toy: true, tick: true, echo: 0.18, wood: [6, 14],
+      lead: [[0,69,1],[1,72,1],[2,76,2],[4,77,1],[5,76,1],[6,72,2],[8,74,1],[9,72,1],[10,71,2],[12,69,4],
+        [16,72,1],[17,76,1],[18,81,2],[20,79,1],[21,77,1],[22,76,2],[24,72,2],[26,74,2],[28,76,4],
+        [32,79,1],[33,77,1],[34,76,2],[36,74,1],[37,72,1],[38,71,2],[40,74,2],[42,79,2],[44,77,4],
+        [48,76,1],[49,77,1],[50,76,2],[52,74,1],[53,71,1],[54,68,2],[56,71,2],[58,74,2],[60,76,4]],
+      roots: [45, 41, 43, 40], minor: [1, 0, 0, 0] },
+    // "Chrome Hall Parade" — 5-4 castle: the hatch march in a darker key, kazoo + pulse, clock ticking
+    w5_chrome: { bpm: 108, steps: 64, wave: 'p25', vol: 0.13, bass: 'march', arp: 'none', hum: 'theater', kick: [0, 8], snare: [4, 12], hat: 'none', pluck: true, kazoo: true, warble: 10, tick: true, wood: [2, 10], box: [14], stab: true, pitch: -5,
+      lead: [[0,74,1],[2,77,1],[4,81,2],[6,77,1],[8,74,1],[10,76,1],[12,77,2],[14,76,1],
+        [16,73,1],[18,76,1],[20,81,2],[22,79,1],[24,77,1],[26,76,1],[28,73,2],[30,69,1],
+        [32,74,1],[34,77,1],[36,81,1],[37,82,1],[38,81,2],[40,77,1],[42,74,1],[44,81,2],[46,79,1],
+        [48,79,1],[50,77,1],[52,74,2],[54,70,1],[56,73,1],[58,76,1],[60,74,3]],
+      roots: [38, 45, 38, 43], minor: [1, 1, 1, 1] },
+    // "Hive Broadcast" — boss: the same Crumb Hatch march, heavier — buzzing distorted synth, hive drone, tick-tock
+    w5_boss: { bpm: 132, steps: 64, wave: 'sawtooth', vol: 0.085, bass: 'march', arp: 'none', hum: 'buzz', kick: [0, 4, 8, 12], snare: [4, 12], hat: 'odd', tick: true, dist: true, stutter: true, box: [14, 15], pitch: -2, warble: 8,
+      lead: [[0,74,1],[2,77,1],[4,81,2],[6,77,1],[8,74,1],[10,76,1],[12,77,2],[14,76,1],
+        [16,73,1],[18,76,1],[20,81,2],[22,79,1],[24,77,1],[26,76,1],[28,73,2],[30,69,1],
+        [32,74,1],[34,77,1],[36,81,1],[37,82,1],[38,81,2],[40,77,1],[42,74,1],[44,81,2],[46,79,1],
+        [48,79,1],[50,77,1],[52,74,2],[54,70,1],[56,73,1],[58,76,1],[60,74,3]],
+      roots: [38, 45, 38, 43], minor: [1, 0, 1, 1] },
+    // ---- v0.8 World 6: MR. TOASTY'S CRYPT: procedural glitch chiptune: minor-key dungeon loops, bitcrushed stabs
+    // (a stepped waveshaper), stutter fills. The boss theme is the 6-1 loop, faster and distorted.
+    // "Crypt Halls Loop" (6-1)
+    w6_halls: { bpm: 120, steps: 64, wave: 'p25', vol: 0.14, bass: 'tritone', arp: 'none', hum: 'crypt', kick: [0, 8, 11], snare: [4, 12], hat: 'odd', crush: true, crushStab: [0, 6, 10], stutter: true,
+      lead: [[0,69,2],[2,72,1],[3,71,1],[4,69,2],[6,64,2],[8,65,1],[9,67,1],[10,69,2],[12,72,1],[13,71,1],[14,67,2],
+        [16,69,2],[18,72,1],[19,74,1],[20,76,2],[22,74,1],[23,72,1],[24,71,2],[26,68,2],[28,64,4],
+        [32,69,2],[34,72,1],[35,71,1],[36,69,2],[38,64,2],[40,65,1],[41,67,1],[42,69,2],[44,76,1],[45,74,1],[46,72,2],
+        [48,71,2],[50,72,1],[51,71,1],[52,68,2],[54,71,2],[56,69,2],[58,68,1],[59,66,1],[60,69,4]],
+      roots: [45, 41, 43, 40], minor: [1, 0, 1, 0] },
+    // "Jam Kitchen Bubbler" (6-2): bubbly triangle lead, bitcrushed off-beat stabs
+    w6_jam: { bpm: 108, steps: 64, wave: 'triangle', vol: 0.28, bass: 'walk', arp: 'none', hum: 'crypt', kick: [0, 8], snare: [12], hat: 'even', crush: true, crushStab: [2, 6, 10, 14], echo: 0.16,
+      lead: [[0,74,1],[1,77,1],[2,81,2],[4,79,1],[5,77,1],[6,76,2],[8,74,2],[10,72,1],[11,74,1],[12,76,4],
+        [16,77,1],[17,76,1],[18,74,2],[20,72,1],[21,70,1],[22,69,2],[24,70,2],[26,72,2],[28,74,4],
+        [32,74,1],[33,77,1],[34,81,2],[36,82,1],[37,81,1],[38,79,2],[40,77,2],[42,76,1],[43,77,1],[44,79,4],
+        [48,77,1],[49,76,1],[50,74,2],[52,73,2],[54,76,2],[56,74,1],[57,73,1],[58,71,1],[59,73,1],[60,74,4]],
+      roots: [38, 46, 43, 45], minor: [1, 0, 1, 0] },
+    // "Mainframe Static" (6-3): square lead through the bitcrusher, glitch stutters
+    w6_frame: { bpm: 126, steps: 64, wave: 'square', vol: 0.09, bass: 'pulse', arp: 'all', hum: 'crypt', kick: [0, 4, 8, 12], snare: [4, 12], hat: 'all', crush: true, crushStab: [0, 3, 8, 11], stutter: true, warble: 6,
+      lead: [[0,76,1],[1,76,1],[2,79,1],[4,76,1],[6,74,2],[8,72,1],[10,71,1],[12,72,2],[14,74,2],
+        [16,76,1],[17,76,1],[18,79,1],[20,81,1],[22,79,2],[24,76,2],[26,74,2],[28,71,4],
+        [32,76,1],[33,76,1],[34,79,1],[36,76,1],[38,74,2],[40,72,1],[42,74,1],[44,76,2],[46,79,2],
+        [48,81,1],[49,79,1],[50,76,2],[52,74,1],[53,72,1],[54,71,2],[56,72,2],[58,71,1],[59,69,1],[60,64,4]],
+      roots: [40, 36, 38, 35], minor: [1, 0, 0, 0] },
+    // "Toaster Core Descent" (6-4 castle): the halls loop in a lower key over a rumbling magma bass
+    w6_core: { bpm: 112, steps: 64, wave: 'p25', vol: 0.13, bass: 'rumble', arp: 'none', hum: 'rumble', kick: [0, 6, 8], snare: [4, 12], hat: 'odd', crush: true, crushStab: [0, 10], stutter: true, pitch: -5,
+      lead: [[0,69,2],[2,72,1],[3,71,1],[4,69,2],[6,64,2],[8,65,1],[9,67,1],[10,69,2],[12,72,1],[13,71,1],[14,67,2],
+        [16,69,2],[18,72,1],[19,74,1],[20,76,2],[22,74,1],[23,72,1],[24,71,2],[26,68,2],[28,64,4],
+        [32,69,2],[34,72,1],[35,71,1],[36,69,2],[38,64,2],[40,65,1],[41,67,1],[42,69,2],[44,76,1],[45,74,1],[46,72,2],
+        [48,71,2],[50,72,1],[51,71,1],[52,68,2],[54,71,2],[56,69,2],[58,68,1],[59,66,1],[60,69,4]],
+      roots: [45, 41, 43, 40], minor: [1, 1, 1, 1] },
+    // "Quartz Crown" (boss): the Crypt Halls loop, faster and distorted, bitcrushed stabs on every beat
+    w6_boss: { bpm: 150, steps: 64, wave: 'sawtooth', vol: 0.08, bass: 'tritone', arp: 'none', hum: 'crypt', kick: [0, 4, 8, 10, 12], snare: [4, 12], hat: 'all', dist: true, crush: true, crushStab: [0, 4, 8, 12], stutter: true, pitch: -2,
+      lead: [[0,69,2],[2,72,1],[3,71,1],[4,69,2],[6,64,2],[8,65,1],[9,67,1],[10,69,2],[12,72,1],[13,71,1],[14,67,2],
+        [16,69,2],[18,72,1],[19,74,1],[20,76,2],[22,74,1],[23,72,1],[24,71,2],[26,68,2],[28,64,4],
+        [32,69,2],[34,72,1],[35,71,1],[36,69,2],[38,64,2],[40,65,1],[41,67,1],[42,69,2],[44,76,1],[45,74,1],[46,72,2],
+        [48,71,2],[50,72,1],[51,71,1],[52,68,2],[54,71,2],[56,69,2],[58,68,1],[59,66,1],[60,69,4]],
+      roots: [45, 41, 43, 40], minor: [1, 0, 1, 0] },
+
+    // v0.9 World 7: TOASTY ARCADE (original chiptune-funk arcade lounge)
+    // "Insert Toast" (7-1 lobby): a bouncy funk lead over an organ pad, off-beat stabs, a bouncing bass
+    w7_lobby: { bpm: 116, steps: 64, wave: 'p25', vol: 0.15, bass: 'bounce', arp: 'late', hum: 'arcade', kick: [0, 6, 10], snare: [4, 12], hat: 'all', stab: true, organ: true,
+      lead: [[0,74,1],[1,77,1],[2,79,1],[3,81,1],[4,79,2],[6,77,1],[7,74,1],[8,72,1],[10,74,2],[12,69,1],[13,72,1],[14,74,2],
+        [16,74,1],[17,77,1],[18,79,1],[19,81,1],[20,84,2],[22,81,1],[23,79,1],[24,77,2],[26,79,1],[27,77,1],[28,74,4],
+        [32,74,1],[33,77,1],[34,79,1],[35,81,1],[36,79,2],[38,77,1],[39,74,1],[40,72,1],[42,74,2],[44,77,1],[45,79,1],[46,81,2],
+        [48,84,1],[49,81,1],[50,79,1],[51,77,1],[52,79,2],[54,81,1],[55,79,1],[56,77,2],[58,76,1],[59,74,1],[60,74,4]],
+      roots: [38, 43, 41, 45], minor: [1, 0, 0, 1] },
+    // "Prize Shelf Shuffle" (7-2): a toy-chime lead skipping up the shelves, walking bass
+    w7_prize: { bpm: 104, steps: 64, wave: 'triangle', vol: 0.26, bass: 'walk', arp: 'none', hum: 'arcade', kick: [0, 8], snare: [4, 12], hat: 'even', toy: true, echo: 0.12,
+      lead: [[0,79,1],[1,81,1],[2,83,2],[4,86,1],[5,83,1],[6,81,2],[8,79,1],[9,76,1],[10,79,2],[12,81,4],
+        [16,83,1],[17,84,1],[18,86,2],[20,88,1],[21,86,1],[22,84,2],[24,83,1],[25,81,1],[26,79,2],[28,76,4],
+        [32,79,1],[33,81,1],[34,83,2],[36,86,1],[37,83,1],[38,81,2],[40,84,1],[41,83,1],[42,81,2],[44,79,4],
+        [48,76,1],[49,79,1],[50,81,2],[52,83,1],[53,81,1],[54,79,2],[56,78,1],[57,76,1],[58,74,2],[60,79,4]],
+      roots: [43, 40, 36, 38], minor: [0, 1, 0, 0] },
+    // "No Signal" (7-3): the lobby tune half-remembered through a detuned TV: warbly square lead, static hum, glitch stutters
+    w7_static: { bpm: 100, steps: 64, wave: 'square', vol: 0.08, bass: 'lofi', arp: 'none', hum: 'arcstatic', kick: [0, 10], snare: [8], hat: 'odd', warble: 18, crush: true, crushStab: [6, 14], stutter: true, pitch: -3,
+      lead: [[0,74,1],[1,77,1],[2,79,1],[3,81,1],[4,79,2],[6,77,1],[7,74,1],[8,72,1],[10,74,2],[12,69,1],[13,72,1],[14,74,2],
+        [16,74,1],[17,77,1],[18,79,1],[19,81,1],[20,84,2],[22,81,1],[23,79,1],[24,77,2],[26,79,1],[27,77,1],[28,74,4],
+        [32,74,1],[33,77,1],[34,79,1],[35,81,1],[36,79,2],[38,77,1],[39,74,1],[40,72,1],[42,74,2],[44,77,1],[45,79,1],[46,81,2],
+        [48,84,1],[49,81,1],[50,79,1],[51,77,1],[52,79,2],[54,81,1],[55,79,1],[56,77,2],[58,76,1],[59,74,1],[60,74,4]],
+      roots: [38, 43, 41, 45], minor: [1, 1, 1, 1] },
+    // "Reel Tension" (7-4 castle): tense, driving, a ticking reel pulse under a minor lead
+    w7_vault: { bpm: 132, steps: 64, wave: 'p25', vol: 0.13, bass: 'ostinato', arp: 'all', hum: 'arcade', kick: [0, 4, 8, 12], snare: [4, 12], hat: 'all', tick: true, stab: true,
+      lead: [[0,69,2],[2,70,1],[3,69,1],[4,67,2],[6,65,2],[8,64,2],[10,65,1],[11,67,1],[12,69,4],
+        [16,72,2],[18,70,1],[19,69,1],[20,67,2],[22,69,2],[24,70,2],[26,69,1],[27,67,1],[28,69,4],
+        [32,69,2],[34,70,1],[35,69,1],[36,67,2],[38,65,2],[40,64,2],[42,62,1],[43,64,1],[44,65,4],
+        [48,67,2],[50,69,1],[51,70,1],[52,72,2],[54,70,2],[56,69,2],[58,68,1],[59,67,1],[60,69,4]],
+      roots: [45, 41, 43, 40], minor: [1, 0, 0, 1] },
+    // "Jackpot Vault" (boss): the lobby tune, faster and distorted, siren-ish stabs on the beat
+    w7_boss: { bpm: 152, steps: 64, wave: 'sawtooth', vol: 0.08, bass: 'pulse', arp: 'all', hum: 'arcade', kick: [0, 4, 8, 10, 12], snare: [4, 12], hat: 'all', dist: true, crush: true, crushStab: [0, 4, 8, 12], stutter: true,
+      lead: [[0,74,1],[1,77,1],[2,79,1],[3,81,1],[4,79,2],[6,77,1],[7,74,1],[8,72,1],[10,74,2],[12,69,1],[13,72,1],[14,74,2],
+        [16,74,1],[17,77,1],[18,79,1],[19,81,1],[20,84,2],[22,81,1],[23,79,1],[24,77,2],[26,79,1],[27,77,1],[28,74,4],
+        [32,74,1],[33,77,1],[34,79,1],[35,81,1],[36,79,2],[38,77,1],[39,74,1],[40,72,1],[42,74,2],[44,77,1],[45,79,1],[46,81,2],
+        [48,84,1],[49,81,1],[50,79,1],[51,77,1],[52,79,2],[54,81,1],[55,79,1],[56,77,2],[58,76,1],[59,74,1],[60,74,4]],
+      roots: [38, 43, 41, 45], minor: [1, 0, 1, 1] },
+  };
+  for (const k in SONGS){ const m = {}; SONGS[k].lead.forEach(([st, n, l]) => m[st] = [n, l]); SONGS[k].leadMap = m; }
+  let song = SONGS.w1_over, lastLead = 0, distNode = null, kazooNode = null;
+  function kazooBus(){ if (!kazooNode){ kazooNode = ctx.createBiquadFilter(); kazooNode.type = 'bandpass'; kazooNode.frequency.value = 1150; kazooNode.Q.value = 1.6; kazooNode.connect(leadBus); } return kazooNode; } // v0.7 kazoo: a buzzy reed through a nasal bandpass
+  function distBus(){ if (!distNode){ distNode = ctx.createWaveShaper(); const n = 1024, c = new Float32Array(n); for (let i = 0; i < n; i++){ const x = i * 2 / n - 1; c[i] = Math.tanh(x * 6) * 0.8; } distNode.curve = c; distNode.connect(leadBus); } return distNode; }
+  let crushNode = null;
+  function crushBus(){ if (!crushNode){ crushNode = ctx.createWaveShaper(); const n = 1024, c = new Float32Array(n); for (let i = 0; i < n; i++){ const x = i * 2 / n - 1; c[i] = Math.round(x * 4) / 4 * 0.8; } crushNode.curve = c; crushNode.connect(leadBus); } return crushNode; } // v0.8 bitcrusher: a stepped waveshaper
+  function playStep(s, t, spb){
+    const bar = s >> 4, inBar = s & 15, S = song;
+    const L = S.leadMap[s], pt = S.pitch || 0;
+    if (L){
+      lastLead = L[0];
+      const dur = S.pluck ? spb * Math.min(1.6, L[1]) * 0.85 : spb * L[1] * 0.92; // pizzicato: short plucked decay
+      const o = osc(S.wave, mtof(L[0] + pt), null, t, dur, S.vol, S.dist ? distBus() : S.kazoo ? kazooBus() : leadBus, S.pluck ? 0 : 0.55);
+      if (S.toy){ osc('sine', mtof(L[0] + pt + 12), null, t, spb * 1.3, S.vol * 0.42, leadBus); osc('triangle', mtof(L[0] + pt + 24), null, t, 0.07, S.vol * 0.22, leadBus); } // toy piano chime
+      if (S.kazoo && L[1] >= 2) osc('sawtooth', mtof(L[0] + pt - 12), null, t, spb * L[1] * 0.8, S.vol * 0.35, kazooBus(), 0.5); // bassoon double
+      if (S.warble){ const w = (x) => Math.sin(x * 1.9) * S.warble + Math.sin(x * 5.3) * S.warble * 0.3; o.detune.setValueAtTime(w(t), t); o.detune.linearRampToValueAtTime(w(t + spb * L[1]), t + spb * L[1] * 0.92); } // tape wow
+      if (S.trem && L[1] >= 2){ // surf tremolo picking: fast re-strikes that fade out
+        for (let k = 1; k < L[1] * 2; k++) osc(S.wave, mtof(L[0]), null, t + k * spb * 0.5, spb * 0.42, S.vol * Math.max(0.25, 0.8 - k * 0.08), leadBus, 0.4);
+      }
+      if (bar === (S.roots.length - 1) && inBar >= 12) o.detune.setValueAtTime(-40, t);
+      if (L[1] >= 3){ o.frequency.setValueAtTime(mtof(L[0] + pt), t + spb * 1.5); o.frequency.linearRampToValueAtTime(mtof(L[0] + pt) * 1.02, t + spb * L[1] * 0.9); }
+    }
+    if (s >= S.steps - 3){ osc('p12', mtof(88 - (s - S.steps + 3) * 5), null, t, spb * 0.5, 0.07, musicBus); }
+    if (S.stutter && s % 32 === 28 && lastLead) for (let k = 0; k < 3; k++) osc(S.wave === 'sawtooth' ? 'sawtooth' : 'p12', mtof(lastLead + pt + (k === 2 ? -1 : 0)), null, t + k * spb * 0.33, spb * 0.22, S.vol * 0.6, leadBus); // glitch stutter
+    let root = S.roots[bar % S.roots.length] + pt; const minor = S.minor[bar % S.minor.length];
+    if (S.crush && S.crushStab && S.crushStab.includes(inBar)) for (const iv of [12, minor ? 15 : 16, 19]) osc('square', mtof(root + iv), null, t, spb * 0.35, 0.05, crushBus(), 0.2); // v0.8 bitcrushed stab
+    if (S.bass === 'bounce'){ if (inBar % 2 === 0) osc('triangle', mtof(inBar % 4 === 0 ? root : root + 12), null, t, spb * 1.6, 0.42, musicBus, 0.5); }
+    else if (S.bass === 'pulse'){ if (inBar % 2 === 0) osc('triangle', mtof(root), null, t, spb * 1.4, 0.45, musicBus, 0.4); }
+    else if (S.bass === 'surf'){ const sq = [0, 0, 12, 0, 7, 0, 10, 12]; if (inBar % 2 === 0) osc('triangle', mtof(root + sq[(inBar >> 1) % 8]), null, t, spb * 1.2, 0.42, musicBus, 0.35); }
+    else if (S.bass === 'walk'){ const sq = [0, 7, 12, 7, 6, 5, 3, 2]; if (inBar % 2 === 0) osc('triangle', mtof(root + sq[(inBar >> 1) % 8]), null, t, spb * 1.5, 0.42, musicBus, 0.5); }
+    else if (S.bass === 'rumble'){ if (inBar % 2 === 0){ const f = mtof(root - 12 + (inBar % 8 === 6 ? 1 : 0)); osc('sawtooth', f, null, t, spb * 1.8, 0.16, musicBus, 0.6); osc('triangle', f * 2, null, t, spb * 1.6, 0.4, musicBus, 0.5); } }
+    else if (S.bass === 'lofi'){ if (inBar === 0 || inBar === 7 || inBar === 10) osc('triangle', mtof(root + (inBar === 7 ? 7 : inBar === 10 ? 12 : 0)), null, t, spb * 2.6, 0.42, musicBus, 0.6); }
+    else if (S.bass === 'tritone'){ if (inBar % 2 === 0){ const f = mtof(root - 12 + ((inBar % 8) >= 4 ? 6 : 0)); osc('sawtooth', f, null, t, spb * 1.6, 0.14, musicBus, 0.6); osc('triangle', f * 2, null, t, spb * 1.4, 0.3, musicBus, 0.5); } }
+    else if (S.bass === 'doowop'){ const sq = minor ? [0, 3, 7, 8] : [0, 4, 7, 9]; if (inBar % 4 === 0) osc('triangle', mtof(root + sq[(inBar >> 2) % 4]), null, t, spb * 3.2, 0.42, musicBus, 0.6); }
+    else if (S.bass === 'march'){ // oom-pah: low bassoon "oom" on the beat, a higher "pah" between
+      if (inBar % 4 === 0){ osc('triangle', mtof(root), null, t, spb * 1.5, 0.42, musicBus, 0.4); osc('sawtooth', mtof(root), null, t, spb * 1.3, 0.045, musicBus, 0.3); }
+      else if (inBar % 4 === 2) osc('triangle', mtof(root + (inBar % 8 === 2 ? 7 : 12)), null, t, spb * 0.9, 0.26, musicBus, 0.2); }
+    else if (S.bass === 'ostinato'){ const seq = [0, 7, 12, 7]; if (inBar % 2 === 0) osc('triangle', mtof(root + seq[(inBar >> 1) % 4]), null, t, spb * 1.8, 0.4, musicBus, 0.5); }
+    if (S.kick.includes(inBar)) osc('sine', 150, 40, t, 0.13, 0.7, musicBus);
+    if (S.snare.includes(inBar)){ noise(t, 0.11, 0.25, 'bandpass', 1900, musicBus); osc('triangle', 220, 110, t, 0.08, 0.15, musicBus); }
+    if (S.clank && S.clank.includes(inBar)){ noise(t, 0.05, 0.22, 'bandpass', 5200, musicBus); osc('square', 1250, 900, t, 0.04, 0.06, musicBus); }
+    if ((S.hat === 'odd' && inBar % 2 === 1) || (S.hat === 'even' && inBar % 2 === 0) || S.hat === 'all') noise(t, 0.035, inBar % 4 === 3 ? 0.08 : 0.04, 'highpass', 7500, musicBus);
+    if (S.wood && S.wood.includes(inBar)){ osc('sine', 1700, 1150, t, 0.05, 0.2, musicBus); noise(t, 0.03, 0.07, 'bandpass', 2400, musicBus); } // woodblock
+    if (S.box && S.box.includes(inBar)){ noise(t, 0.09, 0.22, 'lowpass', 520, musicBus); osc('sine', 110, 60, t, 0.09, 0.3, musicBus); } // thumped cardboard box
+    if (S.tick && inBar % 4 === 0){ osc('square', inBar % 8 === 0 ? 2600 : 1900, null, t, 0.018, 0.045, musicBus); noise(t, 0.02, 0.05, 'highpass', 6000, musicBus); } // tick-tock
+    if (S.tom && (bar % 4 === 3) && S.tom.includes(inBar)) osc('triangle', 260 - (inBar - S.tom[0]) * 30, 70, t, 0.12, 0.35, musicBus);
+    if (S.stab && s % 32 === 30) noise(t, 0.07, 0.13, 'bandpass', 3200, musicBus, 900);
+    const tri = minor ? [0, 3, 7, 12] : [0, 4, 7, 12];
+    if (S.organ && inBar % 4 === 2) for (const iv of tri.slice(0, 3)){ osc('sine', mtof(root + 24 + iv), null, t, spb * 1.4, 0.035, musicBus, 0.7); osc('square', mtof(root + 36 + iv), null, t, spb * 0.9, 0.006, musicBus, 0.5); } // lounge organ chuck
+    if (S.pad && inBar === 0) for (const iv of tri.slice(0, 3)) osc('triangle', mtof(root + 24 + iv), null, t, spb * 15, 0.045, musicBus, 0.85);
+    if (mode === 'star' || S.arp === 'all' || (S.arp === 'late' && s % 4 === 2 && bar >= 4)){
+      osc('p12', mtof(root + 36 + tri[inBar % 4]), null, t, spb * 0.7, mode === 'star' ? 0.07 : 0.035, musicBus);
+    }
+  }
+  function sched(){
+    if (!playing || !ctx) return;
+    const spb = 60 / (song.bpm * tempoMul) / 4;
+    while (nextT < ctx.currentTime + 0.12){ playStep(step, nextT, spb); nextT += spb; step = (step + 1) % song.steps; }
+  }
+  function startHum(){
+    stopHum();
+    const kind = song.hum || 'crt'; const nodes = [];
+    const tone = (f, v) => { const o = ctx.createOscillator(); o.frequency.value = f; const gg = ctx.createGain(); gg.gain.value = v; o.connect(gg); gg.connect(musicBus); o.start(); nodes.push(o); };
+    const hiss = (type, f, v) => { const ns = ctx.createBufferSource(); ns.buffer = noiseBuf; ns.loop = true; const nf = ctx.createBiquadFilter(); nf.type = type; nf.frequency.value = f; const ng = ctx.createGain(); ng.gain.value = v; ns.connect(nf); nf.connect(ng); ng.connect(musicBus); ns.start(); nodes.push(ns); };
+    if (kind === 'crt'){ tone(60, 0.025); tone(120, 0.012); hiss('highpass', 6000, 0.02); }
+    else if (kind === 'drone'){ tone(41.2, 0.05); tone(61.7, 0.02); hiss('lowpass', 400, 0.05); }
+    else if (kind === 'rain'){ tone(60, 0.012); hiss('bandpass', 2500, 0.07); hiss('highpass', 8000, 0.03); }
+    else if (kind === 'surf'){ hiss('lowpass', 700, 0.045); hiss('bandpass', 300, 0.02); }
+    else if (kind === 'spook'){ tone(73.4, 0.012); tone(110, 0.006); hiss('bandpass', 900, 0.012); }
+    else if (kind === 'crackle'){ tone(50, 0.01); hiss('bandpass', 3200, 0.022); hiss('lowpass', 250, 0.03); }
+    else if (kind === 'mains'){ tone(60, 0.03); tone(180, 0.012); tone(300, 0.005); hiss('highpass', 5000, 0.012); }
+    else if (kind === 'diner'){ tone(120, 0.014); tone(240, 0.005); tone(55, 0.01); hiss('highpass', 6500, 0.014); hiss('bandpass', 1200, 0.004); } // fluorescent buzz, fridge hum, tape hiss
+    else if (kind === 'crtwhine'){ tone(120, 0.012); tone(55, 0.012); tone(7800, 0.0025); hiss('highpass', 6000, 0.013); }
+    else if (kind === 'theater'){ tone(48, 0.012); tone(96, 0.004); hiss('bandpass', 1400, 0.008); hiss('lowpass', 300, 0.018); } // projector whir, a hushed puppet-theater room
+    else if (kind === 'buzz'){ const sw = (f, v) => { const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 700; const gg = ctx.createGain(); gg.gain.value = v; o.connect(lp); lp.connect(gg); gg.connect(musicBus); o.start(); nodes.push(o); }; sw(110, 0.02); sw(113.5, 0.016); tone(55, 0.02); hiss('bandpass', 700, 0.01); } // hive buzz
+    else if (kind === 'crypt'){ tone(46.2, 0.02); tone(92.5, 0.006); tone(15600, 0.0015); hiss('bandpass', 1800, 0.01); hiss('lowpass', 220, 0.02); } // v0.8 crypt: a low tomb drone, server fans, CRT whine
+    else if (kind === 'arcade'){ tone(60, 0.012); tone(240, 0.004); hiss('bandpass', 900, 0.006); hiss('lowpass', 300, 0.012); } // v0.9 arcade: neon buzz, a room of cabinets humming at 3 AM
+    else if (kind === 'arcstatic'){ tone(60, 0.012); tone(15700, 0.002); hiss('bandpass', 2600, 0.02); hiss('highpass', 7000, 0.012); } // v0.9 No Signal Hall: detuned static
+    else if (kind === 'rumble'){ tone(36.7, 0.07); tone(55, 0.025); hiss('lowpass', 160, 0.1); }
+    humNodes = nodes;
+  }
+  function stopHum(){ humNodes.forEach(n => { try { n.stop(); } catch (e) {} }); humNodes = []; }
+  function startMusic(name){
+    if (!init()) return; stopMusic(); song = SONGS[name] || SONGS.w1_over; current = name; playing = true; step = 0; tempoMul = 1; mode = 'normal';
+    nextT = ctx.currentTime + 0.06; echoSend.gain.setValueAtTime(song.echo || 0, ctx.currentTime); startHum(); timer = setInterval(sched, 25); sched();
+  }
+  function stopMusic(){ playing = false; if (timer) clearInterval(timer); timer = null; if (ctx) stopHum(); }
+  function setTempo(m){ tempoMul = m; }
+  function setMode(m){ mode = m; tempoMul = m === 'star' ? 1.18 : (tempoMul > 1.2 ? tempoMul : 1); }
+  function pause(p){ if (!ctx) return; musicBus.gain.setTargetAtTime(p ? 0 : 0.32, ctx.currentTime, 0.02); }
+
+  const SFX = {
+    jump(big){ const t = ctx.currentTime; osc('p25', big ? 170 : 230, big ? 560 : 720, t, 0.16, 0.22); },
+    stomp(){ const t = ctx.currentTime; osc('square', 520, 120, t, 0.11, 0.2); noise(t, 0.08, 0.25, 'lowpass', 1200); },
+    coin(){ const t = ctx.currentTime; osc('p25', 1318.5, null, t, 0.045, 0.18); osc('p25', 1760, null, t + 0.045, 0.045, 0.18); osc('p25', 2637, null, t + 0.09, 0.22, 0.16); },
+    bump(){ const t = ctx.currentTime; osc('triangle', 140, 60, t, 0.09, 0.45); noise(t, 0.05, 0.15, 'lowpass', 500); },
+    brk(){ const t = ctx.currentTime; noise(t, 0.3, 0.45, 'lowpass', 3000, null, 200); osc('square', 220, 50, t, 0.18, 0.15); },
+    appear(){ const t = ctx.currentTime; for (let i = 0; i < 10; i++) osc('p25', mtof(55 + i * 3), null, t + i * 0.035, 0.05, 0.13); },
+    power(){ const t = ctx.currentTime; const n = [64, 68, 71, 76, 71, 76, 80, 83, 88]; seq(n, t, 0.045, 'p25', 0.17); },
+    shrink(){ const t = ctx.currentTime; seq([83, 79, 76, 72, 67, 64, 60], t, 0.05, 'p25', 0.17); },
+    die(){ const t = ctx.currentTime; seq([71, 0, 77, 77, 77, 76, 74, 72, 0, 64, 0, 60, 52], t + 0.3, 0.09, 'p25', 0.19); noise(t, 0.25, 0.2, 'bandpass', 2500); },
+    pole(){ const t = ctx.currentTime; osc('p25', 1600, 180, t, 1.1, 0.16); osc('p12', 1210, 140, t, 1.1, 0.08); },
+    oneup(){ const t = ctx.currentTime; seq([76, 79, 88, 84, 86, 91], t, 0.09, 'p25', 0.18); },
+    fire(){ const t = ctx.currentTime; osc('square', 900, 300, t, 0.07, 0.12); noise(t, 0.05, 0.12, 'highpass', 3000); },
+    pipe(){ const t = ctx.currentTime; for (let i = 0; i < 3; i++) osc('triangle', 300, 120, t + i * 0.09, 0.08, 0.35); },
+    kick(){ const t = ctx.currentTime; osc('square', 700, 90, t, 0.14, 0.18); noise(t, 0.06, 0.2, 'bandpass', 1500); },
+    splat(){ const t = ctx.currentTime; noise(t, 0.12, 0.3, 'lowpass', 900, null, 200); },
+    rev(){ const t = ctx.currentTime; osc('sawtooth', 60, 140, t, 0.35, 0.1); noise(t, 0.3, 0.08, 'bandpass', 600); },
+    hurry(){ const t = ctx.currentTime; seq([84, 0, 84, 0, 88, 88], t, 0.07, 'p25', 0.16); },
+    tick(){ const t = ctx.currentTime; osc('p25', 1760, null, t, 0.025, 0.08); },
+    pause(){ const t = ctx.currentTime; seq([76, 64, 76, 64], t, 0.06, 'p25', 0.15); },
+    clear(){ const t = ctx.currentTime; seq([64, 67, 71, 76, 0, 74, 76, 79, 0, 83, 0, 88, 88, 88], t, 0.1, 'p25', 0.18, 0.18); seq([40, 0, 0, 43, 0, 0, 47, 0, 0, 52, 0, 52, 52, 52], t, 0.1, 'triangle', 0.35, 0.18); },
+    gameover(){ const t = ctx.currentTime; seq([67, 0, 64, 0, 60, 0, 59, 60, 59, 55], t, 0.16, 'p25', 0.16, 0.3); },
+    statics(dur){ const t = ctx.currentTime; noise(t, dur || 2.2, 0.28, 'bandpass', 1800, null, 5000); noise(t + 0.4, 0.2, 0.2, 'highpass', 4000); },
+    bolt(){ const t = ctx.currentTime; osc('p12', 1800, 600, t, 0.18, 0.1); osc('square', 220, 330, t, 0.12, 0.06); },
+    bite(){ const t = ctx.currentTime; osc('square', 300, 80, t, 0.08, 0.2); osc('square', 300, 80, t + 0.09, 0.08, 0.2); noise(t, 0.06, 0.2, 'bandpass', 900); },
+    dive(){ const t = ctx.currentTime; osc('p25', 1400, 300, t, 0.45, 0.1); },
+    crumble(){ const t = ctx.currentTime; noise(t, 0.25, 0.25, 'lowpass', 1200, null, 200); },
+    zap(){ const t = ctx.currentTime; noise(t, 0.12, 0.2, 'bandpass', 4000); osc('sawtooth', 90, 60, t, 0.12, 0.06); },
+    bosshit(){ const t = ctx.currentTime; noise(t, 0.2, 0.35, 'bandpass', 2600, null, 600); osc('square', 400, 100, t, 0.2, 0.18); },
+    unplug(){ const t = ctx.currentTime; osc('sine', 880, 40, t, 1.0, 0.3); noise(t, 0.4, 0.3, 'bandpass', 3000, null, 300); },
+    powerdown(){ const t = ctx.currentTime; osc('sine', 1200, 30, t, 1.6, 0.25); osc('triangle', 60, 30, t, 1.6, 0.3); noise(t, 1.2, 0.25, 'bandpass', 4000, null, 200); },
+    roar(){ const t = ctx.currentTime; noise(t, 0.8, 0.3, 'bandpass', 1500, null, 4000); osc('sawtooth', 70, 140, t, 0.8, 0.1); osc('sawtooth', 73, 150, t, 0.8, 0.08); },
+    warp(){ const t = ctx.currentTime; for (let i = 0; i < 12; i++) osc('p25', mtof(84 - i * 3), null, t + i * 0.05, 0.06, 0.12); },
+    worldclear(){ const t = ctx.currentTime; seq([64, 67, 71, 76, 79, 83, 88, 0, 86, 88, 91, 0, 88, 0, 0, 0, 76, 79, 83, 88], t, 0.11, 'p25', 0.18, 0.2); seq([40, 0, 47, 0, 52, 0, 55, 0, 50, 0, 55, 0, 52, 0, 0, 0, 40, 0, 47, 52], t, 0.11, 'triangle', 0.35, 0.2); },
+    // World 2
+    honk(){ const t = ctx.currentTime; osc('square', 392, null, t, 0.14, 0.12); osc('square', 330, null, t, 0.14, 0.1); osc('square', 392, null, t + 0.18, 0.22, 0.12); osc('square', 330, null, t + 0.18, 0.22, 0.1); },
+    boost(){ const t = ctx.currentTime; osc('p25', 300, 1400, t, 0.3, 0.14); noise(t, 0.3, 0.12, 'bandpass', 1200, null, 4000); },
+    splash(){ const t = ctx.currentTime; noise(t, 0.4, 0.3, 'lowpass', 2500, null, 300); osc('sine', 500, 120, t, 0.2, 0.15); },
+    plank(){ const t = ctx.currentTime; osc('square', 180, 120, t, 0.12, 0.08); osc('square', 150, 90, t + 0.1, 0.1, 0.06); },
+    lightbar(){ const t = ctx.currentTime; seq([72, 79, 84, 79, 84, 91, 96], t, 0.04, 'p25', 0.16); noise(t, 0.4, 0.1, 'highpass', 5000); },
+    lever(){ const t = ctx.currentTime; osc('square', 900, 200, t, 0.08, 0.15); osc('sine', 1568, null, t + 0.06, 0.5, 0.2); },
+    ding(){ const t = ctx.currentTime; osc('sine', 1568, null, t, 1.2, 0.25); osc('sine', 3136, null, t, 0.6, 0.08); },
+    bone(){ const t = ctx.currentTime; for (let i = 0; i < 4; i++) osc('square', 800 + i * 140, 500, t + i * 0.04, 0.03, 0.08); },
+    launch(){ const t = ctx.currentTime; noise(t, 0.35, 0.22, 'bandpass', 900, null, 3000); osc('sawtooth', 120, 400, t, 0.3, 0.06); },
+    sizzle(){ const t = ctx.currentTime; noise(t, 0.5, 0.16, 'highpass', 3500); },
+    // v0.4 bro overhaul (all original synth sounds)
+    boom(){ const t = ctx.currentTime; noise(t, 0.5, 0.5, 'lowpass', 1800, null, 90); osc('triangle', 120, 30, t, 0.45, 0.45); osc('square', 80, 30, t, 0.2, 0.12); },
+    bigboom(){ const t = ctx.currentTime; noise(t, 0.9, 0.6, 'lowpass', 2400, null, 60); osc('triangle', 90, 22, t, 0.8, 0.5); osc('sawtooth', 60, 25, t, 0.5, 0.1); },
+    shot(){ const t = ctx.currentTime; noise(t, 0.06, 0.25, 'bandpass', 2400); osc('square', 600, 180, t, 0.05, 0.08); },
+    shotgun(){ const t = ctx.currentTime; noise(t, 0.18, 0.4, 'lowpass', 2600, null, 400); osc('square', 220, 60, t, 0.12, 0.14); },
+    snipe(){ const t = ctx.currentTime; noise(t, 0.08, 0.35, 'highpass', 2000); osc('sawtooth', 1800, 200, t, 0.22, 0.1); osc('sine', 3000, 2200, t + 0.03, 0.3, 0.05); },
+    paper(){ const t = ctx.currentTime; noise(t, 0.09, 0.18, 'highpass', 5000); osc('p12', 1200, 1500, t, 0.05, 0.05); },
+    spray(){ const t = ctx.currentTime; noise(t, 0.05, 0.16, 'bandpass', 3200); },
+    shriek(){ const t = ctx.currentTime; osc('sawtooth', 1400, 2600, t, 0.25, 0.08); osc('square', 1900, 3200, t, 0.25, 0.05); noise(t, 0.25, 0.12, 'highpass', 4000); },
+    curse(){ const t = ctx.currentTime; seq([60, 59, 58, 57, 56, 55, 54, 48], t, 0.07, 'p25', 0.16); noise(t, 0.8, 0.2, 'bandpass', 800, null, 3000); },
+    turret(){ const t = ctx.currentTime; osc('square', 1300, 900, t, 0.04, 0.07); },
+    slam(){ const t = ctx.currentTime; osc('triangle', 220, 40, t, 0.35, 0.5); noise(t, 0.4, 0.45, 'lowpass', 1200, null, 80); },
+    dash(){ const t = ctx.currentTime; osc('sawtooth', 90, 300, t, 0.3, 0.12); noise(t, 0.3, 0.2, 'bandpass', 700, null, 2400); },
+    freed(){ const t = ctx.currentTime; seq([72, 76, 79, 84, 0, 79, 84, 88, 91], t, 0.06, 'p25', 0.18); seq([48, 0, 55, 0, 60, 0, 55, 60, 67], t, 0.06, 'triangle', 0.3); },
+    wallkick(){ const t = ctx.currentTime; osc('p25', 330, 900, t, 0.1, 0.16); noise(t, 0.04, 0.12, 'bandpass', 1800); },
+    ammo(){ const t = ctx.currentTime; seq([67, 74, 79, 86], t, 0.05, 'p25', 0.17); },
+    roll(){ const t = ctx.currentTime; for (let i = 0; i < 5; i++) osc('triangle', 260 - i * 20, 180, t + i * 0.04, 0.035, 0.18); },
+    melee(){ const t = ctx.currentTime; osc('square', 260, 90, t, 0.07, 0.16); noise(t, 0.05, 0.18, 'bandpass', 1200); },
+    chomp(){ const t = ctx.currentTime; osc('square', 360, 90, t, 0.07, 0.2); osc('square', 360, 90, t + 0.08, 0.07, 0.2); },
+    hit(){ const t = ctx.currentTime; osc('square', 500, 260, t, 0.04, 0.1); },
+    clang(){ const t = ctx.currentTime; osc('square', 1500, 1400, t, 0.12, 0.08); osc('square', 2200, 2100, t, 0.1, 0.05); },
+    alarm(){ const t = ctx.currentTime; for (let i = 0; i < 4; i++){ osc('square', 880, null, t + i * 0.3, 0.14, 0.1); osc('square', 660, null, t + i * 0.3 + 0.15, 0.14, 0.1); } },
+    rifle(){ const t = ctx.currentTime; noise(t, 0.08, 0.25, 'bandpass', 1600); osc('square', 420, 140, t, 0.07, 0.08); },
+    spark(){ const t = ctx.currentTime; noise(t, 0.18, 0.22, 'bandpass', 5200); osc('square', 2400, 600, t, 0.12, 0.06); },
+    beep(){ const t = ctx.currentTime; osc('square', 3100, null, t, 0.05, 0.07); },
+    squeak(){ const t = ctx.currentTime; osc('square', 900, 1700, t, 0.08, 0.08); },
+    reel(){ const t = ctx.currentTime; for (let i = 0; i < 8; i++) osc('p12', 700 + (i % 2) * 200, null, t + i * 0.035, 0.025, 0.06); },
+    reelstop(){ const t = ctx.currentTime; osc('square', 520, 260, t, 0.07, 0.14); noise(t, 0.05, 0.15, 'lowpass', 1400); },
+    burn(){ const t = ctx.currentTime; noise(t, 1.4, 0.25, 'bandpass', 1200, null, 400); osc('sawtooth', 110, 55, t, 1.2, 0.06); },
+    magnet(){ const t = ctx.currentTime; for (let i = 0; i < 6; i++) osc('p25', 600 + i * 180, null, t + i * 0.04, 0.05, 0.12); },
+    boing(){ const t = ctx.currentTime; osc('triangle', 180, 720, t, 0.22, 0.35); osc('p25', 360, 1100, t, 0.16, 0.08); },
+    cardflip(){ const t = ctx.currentTime; noise(t, 0.06, 0.2, 'bandpass', 3000, null, 6000); osc('p12', 900, 1400, t, 0.05, 0.06); },
+    flip(){ const t = ctx.currentTime; osc('sawtooth', 200, 1200, t, 0.25, 0.08); noise(t, 0.25, 0.15, 'bandpass', 2000, null, 300); },
+    fuse(){ const t = ctx.currentTime; noise(t, 0.5, 0.16, 'bandpass', 4200, null, 2400); },
+    ghost(){ const t = ctx.currentTime; const o = osc('triangle', 520, 260, t, 0.5, 0.14); o.detune.setValueAtTime(0, t); o.detune.linearRampToValueAtTime(-300, t + 0.5); },
+    crunch(){ const t = ctx.currentTime; noise(t, 0.12, 0.3, 'bandpass', 1800); noise(t + 0.05, 0.08, 0.2, 'bandpass', 900); },
+    static(){ const t = ctx.currentTime; noise(t, 0.2, 0.22, 'highpass', 3000); osc('square', 60, null, t, 0.15, 0.04); },
+    buzz(){ const t = ctx.currentTime; osc('sawtooth', 120, 118, t, 0.35, 0.06); osc('square', 240, null, t, 0.12, 0.03); },
+    whoosh(){ const t = ctx.currentTime; noise(t, 0.2, 0.2, 'bandpass', 800, null, 2400); },
+    whir(){ const t = ctx.currentTime; osc('square', 300, 360, t, 0.04, 0.03); },
+    zapcol(){ const t = ctx.currentTime; noise(t, 0.4, 0.25, 'highpass', 2500); osc('sawtooth', 880, 220, t, 0.35, 0.08); },
+    ding(){ const t = ctx.currentTime; osc('sine', 1760, null, t, 0.9, 0.22); osc('sine', 3520, null, t, 0.5, 0.06); osc('triangle', 1318.5, null, t, 0.6, 0.06); },
+    jam(){ const t = ctx.currentTime; osc('triangle', 300, 600, t, 0.12, 0.25); noise(t, 0.08, 0.15, 'lowpass', 900); osc('p25', 784, null, t + 0.1, 0.12, 0.1); },
+    drip(){ const t = ctx.currentTime; osc('sine', 900, 300, t, 0.12, 0.16); osc('sine', 1400, 700, t + 0.05, 0.06, 0.06); },
+    mitt(){ const t = ctx.currentTime; noise(t, 0.12, 0.3, 'lowpass', 700); osc('triangle', 330, 520, t, 0.12, 0.18); osc('sine', 1046, null, t + 0.08, 0.2, 0.1); },
+    curtain(){ const t = ctx.currentTime; noise(t, 0.9, 0.22, 'lowpass', 1200, null, 300); osc('triangle', 196, 98, t, 0.9, 0.08); },
+    kazoo(){ const t = ctx.currentTime; const o = osc('sawtooth', 392, 523, t, 0.35, 0.12, kazooBus()); o.detune.setValueAtTime(0, t); o.detune.linearRampToValueAtTime(40, t + 0.35); },
+    hiveslam(){ const t = ctx.currentTime; osc('sine', 90, 30, t, 0.35, 0.8); noise(t, 0.3, 0.3, 'lowpass', 500); osc('sawtooth', 110, 55, t, 0.4, 0.06); },
+    snip(){ const t = ctx.currentTime; noise(t, 0.05, 0.25, 'highpass', 4000); osc('square', 2200, 1400, t, 0.04, 0.05); },
+    // v0.8 World 6
+    portal(){ const t = ctx.currentTime; osc('square', 220, 1760, t, 0.18, 0.1); osc('sawtooth', 1760, 330, t + 0.06, 0.16, 0.06); noise(t, 0.16, 0.12, 'bandpass', 3000); },
+    geyser(){ const t = ctx.currentTime; noise(t, 0.5, 0.25, 'lowpass', 600, null, 1600); osc('triangle', 110, 330, t, 0.4, 0.15); },
+    bubble(){ const t = ctx.currentTime; for (let k = 0; k < 3; k++) osc('sine', 300 + k * 90, 600 + k * 120, t + k * 0.07, 0.06, 0.1); },
+    rgb(){ const t = ctx.currentTime; seq([72, 79, 84], t, 0.05, 'square', 0.12); noise(t, 0.08, 0.1, 'highpass', 5000); },
+    rgboff(){ const t = ctx.currentTime; seq([84, 79, 72], t, 0.05, 'square', 0.1); },
+    tick6(){ const t = ctx.currentTime; osc('square', 1568, null, t, 0.03, 0.06); },
+    crystal(){ const t = ctx.currentTime; osc('sine', 2093, null, t, 0.4, 0.1); osc('sine', 3136, null, t + 0.03, 0.3, 0.06); osc('triangle', 4186, null, t + 0.06, 0.2, 0.03); },
+    spike6(){ const t = ctx.currentTime; noise(t, 0.12, 0.25, 'highpass', 3000); osc('square', 1200, 2400, t, 0.08, 0.06); osc('sine', 2637, null, t + 0.02, 0.25, 0.06); },
+    beam6(){ const t = ctx.currentTime; osc('sawtooth', 880, 1760, t, 0.35, 0.07); osc('square', 1320, 660, t, 0.35, 0.04); },
+    sauce(){ const t = ctx.currentTime; noise(t, 0.3, 0.2, 'bandpass', 1500, null, 4000); osc('sawtooth', 220, 880, t, 0.25, 0.08); osc('p25', 1046, null, t + 0.2, 0.12, 0.08); },
+    fuse(){ const t = ctx.currentTime; noise(t, 0.08, 0.12, 'highpass', 5000); },
+    static(){ const t = ctx.currentTime; noise(t, 0.2, 0.15, 'bandpass', 2400); osc('square', 60, null, t, 0.15, 0.04); },
+    rev6(){ const t = ctx.currentTime; osc('sawtooth', 70, 160, t, 0.4, 0.08); noise(t, 0.3, 0.08, 'lowpass', 500); },
+    pop6(){ const t = ctx.currentTime; osc('triangle', 300, 900, t, 0.08, 0.2); noise(t, 0.05, 0.15, 'highpass', 2500); },
+    // v0.9 World 7 (all original synth sounds; the "register" jingle is just a bright prize ding)
+    ding7(){ const t = ctx.currentTime; osc('square', 1976, null, t, 0.05, 0.05); osc('sine', 2637, null, t + 0.04, 0.18, 0.08); },
+    siren7(){ const t = ctx.currentTime; for (let k = 0; k < 3; k++){ osc('square', 660, 990, t + k * 0.22, 0.11, 0.07); osc('square', 990, 660, t + k * 0.22 + 0.11, 0.11, 0.07); } },
+    push7(){ const t = ctx.currentTime; osc('sawtooth', 70, 90, t, 0.35, 0.06); noise(t, 0.3, 0.06, 'lowpass', 600); },
+    claw7(){ const t = ctx.currentTime; osc('square', 300, 520, t, 0.18, 0.05); osc('square', 520, 300, t + 0.18, 0.12, 0.04); },
+    crt7(){ const t = ctx.currentTime; osc('sine', 15000, null, t, 0.15, 0.02); noise(t, 0.06, 0.12, 'bandpass', 3000); osc('square', 120, 60, t, 0.08, 0.05); },
+    whip7(){ const t = ctx.currentTime; noise(t, 0.12, 0.2, 'highpass', 2000, null, 6000); osc('triangle', 900, 300, t, 0.1, 0.06); },
+    ticket7(){ const t = ctx.currentTime; for (let k = 0; k < 4; k++) osc('square', 1400 + k * 60, null, t + k * 0.05, 0.03, 0.04); },
+    streak7(){ const t = ctx.currentTime; seq([69, 73, 76, 81, 85, 88], t, 0.05, 'p25', 0.12); noise(t, 0.25, 0.1, 'bandpass', 2000, null, 5000); },
+    payout7(){ const t = ctx.currentTime; seq([76, 79, 84], t, 0.07, 'square', 0.1); },
+    start(){ const t = ctx.currentTime; seq([64, 71, 76, 83], t, 0.06, 'p25', 0.16); noise(t, 0.2, 0.12, 'bandpass', 2600); },
+  };
+  function sfx(name, arg){ if (!ready()) return; try { SFX[name](arg); } catch (e) { /* ignore audio errors */ } }
+  return { unlock, startMusic, stopMusic, setTempo, setMode, pause, sfx, get ctx(){ return ctx; }, isPlaying: () => playing, current: () => current, songs: () => Object.keys(SONGS) };
+})();
