@@ -8,7 +8,7 @@
      the card badges (play-counter.js / high-score-v1.js) already fetched, so numbers always match.
      Mirrored badges keep the .tt-hs/.tt-pc reel markup, so score-fx-v1 rolls them and bursts
      "NEW HIGH SCORE!" when a card badge goes up. Row click scrolls to that machine.
-   - prefers-reduced-motion / Save-Data: poster only, no clip, no motion. Writes no counters.
+   - prefers-reduced-motion / Save-Data: poster only; reduced-motion also disables animation. Writes no counters.
    - One debounced MutationObserver; mutations inside our own panel are ignored; the panel is only
      ever moved to sit before the first featured card (capped), so no ping-pong with card scripts.
    Preview override: window.__ttDiscoveryDate = "YYYY-MM-DD". */
@@ -36,7 +36,8 @@
     { id: 'toasty-bros', f: 'tb', name: 'Mr. Toasty: Toasty Bros', short: 'Toasty Bros', hook: 'Run, stomp and blow up the Toasty universe. Free the caged bros.', clip: 'toasty-bros' },
     { id: 'mars', k: 'mars', name: 'Cybertruck then Mars', short: 'Cybertruck then Mars', hook: 'Moonbase first, then the Starship run to Mars.' },
     { id: 'feed', k: 'feed', name: 'Feed Fat Coty', short: 'Feed Fat Coty', hook: 'Feed the craving. Chain the combos.' },
-    { id: 'bite', k: 'bite', name: 'Fat Coty: Final Bite', short: 'Final Bite', hook: '16-bit street brawl. Eat the Toaster.' }
+    { id: 'bite', k: 'bite', name: 'Fat Coty: Final Bite', short: 'Final Bite', hook: '16-bit street brawl. Eat the Toaster.' },
+    { id: 'tanks', k: 'tanks', name: 'Toaster Tanks', short: 'Toaster Tanks', hook: 'Two-player artillery. Toasty vs. Crusty. Bring a friend.' }
   ];
 
   var reduce = false, saveData = false;
@@ -66,11 +67,20 @@
     var n = Math.floor((Date.UTC(+a[0], +a[1] - 1, +a[2]) - Date.UTC(2026, 10, 24)) / 864e5);
     return list[((n % list.length) + list.length) % list.length];
   }
+  function midnightAfter(now) {
+    var p = nyParts(now);
+    var target = Date.UTC(p.y, p.m - 1, p.d + 1), guess = target + 5 * 3600e3;
+    for (var i = 0; i < 3; i++) {
+      var q = nyParts(new Date(guess));
+      guess += target - Date.UTC(q.y, q.m - 1, q.d, q.h, q.mi, q.s);
+    }
+    return guess;
+  }
   function leftText() {
-    var p = nyParts(), left = 86400 - (p.h * 3600 + p.mi * 60 + p.s);
-    var h = Math.floor(left / 3600), m = Math.max(1, Math.ceil((left % 3600) / 60));
-    if (m === 60) { h += 1; m = 0; }
-    return 'new pick in ' + (h ? h + 'h ' : '') + (h && !m ? '' : m + 'm');
+    var now = new Date();
+    var mins = Math.max(1, Math.ceil((midnightAfter(now) - now.getTime()) / 60000));
+    var h = Math.floor(mins / 60), m = mins % 60;
+    return 'new pick in ' + (h ? h + 'h' : '') + (m ? (h ? ' ' : '') + m + 'm' : '');
   }
 
   /* ---------- page lookups ---------- */
@@ -155,6 +165,8 @@
       '#tt-arc .ttd-tag i{display:inline-block;width:9px;height:9px;border-radius:50%;background:' + R + ';box-shadow:0 0 8px ' + R + ';animation:ttd-blink 1.1s steps(2,end) infinite}',
       '#tt-arc .ttd-scr{position:relative;display:block;width:100%;aspect-ratio:16/9;border:0;padding:0;margin:0;cursor:pointer;border-radius:10px;overflow:hidden;',
         'background:#000 center/cover no-repeat;outline:1px solid rgba(255,212,0,.35)}',
+      '#tt-arc .ttd-tank-art{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:repeating-linear-gradient(0deg,#0b1512 0 30px,#12231a 30px 31px);color:#FFD400;font:900 44px/.95 Impact,Arial,sans-serif;text-shadow:3px 3px #a62b31,-2px -2px #008a94}',
+      '#tt-arc .ttd-tank-art small{font:12px/2 monospace;letter-spacing:.25em;color:#00e5ff}',
       '#tt-arc .ttd-scr video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .4s}',
       '#tt-arc .ttd-scr video.on{opacity:1}',
       '#tt-arc .ttd-scr::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.22) 0 1px,transparent 1px 3px);mix-blend-mode:multiply}',
@@ -220,7 +232,7 @@
   }
 
   /* ---------- build ---------- */
-  var wrap = null, pick = null, pickKey = '', moves = 0, vidIO = null;
+  var wrap = null, pick = null, pickKey = '', moves = 0, vidIO = null, currentVideo = null, resumeVideo = null;
 
   function statBadge(cls, label) {
     return '<span class="' + cls + ' ' + cls + '-on ttd-mirror" role="status" aria-label="' + label + '">' +
@@ -235,6 +247,7 @@
     return '<div class="ttd-cab" data-ttd-game="' + g.id + '">' +
       '<span class="ttd-tag"><i aria-hidden="true"></i>START HERE</span>' +
       '<button type="button" class="ttd-scr ttd-go" aria-label="Play ' + esc(g.name) + '" style="background-image:url(\'' + esc(poster) + '\')">' +
+        (g.id === 'tanks' ? '<span class="ttd-tank-art" aria-hidden="true">&#9733;<br>TOASTER<br>TANKS<small>2 PLAYER ARTILLERY</small></span>' : '') +
         '<span class="ttd-today">Today\'s pick</span></button>' +
       '<p class="ttd-k">// today\'s pick &middot; <b class="ttd-left">' + leftText() + '</b></p>' +
       '<h2 class="ttd-t">' + esc(g.name) + '</h2>' +
@@ -275,13 +288,14 @@
       if (!v.__src) { v.__src = 1; v.innerHTML = '<source src="' + ROOT + g.clip + '/arcade-clip.webm?c=' + Q + '" type="video/webm"><source src="' + ROOT + g.clip + '/arcade-clip.mp4?c=' + Q + '" type="video/mp4">'; try { v.load(); } catch (e) {} }
       var p; try { p = v.play(); } catch (e) {} if (p && p['catch']) p['catch'](function () {});
     };
+    currentVideo = v; resumeVideo = go;
     if ('IntersectionObserver' in window) {
       vidIO = new IntersectionObserver(function (es) {
         es.forEach(function (e) { v.__vis = e.isIntersecting; if (e.isIntersecting && !document.hidden) go(); else { try { v.pause(); } catch (x) {} } });
       }, { rootMargin: '200px 0px' });
       vidIO.observe(scr);
     } else go();
-    document.addEventListener('visibilitychange', function () { if (document.hidden) { try { v.pause(); } catch (e) {} } else if (v.__vis) go(); });
+
   }
 
   function render() {
@@ -292,6 +306,8 @@
     pickKey = dayKey();
     pick = pickFor(pickKey, list);
     if (vidIO) { try { vidIO.disconnect(); } catch (e) {} vidIO = null; }
+    if (currentVideo) { try { currentVideo.pause(); currentVideo.removeAttribute('src'); currentVideo.innerHTML = ''; currentVideo.load(); } catch (e) {} }
+    currentVideo = null; resumeVideo = null;
     if (!wrap) {
       wrap = document.createElement('section');
       wrap.className = 'ttd';
@@ -399,13 +415,17 @@
         for (var i = 0; i < ms.length; i++) {
           var m = ms[i], t = m.target;
           if (wrap && wrap.contains(t)) continue;
-          if (m.type === 'attributes') { later(); return; }
+          if (m.type === 'attributes') { if (t.closest && t.closest('#tt-arc .tt-ns, #tt-arc .ta-cab')) { later(); return; } continue; }
           var j;
           for (j = 0; j < m.addedNodes.length; j++) if (relevant(m.addedNodes[j])) { later(); return; }
           for (j = 0; j < m.removedNodes.length; j++) { var n = m.removedNodes[j]; if (n === wrap || relevant(n)) { later(); return; } }
         }
       }).observe(document.body || document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-count'] });
     } catch (e) {}
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden && currentVideo) { try { currentVideo.pause(); } catch (e) {} }
+      else { if (currentVideo && currentVideo.__vis && resumeVideo) resumeVideo(); later(); }
+    });
     setInterval(function () {
       if (document.hidden || !wrap) return;
       if (dayKey() !== pickKey) { render(); return; }
