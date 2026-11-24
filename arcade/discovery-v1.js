@@ -23,7 +23,8 @@
   var Q = (me.match(/[?&]c=([\w.-]+)/) || [0, 'v1'])[1];
   var TZ = 'America/New_York';
 
-  /* Rotation order (fixed). f = featured card attr (data-<f>-card), k = cabinet data-k. */
+  /* Rotation order (fixed). f = featured card attr (data-<f>-card), k = cabinet data-k.
+     norot = listed on the HIGH SCORE BOARD but never the daily START HERE pick (Toaster Tanks: two-player). */
   var GAMES = [
     { id: 'skullz', f: 'sk', name: "Mr. Toasty's No Signal Skullz", short: 'No Signal Skullz', hook: 'A 404 roguelike: play as Mr. Toasty, free the Cotys, break the Glitch.', clip: 'skullz' },
     { id: 'crypt', f: 'crypt', name: "Mr. Toasty's Crypt", short: 'Crypt', hook: 'Roguelike crypt crawl with Skullz heroes, guns and glitch bosses.', clip: 'crypt' },
@@ -37,7 +38,7 @@
     { id: 'mars', k: 'mars', name: 'Cybertruck then Mars', short: 'Cybertruck then Mars', hook: 'Moonbase first, then the Starship run to Mars.' },
     { id: 'feed', k: 'feed', name: 'Feed Fat Coty', short: 'Feed Fat Coty', hook: 'Feed the craving. Chain the combos.' },
     { id: 'bite', k: 'bite', name: 'Fat Coty: Final Bite', short: 'Final Bite', hook: '16-bit street brawl. Eat the Toaster.' },
-    { id: 'tanks', k: 'tanks', name: 'Toaster Tanks', short: 'Toaster Tanks', hook: 'Two-player artillery. Toasty vs. Crusty. Bring a friend.' }
+    { id: 'tanks', k: 'tanks', norot: 1, name: 'Toaster Tanks', short: 'Toaster Tanks', hook: 'Two-player artillery. Toasty vs. Crusty. Bring a friend.' }
   ];
 
   var reduce = false, saveData = false;
@@ -304,7 +305,8 @@
     var list = available();
     if (list.length < 3) return false;
     pickKey = dayKey();
-    pick = pickFor(pickKey, list);
+    var rot = list.filter(function (g) { return !g.norot; }); /* norot: on the board, never the daily pick */
+    pick = pickFor(pickKey, rot.length ? rot : list);
     if (vidIO) { try { vidIO.disconnect(); } catch (e) {} vidIO = null; }
     if (currentVideo) { try { currentVideo.pause(); currentVideo.removeAttribute('src'); currentVideo.innerHTML = ''; currentVideo.load(); } catch (e) {} }
     currentVideo = null; resumeVideo = null;
