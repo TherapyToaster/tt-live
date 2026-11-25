@@ -1166,8 +1166,8 @@
     var rows;
     if (aw >= 520) {
       rows = [
-        ['logo', 'therapy', 'veteran'],
-        ['toasted', 'skull', 'twitter', 'artcade', 'burnt']
+        ['logo', 'therapy', 'veteran', 'burnt'],
+        ['toasted', 'skull', 'twitter', 'artcade']
       ];
     } else {
       rows = [
@@ -1243,10 +1243,14 @@
         neonTubeText(g, 'MR.TOASTY', ix + iw * 0.5, iy + ih * 0.35, Math.min(15, ih * 0.32), YEL, iw - 10);
       }
     } else if (spec.kind === 'caution-card') {
-      drawChunkyFrame(g, ix, iy, iw, ih, Math.max(3, Math.min(6, ih * 0.14)));
-      var mid = iy + ih * 0.32;
-      neonTubeText(g, spec.title, ix + iw * 0.5, mid - Math.min(13, ih * 0.28), Math.min(12, ih * 0.26), spec.col, iw - 12);
-      neonTubeText(g, spec.sub, ix + iw * 0.5, mid + 2, Math.min(11, ih * 0.24), YEL, iw - 12);
+      var chs = Math.max(3, Math.min(5, ih * 0.12));
+      drawChunkyFrame(g, ix, iy, iw, ih, chs);
+      var innerTop = iy + 2 + chs + 1;
+      var innerH = Math.max(16, ih - (2 + chs + 1) * 2);
+      var tsz = Math.min(12, innerH * 0.38);
+      var ssz = Math.min(11, innerH * 0.34);
+      neonTubeText(g, spec.title, ix + iw * 0.5, innerTop, tsz, spec.col, iw - 14);
+      neonTubeText(g, spec.sub, ix + iw * 0.5, innerTop + innerH * 0.50, ssz, YEL, iw - 14);
     } else if (spec.kind === 'therapy-tubes') {
       g.fillStyle = 'rgba(4,6,12,0.9)';
       g.fillRect(ix, iy, iw, ih);
@@ -1305,7 +1309,7 @@
       g.strokeStyle = spec.col;
       g.lineWidth = 1.4;
       g.strokeRect(ix + 0.5, iy + 0.5, iw - 1, ih - 1);
-      neonTubeText(g, lines[0], ix + iw * 0.5, iy + ih * 0.28, Math.min(13, ih * 0.42), spec.col, iw - 8);
+      neonTubeText(g, lines[0], ix + iw * 0.5, iy + Math.max(2, (ih - Math.min(13, ih * 0.5)) * 0.5), Math.min(13, ih * 0.42), spec.col, iw - 8);
     }
     g.restore();
   }
