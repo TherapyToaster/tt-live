@@ -1,0 +1,437 @@
+<!-- TT TOASTER RADIO PAGE v4 (/music): one full-page Code block, all styling inline (plain CSS, no Custom CSS edits).
+     Preview from tracks-v4.json (14 tracks as of Nov 25, 2026 ET): existing main track first, then newest first.
+     12 public songs from suno.com/@therapytoaster plus 2 public BlueSfaira tracks Coty sent (not on his profile).
+     Audio = public cdn1.suno.ai/<id>.mp4 (AAC) in a single <audio preload=none>; covers lazy-load after the first row;
+     on load failure the player swaps to Suno's official embed iframe. Calm: no shake, no flicker; visualizer is static under prefers-reduced-motion. -->
+<style>
+.fluid-engine:has(#tt-mus){grid-template-rows:auto!important;grid-auto-rows:auto!important}
+.fe-block:has(#tt-mus){grid-column:2 / -2!important;grid-row:1 / auto!important;height:auto!important;min-height:0!important}
+.fe-block:has(#tt-mus) .sqs-block,.fe-block:has(#tt-mus) .sqs-block-content{width:100%;height:auto!important}
+.sqs-block:has(#tt-mus){padding-left:0!important;padding-right:0!important}
+#tt-mus{--y:#FFD400;--r:#ff3030;--rd:#b00000;--c:#00e5ff;--tx:#dee3de;--bg:#05070d;position:relative;isolation:isolate;width:100%;padding:44px 18px 40px;box-sizing:border-box;border-radius:20px;overflow:hidden;color:var(--tx);font-family:inherit;text-align:left;
+ background:
+  repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 3px),
+  linear-gradient(90deg,transparent 0 9%,rgba(0,229,255,.10) 9% 9.6%,transparent 9.6% 78%,rgba(176,0,0,.14) 78% 79%,transparent 79%),
+  radial-gradient(ellipse at 15% 0%,rgba(255,212,0,.22),transparent 55%),
+  radial-gradient(ellipse at 90% 100%,rgba(0,229,255,.14),transparent 50%),
+  radial-gradient(ellipse at 70% 30%,rgba(176,0,0,.16),transparent 45%),
+  var(--bg);border:2px solid var(--y);box-shadow:-4px 0 0 rgba(0,229,255,.55),4px 0 0 rgba(176,0,0,.6)}
+#tt-mus *{box-sizing:border-box}
+#tt-mus button{font-family:inherit}
+#tt-mus .tm-h{margin:0 0 6px;text-align:center;font-family:inherit;font-weight:900;letter-spacing:.06em;line-height:1;font-size:clamp(44px,10vw,124px);color:var(--y);position:relative;text-shadow:-3px 0 rgba(0,229,255,.85),3px 0 rgba(176,0,0,.9)}
+#tt-mus .tm-h span{position:absolute;inset:0;pointer-events:none;opacity:.55}
+#tt-mus .tm-h .s1{clip-path:inset(18% 0 62% 0);transform:translateX(-6px);color:var(--c)}
+#tt-mus .tm-h .s2{clip-path:inset(64% 0 14% 0);transform:translateX(7px);color:var(--r)}
+#tt-mus .tm-tag{margin:0 auto 26px;text-align:center;font-size:15px;max-width:680px;opacity:.92;line-height:1.5}
+#tt-mus .tm-tag b{background:var(--y);color:#000;padding:1px 7px;border-radius:4px}
+#tt-mus .tm-air{display:inline-flex;align-items:center;gap:7px;margin:0 8px 0 0;padding:2px 10px;border:1px solid var(--r);border-radius:999px;color:var(--r);font-size:12px;font-weight:800;letter-spacing:.12em;vertical-align:1px}
+#tt-mus .tm-air i{width:8px;height:8px;border-radius:50%;background:var(--r);box-shadow:0 0 8px var(--r)}
+#tt-mus.tm-playing .tm-air i{animation:tmGlow 2.4s ease-in-out infinite}
+@keyframes tmGlow{50%{opacity:.35}}
+/* player */
+#tt-mus .tm-pl{display:grid;grid-template-columns:minmax(0,320px) minmax(0,1fr);gap:26px;max-width:1100px;margin:0 auto 34px;padding:20px;background:rgba(5,7,13,.78);border:1px solid rgba(255,212,0,.35);border-radius:18px;box-shadow:0 0 0 1px rgba(0,0,0,.4),0 10px 40px rgba(0,0,0,.45)}
+#tt-mus .tm-art{position:relative;margin:0;border-radius:14px;overflow:hidden;border:2px solid var(--y);box-shadow:-4px 0 0 rgba(0,229,255,.6),4px 0 0 rgba(176,0,0,.7);background:#111;aspect-ratio:1}
+#tt-mus .tm-art img{display:block;width:100%;height:100%;object-fit:cover}
+#tt-mus .tm-art::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.14) 0 1px,transparent 1px 3px)}
+#tt-mus .tm-info{display:flex;flex-direction:column;min-width:0}
+#tt-mus .tm-np{margin:0 0 6px;font-size:12px;font-weight:800;letter-spacing:.18em;color:var(--c)}
+#tt-mus .tm-ti{margin:0 0 6px;font-family:inherit;font-weight:900;font-size:clamp(24px,3.4vw,40px);line-height:1.1;color:var(--y);text-shadow:-2px 0 rgba(0,229,255,.7),2px 0 rgba(176,0,0,.8);overflow-wrap:anywhere}
+#tt-mus .tm-me{margin:0 0 4px;font-size:14px;opacity:.85}
+#tt-mus .tm-g{margin:0 0 12px;font-size:13px;opacity:.65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#tt-mus .tm-viz{display:block;width:100%;height:96px;margin:4px 0 12px;border-radius:10px;background:rgba(255,212,0,.04);border:1px solid rgba(255,212,0,.15)}
+#tt-mus .tm-seek{display:flex;align-items:center;gap:10px;font-size:13px;font-variant-numeric:tabular-nums}
+#tt-mus .tm-seek span{min-width:40px;opacity:.85}
+#tt-mus .tm-seek span:last-child{text-align:right}
+#tt-mus .tm-rng{--p:0%;flex:1;min-width:0;height:22px;margin:0;background:transparent;-webkit-appearance:none;appearance:none;cursor:pointer}
+#tt-mus .tm-rng::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:linear-gradient(90deg,var(--y) var(--p),rgba(255,255,255,.18) var(--p))}
+#tt-mus .tm-rng::-moz-range-track{height:6px;border-radius:3px;background:linear-gradient(90deg,var(--y) var(--p),rgba(255,255,255,.18) var(--p))}
+#tt-mus .tm-rng::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;margin-top:-5px;border-radius:50%;background:var(--y);border:2px solid #000;box-shadow:-2px 0 0 var(--c),2px 0 0 var(--r)}
+#tt-mus .tm-rng::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--y);border:2px solid #000;box-shadow:-2px 0 0 var(--c),2px 0 0 var(--r)}
+#tt-mus .tm-rng:focus-visible{outline:2px solid var(--c);outline-offset:2px;border-radius:4px}
+#tt-mus .tm-ctl{display:flex;align-items:center;flex-wrap:wrap;gap:14px;margin:14px 0 0}
+#tt-mus .tm-b{display:inline-grid;place-items:center;width:46px;height:46px;padding:0;border:2px solid rgba(255,212,0,.6);border-radius:50%;background:rgba(0,0,0,.4);color:var(--y);cursor:pointer;transition:background .15s,border-color .15s,box-shadow .15s}
+#tt-mus .tm-b svg{width:20px;height:20px;fill:currentColor}
+#tt-mus .tm-b:hover,#tt-mus .tm-b:focus-visible{border-color:var(--y);box-shadow:-2px 0 0 var(--c),2px 0 0 var(--r);outline:none}
+#tt-mus .tm-pp{width:64px;height:64px;background:var(--y);color:#05070d;border-color:var(--y);box-shadow:-3px 0 0 rgba(0,229,255,.75),3px 0 0 rgba(176,0,0,.85)}
+#tt-mus .tm-pp svg{width:26px;height:26px}
+#tt-mus .tm-pp:hover,#tt-mus .tm-pp:focus-visible{background:#000;color:var(--y)}
+#tt-mus .tm-pp .i-pa,#tt-mus.tm-playing .tm-pp .i-pl{display:none}
+#tt-mus.tm-playing .tm-pp .i-pa{display:block}
+#tt-mus .tm-lk{margin-left:auto;padding:9px 16px;border:2px solid var(--c);border-radius:999px;color:var(--c)!important;text-decoration:none!important;font-weight:800;font-size:14px;white-space:nowrap;transition:background .15s,color .15s}
+#tt-mus .tm-lk:hover,#tt-mus .tm-lk:focus-visible{background:var(--c);color:#05070d!important;outline:none}
+#tt-mus .tm-st{min-height:1.3em;margin:10px 0 0;font-size:12px;opacity:.7}
+#tt-mus .tm-emb{display:none;width:100%;height:240px;margin:10px 0 0;border:0;border-radius:12px;background:#000}
+#tt-mus.tm-embed .tm-emb{display:block}
+#tt-mus.tm-embed .tm-viz,#tt-mus.tm-embed .tm-seek,#tt-mus.tm-embed .tm-pp{display:none}
+/* tracklist */
+#tt-mus .tm-sec{max-width:1100px;margin:0 auto}
+#tt-mus .tm-sh{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:0 0 14px;padding:0 0 8px;border-bottom:1px solid rgba(255,212,0,.25)}
+#tt-mus .tm-sh h2{margin:0;font-family:inherit;font-weight:900;font-size:clamp(22px,3vw,30px);letter-spacing:.06em;color:var(--y);text-shadow:-2px 0 rgba(0,229,255,.7),2px 0 rgba(176,0,0,.8)}
+#tt-mus .tm-sh small{font-size:13px;opacity:.7}
+#tt-mus .tm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin:0;padding:0;list-style:none}
+#tt-mus .tm-card{display:flex;flex-direction:column;min-width:0;margin:0;padding:0;background:#05070d;border:2px solid rgba(255,212,0,.5);border-radius:14px;overflow:hidden;transition:transform .18s,border-color .18s,box-shadow .18s}
+#tt-mus .tm-card::before{display:none}
+#tt-mus .tm-card:hover,#tt-mus .tm-card:focus-within{transform:translateY(-2px);border-color:var(--y);box-shadow:-3px 0 0 rgba(0,229,255,.7),3px 0 0 rgba(176,0,0,.8),0 0 16px rgba(255,212,0,.3)}
+#tt-mus .tm-card.tm-on{border-color:var(--y);box-shadow:-3px 0 0 rgba(0,229,255,.8),3px 0 0 rgba(176,0,0,.9),0 0 22px rgba(255,212,0,.35)}
+#tt-mus .tm-hit{display:block;width:100%;margin:0;padding:0;border:0;background:none;color:var(--tx);text-align:left;cursor:pointer}
+#tt-mus .tm-hit:focus-visible{outline:2px solid var(--c);outline-offset:-4px}
+#tt-mus .tm-cov{position:relative;display:block;aspect-ratio:1;background:#111;overflow:hidden}
+#tt-mus .tm-cov img{display:block;width:100%;height:100%;object-fit:cover;transition:filter .18s}
+#tt-mus .tm-card:hover .tm-cov img,#tt-mus .tm-hit:focus-visible .tm-cov img{filter:drop-shadow(-3px 0 rgba(0,229,255,.7)) drop-shadow(3px 0 rgba(176,0,0,.8)) saturate(1.2)}
+#tt-mus .tm-pi{position:absolute;right:10px;bottom:10px;width:46px;height:46px;border-radius:50%;background:var(--y);box-shadow:-2px 0 0 var(--c),2px 0 0 var(--r);opacity:0;transform:translateY(4px);transition:opacity .18s,transform .18s}
+#tt-mus .tm-pi::before{content:"";position:absolute;left:18px;top:14px;border-style:solid;border-width:9px 0 9px 14px;border-color:transparent transparent transparent #05070d}
+#tt-mus .tm-card:hover .tm-pi,#tt-mus .tm-hit:focus-visible .tm-pi,#tt-mus .tm-card.tm-on .tm-pi{opacity:1;transform:none}
+#tt-mus.tm-playing .tm-card.tm-on .tm-pi::before{left:15px;top:14px;width:16px;height:18px;border:0;border-left:5px solid #05070d;border-right:5px solid #05070d;box-sizing:border-box}
+#tt-mus .tm-main{position:absolute;left:8px;top:8px;padding:3px 9px;border-radius:999px;background:var(--y);color:#05070d;font-size:11px;font-weight:900;letter-spacing:.08em;box-shadow:-2px 0 0 var(--c),2px 0 0 var(--r)}
+#tt-mus .tm-card.tm-pin{border-color:var(--y)}
+#tt-mus .tm-ct{display:block;padding:10px 12px 2px;font-size:15px;font-weight:800;line-height:1.3;color:var(--y)}
+#tt-mus .tm-take{display:inline-block;margin-left:4px;padding:0 6px;border:1px solid var(--c);border-radius:4px;color:var(--c);font-size:11px;font-weight:700;vertical-align:2px}
+#tt-mus .tm-cm{display:block;padding:0 12px 8px;font-size:12px;opacity:.75;font-variant-numeric:tabular-nums}
+#tt-mus .tm-card{content-visibility:auto;contain-intrinsic-size:200px 340px}
+#tt-mus .tm-by{display:block;padding:0 12px 0;font-size:12px;font-weight:700;color:var(--c);letter-spacing:.02em}
+#tt-mus .tm-grid{content-visibility:auto}
+
+#tt-mus .tm-sl{display:block;margin-top:auto;padding:9px 12px 11px;border-top:1px solid rgba(255,212,0,.18);color:var(--c)!important;font-size:13px;font-weight:700;text-decoration:none!important}
+#tt-mus .tm-sl:hover,#tt-mus .tm-sl:focus-visible{background:rgba(0,229,255,.1);outline:none}
+#tt-mus .tm-ft{margin:36px 0 0;text-align:center}
+#tt-mus .tm-fb{display:inline-flex;align-items:center;gap:10px;padding:15px 32px;border:2px solid var(--y);border-radius:999px;background:var(--y);color:#05070d!important;text-decoration:none!important;font-weight:900;font-size:18px;letter-spacing:.02em;box-shadow:-3px 0 0 rgba(0,229,255,.75),3px 0 0 rgba(176,0,0,.85);transition:background .15s,color .15s}
+#tt-mus .tm-fb:hover,#tt-mus .tm-fb:focus-visible{background:#000;color:var(--y)!important;outline:none}
+#tt-mus .tm-fn{margin:10px 0 0;font-size:12px;opacity:.6}
+@media (max-width:760px){#tt-mus .tm-pl{grid-template-columns:1fr;gap:16px;padding:14px}#tt-mus .tm-art{max-width:340px;width:100%;margin:0 auto}}
+@media (max-width:600px){#tt-mus{padding:28px 8px 24px;border-radius:14px}#tt-mus .tm-h .s1{transform:translateX(-3px)}#tt-mus .tm-h .s2{transform:translateX(4px)}
+ #tt-mus .tm-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}#tt-mus .tm-ct{font-size:13px;padding:8px 9px 2px}#tt-mus .tm-cm{padding:0 9px 7px;font-size:11px}#tt-mus .tm-sl{padding:8px 9px 9px;font-size:12px}
+ #tt-mus .tm-ctl{gap:10px}#tt-mus .tm-lk{margin-left:0;width:100%;text-align:center}#tt-mus .tm-viz{height:72px}#tt-mus .tm-pi{width:38px;height:38px}#tt-mus .tm-pi::before{left:15px;top:11px;border-width:8px 0 8px 12px}#tt-mus.tm-playing .tm-card.tm-on .tm-pi::before{left:12px;top:11px;width:14px;height:16px;border-width:0 4px}}
+@media (prefers-reduced-motion:reduce){#tt-mus *{transition:none!important;animation:none!important}#tt-mus .tm-card:hover,#tt-mus .tm-card:focus-within{transform:none}}
+</style>
+<div id="tt-mus">
+<h1 class="tm-h" aria-label="Toaster Radio">TOASTER RADIO<span class="s1" aria-hidden="true">TOASTER RADIO</span><span class="s2" aria-hidden="true">TOASTER RADIO</span></h1>
+<p class="tm-tag"><span class="tm-air"><i></i>ON AIR</span>Songs by <b>TherapyToaster</b> on Suno, plus two from <b>BlueSfaira</b> · 14 tracks, main track first.</p>
+<section class="tm-pl" aria-label="Now playing">
+<figure class="tm-art"><img class="tm-ai" src="https://cdn2.suno.ai/4e7f4242-6e8c-4733-b034-33017205d356.jpeg" alt="Cover art: Four Handles, One Toaster" width="320" height="320"></figure>
+<div class="tm-info">
+<p class="tm-np">★ MAIN TRACK · NOW PLAYING</p>
+<h2 class="tm-ti">Four Handles, One Toaster</h2>
+<p class="tm-me"></p>
+<p class="tm-g"></p>
+<canvas class="tm-viz" aria-hidden="true"></canvas>
+<div class="tm-seek"><span class="tm-cur">0:00</span><input class="tm-rng" type="range" min="0" max="1000" value="0" step="1" aria-label="Seek"><span class="tm-dur">3:22</span></div>
+<div class="tm-ctl">
+<button type="button" class="tm-b tm-pv" aria-label="Previous track"><svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg></button>
+<button type="button" class="tm-b tm-pp" aria-label="Play"><svg class="i-pl" viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></svg><svg class="i-pa" viewBox="0 0 24 24"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg></button>
+<button type="button" class="tm-b tm-nx" aria-label="Next track"><svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg></button>
+<a class="tm-lk" href="https://suno.com/song/9ce7aece-669c-4791-bdd2-ff7ccf2d44a3" target="_blank" rel="noopener">Listen on Suno ↗</a>
+</div>
+<iframe class="tm-emb" title="Suno player" loading="lazy" allow="autoplay; encrypted-media"></iframe>
+<p class="tm-st" aria-live="polite"></p>
+</div>
+<audio class="tm-au" preload="none" crossorigin="anonymous" src="https://cdn1.suno.ai/9ce7aece-669c-4791-bdd2-ff7ccf2d44a3.mp4"></audio>
+</section>
+<section class="tm-sec" aria-label="All tracks">
+<div class="tm-sh"><h2>TRACKLIST</h2><small>14 songs · tap one to play</small></div>
+<ol class="tm-grid">
+<li class="tm-card tm-pin" data-i="0">
+<button type="button" class="tm-hit" data-i="0" aria-label="Play Four Handles, One Toaster take 1">
+<span class="tm-cov"><img src="https://cdn2.suno.ai/4e7f4242-6e8c-4733-b034-33017205d356.jpeg" alt="" loading="eager" decoding="async" width="300" height="300"><span class="tm-main">★ MAIN TRACK</span><span class="tm-pi" aria-hidden="true"></span></span>
+<span class="tm-ct">Four Handles, One Toaster <span class="tm-take">take 1</span></span>
+
+<span class="tm-cm">3:22 · Oct 9, 2026 · 14 plays</span>
+</button>
+<a class="tm-sl" href="https://suno.com/song/9ce7aece-669c-4791-bdd2-ff7ccf2d44a3" target="_blank" rel="noopener">Listen on Suno ↗</a>
+</li>
+<li class="tm-card" data-i="1">
+<button type="button" class="tm-hit" data-i="1" aria-label="Play Toasty Afternoon (It’s not a phase mom!) by BlueSfaira">
+<span class="tm-cov"><img src="https://cdn2.suno.ai/50f5db74-1ba7-41eb-b29f-83f8b721bfbf_108f1d5e.jpeg" alt="" loading="eager" decoding="async" width="300" height="300"><span class="tm-pi" aria-hidden="true"></span></span>
+<span class="tm-ct">Toasty Afternoon (It’s not a phase mom!)</span>
+<span class="tm-by">BlueSfaira</span>
+<span class="tm-cm">2:10 · Nov 25, 2026 · 14 plays</span>
+</button>
+<a class="tm-sl" href="https://suno.com/song/50f5db74-1ba7-41eb-b29f-83f8b721bfbf" target="_blank" rel="noopener">Listen on Suno ↗</a>
+</li>
+<li class="tm-card" data-i="2">
+<button type="button" class="tm-hit" data-i="2" aria-label="Play Toasty Afternoon by BlueSfaira">
+<span class="tm-cov"><img src="https://cdn2.suno.ai/f571e962-64ba-40b9-8c98-a52c7e81ea18_0f05fbc6.jpeg" alt="" loading="eager" decoding="async" width="300" height="300"><span class="tm-pi" aria-hidden="true"></span></span>
+<span class="tm-ct">Toasty Afternoon</span>
+<span class="tm-by">BlueSfaira</span>
+<span class="tm-cm">2:47 · Nov 25, 2026 · 12 plays</span>
+</button>
+<a class="tm-sl" href="https://suno.com/song/f571e962-64ba-40b9-8c98-a52c7e81ea18" target="_blank" rel="noopener">Listen on Suno ↗</a>
+</li>
+<li class="tm-card" data-i="3">
+<button type="button" class="tm-hit" data-i="3" aria-label="Play Therapy Toaster take 2">
+<span class="tm-cov"><img src="https://cdn2.suno.ai/c7461156-e75e-42d2-ba4f-7ec786257665.jpeg" alt="" loading="eager" decoding="async" width="300" height="300"><span class="tm-pi" aria-hidden="true"></span></span>
+<span class="tm-ct">Therapy Toaster <span class="tm-take">take 2</span></span>
+
+<span class="tm-cm">3:08 · Nov 22, 2026 · 10 plays</span>
+</button>
+<a class="tm-sl" href="https://suno.com/song/fe6d232e-248e-4ae7-9b90-e95d844c60a4" target="_blank" rel="noopener">Listen on Suno ↗</a>
+</li>
+<li class="tm-card" data-i="4">
+<button type="button" class="tm-hit" data-i="4" aria-label="Play Unreal Beach Days">
+<span class="tm-cov"><img src="https://cdn2.suno.ai/image_large_6a2f3959-4d51-4aa7-b144-e4edc106a335.jpeg" alt="" loading="lazy" decoding="async" width="300" height="300"><span class="tm-pi" aria-hidden="true"></span></span>
+<span class="tm-ct">Unreal Beach Days</span>
+
+<span class="tm-cm">3:26 · Nov 11, 2026 · 4 plays</span>
+</button>
+<a class="tm-sl" href="https://suno.com/song/6a2f3959-4d51-4aa7-b144-e4edc106a335" target="_blank" rel="noopener">Listen on Suno ↗</a>
+</li>
+<li class="tm-card" data-i="5">
+<button type="button" class="tm-hit" data-i="5" aria-label="Play Therapy Toaster (Pop It Up)">
+<span class="tm-cov"><img src="https://cdn2.suno.ai/video_upload_84d3e36c-135e-411e-a771-dd2207679010_video_upload_84d3e36c-135e-411e-a771-dd2207679010_cover_snapshot_0s_1794421018_image.jpeg" alt="" loading="lazy" decoding="async" width="300" height="300"><span class="tm-pi" aria-hidden="true"></span></span>
+<span class="tm-ct">Therapy Toaster (Pop It Up)</span>
+
+<span class="tm-cm">2:50 · Nov 11, 2026 · 10 plays</span>
+</button>
+<a class="tm-sl" href="https://suno.com/song/c24b5081-4a7d-4cc1-bad2-456b87e16178" target="_blank" rel="noopener">Listen on Suno ↗</a>
+</li>
+<li class="tm-card" data-i="6">
+<button type="button" class="tm-hit" data-i="6" aria-label="Play Four Handles, One Toaster take 3">
+<span class="tm-cov"><img src="https://cdn2.suno.ai/8185ae23-613c-4c77-85df-43001e78b2dd.jpeg" alt="" loading="lazy" decoding="async" width="300" height="300"><span class="tm-pi" aria-hidden="true"></span></span>
+<span class="tm-ct">Four Handles, One Toaster <span class="tm-take">take 3</span></span>
+
+<span class="tm-cm">3:29 · Oct 25, 2026 · 36 plays</span>
+</button>
+<a class="tm-sl" href="https://suno.com/song/52049d72-5d62-4945-98a1-03648deb5ff4" target="_blank" rel="noopener">Listen on Suno ↗</a>
+</li>
+<li class="tm-card" data-i="7">
+<button type="button" class="tm-hit" data-i="7" aria-label="Play Zero Skulls">
+<span class="tm-cov"><img src="https://cdn2.suno.ai/fff43d1b-895b-4413-a663-70986d9a20b6.jpeg" alt="" loading="lazy" decoding="async" width="300" height="300"><span class="tm-pi" aria-hidden="true"></span></span>
+<span class="tm-ct">Zero Skulls</span>
+
+<span class="tm-cm">3:11 · Oct 24, 2026 · 16 plays</span>
+</button>
+<a class="tm-sl" href="https://suno.com/song/8e1e4a48-c646-488f-8bf1-e1072dd63411" target="_blank" rel="noopener">Listen on Suno ↗</a>
+</li>
+<li class="tm-card" data-i="8">
+<button type="button" class="tm-hit" data-i="8" aria-label="Play Toaster at the Tavern">
+<span class="tm-cov"><img src="https://cdn2.suno.ai/5ce081cd-b11d-4be8-adc1-49c7f5da259e.jpeg" alt="" loading="lazy" decoding="async" width="300" height="300"><span class="tm-pi" aria-hidden="true"></span></span>
+<span class="tm-ct">Toaster at the Tavern</span>
+
+<span class="tm-cm">0:57 · Oct 21, 2026 · 16 plays</span>
+</button>
+<a class="tm-sl" href="https://suno.com/song/0bd51395-55a7-468f-8ef6-4cd03af5647f" target="_blank" rel="noopener">Listen on Suno ↗</a>
+</li>
+<li class="tm-card" data-i="9">
+<button type="button" class="tm-hit" data-i="9" aria-label="Play Therapy Toaster take 1">
+<span class="tm-cov"><img src="https://cdn2.suno.ai/b1ca10ef-74c5-47b3-ace7-4d93283d938c.jpeg" alt="" loading="lazy" decoding="async" width="300" height="300"><span class="tm-pi" aria-hidden="true"></span></span>
+<span class="tm-ct">Therapy Toaster <span class="tm-take">take 1</span></span>
+
+<span class="tm-cm">3:50 · Oct 10, 2026 · 14 plays</span>
+</button>
+<a class="tm-sl" href="https://suno.com/song/2603d8ab-fb50-4968-823d-7437e03aba64" target="_blank" rel="noopener">Listen on Suno ↗</a>
+</li>
+<li class="tm-card" data-i="10">
+<button type="button" class="tm-hit" data-i="10" aria-label="Play Four Handles, One Toaster take 2">
+<span class="tm-cov"><img src="https://cdn2.suno.ai/image_large_57a9b554-335d-4cd6-8745-ea1facea68b6.jpeg" alt="" loading="lazy" decoding="async" width="300" height="300"><span class="tm-pi" aria-hidden="true"></span></span>
+<span class="tm-ct">Four Handles, One Toaster <span class="tm-take">take 2</span></span>
+
+<span class="tm-cm">3:40 · Oct 9, 2026 · 8 plays</span>
+</button>
+<a class="tm-sl" href="https://suno.com/song/427e0f31-b29f-4aa1-8ff5-c0f45a27342a" target="_blank" rel="noopener">Listen on Suno ↗</a>
+</li>
+<li class="tm-card" data-i="11">
+<button type="button" class="tm-hit" data-i="11" aria-label="Play Chains on the ground, speed square in the sky">
+<span class="tm-cov"><img src="https://cdn2.suno.ai/f9a48cb8-7e0a-4fbc-8e7c-5bcf2114aa08.jpeg" alt="" loading="lazy" decoding="async" width="300" height="300"><span class="tm-pi" aria-hidden="true"></span></span>
+<span class="tm-ct">Chains on the ground, speed square in the sky</span>
+
+<span class="tm-cm">4:34 · Sep 8, 2026 · 20 plays</span>
+</button>
+<a class="tm-sl" href="https://suno.com/song/ef163208-5ea1-4385-8f13-ef65cc2d5205" target="_blank" rel="noopener">Listen on Suno ↗</a>
+</li>
+<li class="tm-card" data-i="12">
+<button type="button" class="tm-hit" data-i="12" aria-label="Play Little Headlights">
+<span class="tm-cov"><img src="https://cdn2.suno.ai/d63af3bb-4953-4fe0-81b7-dc1ffb049d3a.jpeg" alt="" loading="lazy" decoding="async" width="300" height="300"><span class="tm-pi" aria-hidden="true"></span></span>
+<span class="tm-ct">Little Headlights</span>
+
+<span class="tm-cm">5:24 · Sep 8, 2026 · 23 plays</span>
+</button>
+<a class="tm-sl" href="https://suno.com/song/84fd6396-19c8-4f32-b16f-384a0d306c17" target="_blank" rel="noopener">Listen on Suno ↗</a>
+</li>
+<li class="tm-card" data-i="13">
+<button type="button" class="tm-hit" data-i="13" aria-label="Play Keep Moving, Keep Breathing">
+<span class="tm-cov"><img src="https://cdn2.suno.ai/903bcaa0-f40a-4d5f-8bb7-fe41bf4a9c95.jpeg" alt="" loading="lazy" decoding="async" width="300" height="300"><span class="tm-pi" aria-hidden="true"></span></span>
+<span class="tm-ct">Keep Moving, Keep Breathing</span>
+
+<span class="tm-cm">5:13 · Sep 8, 2026 · 16 plays</span>
+</button>
+<a class="tm-sl" href="https://suno.com/song/5ce09690-4c09-4053-b237-c96f4a3e8d4e" target="_blank" rel="noopener">Listen on Suno ↗</a>
+</li>
+</ol>
+<div class="tm-ft"><a class="tm-fb" href="https://suno.com/@therapytoaster" target="_blank" rel="noopener">Follow on Suno ↗</a>
+<p class="tm-fn">All songs stream from Suno. Updated Nov 25, 2026.</p></div>
+</section>
+<style>
+#tt-mus .tv-sec{max-width:1100px;margin:44px auto 0}
+#tt-mus .tv-stage{display:none;max-width:880px;margin:0 auto 22px;padding:12px;background:rgba(5,7,13,.85);border:2px solid var(--y);border-radius:16px;box-shadow:-4px 0 0 rgba(0,229,255,.6),4px 0 0 rgba(176,0,0,.7)}
+#tt-mus .tv-stage.on{display:block}
+#tt-mus .tv-sh2{display:flex;align-items:center;gap:10px;margin:0 0 10px}
+#tt-mus .tv-now{flex:1;min-width:0;margin:0;font-size:14px;font-weight:800;color:var(--y);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#tt-mus .tv-now small{color:var(--c);font-size:11px;letter-spacing:.14em;margin-right:8px}
+#tt-mus .tv-close{flex:none;width:30px;height:30px;padding:0;border:1px solid rgba(255,212,0,.5);border-radius:8px;background:transparent;color:var(--y);font:700 18px/1 inherit;cursor:pointer}
+#tt-mus .tv-close:hover,#tt-mus .tv-close:focus-visible{background:var(--y);color:#05070d;outline:none}
+#tt-mus .tv-fr{position:relative;width:100%;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:#000}
+#tt-mus .tv-fr iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+#tt-mus .tv-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px;margin:0;padding:0;list-style:none;counter-reset:none}
+#tt-mus .tv-card{display:flex;flex-direction:column;min-width:0;margin:0;padding:0;background:#05070d;border:2px solid rgba(255,212,0,.5);border-radius:14px;overflow:hidden;transition:transform .18s,border-color .18s,box-shadow .18s}
+#tt-mus .tv-card::before{display:none}
+#tt-mus .tv-card:hover,#tt-mus .tv-card:focus-within{transform:translateY(-2px);border-color:var(--y);box-shadow:-3px 0 0 rgba(0,229,255,.7),3px 0 0 rgba(176,0,0,.8),0 0 16px rgba(255,212,0,.3)}
+#tt-mus .tv-card.on{border-color:var(--y);box-shadow:-3px 0 0 rgba(0,229,255,.8),3px 0 0 rgba(176,0,0,.9),0 0 22px rgba(255,212,0,.35)}
+#tt-mus .tv-hit{display:block;width:100%;margin:0;padding:0;border:0;background:none;color:var(--tx);text-align:left;cursor:pointer;font-family:inherit}
+#tt-mus .tv-hit:focus-visible{outline:2px solid var(--c);outline-offset:-4px}
+#tt-mus .tv-th{position:relative;display:block;aspect-ratio:16/9;background:#111;overflow:hidden}
+#tt-mus .tv-th img{display:block;width:100%;height:100%;object-fit:cover;transition:filter .18s}
+#tt-mus .tv-card:hover .tv-th img,#tt-mus .tv-hit:focus-visible .tv-th img{filter:drop-shadow(-3px 0 rgba(0,229,255,.7)) drop-shadow(3px 0 rgba(176,0,0,.8)) saturate(1.2)}
+#tt-mus .tv-rk{position:absolute;left:6px;top:6px;min-width:34px;padding:2px 8px;border-radius:8px;background:var(--y);color:#05070d;font-size:16px;font-weight:900;line-height:1.2;text-align:center;box-shadow:-2px 0 0 var(--c),2px 0 0 var(--r)}
+#tt-mus .tv-pi{position:absolute;left:50%;top:50%;width:44px;height:31px;margin:-15px 0 0 -22px;border-radius:9px;background:rgba(0,0,0,.72);border:2px solid var(--y);transition:background .18s}
+#tt-mus .tv-pi::before{content:"";position:absolute;left:15px;top:6px;border-style:solid;border-width:7.5px 0 7.5px 12px;border-color:transparent transparent transparent var(--y)}
+#tt-mus .tv-card:hover .tv-pi,#tt-mus .tv-hit:focus-visible .tv-pi{background:var(--rd)}
+#tt-mus .tv-t{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;padding:9px 11px 2px;font-size:14px;font-weight:800;line-height:1.3;color:var(--y)}
+#tt-mus .tv-ch{display:block;padding:0 11px 8px;font-size:12px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#tt-mus .tv-yt{display:block;margin-top:auto;padding:8px 11px 10px;border-top:1px solid rgba(255,212,0,.18);color:var(--c)!important;font-size:12px;font-weight:700;text-decoration:none!important}
+#tt-mus .tv-yt:hover,#tt-mus .tv-yt:focus-visible{background:rgba(0,229,255,.1);outline:none}
+@media (max-width:900px){#tt-mus .tv-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:600px){#tt-mus .tv-sec{margin-top:34px}#tt-mus .tv-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}#tt-mus .tv-t{font-size:12.5px;padding:7px 8px 2px}#tt-mus .tv-ch{font-size:11px;padding:0 8px 7px}#tt-mus .tv-yt{font-size:11.5px;padding:7px 8px 8px}#tt-mus .tv-rk{font-size:13px;min-width:28px;padding:1px 6px}#tt-mus .tv-stage{padding:8px;border-radius:12px}}
+@media (prefers-reduced-motion:reduce){#tt-mus .tv-card:hover,#tt-mus .tv-card:focus-within{transform:none}}
+</style>
+<section class="tv-sec" aria-label="Coty's Top 10 videos">
+<div class="tm-sh"><h2>COTY&#39;S TOP 10</h2><small>favorite YouTube videos · tap to play</small></div>
+<div class="tv-stage" aria-live="polite"><div class="tv-sh2"><p class="tv-now"></p><button type="button" class="tv-close" aria-label="Close video">×</button></div><div class="tv-fr"></div></div>
+<ol class="tv-grid">
+<li class="tv-card"><button type="button" class="tv-hit" data-v="PGVEBj6yY7s" data-r="1" data-t="BLP Kosher - No Idols (Official Music Video)" aria-label="Play #1: BLP Kosher - No Idols (Official Music Video)">
+<span class="tv-th"><img src="https://i.ytimg.com/vi/PGVEBj6yY7s/hqdefault.jpg" alt="" loading="lazy" decoding="async" width="480" height="270"><span class="tv-rk">#1</span><span class="tv-pi" aria-hidden="true"></span></span>
+<span class="tv-t">BLP Kosher - No Idols (Official Music Video)</span><span class="tv-ch">BLP KOSHER</span></button>
+<a class="tv-yt" href="https://www.youtube.com/watch?v=PGVEBj6yY7s" target="_blank" rel="noopener">Watch on YouTube ↗</a></li>
+<li class="tv-card"><button type="button" class="tv-hit" data-v="1O77jaEDaHI" data-r="2" data-t="Sideneck - &quot;Bitch I&#x27;m Sideneck&quot; (Official Video)" aria-label="Play #2: Sideneck - &quot;Bitch I&#x27;m Sideneck&quot; (Official Video)">
+<span class="tv-th"><img src="https://i.ytimg.com/vi/1O77jaEDaHI/hqdefault.jpg" alt="" loading="lazy" decoding="async" width="480" height="270"><span class="tv-rk">#2</span><span class="tv-pi" aria-hidden="true"></span></span>
+<span class="tv-t">Sideneck - &quot;Bitch I&#x27;m Sideneck&quot; (Official Video)</span><span class="tv-ch">DamnSideneck</span></button>
+<a class="tv-yt" href="https://www.youtube.com/watch?v=1O77jaEDaHI" target="_blank" rel="noopener">Watch on YouTube ↗</a></li>
+<li class="tv-card"><button type="button" class="tv-hit" data-v="Dn0DnC0by_A" data-r="3" data-t="Teo Laza x Merkules x Golden BSP - Lose My Mind" aria-label="Play #3: Teo Laza x Merkules x Golden BSP - Lose My Mind">
+<span class="tv-th"><img src="https://i.ytimg.com/vi/Dn0DnC0by_A/hqdefault.jpg" alt="" loading="lazy" decoding="async" width="480" height="270"><span class="tv-rk">#3</span><span class="tv-pi" aria-hidden="true"></span></span>
+<span class="tv-t">Teo Laza x Merkules x Golden BSP - Lose My Mind</span><span class="tv-ch">Teo Laza</span></button>
+<a class="tv-yt" href="https://www.youtube.com/watch?v=Dn0DnC0by_A" target="_blank" rel="noopener">Watch on YouTube ↗</a></li>
+<li class="tv-card"><button type="button" class="tv-hit" data-v="XVy08YLntSs" data-r="4" data-t="Caskey - Blue Moon (Official Video)" aria-label="Play #4: Caskey - Blue Moon (Official Video)">
+<span class="tv-th"><img src="https://i.ytimg.com/vi/XVy08YLntSs/hqdefault.jpg" alt="" loading="lazy" decoding="async" width="480" height="270"><span class="tv-rk">#4</span><span class="tv-pi" aria-hidden="true"></span></span>
+<span class="tv-t">Caskey - Blue Moon (Official Video)</span><span class="tv-ch">Caskey</span></button>
+<a class="tv-yt" href="https://www.youtube.com/watch?v=XVy08YLntSs" target="_blank" rel="noopener">Watch on YouTube ↗</a></li>
+<li class="tv-card"><button type="button" class="tv-hit" data-v="s35PfcCQPgU" data-r="5" data-t="Eazy Mac - Problems (Official Video)" aria-label="Play #5: Eazy Mac - Problems (Official Video)">
+<span class="tv-th"><img src="https://i.ytimg.com/vi/s35PfcCQPgU/hqdefault.jpg" alt="" loading="lazy" decoding="async" width="480" height="270"><span class="tv-rk">#5</span><span class="tv-pi" aria-hidden="true"></span></span>
+<span class="tv-t">Eazy Mac - Problems (Official Video)</span><span class="tv-ch">EazyMacOfficial</span></button>
+<a class="tv-yt" href="https://www.youtube.com/watch?v=s35PfcCQPgU" target="_blank" rel="noopener">Watch on YouTube ↗</a></li>
+<li class="tv-card"><button type="button" class="tv-hit" data-v="qQFKziM1SiM" data-r="6" data-t="Caskey - Serenity Prayer" aria-label="Play #6: Caskey - Serenity Prayer">
+<span class="tv-th"><img src="https://i.ytimg.com/vi/qQFKziM1SiM/hqdefault.jpg" alt="" loading="lazy" decoding="async" width="480" height="270"><span class="tv-rk">#6</span><span class="tv-pi" aria-hidden="true"></span></span>
+<span class="tv-t">Caskey - Serenity Prayer</span><span class="tv-ch">Caskey</span></button>
+<a class="tv-yt" href="https://www.youtube.com/watch?v=qQFKziM1SiM" target="_blank" rel="noopener">Watch on YouTube ↗</a></li>
+<li class="tv-card"><button type="button" class="tv-hit" data-v="5y7Uty_D-3U" data-r="7" data-t="Fml" aria-label="Play #7: Fml">
+<span class="tv-th"><img src="https://i.ytimg.com/vi/5y7Uty_D-3U/hqdefault.jpg" alt="" loading="lazy" decoding="async" width="480" height="270"><span class="tv-rk">#7</span><span class="tv-pi" aria-hidden="true"></span></span>
+<span class="tv-t">Fml</span><span class="tv-ch">Statik G - Topic</span></button>
+<a class="tv-yt" href="https://www.youtube.com/watch?v=5y7Uty_D-3U" target="_blank" rel="noopener">Watch on YouTube ↗</a></li>
+<li class="tv-card"><button type="button" class="tv-hit" data-v="bCdra6J5AOU" data-r="8" data-t="Teo Laza - Closure (Official Video)" aria-label="Play #8: Teo Laza - Closure (Official Video)">
+<span class="tv-th"><img src="https://i.ytimg.com/vi/bCdra6J5AOU/hqdefault.jpg" alt="" loading="lazy" decoding="async" width="480" height="270"><span class="tv-rk">#8</span><span class="tv-pi" aria-hidden="true"></span></span>
+<span class="tv-t">Teo Laza - Closure (Official Video)</span><span class="tv-ch">Teo Laza</span></button>
+<a class="tv-yt" href="https://www.youtube.com/watch?v=bCdra6J5AOU" target="_blank" rel="noopener">Watch on YouTube ↗</a></li>
+<li class="tv-card"><button type="button" class="tv-hit" data-v="SsKT0s5J8ko" data-r="9" data-t="Mac Miller - Self Care" aria-label="Play #9: Mac Miller - Self Care">
+<span class="tv-th"><img src="https://i.ytimg.com/vi/SsKT0s5J8ko/hqdefault.jpg" alt="" loading="lazy" decoding="async" width="480" height="270"><span class="tv-rk">#9</span><span class="tv-pi" aria-hidden="true"></span></span>
+<span class="tv-t">Mac Miller - Self Care</span><span class="tv-ch">Mac Miller</span></button>
+<a class="tv-yt" href="https://www.youtube.com/watch?v=SsKT0s5J8ko" target="_blank" rel="noopener">Watch on YouTube ↗</a></li>
+<li class="tv-card"><button type="button" class="tv-hit" data-v="DnTC2P9kxO8" data-r="10" data-t="Anyma, Joji - Beautiful (Official Music Video)" aria-label="Play #10: Anyma, Joji - Beautiful (Official Music Video)">
+<span class="tv-th"><img src="https://i.ytimg.com/vi/DnTC2P9kxO8/hqdefault.jpg" alt="" loading="lazy" decoding="async" width="480" height="270"><span class="tv-rk">#10</span><span class="tv-pi" aria-hidden="true"></span></span>
+<span class="tv-t">Anyma, Joji - Beautiful (Official Music Video)</span><span class="tv-ch">AnymaVEVO</span></button>
+<a class="tv-yt" href="https://www.youtube.com/watch?v=DnTC2P9kxO8" target="_blank" rel="noopener">Watch on YouTube ↗</a></li>
+</ol>
+</section>
+<script>
+(function(){
+var R=document.getElementById('tt-mus');if(!R||R.dataset.tv)return;R.dataset.tv='1';
+var S=R.querySelector('.tv-stage'),F=S.querySelector('.tv-fr'),N=S.querySelector('.tv-now'),A=R.querySelector('.tm-au'),cur=null;
+var RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches,O='https://www.youtube-nocookie.com';
+function ifr(){return F.querySelector('iframe')}
+function cmd(f){var i=ifr();if(i&&i.contentWindow)try{i.contentWindow.postMessage(JSON.stringify({event:'command',func:f,args:[]}),O)}catch(e){}}
+function stop(){F.innerHTML='';S.classList.remove('on');cur=null;R.querySelectorAll('.tv-card.on').forEach(function(c){c.classList.remove('on')})}
+function play(b){
+ var id=b.dataset.v,c=b.closest('.tv-card');if(A&&!A.paused)A.pause();
+ R.querySelectorAll('.tv-card.on').forEach(function(x){x.classList.remove('on')});c.classList.add('on');cur=id;
+ N.innerHTML='';var s=document.createElement('small');s.textContent='#'+b.dataset.r+' · NOW WATCHING';N.appendChild(s);N.appendChild(document.createTextNode(b.dataset.t));
+ var i=document.createElement('iframe');i.src=O+'/embed/'+id+'?autoplay=1&rel=0&playsinline=1&enablejsapi=1&origin='+encodeURIComponent(location.origin);
+ i.title=b.dataset.t;i.allow='autoplay; encrypted-media; picture-in-picture; fullscreen';i.allowFullscreen=true;i.referrerPolicy='strict-origin-when-cross-origin';
+ i.addEventListener('load',function(){try{i.contentWindow.postMessage(JSON.stringify({event:'listening',id:'tv'}),O)}catch(e){}});
+ F.innerHTML='';F.appendChild(i);S.classList.add('on');
+ var r=S.getBoundingClientRect();if(r.top<0||r.bottom>innerHeight)S.scrollIntoView({behavior:RM?'auto':'smooth',block:'center'});
+}
+R.querySelectorAll('.tv-hit').forEach(function(b){b.addEventListener('click',function(){if(cur===b.dataset.v)return;play(b)})});
+S.querySelector('.tv-close').addEventListener('click',stop);
+if(A)A.addEventListener('play',function(){cmd('pauseVideo')});
+window.addEventListener('message',function(e){if(e.origin!==O||!ifr()||e.source!==ifr().contentWindow)return;var d;try{d=JSON.parse(e.data)}catch(x){return}
+ var st=d&&d.info&&typeof d.info==='object'?d.info.playerState:(d&&d.event==='onStateChange'?d.info:undefined);if(st===1&&A&&!A.paused)A.pause()});
+})();
+</script>
+
+</div>
+<script>
+(function(){
+var R=document.getElementById('tt-mus');if(!R||R.dataset.ok)return;R.dataset.ok='1';
+var T=[{"id": "9ce7aece-669c-4791-bdd2-ff7ccf2d44a3", "t": "Four Handles, One Toaster", "k": 1, "a": "https://cdn1.suno.ai/9ce7aece-669c-4791-bdd2-ff7ccf2d44a3.mp4", "c": "https://cdn2.suno.ai/4e7f4242-6e8c-4733-b034-33017205d356.jpeg", "u": "https://suno.com/song/9ce7aece-669c-4791-bdd2-ff7ccf2d44a3", "e": "https://suno.com/embed/9ce7aece-669c-4791-bdd2-ff7ccf2d44a3", "d": 202.0, "m": 1, "p": 14, "dt": "Oct 9, 2026", "g": "Alternative R&B, trip-hop, lo-fi hip-hop", "by": "TherapyToaster"}, {"id": "50f5db74-1ba7-41eb-b29f-83f8b721bfbf", "t": "Toasty Afternoon (It’s not a phase mom!)", "k": 0, "a": "https://cdn1.suno.ai/50f5db74-1ba7-41eb-b29f-83f8b721bfbf.mp4", "c": "https://cdn2.suno.ai/50f5db74-1ba7-41eb-b29f-83f8b721bfbf_108f1d5e.jpeg", "u": "https://suno.com/song/50f5db74-1ba7-41eb-b29f-83f8b721bfbf", "e": "https://suno.com/embed/50f5db74-1ba7-41eb-b29f-83f8b721bfbf", "d": 130.41, "m": 0, "p": 14, "dt": "Nov 25, 2026", "g": "comedy hip-hop, storytelling rap", "by": "BlueSfaira"}, {"id": "f571e962-64ba-40b9-8c98-a52c7e81ea18", "t": "Toasty Afternoon", "k": 0, "a": "https://cdn1.suno.ai/f571e962-64ba-40b9-8c98-a52c7e81ea18.mp4", "c": "https://cdn2.suno.ai/f571e962-64ba-40b9-8c98-a52c7e81ea18_0f05fbc6.jpeg", "u": "https://suno.com/song/f571e962-64ba-40b9-8c98-a52c7e81ea18", "e": "https://suno.com/embed/f571e962-64ba-40b9-8c98-a52c7e81ea18", "d": 166.8, "m": 0, "p": 12, "dt": "Nov 25, 2026", "g": "comedy hip-hop, storytelling rap", "by": "BlueSfaira"}, {"id": "fe6d232e-248e-4ae7-9b90-e95d844c60a4", "t": "Therapy Toaster", "k": 2, "a": "https://cdn1.suno.ai/fe6d232e-248e-4ae7-9b90-e95d844c60a4.mp4", "c": "https://cdn2.suno.ai/c7461156-e75e-42d2-ba4f-7ec786257665.jpeg", "u": "https://suno.com/song/fe6d232e-248e-4ae7-9b90-e95d844c60a4", "e": "https://suno.com/embed/fe6d232e-248e-4ae7-9b90-e95d844c60a4", "d": 188.01, "m": 0, "p": 10, "dt": "Nov 22, 2026", "g": "Alternative R&B, Lo-fi", "by": "TherapyToaster"}, {"id": "6a2f3959-4d51-4aa7-b144-e4edc106a335", "t": "Unreal Beach Days", "k": 0, "a": "https://cdn1.suno.ai/6a2f3959-4d51-4aa7-b144-e4edc106a335.mp4", "c": "https://cdn2.suno.ai/image_large_6a2f3959-4d51-4aa7-b144-e4edc106a335.jpeg", "u": "https://suno.com/song/6a2f3959-4d51-4aa7-b144-e4edc106a335", "e": "https://suno.com/embed/6a2f3959-4d51-4aa7-b144-e4edc106a335", "d": 206.016, "m": 0, "p": 4, "dt": "Nov 11, 2026", "g": "pop-rock", "by": "TherapyToaster"}, {"id": "c24b5081-4a7d-4cc1-bad2-456b87e16178", "t": "Therapy Toaster (Pop It Up)", "k": 0, "a": "https://cdn1.suno.ai/c24b5081-4a7d-4cc1-bad2-456b87e16178.mp4", "c": "https://cdn2.suno.ai/video_upload_84d3e36c-135e-411e-a771-dd2207679010_video_upload_84d3e36c-135e-411e-a771-dd2207679010_cover_snapshot_0s_1794421018_image.jpeg", "u": "https://suno.com/song/c24b5081-4a7d-4cc1-bad2-456b87e16178", "e": "https://suno.com/embed/c24b5081-4a7d-4cc1-bad2-456b87e16178", "d": 169.6, "m": 0, "p": 10, "dt": "Nov 11, 2026", "g": "electro-pop, rock", "by": "TherapyToaster"}, {"id": "52049d72-5d62-4945-98a1-03648deb5ff4", "t": "Four Handles, One Toaster", "k": 3, "a": "https://cdn1.suno.ai/52049d72-5d62-4945-98a1-03648deb5ff4.mp4", "c": "https://cdn2.suno.ai/8185ae23-613c-4c77-85df-43001e78b2dd.jpeg", "u": "https://suno.com/song/52049d72-5d62-4945-98a1-03648deb5ff4", "e": "https://suno.com/embed/52049d72-5d62-4945-98a1-03648deb5ff4", "d": 208.81, "m": 0, "p": 36, "dt": "Oct 25, 2026", "g": "Alternative R&B, trip-hop, lo-fi hip-hop", "by": "TherapyToaster"}, {"id": "8e1e4a48-c646-488f-8bf1-e1072dd63411", "t": "Zero Skulls", "k": 0, "a": "https://cdn1.suno.ai/8e1e4a48-c646-488f-8bf1-e1072dd63411.mp4", "c": "https://cdn2.suno.ai/fff43d1b-895b-4413-a663-70986d9a20b6.jpeg", "u": "https://suno.com/song/8e1e4a48-c646-488f-8bf1-e1072dd63411", "e": "https://suno.com/embed/8e1e4a48-c646-488f-8bf1-e1072dd63411", "d": 190.805, "m": 0, "p": 16, "dt": "Oct 24, 2026", "g": "lo-fi pop, dark rap", "by": "TherapyToaster"}, {"id": "0bd51395-55a7-468f-8ef6-4cd03af5647f", "t": "Toaster at the Tavern", "k": 0, "a": "https://cdn1.suno.ai/0bd51395-55a7-468f-8ef6-4cd03af5647f.mp4", "c": "https://cdn2.suno.ai/5ce081cd-b11d-4be8-adc1-49c7f5da259e.jpeg", "u": "https://suno.com/song/0bd51395-55a7-468f-8ef6-4cd03af5647f", "e": "https://suno.com/embed/0bd51395-55a7-468f-8ef6-4cd03af5647f", "d": 56.81, "m": 0, "p": 16, "dt": "Oct 21, 2026", "g": "Alternative R&B, trip-hop", "by": "TherapyToaster"}, {"id": "2603d8ab-fb50-4968-823d-7437e03aba64", "t": "Therapy Toaster", "k": 1, "a": "https://cdn1.suno.ai/2603d8ab-fb50-4968-823d-7437e03aba64.mp4", "c": "https://cdn2.suno.ai/b1ca10ef-74c5-47b3-ace7-4d93283d938c.jpeg", "u": "https://suno.com/song/2603d8ab-fb50-4968-823d-7437e03aba64", "e": "https://suno.com/embed/2603d8ab-fb50-4968-823d-7437e03aba64", "d": 230.0, "m": 0, "p": 14, "dt": "Oct 10, 2026", "g": "indie electronic, synth pop", "by": "TherapyToaster"}, {"id": "427e0f31-b29f-4aa1-8ff5-c0f45a27342a", "t": "Four Handles, One Toaster", "k": 2, "a": "https://cdn1.suno.ai/427e0f31-b29f-4aa1-8ff5-c0f45a27342a.mp4", "c": "https://cdn2.suno.ai/image_large_57a9b554-335d-4cd6-8745-ea1facea68b6.jpeg", "u": "https://suno.com/song/427e0f31-b29f-4aa1-8ff5-c0f45a27342a", "e": "https://suno.com/embed/427e0f31-b29f-4aa1-8ff5-c0f45a27342a", "d": 220.4, "m": 0, "p": 8, "dt": "Oct 9, 2026", "g": "Alternative R&B, trip-hop, bedroom-pop", "by": "TherapyToaster"}, {"id": "ef163208-5ea1-4385-8f13-ef65cc2d5205", "t": "Chains on the ground, speed square in the sky", "k": 0, "a": "https://cdn1.suno.ai/ef163208-5ea1-4385-8f13-ef65cc2d5205.mp4", "c": "https://cdn2.suno.ai/f9a48cb8-7e0a-4fbc-8e7c-5bcf2114aa08.jpeg", "u": "https://suno.com/song/ef163208-5ea1-4385-8f13-ef65cc2d5205", "e": "https://suno.com/embed/ef163208-5ea1-4385-8f13-ef65cc2d5205", "d": 274.005, "m": 0, "p": 20, "dt": "Sep 8, 2026", "g": "hard rock, southern metal", "by": "TherapyToaster"}, {"id": "84fd6396-19c8-4f32-b16f-384a0d306c17", "t": "Little Headlights", "k": 0, "a": "https://cdn1.suno.ai/84fd6396-19c8-4f32-b16f-384a0d306c17.mp4", "c": "https://cdn2.suno.ai/d63af3bb-4953-4fe0-81b7-dc1ffb049d3a.jpeg", "u": "https://suno.com/song/84fd6396-19c8-4f32-b16f-384a0d306c17", "e": "https://suno.com/embed/84fd6396-19c8-4f32-b16f-384a0d306c17", "d": 324.416, "m": 0, "p": 23, "dt": "Sep 8, 2026", "g": "cinematic electronic rock", "by": "TherapyToaster"}, {"id": "5ce09690-4c09-4053-b237-c96f4a3e8d4e", "t": "Keep Moving, Keep Breathing", "k": 0, "a": "https://cdn1.suno.ai/5ce09690-4c09-4053-b237-c96f4a3e8d4e.mp4", "c": "https://cdn2.suno.ai/903bcaa0-f40a-4d5f-8bb7-fe41bf4a9c95.jpeg", "u": "https://suno.com/song/5ce09690-4c09-4053-b237-c96f4a3e8d4e", "e": "https://suno.com/embed/5ce09690-4c09-4053-b237-c96f4a3e8d4e", "d": 313.216, "m": 0, "p": 16, "dt": "Sep 8, 2026", "g": "cinematic heartland rock", "by": "TherapyToaster"}];
+var $=function(s){return R.querySelector(s)},A=$('.tm-au'),pp=$('.tm-pp'),rng=$('.tm-rng'),cur=$('.tm-cur'),dur=$('.tm-dur'),st=$('.tm-st'),cv=$('.tm-viz'),emb=$('.tm-emb');
+var cards=[].slice.call(R.querySelectorAll('.tm-card')),idx=0,seeking=false,retried=false;
+var RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function f(s){s=Math.max(0,Math.floor(s||0));return Math.floor(s/60)+':'+('0'+s%60).slice(-2)}
+function meta(t){return f(t.d)+' · '+t.dt+(t.p?' · '+t.p+' plays':'')+(t.k?' · take '+t.k:'')+(t.by&&t.by!=='TherapyToaster'?' · '+t.by:'')}
+function load(i,play){
+ idx=(i+T.length)%T.length;var t=T[idx];retried=false;R.classList.remove('tm-embed');emb.removeAttribute('src');
+ if(!A.hasAttribute('crossorigin'))A.setAttribute('crossorigin','anonymous');
+ if(A.getAttribute('src')!==t.a){A.preload='none';A.src=t.a;if(play)A.load()}
+ $('.tm-ai').src=t.c;$('.tm-ai').alt='Cover art: '+t.t;$('.tm-ti').textContent=t.t;$('.tm-me').textContent=meta(t);$('.tm-g').textContent=t.g;
+ $('.tm-np').textContent=t.m?'\u2605 MAIN TRACK \u00b7 NOW PLAYING':'\u25b6 NOW PLAYING';$('.tm-lk').href=t.u;dur.textContent=f(t.d);cur.textContent='0:00';setP(0);st.textContent='';
+ cards.forEach(function(c,j){c.classList.toggle('tm-on',j===idx)});
+ if('mediaSession' in navigator&&window.MediaMetadata){try{navigator.mediaSession.metadata=new MediaMetadata({title:t.t,artist:t.by||'TherapyToaster',album:'Toaster Radio',artwork:[{src:t.c,sizes:'1024x1024',type:'image/jpeg'}]})}catch(e){}}
+ if(play)go();
+}
+function setP(p){rng.value=Math.round(p*1000);rng.style.setProperty('--p',(p*100).toFixed(2)+'%')}
+var ctx,an,buf;
+function audioGraph(){
+ if(ctx||!A.hasAttribute('crossorigin'))return;var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+ try{ctx=new AC();var src=ctx.createMediaElementSource(A);an=ctx.createAnalyser();an.fftSize=128;an.smoothingTimeConstant=.86;src.connect(an);an.connect(ctx.destination);buf=new Uint8Array(an.frequencyBinCount)}catch(e){ctx=null;an=null}
+}
+function go(){
+ if(R.classList.contains('tm-embed'))return;
+ audioGraph();if(ctx&&ctx.state==='suspended')ctx.resume();
+ var p=A.play();if(p&&p.catch)p.catch(function(e){if(e&&e.name!=='AbortError')st.textContent='Tap play to start.'});
+}
+pp.addEventListener('click',function(){A.paused?go():A.pause()});
+$('.tm-nx').addEventListener('click',function(){load(idx+1,!A.paused||R.classList.contains('tm-playing'))});
+$('.tm-pv').addEventListener('click',function(){if(A.currentTime>3){A.currentTime=0}else load(idx-1,!A.paused)});
+R.querySelectorAll('.tm-hit').forEach(function(b){b.addEventListener('click',function(){var i=+b.dataset.i;if(i===idx&&!A.paused){A.pause();return}if(i!==idx)load(i,false);go();
+ var pl=$('.tm-pl'),r=pl.getBoundingClientRect();if(r.bottom<0||r.top>innerHeight*.6)pl.scrollIntoView({behavior:RM?'auto':'smooth',block:'start'})})});
+A.addEventListener('play',function(){R.classList.add('tm-playing');pp.setAttribute('aria-label','Pause');st.textContent=''});
+A.addEventListener('pause',function(){R.classList.remove('tm-playing');pp.setAttribute('aria-label','Play')});
+A.addEventListener('ended',function(){load(idx+1,true)});
+A.addEventListener('waiting',function(){st.textContent='Buffering…'});
+A.addEventListener('playing',function(){st.textContent=''});
+A.addEventListener('loadedmetadata',function(){if(isFinite(A.duration))dur.textContent=f(A.duration)});
+A.addEventListener('timeupdate',function(){if(seeking||!A.duration)return;cur.textContent=f(A.currentTime);setP(A.currentTime/A.duration)});
+A.addEventListener('error',function(){
+ if(!A.getAttribute('src'))return;
+ if(!retried&&!ctx){retried=true;A.removeAttribute('crossorigin');A.load();return}
+ var t=T[idx];R.classList.add('tm-embed');R.classList.remove('tm-playing');emb.src=t.e;st.textContent='Direct audio unavailable, playing through Suno\u2019s player.';
+});
+rng.addEventListener('input',function(){seeking=true;var d=A.duration||T[idx].d;rng.style.setProperty('--p',(rng.value/10)+'%');cur.textContent=f(rng.value/1000*d)});
+rng.addEventListener('change',function(){var d=A.duration||T[idx].d;if(d)A.currentTime=rng.value/1000*d;seeking=false});
+if('mediaSession' in navigator){try{navigator.mediaSession.setActionHandler('previoustrack',function(){load(idx-1,true)});navigator.mediaSession.setActionHandler('nexttrack',function(){load(idx+1,true)})}catch(e){}}
+/* calm bar visualizer */
+var g=cv.getContext('2d'),N=40,lv=new Float32Array(N),W=0,H=0;
+function size(){var r=cv.getBoundingClientRect(),d=Math.min(window.devicePixelRatio||1,2);W=Math.max(1,Math.round(r.width*d));H=Math.max(1,Math.round(r.height*d));cv.width=W;cv.height=H}
+function idle(i){return .08+.05*Math.abs(Math.sin(i*1.7))}
+function draw(){
+ g.clearRect(0,0,W,H);var bw=W/N,gap=Math.max(1,bw*.28),o=Math.max(1,Math.round(W/400));
+ for(var i=0;i<N;i++){var v=lv[i],h=Math.max(2,v*H*.92),x=i*bw+gap/2,w=bw-gap,y=H-h;
+  g.fillStyle='rgba(0,229,255,.45)';g.fillRect(x-o,y,w,h);g.fillStyle='rgba(255,48,48,.5)';g.fillRect(x+o,y,w,h);g.fillStyle='#FFD400';g.fillRect(x,y,w,h)}
+}
+function tick(){
+ var live=an&&!A.paused;if(live)an.getByteFrequencyData(buf);
+ for(var i=0;i<N;i++){var tgt=idle(i);if(live){var b=Math.floor(Math.pow(i/N,1.35)*buf.length*.8);tgt=Math.max(tgt,buf[b]/255*(.75+i/N*.4))}lv[i]+=(Math.min(1,tgt)-lv[i])*.18}
+ draw();requestAnimationFrame(tick)
+}
+size();window.addEventListener('resize',function(){size();if(RM)draw()});
+for(var i=0;i<N;i++)lv[i]=RM?.12+.5*Math.pow(Math.sin((i+2)/N*Math.PI),2)*(.6+.4*Math.abs(Math.sin(i*2.3))):idle(i);
+if(RM)draw();else requestAnimationFrame(tick);
+load(0,false);
+})();
+</script>
