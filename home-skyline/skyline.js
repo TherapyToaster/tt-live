@@ -1,9 +1,11 @@
-/*! tt-home-skyline v2.1 for therapytoaster.com Home.
+/*! tt-home-skyline v2.2 for therapytoaster.com Home.
    High-detail futuristic neon city styled to match Home's graffiti neon wall,
    caution-stripe cards, and RGB glitch aesthetic.
    Desktop (>=1024px): side-gutter canvas (unchanged from v2).
    Mobile/tablet (<1024px): a plaza backdrop around #ttps (Choose your path)
-   plus a fixed low-height parallax horizon band above the phone dock.
+   with a dedicated in-bounds sign rail above the cabinet, plus a thin
+   outline-only horizon band (mix-blend-mode:screen) above the phone dock
+   that does not dim scrolling buttons.
    Pre-rendered parallax layers, fps/DPR caps, pause when offscreen or the tab
    is hidden, static frame for reduced motion. pointer-events none.
 */
@@ -62,14 +64,14 @@
       '#tt-skyline{position:fixed;left:-3%;top:-3%;width:106%;height:106%;pointer-events:none;z-index:0;display:block;contain:strict;border:0;margin:0;padding:0}' +
       '@media (max-width:1023.98px){' +
         '#tt-skyline{display:none!important}' +
-        '#tt-hs-plaza{position:relative;z-index:6;width:100%;max-width:100%;padding:124px 0 100px;margin:0;overflow:hidden;box-sizing:border-box}' +
+        '#tt-hs-plaza{position:relative;z-index:6;width:100%;max-width:100%;padding:168px 0 72px;margin:0;overflow:hidden;box-sizing:border-box}' +
         '#tt-skyline-plaza{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;display:block;contain:strict;border:0;margin:0;padding:0}' +
         '#tt-hs-plaza #ttps{position:relative;z-index:2;margin-top:0!important;margin-bottom:0!important}' +
-        '#tt-skyline-band{position:fixed;left:0;right:0;bottom:0;width:100%;max-width:100%;height:var(--tt-hs-band,220px);pointer-events:none;z-index:5;display:block;contain:strict;border:0;margin:0;padding:0;-webkit-mask-image:linear-gradient(to top,#000 0%,#000 38%,rgba(0,0,0,.75) 62%,transparent 100%);mask-image:linear-gradient(to top,#000 0%,#000 38%,rgba(0,0,0,.75) 62%,transparent 100%)}' +
+        '#tt-skyline-band{position:fixed;left:0;right:0;bottom:0;width:100%;max-width:100%;height:var(--tt-hs-band,168px);pointer-events:none;z-index:2;display:block;contain:strict;border:0;margin:0;padding:0;background:transparent;mix-blend-mode:screen}' +
       '}' +
       '@media (min-width:768px) and (max-width:1023.98px){' +
-        '#tt-hs-plaza{padding:152px 0 120px}' +
-        '#tt-skyline-band{height:var(--tt-hs-band,260px)}' +
+        '#tt-hs-plaza{padding:184px 0 80px}' +
+        '#tt-skyline-band{height:var(--tt-hs-band,196px)}' +
       '}';
     (D.head || D.documentElement).appendChild(s);
   }
@@ -108,7 +110,7 @@
 
   function bandHeightNow() {
     var wide = W.innerWidth >= 768;
-    var base = Math.round(clamp(W.innerHeight * (wide ? 0.26 : 0.28), wide ? 200 : 172, wide ? 280 : 228));
+    var base = Math.round(clamp(W.innerHeight * (wide ? 0.18 : 0.20), wide ? 152 : 140, wide ? 200 : 168));
     dockPx = dockPxNow();
     return base + dockPx;
   }
@@ -499,7 +501,7 @@
           rimCol: CYAN,
           outerRim: RED,
           roofTrim: rand() < 0.55 ? (rand() < 0.7 ? YEL : CYAN) : null,
-          graffiti: layer === 2 && style === 'brick' && bw > 74 && rand() < 0.7,
+          graffiti: false,
           roofTopY: roofTopY, roofX: roofX, roofW: roofW,
           sign: null,
           windows: []
@@ -532,22 +534,6 @@
       return cxb < w * 0.33 || cxb > w * 0.67;
     }
     /* keep signs out of bottom-most 190px where Radio / Chipotle cards sit */
-    var hosts = buildings.filter(function (b) {
-      if (layout === 'desk') {
-        return b.layer >= 1 && b.w >= 62 && b.h >= h * 0.26 && b.y < horizon - 140 && inSideGutter(b);
-      }
-      return b.layer >= 1 && b.w >= 48 && b.h >= h * 0.28;
-    });
-    hosts.sort(function (a, c) {
-      /* prefer near layer and wider facades, alternating sides */
-      if (layout === 'plaza' && opts.topPad) {
-        var av = Math.abs((a.y + 14) - opts.topPad * 0.42);
-        var cv2 = Math.abs((c.y + 14) - opts.topPad * 0.42);
-        return av - cv2 || (c.w - a.w);
-      }
-      return (c.layer * 10000 + c.w * 80 + c.h) - (a.layer * 10000 + a.w * 80 + a.h);
-    });
-
     var leftCatalog = [
       { kind: 'logo-card', col: YEL },
       { kind: 'caution-card', title: 'PROUDLY', sub: 'VETERAN-OWNED', col: YEL },
@@ -563,25 +549,27 @@
 
     function assignList(list, cat) {
       var ui = 0;
-      var lastX = -999;
       for (var i = 0; i < list.length && ui < cat.length; i++) {
         var b = list[i];
         var spec = cat[ui];
-        if ((spec.kind === 'logo-card' || spec.kind === 'therapy-tubes') && b.w < (layout === 'desk' ? 84 : 70)) continue;
-        if (layout !== 'desk' && Math.abs((b.x + b.w / 2) - lastX) < 52) continue;
+        if ((spec.kind === 'logo-card' || spec.kind === 'therapy-tubes') && b.w < 84) continue;
         b.sign = spec;
-        lastX = b.x + b.w / 2;
         ui++;
       }
     }
+    var billboards = [];
     if (layout === 'desk') {
+      var hosts = buildings.filter(function (b) {
+        return b.layer >= 1 && b.w >= 62 && b.h >= h * 0.26 && b.y < horizon - 140 && inSideGutter(b);
+      });
+      hosts.sort(function (a, c) {
+        /* prefer near layer and wider facades, alternating sides */
+        return (c.layer * 10000 + c.w * 80 + c.h) - (a.layer * 10000 + a.w * 80 + a.h);
+      });
       assignList(hosts.filter(function (b) { return b.side < 0; }), leftCatalog);
       assignList(hosts.filter(function (b) { return b.side > 0; }), rightCatalog);
-    } else {
-      /* spread the same Home signs across the full-width city */
-      var allCat = leftCatalog.concat(rightCatalog);
-      hosts.sort(function (a, c) { return (a.x + a.w / 2) - (c.x + c.w / 2); });
-      assignList(hosts, allCat);
+    } else if (layout === 'plaza') {
+      billboards = layoutMobileBillboards(w, opts.topPad || 168);
     }
 
     var sunY, sunR;
@@ -590,13 +578,14 @@
     } else if (layout === 'band') {
       sunY = Math.max(28, horizon * 0.42); sunR = Math.min(w, h) * 0.22;
     } else {
-      sunY = Math.max(28, (opts.topPad || 124) * 0.62); sunR = Math.min(w, opts.topPad || 124) * 0.42;
+      sunY = Math.max(36, (opts.topPad || 168) * 0.78); sunR = Math.min(w * 0.18, (opts.topPad || 168) * 0.36);
     }
 
     city = {
       w: w, h: h, horizon: horizon, layout: layout, topPad: opts.topPad || 0,
       sunX: w * 0.5, sunY: sunY, sunR: sunR,
-      buildings: buildings, flickers: flickers, vents: vents, holoSpots: holoSpots
+      buildings: buildings, flickers: flickers, vents: vents, holoSpots: holoSpots,
+      billboards: billboards
     };
     spawnActors();
   }
@@ -656,9 +645,14 @@
     }
     truck.wait = mob ? 7 + rand() * 4 : 5 + rand() * 3;
     truck.on = false; truck.p = 0; truck.dir = 1;
-    if (city.layout === 'plaza' && city.topPad) truck.y = mix(city.topPad * 0.25, city.topPad * 0.7, rand());
-    else if (city.layout === 'band') truck.y = mix(h * 0.12, Math.max(h * 0.16, horizon * 0.35), rand());
-    else truck.y = mix(h * 0.19, h * 0.30, rand());
+    if (city.layout === 'plaza' || city.layout === 'band') {
+      /* keep actors off the sign rail / skip the flyby so signs stay readable */
+      truck.wait = 9999;
+      holos = [];
+      truck.y = 0;
+    } else {
+      truck.y = mix(h * 0.19, h * 0.30, rand());
+    }
   }
 
   /* ---------- Neon Tube & Card Helpers ---------- */
@@ -1154,9 +1148,233 @@
     g.restore();
   }
 
+
+  function layoutMobileBillboards(w, topPad) {
+    var inset = 8;
+    var x0 = inset, aw = Math.max(80, w - inset * 2);
+    var y0 = 8, ah = Math.max(48, topPad - 16);
+    var byId = {
+      logo: { kind: 'logo-card', col: YEL, id: 'logo', label: 'MR.TOASTY', minW: 86 },
+      therapy: { kind: 'therapy-tubes', col: YEL, id: 'therapy', label: 'THERAPY TOASTER', minW: 108 },
+      veteran: { kind: 'caution-card', title: 'PROUDLY', sub: 'VETERAN-OWNED', col: YEL, id: 'veteran', label: 'PROUDLY VETERAN-OWNED', minW: 108 },
+      burnt: { kind: 'caution-card', title: 'BURNT', sub: 'OFFERINGS', col: RED, id: 'burnt', label: 'BURNT OFFERINGS', minW: 86 },
+      toasted: { kind: 'toaster-tube', col: YEL, id: 'toasted', label: 'TOASTED', minW: 62 },
+      skull: { kind: 'skull-tube', col: YEL, id: 'skull', label: 'x_x', minW: 50 },
+      twitter: { kind: 'neon-text', lines: ['Twitter'], col: CYAN, id: 'twitter', label: 'Twitter', minW: 70 },
+      artcade: { kind: 'neon-text', lines: ['ARTCADE'], col: CYAN, id: 'artcade', label: 'ARTCADE', minW: 76 }
+    };
+    var rows;
+    if (aw >= 520) {
+      rows = [
+        ['logo', 'therapy', 'veteran'],
+        ['toasted', 'skull', 'twitter', 'artcade', 'burnt']
+      ];
+    } else {
+      rows = [
+        ['logo', 'therapy'],
+        ['veteran', 'burnt'],
+        ['toasted', 'skull', 'twitter', 'artcade']
+      ];
+    }
+    var gap = 6, n = rows.length;
+    var weights = n === 2 ? [0.56, 0.44] : [0.38, 0.32, 0.30];
+    var avail = ah - gap * (n - 1);
+    var out = [];
+    var y = y0;
+    function pack(ids, x, y0r, rowW, rowH) {
+      var items = ids.map(function (id) { return byId[id]; });
+      var mins = items.map(function (it) { return it.minW; });
+      var sumMin = 0;
+      for (var i = 0; i < mins.length; i++) sumMin += mins[i];
+      var inner = rowW - 5 * (items.length - 1);
+      var widths;
+      if (sumMin <= inner) {
+        var extra = inner - sumMin;
+        widths = mins.map(function (m) { return m + extra / items.length; });
+      } else {
+        var s = inner / sumMin;
+        widths = mins.map(function (m) { return Math.max(24, m * s); });
+      }
+      var cx = x;
+      var packed = [];
+      for (i = 0; i < items.length; i++) {
+        var ww = widths[i];
+        if (i === items.length - 1) ww = x + rowW - cx; /* eat remainder, stay in bounds */
+        packed.push({
+          x: Math.round(cx), y: Math.round(y0r),
+          w: Math.max(20, Math.round(ww)), h: Math.round(rowH),
+          spec: items[i], id: items[i].id, label: items[i].label
+        });
+        cx += ww + 5;
+      }
+      return packed;
+    }
+    for (var r = 0; r < n; r++) {
+      var rh = avail * weights[r];
+      out = out.concat(pack(rows[r], x0, y, aw, rh));
+      y += rh + gap;
+    }
+    /* hard clamp every box into the pad */
+    out.forEach(function (b) {
+      if (b.x < inset) { b.w -= (inset - b.x); b.x = inset; }
+      if (b.y < 6) { b.h -= (6 - b.y); b.y = 6; }
+      if (b.x + b.w > w - inset) b.w = w - inset - b.x;
+      if (b.y + b.h > topPad - 6) b.h = topPad - 6 - b.y;
+      b.w = Math.max(20, b.w);
+      b.h = Math.max(18, b.h);
+    });
+    return out;
+  }
+
+  function drawFittedSign(g, box) {
+    var x = box.x, y = box.y, w = box.w, h = box.h, spec = box.spec;
+    if (w < 20 || h < 18 || !spec) return;
+    g.save();
+    g.beginPath(); g.rect(x, y, w, h); g.clip();
+    var ix = x + 2, iy = y + 2, iw = w - 4, ih = h - 4;
+    if (spec.kind === 'logo-card') {
+      drawChunkyFrame(g, ix, iy, iw, ih, Math.max(3, Math.min(6, ih * 0.12)));
+      if (logoOk && logoImg) {
+        var ar = logoImg.width / logoImg.height;
+        var dw = iw - 10, dh = dw / ar;
+        if (dh > ih - 12) { dh = ih - 12; dw = dh * ar; }
+        g.drawImage(logoImg, ix + (iw - dw) * 0.5, iy + (ih - dh) * 0.5, dw, dh);
+      } else {
+        neonTubeText(g, 'MR.TOASTY', ix + iw * 0.5, iy + ih * 0.35, Math.min(15, ih * 0.32), YEL, iw - 10);
+      }
+    } else if (spec.kind === 'caution-card') {
+      drawChunkyFrame(g, ix, iy, iw, ih, Math.max(3, Math.min(6, ih * 0.14)));
+      var mid = iy + ih * 0.32;
+      neonTubeText(g, spec.title, ix + iw * 0.5, mid - Math.min(13, ih * 0.28), Math.min(12, ih * 0.26), spec.col, iw - 12);
+      neonTubeText(g, spec.sub, ix + iw * 0.5, mid + 2, Math.min(11, ih * 0.24), YEL, iw - 12);
+    } else if (spec.kind === 'therapy-tubes') {
+      g.fillStyle = 'rgba(4,6,12,0.9)';
+      g.fillRect(ix, iy, iw, ih);
+      g.strokeStyle = 'rgba(0,240,255,0.55)';
+      g.lineWidth = 1.2;
+      g.strokeRect(ix + 0.5, iy + 0.5, iw - 1, ih - 1);
+      var sz = Math.min(15, Math.max(8, ih * 0.28));
+      g.font = '900 ' + sz + 'px "Arial Black",Impact,sans-serif';
+      while (sz > 7 && (g.measureText('THERAPY').width > iw - 8 || g.measureText('TOASTER').width > iw - 8)) {
+        sz--; g.font = '900 ' + sz + 'px "Arial Black",Impact,sans-serif';
+      }
+      drawTubeWord(g, 'THERAPY', ix + iw * 0.5, iy + ih * 0.12, sz, [CYAN, RED, YEL, CYAN, CYAN, RED, CYAN]);
+      drawTubeWord(g, 'TOASTER', ix + iw * 0.5, iy + ih * 0.52, sz, [CYAN, CYAN, RED, CYAN, YEL, RED, CYAN]);
+    } else if (spec.kind === 'toaster-tube') {
+      g.fillStyle = 'rgba(4,5,10,0.9)';
+      g.fillRect(ix, iy, iw, ih);
+      g.strokeStyle = 'rgba(255,212,0,0.5)';
+      g.lineWidth = 1.2;
+      g.strokeRect(ix + 0.5, iy + 0.5, iw - 1, ih - 1);
+      var tw = Math.min(iw * 0.7, ih * 0.85, 72), th = Math.min(ih * 0.42, 22);
+      var tx = ix + (iw - tw) * 0.5, ty = iy + ih * 0.22;
+      neonStroke(g, function (c) {
+        c.roundRect ? c.roundRect(tx, ty, tw, th, 3) : c.rect(tx, ty, tw, th);
+        var sl = Math.max(4, tw * 0.16);
+        c.moveTo(tx + sl, ty); c.lineTo(tx + sl, ty - sl); c.lineTo(tx + sl * 2.1, ty - sl); c.lineTo(tx + sl * 2.1, ty);
+        c.moveTo(tx + tw - sl * 2.1, ty); c.lineTo(tx + tw - sl * 2.1, ty - sl); c.lineTo(tx + tw - sl, ty - sl); c.lineTo(tx + tw - sl, ty);
+      }, YEL, 1.4, 0.95);
+      neonStroke(g, function (c) {
+        c.moveTo(tx + tw, ty + th * 0.45); c.lineTo(tx + tw + Math.min(7, iw * 0.08), ty + th * 0.45);
+      }, CYAN, 1.2, 0.95);
+      neonTubeText(g, 'TOASTED', ix + iw * 0.5, iy + ih * 0.68, Math.min(10, ih * 0.22), CYAN, iw - 8);
+    } else if (spec.kind === 'skull-tube') {
+      g.fillStyle = 'rgba(4,5,10,0.9)';
+      g.fillRect(ix, iy, iw, ih);
+      g.strokeStyle = 'rgba(255,30,60,0.55)';
+      g.lineWidth = 1.2;
+      g.strokeRect(ix + 0.5, iy + 0.5, iw - 1, ih - 1);
+      var cx1 = ix + iw * 0.5, cy1 = iy + ih * 0.44;
+      var rx = Math.min(iw, ih) * 0.28, ry = rx * 0.86;
+      neonStroke(g, function (c) {
+        c.ellipse(cx1, cy1, rx, ry, 0, 0, Math.PI * 2);
+        c.moveTo(cx1 - rx * 0.6, cy1 + ry * 0.85); c.lineTo(cx1 - rx * 0.6, cy1 + ry * 1.35);
+        c.lineTo(cx1 + rx * 0.6, cy1 + ry * 1.35); c.lineTo(cx1 + rx * 0.6, cy1 + ry * 0.85);
+      }, YEL, 1.5, 0.95);
+      neonStroke(g, function (c) {
+        var e = rx * 0.45;
+        c.moveTo(cx1 - e, cy1 - e * 0.5); c.lineTo(cx1 - e * 0.35, cy1 + e * 0.2);
+        c.moveTo(cx1 - e * 0.35, cy1 - e * 0.5); c.lineTo(cx1 - e, cy1 + e * 0.2);
+        c.moveTo(cx1 + e * 0.35, cy1 - e * 0.5); c.lineTo(cx1 + e, cy1 + e * 0.2);
+        c.moveTo(cx1 + e, cy1 - e * 0.5); c.lineTo(cx1 + e * 0.35, cy1 + e * 0.2);
+      }, CYAN, 1.15, 0.95);
+    } else {
+      var lines = spec.lines || ['Twitter'];
+      g.fillStyle = 'rgba(4,5,10,0.9)';
+      g.fillRect(ix, iy, iw, ih);
+      g.strokeStyle = spec.col;
+      g.lineWidth = 1.4;
+      g.strokeRect(ix + 0.5, iy + 0.5, iw - 1, ih - 1);
+      neonTubeText(g, lines[0], ix + iw * 0.5, iy + ih * 0.28, Math.min(13, ih * 0.42), spec.col, iw - 8);
+    }
+    g.restore();
+  }
+
+  function drawBuildingOutline(g, b) {
+    var x = b.x, y = b.y, w = b.w, h = b.h;
+    g.save();
+    g.strokeStyle = b.layer === 2 ? 'rgba(255,212,0,0.42)' : (b.layer === 1 ? 'rgba(0,240,255,0.28)' : 'rgba(255,212,0,0.16)');
+    g.lineWidth = b.layer === 2 ? 1.2 : 1;
+    g.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+    if (b.setback) {
+      var sb = b.setback;
+      g.strokeRect(sb.x + 0.5, sb.y + 0.5, sb.w - 1, sb.h - 1);
+    }
+    if (b.roofTrim) {
+      g.strokeStyle = b.roofTrim;
+      g.globalAlpha = 0.7;
+      g.beginPath(); g.moveTo(b.roofX + 2, b.roofTopY + 0.5); g.lineTo(b.roofX + b.roofW - 2, b.roofTopY + 0.5); g.stroke();
+      g.globalAlpha = 1;
+    }
+    var wins = b.windows || [];
+    for (var i = 0; i < wins.length; i++) {
+      var win = wins[i];
+      if (!win.lit) continue;
+      g.fillStyle = win.col;
+      g.globalAlpha = 0.55 * (win.warm || 0.7);
+      g.fillRect(win.x, win.y, Math.max(1, win.w), Math.max(1, win.h));
+    }
+    g.restore();
+  }
+
+  function bakeBand() {
+    if (!xFar || !xMid || !xNear || !city) return;
+    var w = vw, h = vh, horizon = city.horizon;
+    xFar.setTransform(dpr, 0, 0, dpr, 0, 0); xFar.clearRect(0, 0, w, h);
+    xMid.setTransform(dpr, 0, 0, dpr, 0, 0); xMid.clearRect(0, 0, w, h);
+    xNear.setTransform(dpr, 0, 0, dpr, 0, 0); xNear.clearRect(0, 0, w, h);
+    /* no opaque sky or ground — screen-blend lets page content stay bright */
+    var sr = rng(0x5A1899);
+    for (var i = 0; i < 24; i++) {
+      xFar.fillStyle = sr() < 0.3 ? CYAN : '#FFF4C8';
+      xFar.globalAlpha = 0.25 + sr() * 0.35;
+      xFar.fillRect(sr() * w, sr() * (horizon * 0.7), 1.2, 1.2);
+    }
+    xFar.globalAlpha = 1;
+    var sunX = city.sunX, sunY = city.sunY, sunR = Math.min(city.sunR, h * 0.22);
+    var halo = xFar.createRadialGradient(sunX, sunY, 2, sunX, sunY, sunR * 1.6);
+    halo.addColorStop(0, 'rgba(255,212,0,0.45)');
+    halo.addColorStop(0.55, 'rgba(255,60,30,0.12)');
+    halo.addColorStop(1, 'rgba(0,0,0,0)');
+    xFar.fillStyle = halo;
+    xFar.fillRect(sunX - sunR * 1.6, sunY - sunR * 1.6, sunR * 3.2, sunR * 3.2);
+    xFar.strokeStyle = 'rgba(255,212,0,0.7)';
+    xFar.lineWidth = 1.4;
+    xFar.beginPath(); xFar.arc(sunX, sunY, sunR * 0.7, Math.PI, 0); xFar.stroke();
+    city.buildings.forEach(function (b) {
+      if (b.layer === 0) drawBuildingOutline(xFar, b);
+      else if (b.layer === 1) drawBuildingOutline(xMid, b);
+      else drawBuildingOutline(xNear, b);
+    });
+    xNear.strokeStyle = 'rgba(255,212,0,0.45)';
+    xNear.lineWidth = 1.2;
+    xNear.beginPath(); xNear.moveTo(0, horizon + 0.5); xNear.lineTo(w, horizon + 0.5); xNear.stroke();
+  }
+
   /* ---------- Pre-render 3 Parallax Layers ---------- */
   function bake() {
     if (!xFar || !xMid || !xNear || !city) return;
+    if (city.layout === 'band') { bakeBand(); return; }
     var w = vw, h = vh, horizon = city.horizon;
 
     /* ----- LAYER 0: Sky + Stars + Scanline Sun + Far Buildings + Far Fog ----- */
@@ -1304,13 +1522,9 @@
         g.fillStyle = mask;
         g.fillRect(0, 0, w, h);
       });
-    } else if (city.layout === 'plaza') {
-      /* soft top/bottom readability isn't needed (cabinet is opaque); fade the very top sky */
-      var topFade = xFar.createLinearGradient(0, 0, 0, Math.max(24, city.topPad * 0.2 || 20));
-      topFade.addColorStop(0, 'rgba(5,7,13,0.35)');
-      topFade.addColorStop(1, 'rgba(5,7,13,0)');
-      xFar.fillStyle = topFade;
-      xFar.fillRect(0, 0, w, Math.max(24, city.topPad * 0.2 || 20));
+    }
+    if (city.layout === 'plaza' && city.billboards && city.billboards.length) {
+      city.billboards.forEach(function (bb) { drawFittedSign(xNear, bb); });
     }
   }
 
@@ -1804,8 +2018,8 @@
       var cssW = plaza.clientWidth || W.innerWidth;
       var cssH = plaza.clientHeight || 1;
       var st = W.getComputedStyle(plaza);
-      var padTop = parseFloat(st.paddingTop) || 124;
-      var padBot = parseFloat(st.paddingBottom) || 100;
+      var padTop = parseFloat(st.paddingTop) || 168;
+      var padBot = parseFloat(st.paddingBottom) || 72;
       var horiz = Math.round(cssH - Math.max(40, padBot * 0.55));
       var pNew = sizeSlot(slots.plaza, cssW, cssH, DPR_CAP_MOB);
       if (pNew || !slots.plaza.city) {
@@ -1878,8 +2092,27 @@
         mode: mode, plazaOn: plazaOn, bandH: bandH, dockPx: dockPx,
         band: slots.band && { w: slots.band.vw, h: slots.band.vh, dpr: slots.band.dpr, city: !!slots.band.city },
         plaza: slots.plaza && { w: slots.plaza.vw, h: slots.plaza.vh, dpr: slots.plaza.dpr, city: !!slots.plaza.city },
-        truck: truck, logo: logoOk
+        truck: truck, logo: logoOk,
+        signs: (slots.plaza && slots.plaza.city && slots.plaza.city.billboards) || []
       };
+    },
+    signs: function () {
+      var list = (slots.plaza && slots.plaza.city && slots.plaza.city.billboards) || [];
+      var c = $('tt-skyline-plaza');
+      var r = c && c.getBoundingClientRect();
+      var cssW = slots.plaza && slots.plaza.vw;
+      return list.map(function (b) {
+        var page = null;
+        if (r && cssW) {
+          var sx = r.width / cssW, sy = r.height / (slots.plaza.vh || 1);
+          page = { left: r.left + b.x * sx, top: r.top + b.y * sy, width: b.w * sx, height: b.h * sy };
+        }
+        return {
+          id: b.id, label: b.label, x: b.x, y: b.y, w: b.w, h: b.h,
+          inCanvas: b.x >= 0 && b.y >= 0 && b.x + b.w <= (slots.plaza.vw || 0) + 0.5 && b.y + b.h <= (slots.plaza.city.topPad || 0) + 0.5,
+          page: page
+        };
+      });
     },
     bake: function () { bakeActive(); renderActive(tAnim, !mqReduce.matches); }
   };
