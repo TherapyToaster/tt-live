@@ -60,7 +60,7 @@ html.tt-wall-share #ttwall .tw-note,body.tt-wall-standalone #ttwall .tw-note{mar
   <button type="button" class="tsc-share" id="tt-share-btn">Share</button>
 </header>
 
-<!-- TT NFT WALL v6 START -->
+<!-- TT NFT WALL v8 START -->
 <style>
 #ttwall{--y:#FFD400;--k:#05070d;--r:#ff2a2a;--c:#00e5ff;box-sizing:border-box;position:relative;width:100%;max-width:1100px;margin:40px auto;padding:0 0 6px;color:#fff;font-family:Epilogue,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;text-align:center}
 #ttwall *{box-sizing:border-box}
@@ -113,7 +113,7 @@ html.tt-wall-share #ttwall .tw-note,body.tt-wall-standalone #ttwall .tw-note{mar
     <div class="tw-gate"><button type="button" class="tw-go">&#128128; Tap to explore the wall</button></div>
   </div>
   <div class="tw-legend" aria-label="Jump to a collection"></div>
-  <p class="tw-note">Holdings as of Nov 22, 2026</p>
+  <p class="tw-note">Holdings as of Nov 25, 2026</p>
 </section>
 <script>
 (function(){
@@ -140,12 +140,12 @@ var used=(ch?ch.offsetHeight:0)+(lg?lg.offsetHeight:0)+(nt?nt.offsetHeight:0)+28
 vp.style.height=Math.max(280,Math.round((window.innerHeight||document.documentElement.clientHeight)-used))+'px';}
 if(STAND){sizeVp();window.addEventListener('resize',function(){sizeVp();if(typeof fit==='function')fit(false);});}
 /* ===== DATA =====
-   Live thumbs + holdings are at tt-live a/5/ (commit d2b5fca61fbe0a78ad35cd65f376f50233229e68). Sprites at a/5s/.
-   Cache-bust with ?c=d2b5fca. Preview pages may set window.TTWALL_BASE / TTWALL_SPRITE / TTWALL_CB to override. */
-var CB=window.TTWALL_CB||'?c=d2b5fca';
-var BASE=window.TTWALL_BASE||'https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@d2b5fca61fbe0a78ad35cd65f376f50233229e68/a/5/';
+   Live thumbs + holdings are at tt-live a/7/ (commit 75e4a7fb87c12c2e0c1a60ff93c5f1241350ae5a). Sprites at a/7s/.
+   Cache-bust with ?c=75e4a7f. Preview pages may set window.TTWALL_BASE / TTWALL_SPRITE / TTWALL_CB to override. */
+var CB=window.TTWALL_CB||'?c=75e4a7f';
+var BASE=window.TTWALL_BASE||'https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@75e4a7fb87c12c2e0c1a60ff93c5f1241350ae5a/a/7/';
 if(BASE.slice(-1)!=='/')BASE+='/';
-var SPR=window.TTWALL_SPRITE||'https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@d2b5fca61fbe0a78ad35cd65f376f50233229e68/a/5s/';if(SPR.slice(-1)!=='/')SPR+='/';
+var SPR=window.TTWALL_SPRITE||'https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@75e4a7fb87c12c2e0c1a60ff93c5f1241350ae5a/a/7s/';if(SPR.slice(-1)!=='/')SPR+='/';
 var SPC=24,spCell=0,spDead=false,near=false,DPR=Math.min(3,window.devicePixelRatio||1);
 var G={};
 var CS=72,GAP=4,PI=CS+GAP,COLS=36;
@@ -156,8 +156,8 @@ function el(t,c,h){var e=document.createElement(t);if(c)e.className=c;if(h!=null
 function pos(e,c,r,w,h){e.style.left=c*PI+'px';e.style.top=r*PI+'px';e.style.width=(w*PI-GAP)+'px';e.style.height=(h*PI-GAP)+'px';}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 function link(href,cls){var a=el('a','tw-t'+(cls?' '+cls:''));a.href=href;if(!/^\//.test(href)){a.target='_blank';a.rel='noopener';}a.draggable=false;return a;}
-function thumbOf(it){return (it.e?BASE+(it.ch==='base'?'bas-':'eth-')+String(it.e).toLowerCase()+'-'+it.i+'.webp':BASE+'sol-'+it.m+'.webp')+CB;}
-function urlOf(it){return it.e?'https://opensea.io/assets/'+(it.ch==='base'?'base':'ethereum')+'/'+it.e+'/'+it.i:'https://magiceden.io/item-details/'+it.m;}
+function thumbOf(it){return (it.e?BASE+(it.ch==='base'?'bas-':(it.ch==='tezos'?'xtz-':'eth-'))+String(it.e).toLowerCase()+'-'+it.i+'.webp':BASE+'sol-'+it.m+'.webp')+CB;}
+function urlOf(it){return it.e?(it.ch==='tezos'?'https://objkt.com/tokens/'+it.e+'/'+it.i:'https://opensea.io/assets/'+(it.ch==='base'?'base':'ethereum')+'/'+it.e+'/'+it.i):'https://magiceden.io/item-details/'+it.m;}
 var groups={};
 function mark(g,c,r,w,h,n){if(!groups[g])groups[g]={c:c,r:r,c2:c,r2:r,n:0};var o=groups[g];o.c=Math.min(o.c,c);o.r=Math.min(o.r,r);o.c2=Math.max(o.c2,c+(w||1));o.r2=Math.max(o.r2,r+(h||1));if(typeof n==='number')o.n+=n;else o.n++;}
 /* lazy image tiles */
@@ -254,7 +254,7 @@ if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es
 fetch(BASE+'holdings.json'+CB).then(function(r){if(!r.ok)throw 0;return r.json();}).then(boot).catch(function(){boot(null);});
 })();
 </script>
-<!-- TT NFT WALL v6 END -->
+<!-- TT NFT WALL v8 END -->
 
 <script>
 
