@@ -1,4 +1,4 @@
-/*! tt-home-extras v1.1 (neon follows wall parallax) for therapytoaster.com Home: (a) shake/double-click glitch, (b) tilt + mouse parallax,
+/*! tt-home-extras v1 for therapytoaster.com Home: (a) shake/double-click glitch, (b) tilt + mouse parallax,
     (c) Toasty app icon (manifest, apple-touch-icon, theme-color, splash), (e) CRT mini-game, (f) phone dock. */
 (function(){
   'use strict';
@@ -149,41 +149,10 @@
     T.title = D.getElementById('site-title');
     T.crt = D.getElementById('tt-crt');
   }
-  /* v1.1 neon lock. The Home neon overlay (#tt-neon, from header-bg.js) is a sibling of .tw-img, not a child, so the
-     wall parallax (translate + scale 1.06) used to slide the wall away from the glow/tube layers: the neon no longer
-     sat on the painted words. Here the neon layers get the transform that maps the box header-bg.js placed onto the
-     box the wall picture really paints. Applied to .tn-glow/.tn-tube (not #tt-neon) so mix-blend-mode:screen keeps
-     blending with the wall. Re-run after header-bg.js re-places the neon, and whenever it does so later. */
-  var nl = { tx: 0, ty: 0, s: 1, raf: 0, mo: null, moEl: null };
-  function nlSoon(){ if (!nl.raf) nl.raf = requestAnimationFrame(nlSync); }
-  function nlSync(){
-    nl.raf = 0;
-    var W = T.wall, N = D.getElementById('tt-neon');
-    if (!W || !N || !N.offsetWidth || !W.isConnected) return;
-    if (nl.moEl !== N && window.MutationObserver){
-      if (nl.mo) nl.mo.disconnect();
-      nl.mo = new MutationObserver(nlSoon); nl.mo.observe(N, { attributes: true, attributeFilter: ['style'] }); nl.moEl = N;
-    }
-    var cs = getComputedStyle(W), sz = (cs.backgroundSize || '').split(',')[0].trim().split(/\s+/)[0] || '100%';
-    var w0 = W.offsetWidth, h0 = W.offsetHeight;
-    var bw = /%$/.test(sz) ? w0 * parseFloat(sz) / 100 : (parseFloat(sz) || w0), bh = bw / 3;
-    var pxs = (cs.backgroundPositionX || '50%').split(',')[0].trim(), pys = (cs.backgroundPositionY || '50%').split(',')[0].trim();
-    var bx = /%$/.test(pxs) ? (w0 - bw) * parseFloat(pxs) / 100 : (parseFloat(pxs) || 0);
-    var by = /%$/.test(pys) ? (h0 - bh) * parseFloat(pys) / 100 : (parseFloat(pys) || 0);
-    var cx = W.offsetLeft + w0 / 2, cy = W.offsetTop + h0 / 2, s = nl.s;
-    var L = cx + (W.offsetLeft + bx - cx) * s + nl.tx, Tp = cy + (W.offsetTop + by - cy) * s + nl.ty;
-    var k = (bw * s) / (N.offsetWidth || bw);
-    for (var c = N.firstElementChild; c; c = c.nextElementSibling){
-      c.style.transformOrigin = (-c.offsetLeft) + 'px ' + (-c.offsetTop) + 'px';
-      c.style.translate = (L - N.offsetLeft).toFixed(2) + 'px ' + (Tp - N.offsetTop).toFixed(2) + 'px';
-      c.style.scale = k.toFixed(5);
-    }
-  }
   function apply(){
     var x = px.x, y = px.y;
     if (!T.crt || !T.crt.isConnected || !T.wall || !T.float) grab();
     if (T.wall){ T.wall.style.translate = (-x * 14).toFixed(2) + 'px ' + (-y * 10).toFixed(2) + 'px'; T.wall.style.scale = '1.06'; }
-    if (T.wall){ nl.tx = -x * 14; nl.ty = -y * 10; nl.s = 1.06; nlSoon(); }
     if (T.float){ T.float.style.translate = (x * 18).toFixed(2) + 'px ' + (y * 14).toFixed(2) + 'px'; T.float.style.scale = '1.05'; }
     if (T.title){ T.title.style.translate = (x * 6).toFixed(2) + 'px ' + (y * 4).toFixed(2) + 'px'; }
     if (T.crt && T.crt.classList.contains('tt-crt-tv')){
