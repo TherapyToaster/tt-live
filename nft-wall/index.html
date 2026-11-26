@@ -60,7 +60,7 @@ html.tt-wall-share #ttwall .tw-note,body.tt-wall-standalone #ttwall .tw-note{mar
   <button type="button" class="tsc-share" id="tt-share-btn">Share</button>
 </header>
 
-<!-- TT NFT WALL v9 START -->
+<!-- TT NFT WALL v10 START -->
 <style>
 #ttwall{--y:#FFD400;--k:#05070d;--r:#ff2a2a;--c:#00e5ff;box-sizing:border-box;position:relative;width:100%;max-width:1100px;margin:40px auto;padding:0 0 6px;color:#fff;font-family:Epilogue,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;text-align:center}
 #ttwall *{box-sizing:border-box}
@@ -70,7 +70,10 @@ html.tt-wall-share #ttwall .tw-note,body.tt-wall-standalone #ttwall .tw-note{mar
 #ttwall .tw-vp{position:relative;height:540px;overflow:hidden;background:#000;border:2px solid var(--y);border-radius:14px;box-shadow:4px 4px 0 var(--r),-4px -4px 0 var(--c);cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;overscroll-behavior:contain;
   background-image:linear-gradient(rgba(255,212,0,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,212,0,.06) 1px,transparent 1px);background-size:19px 19px}
 #ttwall .tw-vp.tw-drag{cursor:grabbing}
-#ttwall .tw-world{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
+#ttwall .tw-world{position:absolute;left:0;top:0;transform-origin:0 0}
+/* iOS memory fix: the 2124x2276 world only gets its own GPU layer while it is being dragged zoomed in.
+   A permanent will-change layer is backed at full size x3 on iPhone (about 170 MB) even when zoomed out. */
+#ttwall .tw-vp.tw-drag .tw-world.tw-zin{will-change:transform}
 #ttwall .tw-t{position:absolute;display:block;overflow:hidden;border-radius:3px;background:#0b0d14;outline:1px solid rgba(255,212,0,.18);text-decoration:none;color:#fff;-webkit-user-drag:none}
 #ttwall .tw-world.tw-sp .tw-t{background-image:var(--tw-sp);background-size:1728px auto;background-repeat:no-repeat}
 #ttwall .tw-t img{display:block;width:100%;height:100%;object-fit:cover;pointer-events:none;-webkit-user-drag:none}
@@ -113,7 +116,7 @@ html.tt-wall-share #ttwall .tw-note,body.tt-wall-standalone #ttwall .tw-note{mar
     <div class="tw-gate"><button type="button" class="tw-go">&#128128; Tap to explore the wall</button></div>
   </div>
   <div class="tw-legend" aria-label="Jump to a collection"></div>
-  <p class="tw-note">Holdings as of Nov 25, 2026</p>
+  <p class="tw-note">Holdings as of Nov 26, 2026</p>
 </section>
 <script>
 (function(){
@@ -140,12 +143,12 @@ var used=(ch?ch.offsetHeight:0)+(lg?lg.offsetHeight:0)+(nt?nt.offsetHeight:0)+28
 vp.style.height=Math.max(280,Math.round((window.innerHeight||document.documentElement.clientHeight)-used))+'px';}
 if(STAND){sizeVp();window.addEventListener('resize',function(){sizeVp();if(typeof fit==='function')fit(false);});}
 /* ===== DATA =====
-   Live thumbs + holdings are at tt-live a/8/ (commit e6602b9a12c92498bf8e3653b331a566cc6de83d). Sprites at a/8s/.
-   Cache-bust with ?c=e6602b9. Preview pages may set window.TTWALL_BASE / TTWALL_SPRITE / TTWALL_CB to override. */
-var CB=window.TTWALL_CB||'?c=e6602b9';
-var BASE=window.TTWALL_BASE||'https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@e6602b9a12c92498bf8e3653b331a566cc6de83d/a/8/';
+   Live thumbs + holdings are at tt-live a/9/ (commit c497ae45056f5e2ddae931f16572896b0fb2fc7a). Sprites at a/9s/.
+   Cache-bust with ?c=c497ae4. Preview pages may set window.TTWALL_BASE / TTWALL_SPRITE / TTWALL_CB to override. */
+var CB=window.TTWALL_CB||'?c=c497ae4';
+var BASE=window.TTWALL_BASE||'https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@c497ae45056f5e2ddae931f16572896b0fb2fc7a/a/9/';
 if(BASE.slice(-1)!=='/')BASE+='/';
-var SPR=window.TTWALL_SPRITE||'https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@e6602b9a12c92498bf8e3653b331a566cc6de83d/a/8s/';if(SPR.slice(-1)!=='/')SPR+='/';
+var SPR=window.TTWALL_SPRITE||'https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@c497ae45056f5e2ddae931f16572896b0fb2fc7a/a/9s/';if(SPR.slice(-1)!=='/')SPR+='/';
 var SPC=24,spCell=0,spDead=false,near=false,DPR=Math.min(3,window.devicePixelRatio||1);
 var G={};
 var CS=72,GAP=4,PI=CS+GAP,COLS=36;
@@ -163,7 +166,9 @@ function mark(g,c,r,w,h,n){if(!groups[g])groups[g]={c:c,r:r,c2:c,r2:r,n:0};var o
 /* lazy image tiles */
 var lazy=[];
 function addImg(a,src,alt){lazy.push({el:a,src:src,alt:alt,on:false});}
-function visBox(){var pad=Math.max(vp.clientWidth,vp.clientHeight)*0.85;return {x0:(-S.x-pad)/S.s,y0:(-S.y-pad)/S.s,x1:(vp.clientWidth-S.x+pad)/S.s,y1:(vp.clientHeight-S.y+pad)/S.s};}
+/* iOS memory fix: on phones only decode full thumbs (280px each, ~0.3 MB decoded) just around the view, not most of the wall */
+var TW_TOUCH=!!(window.matchMedia&&matchMedia('(pointer:coarse)').matches);
+function visBox(){var pad=Math.max(vp.clientWidth,vp.clientHeight)*(TW_TOUCH?0.15:0.85);return {x0:(-S.x-pad)/S.s,y0:(-S.y-pad)/S.s,x1:(vp.clientWidth-S.x+pad)/S.s,y1:(vp.clientHeight-S.y+pad)/S.s};}
 function wantReal(){return near&&(spDead||S.s*CS*DPR>spCell*1.15);}
 function pickSprite(){if(!near||spDead)return;var need=S.s*CS*DPR,c=need<=34?32:need<=50?48:64;if(c<=spCell)return;spCell=c;var u=SPR+'sprite-'+c+'.webp'+CB,im=new Image();im.onload=function(){world.style.setProperty('--tw-sp','url("'+u+'")');world.classList.add('tw-sp');scheduleLoad();};im.onerror=function(){spDead=true;scheduleLoad();};im.src=u;}
 function loadVis(){if(!lazy.length||!wantReal())return;var b=visBox(),i,t,L,T,Rgt,B,show,im;
@@ -211,7 +216,7 @@ function packHoldings(data){
 }
 /* ===== view: pan + zoom ===== */
 var S={x:0,y:0,s:1},MIN=.2,MAX=4,fitS=1;
-function apply(anim){world.style.transition=anim?'transform .35s ease':'none';world.style.transform='translate3d('+S.x+'px,'+S.y+'px,0) scale('+S.s+')';pickSprite();scheduleLoad();}
+function apply(anim){world.style.transition=anim?'transform .35s ease':'none';world.style.transform='translate('+S.x+'px,'+S.y+'px) scale('+S.s+')';world.classList.toggle('tw-zin',S.s>=.45);pickSprite();scheduleLoad();}
 function clamp(){var vw=vp.clientWidth,vh=vp.clientHeight,ww=W*S.s,wh=H*S.s,m=60;
   S.x=ww<vw?(vw-ww)/2:Math.min(m,Math.max(vw-ww-m,S.x));S.y=wh<vh?(vh-wh)/2:Math.min(m,Math.max(vh-wh-m,S.y));}
 function fit(anim,whole){var vw=vp.clientWidth,vh=vp.clientHeight,cs=Math.min(vw/W,vh/H)*.94;MIN=Math.max(.08,cs*.85);
@@ -250,11 +255,12 @@ function legend(){var L=R.querySelector('.tw-legend');L.innerHTML='';
 function boot(data){if(STAND)sizeVp();packHoldings(data||{count:0,collections:[]});fit(false);R.setAttribute('data-ready','1');
   var rz;window.addEventListener('resize',function(){clearTimeout(rz);rz=setTimeout(function(){packHoldings();fit(false);},150);});}
 function goNear(){if(near)return;near=true;pickSprite();scheduleLoad();}
-if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){goNear();io.disconnect();}});},{rootMargin:'800px 0px'});io.observe(R);}else goNear();
-fetch(BASE+'holdings.json'+CB).then(function(r){if(!r.ok)throw 0;return r.json();}).then(boot).catch(function(){boot(null);});
+function ttNear(el,fn,m){var d=0,io,t;function go(){if(d)return;d=1;if(io)io.disconnect();removeEventListener('scroll',chk);removeEventListener('resize',chk);clearTimeout(t);fn();}function chk(){var r=el.getBoundingClientRect();if((r.width||r.height)&&r.bottom>-m&&r.top<innerHeight+m)go();}if(!el||!('IntersectionObserver' in window)){go();return;}io=new IntersectionObserver(function(es){for(var i=0;i<es.length;i++)if(es[i].isIntersecting){go();return;}},{rootMargin:m+'px 0px'});io.observe(el);addEventListener('scroll',chk,{passive:true});addEventListener('resize',chk);t=setTimeout(function(){var r=el.getBoundingClientRect();if(!r.width&&!r.height)go();},20000);}
+/* v9a: fetch holdings + build the wall only when it is within ~600px of the screen (was: fetched on page load) */
+ttNear(R,function(){fetch(BASE+'holdings.json'+CB).then(function(r){if(!r.ok)throw 0;return r.json();}).then(boot).catch(function(){boot(null);}).then(goNear);},600);
 })();
 </script>
-<!-- TT NFT WALL v9 END -->
+<!-- TT NFT WALL v10 END -->
 
 <script>
 
