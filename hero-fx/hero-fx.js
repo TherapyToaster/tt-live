@@ -18,7 +18,7 @@
     '#tthf-slogan{position:absolute;left:0;right:0;z-index:1;margin:0;padding:0 14px;box-sizing:border-box;text-align:center;pointer-events:none;opacity:0;transition:opacity .4s}' +
     '#tthf-slogan.on{opacity:1}' +
     '#tthf-slogan .tthf-box{position:relative;display:inline-block;max-width:100%;padding:6px 14px 7px;background:rgba(0,0,0,.62);border-left:3px solid #FFD400;border-right:3px solid #FFD400;' +
-      'font:700 clamp(11.5px,1.2vw,17px)/1.35 "Courier New",Courier,monospace;letter-spacing:.02em;color:#FFD400;text-align:left;white-space:pre-wrap;' +
+      'font:700 clamp(11.5px,1.1vw,16px)/1.35 "Courier New",Courier,monospace;letter-spacing:.02em;color:#FFD400;text-align:left;white-space:pre-wrap;' +
       'text-shadow:0 0 8px rgba(255,212,0,.55),0 2px 0 #000}' +
     '#tthf-slogan .tthf-ghost{visibility:hidden}' +
     '#tthf-slogan .tthf-type{position:absolute;left:14px;right:14px;top:6px}' +
