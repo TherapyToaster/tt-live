@@ -1,0 +1,40 @@
+<!-- tt-neon-lock START -->
+<script id="tt-neon-lock">(function(){
+  /* Desktop mouse parallax (home-extras) moves + scales the wall picture (.tw-img). The neon overlay (#tt-neon,
+     header-bg.js) is a sibling, so the glow/tubes slid off the painted words. This maps the neon layers onto
+     the box the wall really paints. Applied to .tn-glow/.tn-tube (not #tt-neon) so screen blending is kept. */
+  if(window.ttNlRun)return;window.ttNlRun=1;
+  var D=document,raf=0,moW=null,moN=null,moT=null,elW=null,elN=null,elT=null,dirty=false;
+  function soon(){if(!raf)raf=requestAnimationFrame(sync);}
+  function clear(N){if(!dirty)return;dirty=false;for(var c=N.firstElementChild;c;c=c.nextElementSibling){c.style.translate='';c.style.scale='';c.style.transformOrigin='';}}
+  function sync(){
+    raf=0;
+    var T=D.getElementById('tt-topwall'),W=T&&T.querySelector('.tw-img'),N=D.getElementById('tt-neon');
+    if(!W||!N)return;
+    if(window.MutationObserver){
+      if(elW!==W){if(moW)moW.disconnect();moW=new MutationObserver(soon);moW.observe(W,{attributes:true,attributeFilter:['style']});elW=W;}
+      if(elN!==N){if(moN)moN.disconnect();moN=new MutationObserver(soon);moN.observe(N,{attributes:true,attributeFilter:['style']});elN=N;}
+      if(elT!==T){if(moT)moT.disconnect();moT=new MutationObserver(soon);moT.observe(T,{childList:true});elT=T;}
+    }
+    if(!N.offsetWidth)return;
+    var s=parseFloat(W.style.scale)||1,tr=(W.style.translate||'').split(/\s+/),tx=parseFloat(tr[0])||0,ty=parseFloat(tr[1])||0;
+    if(s===1&&!tx&&!ty){clear(N);return;}
+    var cs=getComputedStyle(W),sz=(cs.backgroundSize||'').split(',')[0].trim().split(/\s+/)[0]||'100%';
+    var w0=W.offsetWidth,h0=W.offsetHeight;
+    var bw=/%$/.test(sz)?w0*parseFloat(sz)/100:(parseFloat(sz)||w0),bh=bw/3;
+    var ps=(cs.backgroundPositionX||'50%').split(',')[0].trim(),qs=(cs.backgroundPositionY||'50%').split(',')[0].trim();
+    var bx=/%$/.test(ps)?(w0-bw)*parseFloat(ps)/100:(parseFloat(ps)||0);
+    var by=/%$/.test(qs)?(h0-bh)*parseFloat(qs)/100:(parseFloat(qs)||0);
+    var cx=W.offsetLeft+w0/2,cy=W.offsetTop+h0/2;
+    var L=cx+(W.offsetLeft+bx-cx)*s+tx,Tp=cy+(W.offsetTop+by-cy)*s+ty,k=(bw*s)/(N.offsetWidth||bw);
+    dirty=true;
+    for(var c=N.firstElementChild;c;c=c.nextElementSibling){
+      c.style.transformOrigin=(-c.offsetLeft)+'px '+(-c.offsetTop)+'px';
+      c.style.translate=(L-N.offsetLeft).toFixed(2)+'px '+(Tp-N.offsetTop).toFixed(2)+'px';
+      c.style.scale=k.toFixed(5);
+    }
+  }
+  window.addEventListener('resize',soon);window.addEventListener('load',soon);
+  [400,1500,4000,9000].forEach(function(ms){setTimeout(soon,ms);});soon();
+})();</script>
+<!-- tt-neon-lock END -->
