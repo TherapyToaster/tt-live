@@ -8,7 +8,7 @@
 if(window.__ttTagWallCard)return;window.__ttTagWallCard=1;
 var NAME="Toaster Tag Wall",NAME_UP="TOASTER TAG WALL";
 var LIVE="https://therapytoaster.github.io/tt-live/tag-wall/";
-var ART_V="002";
+var ART_V="003";
 var U=(function(){
   var s=document.currentScript&&document.currentScript.src;
   if(s){var u=s.replace(/arcade-card\.js(?:\?.*)?$/i,"");if(u)return u}
