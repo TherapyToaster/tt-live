@@ -13,7 +13,7 @@
 if(window.__ttTbCard)return;window.__ttTbCard=1;
 var NAME="Mr. Toasty: Toasty Bros",NAME_UP="MR. TOASTY: TOASTY BROS";
 var LIVE="https://therapytoaster.github.io/tt-live/toasty-bros/";
-var ART_V="130";
+var ART_V="140";
 var U=(function(){
   var s=document.currentScript&&document.currentScript.src;
   if(s){var u=s.replace(/arcade-card\.js(?:\?.*)?$/i,"");if(u)return u}

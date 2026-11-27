@@ -1,4 +1,4 @@
-# Mr. Toasty: Toasty Bros — Worlds 1-10 (v1.3 DARK SIDE, NEW BROS, ANIMATION SYNC)
+# Mr. Toasty: Toasty Bros — Worlds 1-10 (v1.4 MENU, LEVEL SELECT, BOSS RUSH, HARD MODE, SPEEDRUN TIMER)
 Original platformer by Coty Lake. SMB is a mechanics reference only; all art, audio, names and layouts are original and
 procedural (pixel arrays + canvas + WebAudio). No external assets, no CDN, no build step. Jam is grape purple.
 
@@ -9,9 +9,48 @@ Open `index.html` directly (file:// works), or `python3 -m http.server` in this 
 - Gamepad (standard mapping): D-pad/left stick, A jump, B run+fire, X special, Y melee, Start.
 - Touch (v0.5 hardened, see **Mobile controls** below): left 8-way D-pad, right A (jump) / B (run+fire) / S (special, OUT while in the TOAST TRUCK) / M (melee)
   + START, only on touch devices (force with `?touch`).
-- Title menu: NEW GAME · CONTINUE x-x · BRO ROSTER · LEVEL SELECT (only with `?debug`).
-- Save: `localStorage['toastyBros.save.v1']` = { furthest, hi, worldsCleared, unlocked, startBro, beaten, beatenCount, beatenBro } (older saves load fine;
+- Title menu (v1.4): STORY (CONTINUE x-x / NEW GAME) · LEVEL SELECT · BOSS RUSH · HARD MODE · BROS · BEST TIMES · OPTIONS. Keyboard, gamepad,
+  mouse and touch (tap a tile). `?debug` opens every level in the select.
+- Save: `localStorage['toastyBros.save.v1']` = { furthest, hi, worldsCleared, unlocked, startBro, beaten, beatenCount, beatenBro, v1.4: clr, best,
+  runBest, rushBest, darkFound, opts { music, sfx, shake, timer, hard } } (older saves load fine;
   `beaten` is set by the post-credits THANKS FOR PLAYING screen, and the title shows GAME BEATEN!).
+
+## v1.4 MENU, LEVEL SELECT, BOSS RUSH, HARD MODE, SPEEDRUN TIMER
+- **New title menu.** The logo wobbles, the freed bros parade across, and 1-1 scrolls behind. There are 7 tiles: STORY, LEVEL SELECT,
+  BOSS RUSH, HARD MODE (an on/off switch), BROS, BEST TIMES and OPTIONS. Each tile shows a live subtitle (CONTINUE 7-2, 23 OF 41 OPEN,
+  BEST 12:03.41...). STORY opens a CONTINUE x-x / NEW GAME FROM 1-1 / BACK panel when you have progress.
+  - Arrows / D-pad: up and down move by row, left and right by tile (both wrap). Z / Enter / A picks, X / B backs out. A mouse click or a tap
+    picks a tile at once. Every tap target is at least 30 game px, which is 44+ CSS px at the phone scale (1.5x), and `test_menu` checks every one.
+- **Level select.** A map of the 10 worlds (route, world colors, 4 progress pips each, your start bro bobbing over the current world), a
+  world page with big < > arrows, and 4 level cards (World 10 adds a 5th, the **DARK SIDE**).
+  - Each card shows the best time and badges: gold = cleared, red H = cleared on hard. Locked cards show a padlock.
+  - Levels open as you reach them (your furthest level, or any level you have cleared). The Dark Side opens once you have found its crater.
+    Everything opens after the game is beaten.
+  - The bottom bar has a HARD MODE switch (or C / S) and PLAY. On touch, tap a card to pick it and tap it again (or PLAY) to start.
+  - A level-select run plays one level. Clearing it shows a result card (TIME, BEST, NEW BEST!, CLEARED / HARD badges) and goes back to
+    the select on that card. The DARK SIDE card drops you straight into the Dark Side on foot, and the reward room ends the run.
+- **Boss Rush** (unlocks when the game is beaten). The 10 castle bosses, 1-4 to 10-4, back to back. Each fight starts in the boss arena
+  (10-4 skips the Mars landing), with no other enemies. Hearts carry over, with +1 heart between fights. The rush card between fights
+  shows your progress, the clock and your hearts. Losing a life retries the same boss on full hearts, and game over ends the rush.
+  Beating boss 10 shows the rush result (it does not replay the ending). It has its own clock and best time.
+- **Hard mode.** Every hit costs 2 hearts, so 2 hits end a life. A hit in the TOAST TRUCK costs 2 truck HP. Toast Armor and the Oven Mitt
+  still block one whole hit each. Pits, the level timer and the TOASTED! front stay instant. Hard mode works in STORY, the level select and
+  Boss Rush. HARD shows on the intro card and under the hearts, and a hard clear gives the level its red badge.
+- **Speedrun timer.** OPTIONS > SPEEDRUN TIMER turns on an on-screen clock (bottom right): LV is the level clock, RN is the full-run clock,
+  RU is the Boss Rush clock. Best times are saved either way:
+  - Per level: the level clock runs through deaths and restarts, stops while paused, and stops at the pole / castle tally, so the time bonus
+    does not count. A slower clear keeps the old best.
+  - The Dark Side: from its crater to the reward room.
+  - Full run: STORY > NEW GAME from 1-1 to the ending. CONTINUE runs never count. Pauses are excluded.
+  - Boss Rush: from the first rush card to boss 10.
+  - BEST TIMES lists all of them, plus the sum of your level bests.
+- **Options:** MUSIC and SOUND FX volume (0-10, wired to the audio mix), SCREEN SHAKE on/off and SPEEDRUN TIMER on/off. All are saved on the device.
+- **Pause:** QUIT TO MENU (tap it, or M / V). It goes to the level select from a level-select run, otherwise to the title.
+- Shots: `shots/v14/` (title, story panel, level select, World 10 + Dark Side, options, best times, rush card / boss / result, result,
+  hard HUD, timer HUD, phone landscape / portrait title, select and pause, phone hard + timer run) and `menu.mp4` (18 s captioned tour,
+  from `tests/menu_clip.py`).
+- Tests: new `test_menu.py` (62) and `test_modes.py` (42). The title / select steps in `test_w1`, `test_w2` and `test_bro` follow the new menu.
+- **Tests (v1.4): 18 suites, 942 / 942 green.** New `test_menu.py` (62) and `test_modes.py` (42). Counts: game 27, health 22, mobile 119, truck 28, bro 50, anim 32, w1 49, w2 42, w3 42, w4 52, w5 57, w6 61, w7 79, w8 38, w9 57, w10 83, menu 62, modes 42. Older suites now drive the new tile menu.
 
 ## v1.3 DARK SIDE, NEW BROS, ANIMATION SYNC
 - **Dark Side of the Moon (secret level).** In 10-2 MOONBASE, one crater just past the dish is a real hole. Hop out of the
@@ -495,6 +534,13 @@ World 10 is **THERAPYTOASTER TO MARS** (display "TherapyToaster to Mars"), built
   unchanged when you come back from a bonus room), entities, boss, states, rendering, autopilot, `window.TT` test hooks.
 
 ## Tests (Playwright, from ../tests, server on 127.0.0.1:18923)
+- `test_menu.py` — 62 v1.4 menu checks: the 7 title tiles, animation, keyboard grid + gamepad, locked BOSS RUSH, HARD MODE saved, STORY panel,
+  level-select locks / cards / badges / world wrap / Dark Side card, options (volume reaches the mix, shake really off, timer), best times, roster,
+  and phone landscape + portrait with real touch taps (every tap target >= 44 CSS px). Writes shots/v14/.
+- `test_modes.py` — 42 v1.4 mode checks: hard mode (2 hearts, armor, instant pits / timer / front, truck), an autopilot hard clear of 1-1 from the
+  level select (badge, best, NEW BEST rules), the level / run clocks, Boss Rush (unlock, arenas for all 10, an autopilot boss kill, hearts carry +1,
+  retry, result, best, game over), the Dark Side entry, pause QUIT, and a phone touch run. Writes shots/v14/.
+- `menu_clip.py` → shots/v14/menu.mp4.
 - `test_anim.py` — 32 v1.3 animation-sync checks: pose frames, per-frame pose vs state for all 10 bros, the run cycle vs speed, skid,
   land, stomp, hurt, i-frames, death, wall-slide, pole, muzzle flash vs spawn frame and tip, hover and glide, truck boarding, gunner, minigun tip,
   angle, flash and casings, enemy moonwalk, jitter, march-in-place, deaths and gun flashes over 17 levels, boss telegraph leads for all 10 bosses,

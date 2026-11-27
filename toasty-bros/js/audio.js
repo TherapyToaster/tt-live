@@ -9,8 +9,8 @@ const AudioSys = (function(){
     const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return false;
     try { ctx = new AC(); } catch (e) { return false; }
     master = ctx.createGain(); master.gain.value = 0.55; master.connect(ctx.destination);
-    musicBus = ctx.createGain(); musicBus.gain.value = 0.32; musicBus.connect(master);
-    sfxBus = ctx.createGain(); sfxBus.gain.value = 0.5; sfxBus.connect(master);
+    musicBus = ctx.createGain(); musicBus.gain.value = 0.32 * volM; musicBus.connect(master);
+    sfxBus = ctx.createGain(); sfxBus.gain.value = 0.5 * volS; sfxBus.connect(master);
     // lead bus with a short "spring" echo send (World 2 surf flavor)
     leadBus = ctx.createGain(); leadBus.gain.value = 1; leadBus.connect(musicBus);
     echoSend = ctx.createGain(); echoSend.gain.value = 0; leadBus.connect(echoSend);
@@ -494,7 +494,10 @@ const AudioSys = (function(){
   function stopMusic(){ playing = false; if (timer) clearInterval(timer); timer = null; if (ctx) stopHum(); }
   function setTempo(m){ tempoMul = m; }
   function setMode(m){ mode = m; tempoMul = m === 'star' ? 1.18 : (tempoMul > 1.2 ? tempoMul : 1); }
-  function pause(p){ if (!ctx) return; musicBus.gain.setTargetAtTime(p ? 0 : 0.32, ctx.currentTime, 0.02); }
+  // v1.4 options: music / sfx volume (0..1 of the mix level)
+  let volM = 1, volS = 1;
+  function setVolume(m, s){ volM = Math.max(0, Math.min(1, m)); volS = Math.max(0, Math.min(1, s)); if (ctx){ musicBus.gain.setValueAtTime(0.32 * volM, ctx.currentTime); sfxBus.gain.setValueAtTime(0.5 * volS, ctx.currentTime); } }
+  function pause(p){ if (!ctx) return; musicBus.gain.setTargetAtTime(p ? 0 : 0.32 * volM, ctx.currentTime, 0.02); }
 
   const SFX = {
     jump(big){ const t = ctx.currentTime; osc('p25', big ? 170 : 230, big ? 560 : 720, t, 0.16, 0.22); },
@@ -651,5 +654,5 @@ const AudioSys = (function(){
     return8(){ const t = ctx.currentTime; seq([60, 64, 67, 60], t, 0.08, 'triangle', 0.1); },
   };
   function sfx(name, arg){ if (!ready()) return; try { SFX[name](arg); } catch (e) { /* ignore audio errors */ } }
-  return { unlock, startMusic, stopMusic, setTempo, setMode, pause, sfx, get ctx(){ return ctx; }, isPlaying: () => playing, current: () => current, songs: () => Object.keys(SONGS) };
+  return { unlock, startMusic, stopMusic, setTempo, setMode, pause, sfx, setVolume, get vol(){ return { music: volM, sfx: volS }; }, get ctx(){ return ctx; }, isPlaying: () => playing, current: () => current, songs: () => Object.keys(SONGS) };
 })();

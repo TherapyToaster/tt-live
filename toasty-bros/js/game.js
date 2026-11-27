@@ -30,14 +30,17 @@ const ANIM = { on: false, hero: null, muzzle: null, spawns: [], mg: [], mgDraw: 
 // ---------------- save data ----------------
 const SAVE_KEY = 'toastyBros.save.v1';
 function loadSave(){
-  const d = () => ({ furthest: '1-1', hi: 0, worldsCleared: [], unlocked: ['toasty'], startBro: 'toasty', beaten: false });
+  const d = () => ({ furthest: '1-1', hi: 0, worldsCleared: [], unlocked: ['toasty'], startBro: 'toasty', beaten: false, clr: {}, best: {}, runBest: 0, rushBest: 0, darkFound: false, opts: {} }); // v1.4: clears, best times, options
   let s; try { s = Object.assign(d(), JSON.parse(localStorage.getItem(SAVE_KEY) || '{}')); } catch (e) { s = d(); }
   if (!Array.isArray(s.unlocked) || !s.unlocked.length) s.unlocked = ['toasty'];
   s.unlocked = BRO_IDS.filter(id => s.unlocked.includes(id) || id === 'toasty');
   if (!s.unlocked.includes(s.startBro)) s.startBro = 'toasty';
+  if (!s.clr || typeof s.clr !== 'object') s.clr = {}; if (!s.best || typeof s.best !== 'object') s.best = {};
+  s.opts = Object.assign({ music: 8, sfx: 8, shake: true, timer: false, hard: false }, s.opts || {});
   return s;
 }
 let save = loadSave();
+setTimeout(() => applyVolume(), 0); // v1.4 saved volumes
 // v1.3: bros that only join after the game is beaten (YELLOW BLANKEY) stay out of cages, the truck cab and the roster count until then
 function cageable(){ return BRO_IDS.filter(id => !BROS[id].afterBeaten || save.beaten || save.unlocked.includes(id)); }
 function writeSave(){ try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) {} }
@@ -118,6 +121,7 @@ function newGame(levelId){
   G.score = 0; G.coins = 0; G.lives = 3; G.carrySize = 0; G.checkpoint = false; G.levelId = levelId || '1-1'; G.deaths = 0;
   G.curBro = save.unlocked.includes(save.startBro) ? save.startBro : 'toasty'; G.reserve = []; G.rescued = 0; G.kills = 0; G.fuelBank = 0;
   G.state = 'intro'; G.stateT = 0;
+  G.mode = 'story'; G.hard = !!save.opts.hard; G.lvId = null; G.runT = 0; G.runFull = false; G.single = null; G.result = null; G.modeEndT = 0; G.rushHp = null; G.paused = false; G.sub = null; // v1.4
 }
 
 // ---------------- areas ----------------
@@ -125,6 +129,7 @@ function surfaceRow(tx){ let seenAir = false; for (let y = 2; y < 15; y++){ if (
 function enterArea(name){
   if (lv) lv.rt = { enemies, items, plats, patches, bolts, camX, rides };
   lv = AREAS[name]; G.area = name; TSET = S.tileset(lv.theme);
+  if (lv.dark){ if (!save.darkFound){ save.darkFound = true; writeSave(); } if (G.darkT0 == null) G.darkT0 = G.lvT || 0; } // v1.4: found = open in the level select
   const r = lv.rt;
   if (r){ enemies = r.enemies; items = r.items; plats = r.plats; patches = r.patches; bolts = r.bolts; rides = r.rides || []; }
   else {
@@ -172,10 +177,24 @@ function startLevel(){
   reach(G.levelId);
   A.startMusic(lv.music || LV.music);
   G.levelCard = { t: 0 }; // v0.9: a short in-level title plaque
+  // v1.4: the level clock keeps running through deaths and restarts until the level changes; Boss Rush / Dark Side starts
+  if (G.lvId !== G.levelId){ G.lvId = G.levelId; G.lvT = 0; G.darkT0 = null; }
+  G.modeEndT = 0;
+  if (G.mode === 'rush') rushPlace();
+  else if (G.mode === 'single' && G.single === 'dark' && G.levelId === '10-2'){ if (P.ride) dismountTruck(false); G.darkVisits = (G.darkVisits || 0) + 1; pipeTravel({ area: 'dark', mode: 'drop', tx: 3 }); G.fade = 0; }
 }
 function levelComplete(){
   G.carrySize = P.size; G.curBro = P.bro; bumpHi();
   const i = LEVEL_ORDER.indexOf(G.levelId), next = LEVEL_ORDER[i + 1];
+  // v1.4: Boss Rush goes to the next boss; a level-select run shows its time and goes back to the select; story records the level too
+  if (G.mode === 'rush'){ rushNext(); return; }
+  const rec = recordLevel(G.levelId);
+  if (G.mode === 'single'){
+    if (next) reach(next); if (LV.world && !next && !save.worldsCleared.includes(LV.world)) save.worldsCleared.push(LV.world);
+    G.result = { kind: 'level', id: G.levelId, title: G.levelId + ' CLEAR!', t: rec.t, best: rec.best, nb: rec.nb, hard: !!G.hard };
+    writeSave(); G.state = 'result'; G.stateT = 0; A.stopMusic(); A.sfx('worldclear'); return;
+  }
+  if (!next && LV.world === 10 && G.mode === 'story' && G.runFull){ if (!save.runBest || G.runT < save.runBest){ save.runBest = G.runT; G.runNew = true; } if (G.hard) save.runHard = true; writeSave(); }
   G.checkpoint = false;
   if (next && LEVELS[next].world === LV.world){ G.clearedId = G.levelId; G.levelId = next; reach(next); G.state = 'clear'; G.stateT = 0; }
   else {
@@ -297,11 +316,12 @@ function spawnItem(type, x, y){
 
 // ---------------- player ----------------
 function hurt(){
-  if (P.ctrl === 'truck'){ truckHit(P.ride); return; }
+  if (P.ctrl === 'truck'){ truckHit(P.ride, G.hard ? 2 : 1); return; } // v1.4 hard mode: 2 truck HP
   if (P.inv > 0 || P.star > 0 || P.ctrl !== 'normal' || P.dead || P.dash > 0 || P.roll > 0 || P.slam) return;
   if (P.mitt){ P.mitt = false; P.inv = 100; G.mittBlocks = (G.mittBlocks || 0) + 1; A.sfx('mitt'); burst(P.x + 6, P.y + 6, 12, [BUM.E, BUM.E2, BUM.P], 2); popup(P.x - 24, P.y - 12, 'OVEN MITT: BLOCKED!', BUM.E2); return; } // v0.7 World 5 pickup
   if (P.size > 0){ P.size = 0; P.inv = 130; P.hurtT = 16; A.sfx('clang'); A.sfx('shrink'); burst(P.x + 6, P.y + 6, 12, ['#d7dbe3', '#ffffff', '#8b909c'], 2); popup(P.x - 10, P.y - 12, 'ARMOR!', '#d7dbe3'); return; }
-  P.hp = Math.max(0, (P.hp === undefined ? MAX_HP : P.hp) - 1); P.hpFx = 40; G.hits = (G.hits || 0) + 1;
+  P.hp = Math.max(0, (P.hp === undefined ? MAX_HP : P.hp) - (G.hard ? 2 : 1)); P.hpFx = 40; // v1.4 hard mode: a hit costs 2 hearts
+  G.hits = (G.hits || 0) + 1;
   if (P.hp <= 0){ die(); return; }
   // v0.8.1: lose a health pip: invulnerability flash + a small knockback hop (a caller's own bounce / shove still wins)
   P.inv = 120; P.hurtT = 16; A.sfx('shrink'); burst(P.x + 6, P.y + 6, 10, ['#ff2045', '#ffffff', '#ffb0bc'], 1.8);
@@ -316,6 +336,7 @@ function die(){
   if (G.state === 'dying') return;
   if (DEBUG) G.deathCause = (new Error().stack || '').split('\n').slice(2, 5).map(l => l.trim().replace(/\(.*game\.js:/, '(').replace(/^at /, '')).join(' < ');
   if (P.ride){ const t = P.ride; P.ride = null; P.ctrl = 'normal'; if (t && !t.wrecked){ t.wrecked = true; t.hp = 0; } }
+  if (G.mode === 'rush') G.rushHp = null; // v1.4: a fresh life in Boss Rush starts on full hearts
   G.state = 'dying'; G.stateT = 0; P.dead = true; P.hp = 0; P.star = 0; P.vx = 0; P.vy = 0; G.carrySize = 0; G.deaths++;
   A.stopMusic(); A.sfx('die'); bumpHi(); writeSave();
 }
@@ -4482,7 +4503,9 @@ function marsUpdate(){
   // ACID on comms
   if (lv.darkBonus && !lv.darkBonus.done && P.ctrl === 'normal' && !P.dead && P.x >= lv.darkBonus.tx * TS){ // v1.3 Dark Side reward
     lv.darkBonus.done = true; G.darkClears = (G.darkClears || 0) + 1; addScore(5000, P.x, P.y - 20); oneUp(P.x, P.y - 30);
-    if (P.hp !== undefined && P.hp < MAX_HP){ P.hp = MAX_HP; P.hpFx = 40; } popup(P.x - 50, P.y - 44, 'DARK SIDE CLEARED!', '#b54e8c'); A.sfx('power'); }
+    if (P.hp !== undefined && P.hp < MAX_HP){ P.hp = MAX_HP; P.hpFx = 40; } popup(P.x - 50, P.y - 44, 'DARK SIDE CLEARED!', '#b54e8c'); A.sfx('power');
+    if (G.mode !== 'rush'){ const t = (G.lvT || 0) - (G.darkT0 || 0), c = save.clr.dark || (save.clr.dark = {}); c.n = 1; if (G.hard) c.h = 1; const nb = !save.best.dark || t < save.best.dark; if (nb) save.best.dark = t; writeSave(); // v1.4 records
+      if (G.mode === 'single' && G.single === 'dark'){ G.result = { kind: 'level', id: 'dark', title: 'DARK SIDE CLEAR!', t, best: save.best.dark, nb, hard: !!G.hard }; G.modeEndT = 110; } } }
   if (lv.comms && (P.ctrl === 'normal' || P.ctrl === 'truck')) for (const c of lv.comms){ if (!c.done && P.x >= c.tx * TS){ c.done = true; G.comm = { text: c.text, t: 0 }; G.comms = (G.comms || 0) + 1; A.sfx('beep10'); } }
   if (G.comm){ G.comm.t++; if (G.comm.t > 220) G.comm = null; }
   // booster separation (10-3)
@@ -5090,13 +5113,6 @@ function updateToaster(){
 }
 
 // ---------------- menus ----------------
-function titleMenu(){
-  const m = [{ label: 'NEW GAME', act: () => newGame('1-1') }];
-  if (save.furthest && save.furthest !== '1-1') m.push({ label: 'CONTINUE ' + save.furthest, act: () => newGame(save.furthest) });
-  m.push({ label: 'BRO ROSTER', act: () => { G.state = 'roster'; G.stateT = 0; G.rsel = Math.max(0, BRO_IDS.indexOf(save.startBro)); } });
-  if (DEBUG) m.push({ label: 'LEVEL SELECT', act: () => { G.state = 'select'; G.stateT = 0; G.sel = 0; } });
-  return m;
-}
 function selectEntries(){
   const out = [];
   for (let w = 1; w <= 10; w++){
@@ -5107,36 +5123,394 @@ function selectEntries(){
   return out;
 }
 
+// ---------------- v1.4 menus: title, level select, Boss Rush, hard mode, best times, options ----------------
+// Every tap target is at least 30 game px on both axes: at the phone scale (1.5x) that is 45 CSS px (>= 44).
+const RUSH = ['1-4', '2-4', '3-4', '4-4', '5-4', '6-4', '7-4', '8-4', '9-4', '10-4'];
+const MENU_STATES = new Set(['title', 'select', 'roster', 'times', 'options', 'result', 'rushcard']);
+function fmtT(f){ if (!f && f !== 0) return '-:--.--'; const cs = Math.round(f * 100 / 60), m = Math.floor(cs / 6000), s = Math.floor(cs / 100) % 60, c = cs % 100; return m + ':' + String(s).padStart(2, '0') + '.' + String(c).padStart(2, '0'); }
+function lvlOpen(id){
+  if (DEBUG || save.beaten) return true;
+  if (id === 'dark') return !!(save.darkFound || save.clr.dark);
+  return LEVEL_ORDER.indexOf(id) <= LEVEL_ORDER.indexOf(save.furthest) || !!save.clr[id];
+}
+function rushOpen(){ return !!(save.beaten || DEBUG); }
+function hasProgress(){ return !!(save.furthest && save.furthest !== '1-1'); }
+function countOpen(){ return LEVEL_ORDER.filter(lvlOpen).length + (lvlOpen('dark') ? 1 : 0); }
+// taps / clicks on the game screen (mouse, pen, touch); the touch control pads keep their own handling
+const tapQ = [];
+window.addEventListener('pointerdown', e => {
+  if (e.target && e.target.closest && e.target.closest('#touch .tb, #touch .pad')) return;
+  const r = screenC.getBoundingClientRect(); if (!r.width || !r.height) return;
+  const x = (e.clientX - r.left) * W / r.width, y = (e.clientY - r.top) * H / r.height;
+  if (x < 0 || y < 0 || x >= W || y >= H) return;
+  tapQ.push({ x, y }); if (tapQ.length > 4) tapQ.shift();
+});
+function hitBtn(list, t){ return t ? list.find(b => t.x >= b.x && t.x < b.x + b.w && t.y >= b.y && t.y < b.y + b.h) || null : null; }
+function goMenu(state){ G.state = state; G.stateT = 0; G.osel = 0; G.sub = null; }
+function toTitle(sel){ G.state = 'title'; G.stateT = 0; G.sub = null; if (sel !== undefined) G.menu = sel; }
+function applyVolume(){ if (A.setVolume) A.setVolume(save.opts.music / 10, save.opts.sfx / 10); }
+// ---- title ----
+function titleItems(){
+  const o = save.opts, items = [
+    { id: 'story', label: 'STORY', sub: hasProgress() ? 'CONTINUE ' + save.furthest : 'NEW GAME', act: () => { if (hasProgress()){ G.sub = 'story'; G.ssel = 0; G.stateT = 0; } else startStory('1-1'); } },
+    { id: 'select', label: 'LEVEL SELECT', sub: (save.beaten || DEBUG) ? 'ALL 41 OPEN' : countOpen() + ' OF 41 OPEN', act: () => { goMenu('select'); const w = LEVELS[save.furthest] ? LEVELS[save.furthest].world : 1; G.lw = w; G.lc = 0; } },
+    { id: 'rush', label: 'BOSS RUSH', lock: !rushOpen(), sub: rushOpen() ? (save.rushBest ? 'BEST ' + fmtT(save.rushBest) : '10 BOSSES') : 'BEAT THE GAME', act: () => { if (rushOpen()) startRush(); else A.sfx('bump'); } },
+    { id: 'hard', label: 'HARD MODE', toggle: true, on: !!o.hard, sub: o.hard ? 'ON: A HIT = 2 HEARTS' : 'OFF', act: () => { o.hard = !o.hard; writeSave(); A.sfx(o.hard ? 'power' : 'tick'); } },
+    { id: 'bros', label: 'BROS', sub: save.unlocked.length + ' OF ' + BRO_IDS.length + ' FREED', act: () => { goMenu('roster'); G.rsel = Math.max(0, BRO_IDS.indexOf(save.startBro)); } },
+    { id: 'times', label: 'BEST TIMES', sub: save.runBest ? 'RUN ' + fmtT(save.runBest) : 'SPEEDRUN RECORDS', act: () => goMenu('times') },
+    { id: 'options', label: 'OPTIONS', sub: 'MUSIC  SOUND FX  SHAKE  TIMER', act: () => goMenu('options') },
+  ];
+  items.forEach((b, i) => { const full = i === 6; b.x = full ? 8 : 8 + (i % 2) * 124; b.y = 74 + (i >> 1) * 34; b.w = full ? 240 : 116; b.h = 32; });
+  return items;
+}
+function storyItems(){
+  const s = [];
+  if (hasProgress()) s.push({ id: 'continue', label: 'CONTINUE ' + save.furthest, act: () => startStory(save.furthest) });
+  s.push({ id: 'new', label: 'NEW GAME FROM 1-1', act: () => startStory('1-1') });
+  s.push({ id: 'back', label: 'BACK', act: () => { G.sub = null; } });
+  s.forEach((b, i) => { b.x = 48; b.y = 96 + i * 36; b.w = 160; b.h = 32; });
+  return s;
+}
+function startStory(id){ newGame(id); G.mode = 'story'; G.runFull = id === '1-1'; }
+// ---- level select ----
+function selCards(w){
+  const ids = WORLDS[w].levels.slice(); if (w === 10) ids.push('dark');
+  return ids.map((id, i) => ({ id, x: 8 + (i % 2) * 124, y: 98 + (i >> 1) * 32, w: 116, h: 30, open: lvlOpen(id) }));
+}
+function selButtons(){
+  return [{ id: 'back', x: 2, y: 2, w: 44, h: 30 }, { id: 'prev', x: 4, y: 62, w: 36, h: 32 }, { id: 'next', x: 216, y: 62, w: 36, h: 32 },
+    { id: 'hard', x: 8, y: 202, w: 116, h: 32 }, { id: 'play', x: 132, y: 202, w: 116, h: 32 }];
+}
+function selWorld(d){ G.lw = ((G.lw || 1) - 1 + d + 10) % 10 + 1; A.sfx('tick'); }
+function levelName(id){ return id === 'dark' ? 'DARK SIDE OF THE MOON' : LEVELS[id].name; }
+function playLevel(id){
+  if (!lvlOpen(id)){ A.sfx('bump'); return; }
+  newGame(id === 'dark' ? '10-2' : id); G.mode = 'single'; G.single = id; A.sfx('start');
+}
+// ---- Boss Rush ----
+function startRush(){ newGame(RUSH[0]); G.mode = 'rush'; G.rushI = 0; G.rushHp = null; G.state = 'rushcard'; G.stateT = 0; }
+function rushPlace(){
+  if (lv.flight && typeof flightExit === 'function') flightExit();
+  for (const k in AREAS) if (AREAS[k].boss && G.area !== k){ enterArea(k); break; }
+  if (P.ride) dismountTruck(false);
+  if (!BOSS && lv.boss) BOSS = makeBoss(lv.boss);
+  let tx = G.levelId === '1-4' ? lv.boss.trigger - 2 : lv.boss.trigger - 5; while (tx > 2 && surfaceRow(tx) >= 15) tx--; // 1-4: clear of the last fire bar
+  let ty = 14; if (!isSolid(tx, 14)) ty = surfaceRow(tx); else while (ty > 0 && isSolid(tx, ty - 1)) ty--;
+  P.x = tx * TS + 2; P.y = ty * TS - P.h; P.vx = 0; P.vy = 0; P.plat = null; P.ctrl = 'normal'; P.facing = 1; P.onGround = true;
+  camX = lv.camLock ? 0 : Math.max(0, Math.min(P.x - 100, lv.w * TS - W));
+  for (const s of lv.spawns) s.done = true; enemies = enemies.filter(e => e === BOSS);
+  P.hp = G.rushHp != null ? Math.max(1, Math.min(MAX_HP, G.rushHp)) : MAX_HP;
+  G.time = Math.max(G.time, 300);
+}
+function rushNext(){
+  G.rushHp = Math.min(MAX_HP, (P.hp === undefined ? MAX_HP : P.hp) + 1); // hearts carry over, +1 heart between fights
+  G.rushI++; G.carrySize = 0; G.checkpoint = false; A.stopMusic();
+  if (G.rushI >= RUSH.length){
+    const t = G.runT, nb = !save.rushBest || t < save.rushBest; if (nb) save.rushBest = t; if (G.hard) save.rushHard = true; save.rushClears = (save.rushClears || 0) + 1; bumpHi(); writeSave();
+    G.result = { kind: 'rush', title: 'BOSS RUSH CLEAR!', t, best: save.rushBest, nb, hard: !!G.hard }; G.state = 'result'; G.stateT = 0; A.sfx('final10'); return;
+  }
+  G.levelId = RUSH[G.rushI]; G.state = 'rushcard'; G.stateT = 0; A.sfx('worldclear');
+}
+// ---- records ----
+function recordLevel(id){
+  const t = G.lvT || 0, c = save.clr[id] || (save.clr[id] = {});
+  c.n = 1; if (G.hard) c.h = 1;
+  const nb = !save.best[id] || t < save.best[id]; if (nb) save.best[id] = t;
+  writeSave(); return { t, nb, best: save.best[id] };
+}
+function quitToMenu(){
+  G.paused = false; A.pause(false); A.stopMusic(); bumpHi(); writeSave(); G.modeEndT = 0;
+  if (G.mode === 'single') goMenu('select'); else toTitle();
+}
+const QUIT_BTN = { id: 'quit', x: 68, y: 150, w: 120, h: 32 };
+// ---- options ----
+function optRows(){
+  return [{ id: 'music', label: 'MUSIC', kind: 'vol' }, { id: 'sfx', label: 'SOUND FX', kind: 'vol' }, { id: 'shake', label: 'SCREEN SHAKE', kind: 'bool' },
+    { id: 'timer', label: 'SPEEDRUN TIMER', kind: 'bool' }, { id: 'back', label: 'BACK', kind: 'back' }].map((r, i) => Object.assign(r, { x: 8, y: 34 + i * 36, w: 240, h: 32,
+    minus: { x: 128, y: 35 + i * 36, w: 34, h: 30 }, plus: { x: 212, y: 35 + i * 36, w: 34, h: 30 } }));
+}
+function optAdjust(r, d){
+  const o = save.opts;
+  if (r.kind === 'vol'){ o[r.id] = Math.max(0, Math.min(10, o[r.id] + d)); applyVolume(); A.sfx('tick'); }
+  else if (r.kind === 'bool'){ o[r.id] = !o[r.id]; A.sfx(o[r.id] ? 'coin' : 'tick'); if (r.id === 'shake' && o.shake) G.shake = 12; }
+  else { goMenu('title'); return; }
+  writeSave();
+}
+const BACK_BTN = { id: 'back', x: 2, y: 2, w: 44, h: 30 };
+function rosterCells(){ return BRO_IDS.map((id, i) => { const cx = 28 + (i % 5) * 50, cy = 46 + Math.floor(i / 5) * 66; return { id, i, x: cx - 24, y: cy, w: 48, h: 62 }; }); }
+// one update for every v1.4 menu screen; returns true when it handled the state
+function updateMenus(tap){
+  const ok = () => pressed('start') || pressed('jump');
+  switch (G.state){
+    case 'title': {
+      if (G.sub === 'story'){
+        const s = storyItems(); if (!(G.ssel < s.length)) G.ssel = 0;
+        if (pressed('down')){ G.ssel = (G.ssel + 1) % s.length; A.sfx('tick'); }
+        if (pressed('up')){ G.ssel = (G.ssel + s.length - 1) % s.length; A.sfx('tick'); }
+        const hb = hitBtn(s, tap); if (hb){ G.ssel = s.indexOf(hb); A.sfx('start'); hb.act(); return true; }
+        if (pressed('run')){ G.sub = null; return true; }
+        if (ok()){ A.sfx('start'); s[G.ssel].act(); }
+        return true;
+      }
+      const m = titleItems(), n = m.length; if (!(G.menu < n)) G.menu = 0;
+      if (pressed('down')){ G.menu = G.menu === 6 ? 0 : Math.min(6, G.menu + 2); A.sfx('tick'); }
+      if (pressed('up')){ G.menu = G.menu === 6 ? 4 : G.menu < 2 ? 6 : G.menu - 2; A.sfx('tick'); }
+      if (pressed('right')){ G.menu = (G.menu + 1) % n; A.sfx('tick'); }
+      if (pressed('left')){ G.menu = (G.menu + n - 1) % n; A.sfx('tick'); }
+      const hb = hitBtn(m, tap); if (hb){ G.menu = m.indexOf(hb); A.unlock(); A.sfx('start'); hb.act(); return true; }
+      if (ok()){ A.unlock(); A.sfx('start'); m[G.menu].act(); }
+      return true; }
+    case 'select': {
+      if (!G.lw) G.lw = 1;
+      let cards = selCards(G.lw), n = cards.length; if (!(G.lc < n)) G.lc = 0;
+      const row = G.lc >> 1;
+      if (pressed('right')){ if (G.lc % 2 === 0 && G.lc + 1 < n){ G.lc++; A.sfx('tick'); } else { selWorld(1); G.lc = Math.min(row * 2, selCards(G.lw).length - 1); } }
+      else if (pressed('left')){ if (G.lc % 2 === 1){ G.lc--; A.sfx('tick'); } else { selWorld(-1); G.lc = Math.min(row * 2 + 1, selCards(G.lw).length - 1); } }
+      if (pressed('down') && G.lc + 2 < n){ G.lc += 2; A.sfx('tick'); }
+      if (pressed('up') && G.lc - 2 >= 0){ G.lc -= 2; A.sfx('tick'); }
+      cards = selCards(G.lw); n = cards.length; if (!(G.lc < n)) G.lc = n - 1;
+      if (pressed('special')){ save.opts.hard = !save.opts.hard; writeSave(); A.sfx(save.opts.hard ? 'power' : 'tick'); }
+      if (pressed('run') && G.stateT > 2){ toTitle(1); A.sfx('tick'); return true; }
+      const hc = hitBtn(cards, tap), hb = hitBtn(selButtons(), tap);
+      if (hc){ const k = cards.indexOf(hc); if (k === G.lc) playLevel(hc.id); else { G.lc = k; A.sfx('tick'); } return true; }
+      if (hb){
+        if (hb.id === 'back'){ toTitle(1); A.sfx('tick'); }
+        else if (hb.id === 'prev'){ selWorld(-1); G.lc = 0; }
+        else if (hb.id === 'next'){ selWorld(1); G.lc = 0; }
+        else if (hb.id === 'hard'){ save.opts.hard = !save.opts.hard; writeSave(); A.sfx(save.opts.hard ? 'power' : 'tick'); }
+        else if (hb.id === 'play') playLevel(cards[G.lc].id);
+        return true;
+      }
+      if (ok() && G.stateT > 2) playLevel(cards[G.lc].id);
+      return true; }
+    case 'roster': {
+      const n = BRO_IDS.length;
+      if (pressed('right')){ G.rsel = (G.rsel + 1) % n; A.sfx('tick'); }
+      if (pressed('left')){ G.rsel = (G.rsel + n - 1) % n; A.sfx('tick'); }
+      if (pressed('down') || pressed('up')){ G.rsel = (G.rsel + 5) % n; A.sfx('tick'); }
+      const pick = () => { const id = BRO_IDS[G.rsel]; if (save.unlocked.includes(id)){ save.startBro = id; writeSave(); A.sfx('coin'); } else A.sfx('bump'); };
+      const hc = hitBtn(rosterCells(), tap);
+      if (hc){ if (hc.i === G.rsel) pick(); else { G.rsel = hc.i; A.sfx('tick'); } return true; }
+      if (hitBtn([BACK_BTN], tap)){ toTitle(4); return true; }
+      if (pressed('jump') && G.stateT > 5) pick();
+      if ((pressed('start') || pressed('run')) && G.stateT > 5) toTitle(4);
+      return true; }
+    case 'times':
+      if ((hitBtn([BACK_BTN], tap) || ok() || pressed('run')) && G.stateT > 5) toTitle(5);
+      return true;
+    case 'options': {
+      const rows = optRows(), n = rows.length; if (!(G.osel < n)) G.osel = 0;
+      if (pressed('down')){ G.osel = (G.osel + 1) % n; A.sfx('tick'); }
+      if (pressed('up')){ G.osel = (G.osel + n - 1) % n; A.sfx('tick'); }
+      const r = rows[G.osel];
+      if (pressed('right')) optAdjust(r, 1); else if (pressed('left')){ if (r.kind === 'back') toTitle(6); else optAdjust(r, -1); }
+      if (ok() && G.stateT > 2){ if (r.kind === 'back') toTitle(6); else if (r.kind === 'bool') optAdjust(r, 0); else optAdjust(r, 1); }
+      if (pressed('run') && G.stateT > 2) toTitle(6);
+      if (tap && G.state === 'options'){
+        if (hitBtn([BACK_BTN], tap)){ toTitle(6); return true; }
+        for (let i = 0; i < n; i++){ const q = rows[i];
+          if (q.kind === 'vol' && hitBtn([q.minus], tap)){ G.osel = i; optAdjust(q, -1); break; }
+          if (q.kind === 'vol' && hitBtn([q.plus], tap)){ G.osel = i; optAdjust(q, 1); break; }
+          if (q.kind !== 'vol' && hitBtn([q], tap)){ G.osel = i; if (q.kind === 'back') toTitle(6); else optAdjust(q, 0); break; }
+          if (q.kind === 'vol' && hitBtn([q], tap)){ G.osel = i; break; } }
+      }
+      return true; }
+    case 'rushcard':
+      if (G.stateT > 120 || (G.stateT > 30 && (ok() || tap))){ G.state = 'intro'; G.stateT = 0; startLevel(); }
+      return true;
+    case 'result':
+      if (G.stateT > 50 && (ok() || tap)){
+        const r = G.result || {}; G.result = null;
+        if (r.kind === 'rush') toTitle(2); else { goMenu('select'); if (r.id && r.id !== 'dark' && LEVELS[r.id]){ G.lw = LEVELS[r.id].world; const c = selCards(G.lw).findIndex(q => q.id === r.id); G.lc = Math.max(0, c); } else if (r.id === 'dark'){ G.lw = 10; G.lc = 4; } }
+        A.sfx('tick');
+      }
+      return true;
+  }
+  return false;
+}
+// ---- drawing ----
+function menuBG(tint){
+  g.fillStyle = '#05070d'; g.fillRect(0, 0, W, H);
+  const t = G.frame;
+  for (let i = 0; i < 40; i++){ const x = (i * 53 + Math.floor(t * (0.2 + (i % 3) * 0.15))) % W, y = (i * 37) % H; g.fillStyle = i % 5 === 0 ? '#b54e8c' : i % 3 ? '#2a3046' : '#5c6370'; g.fillRect(W - 1 - x, y, 1 + (i % 2), 1); }
+  g.fillStyle = tint || 'rgba(181,78,140,0.06)'; for (let y = (t >> 1) % 6; y < H; y += 6) g.fillRect(0, y, W, 1);
+}
+function tileBox(b, sel, o){
+  o = o || {}; const t = G.frame;
+  g.fillStyle = sel ? (o.col || '#b54e8c') : o.lock ? '#1a1d2a' : '#2a3046'; g.fillRect(b.x, b.y, b.w, b.h);
+  g.fillStyle = sel ? '#1c0a17' : '#0b0d16'; g.fillRect(b.x + 2, b.y + 2, b.w - 4, b.h - 4);
+  if (sel){
+    const span = b.w + 30, sx = b.x - 15 + ((t * 3) % span);
+    const a = Math.max(b.x + 2, sx), z = Math.min(b.x + b.w - 2, sx + 8); if (z > a){ g.fillStyle = 'rgba(255,255,255,0.09)'; g.fillRect(a, b.y + 2, z - a, b.h - 4); }
+    g.fillStyle = '#FFD400'; const k = (t >> 3) % 2;
+    g.fillRect(b.x - k, b.y - k, 5, 1); g.fillRect(b.x - k, b.y - k, 1, 5); g.fillRect(b.x + b.w - 5 + k, b.y - k, 5, 1); g.fillRect(b.x + b.w - 1 + k, b.y - k, 1, 5);
+    g.fillRect(b.x - k, b.y + b.h - 1 + k, 5, 1); g.fillRect(b.x - k, b.y + b.h - 5 + k, 1, 5); g.fillRect(b.x + b.w - 5 + k, b.y + b.h - 1 + k, 5, 1); g.fillRect(b.x + b.w - 1 + k, b.y + b.h - 5 + k, 1, 5);
+  }
+}
+function lockIcon(x, y, col){ g.fillStyle = col || '#5c6370'; g.fillRect(x + 1, y, 5, 1); g.fillRect(x + 1, y, 1, 4); g.fillRect(x + 5, y, 1, 4); g.fillRect(x, y + 3, 7, 5); g.fillStyle = '#0b0d16'; g.fillRect(x + 3, y + 5, 1, 2); }
+function badge(x, y, kind){
+  if (kind === 'clear'){ g.fillStyle = '#FFD400'; g.fillRect(x, y, 9, 9); g.fillStyle = '#1c1405'; g.fillRect(x + 2, y + 4, 1, 2); g.fillRect(x + 3, y + 5, 1, 2); g.fillRect(x + 4, y + 4, 1, 2); g.fillRect(x + 5, y + 3, 1, 2); g.fillRect(x + 6, y + 2, 1, 2); }
+  else { g.fillStyle = '#ff2045'; g.fillRect(x, y, 9, 9); drawText(g, 'H', x + 2, y + 1, '#ffffff'); g.fillStyle = '#ff2045'; g.fillRect(x + 7, y + 1, 1, 7); }
+}
+function backBtn(){ tileBox(BACK_BTN, false); drawTextC(g, '< BACK', BACK_BTN.x + 22, BACK_BTN.y + 12, '#cbbcd9'); }
+function wobbleLogo(txt, y, s){
+  const t = G.frame, x0 = Math.round(128 - textWidth(txt, s) / 2);
+  for (let i = 0; i < txt.length; i++){ const ch = txt[i], x = x0 + i * 6 * s, dy = Math.round(Math.sin(t / 9 + i * 0.55) * 2);
+    drawText(g, ch, x + 2, y + dy + 2, '#000', s); drawText(g, ch, x - 1, y + dy, '#ff0040', s); drawText(g, ch, x + 1, y + dy, '#00f0ff', s); drawText(g, ch, x, y + dy, (t >> 2) % 40 === i ? '#ffffff' : '#FFD400', s); }
+}
+function drawTitle(){
+  if (!titleArea){ titleArea = LEVELS['1-1'].build().main; }
+  const sl = lv, sc = camX, st = TSET; lv = titleArea; TSET = S.tiles; camX = (G.frame * 0.35) % (60 * TS);
+  drawBG(); drawTiles(); drawPipes(); lv = sl; camX = sc; TSET = st;
+  const t = G.frame;
+  g.fillStyle = 'rgba(5,7,13,0.70)'; g.fillRect(0, 0, W, H);
+  g.fillStyle = 'rgba(181,78,140,0.10)'; for (let y = (t >> 1) % 4; y < H; y += 4) g.fillRect(0, y, W, 1);
+  drawTextC(g, 'MR. TOASTY:', 128, 5, '#ffffff', 1, '#000');
+  wobbleLogo('TOASTY BROS', 15, 3);
+  // the bro parade
+  BRO_IDS.forEach((id, i) => { const open = save.unlocked.includes(id), x = Math.round(((t * 0.5 + i * 27) % 300) - 24), hop = open && ((t >> 3) + i) % 12 === 0 ? -3 : 0;
+    const fr = broFrame(id, open ? 'walk' + (1 + (((t >> 3) + i) % 3)) : 'stand'); g.drawImage(open ? fr : tinted(fr, '#2a3046'), x, 50 + hop); });
+  g.fillStyle = '#b54e8c'; g.fillRect(0, 66, W, 1);
+  const m = titleItems();
+  m.forEach((it, i) => {
+    const sel = i === G.menu && !G.sub; tileBox(it, sel, { lock: it.lock, col: it.id === 'hard' && it.on ? '#ff2045' : undefined });
+    const cx = it.x + it.w / 2;
+    drawTextC(g, it.label, cx, it.y + 6, it.lock ? '#5c6370' : sel ? '#FFD400' : '#ffffff', 1, '#000');
+    drawFit(g, it.sub, it.x + 6, it.y + 18, it.w - 12, it.lock ? '#5c6370' : it.id === 'hard' && it.on ? '#ff6a80' : '#8b909c');
+    if (it.lock) lockIcon(it.x + 6, it.y + 5);
+    if (it.toggle){ const on = it.on, sx = it.x + it.w - 22, sy = it.y + 5; g.fillStyle = on ? '#ff2045' : '#2a3046'; g.fillRect(sx, sy, 16, 8); g.fillStyle = '#ffffff'; g.fillRect(on ? sx + 9 : sx + 1, sy + 1, 6, 6); }
+  });
+  drawTextC(g, 'HI ' + pad(save.hi, 6) + (save.beaten ? '   GAME BEATEN!' : ''), 128, 215, save.beaten ? '#ffd21a' : '#ffffff', 1, '#000');
+  const tch = typeof TouchInput !== 'undefined' && TouchInput.active;
+  drawTextC(g, tch ? 'TAP A TILE  -  OR D-PAD + A' : 'ARROWS + Z / ENTER  -  OR CLICK', 128, 226, '#5c6370');
+  if (G.sub === 'story'){
+    g.fillStyle = 'rgba(0,0,0,0.72)'; g.fillRect(0, 0, W, H);
+    g.fillStyle = '#b54e8c'; g.fillRect(36, 72, 184, 140); g.fillStyle = '#0b0d16'; g.fillRect(38, 74, 180, 136);
+    drawTextC(g, 'STORY', 128, 80, '#FFD400', 1, '#000');
+    storyItems().forEach((b, i) => { const sel = i === G.ssel; tileBox(b, sel); drawTextC(g, b.label, 128, b.y + 12, sel ? '#FFD400' : '#ffffff', 1, '#000'); });
+  }
+  if (t % 180 < 6) glitchBands(4, 12);
+}
+function drawSelect(){
+  menuBG(); const t = G.frame, w = G.lw || 1, Wd = WORLDS[w];
+  backBtn(); drawTextC(g, 'LEVEL SELECT', 140, 8, '#FFD400', 1, '#000');
+  drawTextC(g, (save.beaten || DEBUG) ? 'EVERYTHING OPEN' : countOpen() + ' OF 41 OPEN', 140, 19, '#8b909c');
+  // world map: a dotted route through the 10 worlds, progress pips under each stop
+  const node = i => ({ x: 14 + i * 25, y: 44 + Math.round(Math.sin(i * 1.3) * 5) });
+  for (let i = 0; i < 9; i++){ const a = node(i), b = node(i + 1); for (let k = 0; k < 6; k++){ const x = a.x + (b.x - a.x) * k / 6 + 5, y = a.y + (b.y - a.y) * k / 6 + 5; g.fillStyle = (k + (t >> 3)) % 3 ? '#2a3046' : '#5c6370'; g.fillRect(Math.round(x), Math.round(y), 1, 1); } }
+  for (let i = 0; i < 10; i++){
+    const n = node(i), wd = WORLDS[i + 1], cur = i + 1 === w, open = wd.levels.some(lvlOpen), pal = wd.palette || [];
+    g.fillStyle = cur ? '#FFD400' : open ? '#5c6370' : '#1a1d2a'; g.fillRect(n.x - 1, n.y - 1, 12, 12);
+    g.fillStyle = open ? (pal[5] || pal[3] || '#2a3046') : '#0b0d16'; g.fillRect(n.x + 1, n.y + 1, 8, 8);
+    drawTiny(g, String(i + 1), n.x + (i === 9 ? 1 : 3), n.y + 3, '#ffffff');
+    wd.levels.forEach((id, k) => { const c = save.clr[id]; g.fillStyle = c ? (c.h ? '#ff2045' : '#FFD400') : '#2a3046'; g.fillRect(n.x + k * 3, n.y + 12, 2, 2); });
+    if (cur){ const bob = Math.round(Math.sin(t / 6) * 2); g.drawImage(S.bro[save.startBro || 'toasty'].portrait, n.x - 3, n.y - 18 + bob); }
+  }
+  // world header with arrows
+  const bs = selButtons();
+  for (const b of bs.slice(1, 3)){ tileBox(b, false); drawTextC(g, b.id === 'prev' ? '<' : '>', b.x + b.w / 2, b.y + 12, '#FFD400', 1); }
+  const lv4 = Wd.levels, nClr = lv4.filter(id => save.clr[id]).length, nHard = lv4.filter(id => save.clr[id] && save.clr[id].h).length;
+  drawTextC(g, 'WORLD ' + w, 128, 64, '#FFD400', 1, '#000');
+  const nm = Wd.name || ''; G.selNameMode = drawFit(g, nm, 44, 74, 168, '#00e5ff'); 
+  drawTextC(g, nClr + '/4 CLEARED' + (nHard ? '  ' + nHard + ' HARD' : ''), 128, 85, '#8b909c');
+  // level cards
+  const cards = selCards(w);
+  cards.forEach((c, i) => {
+    const sel = i === G.lc, cl = save.clr[c.id], dark = c.id === 'dark';
+    tileBox(c, sel, { lock: !c.open, col: dark ? '#b54e8c' : undefined });
+    if (!c.open){ lockIcon(c.x + 6, c.y + 6); drawText(g, dark ? '???' : c.id, c.x + 18, c.y + 6, '#5c6370'); drawFit(g, dark ? 'FIND THE HIDDEN CRATER' : 'LOCKED', c.x + 6, c.y + 18, c.w - 12, '#5c6370'); return; }
+    drawText(g, dark ? 'DARK' : c.id, c.x + 5, c.y + 5, sel ? '#FFD400' : '#ffffff', 1, '#000');
+    drawFit(g, levelName(c.id), c.x + (dark ? 34 : 29), c.y + 5, c.w - (dark ? 38 : 33) - (cl ? (cl.h ? 22 : 12) : 0), dark ? '#e7a6cf' : '#cbbcd9');
+    drawText(g, save.best[c.id] ? fmtT(save.best[c.id]) : '-:--.--', c.x + 5, c.y + 18, save.best[c.id] ? '#00e5ff' : '#5c6370');
+    if (cl){ badge(c.x + c.w - 12, c.y + 17, 'clear'); if (cl.h) badge(c.x + c.w - 23, c.y + 17, 'hard'); }
+  });
+  const hard = !!save.opts.hard, hb = bs[3], pb = bs[4], cur = cards[G.lc] || cards[0];
+  tileBox(hb, false, {}); drawText(g, 'HARD MODE', hb.x + 6, hb.y + 12, hard ? '#ff6a80' : '#8b909c');
+  { const sx = hb.x + hb.w - 22, sy = hb.y + 12; g.fillStyle = hard ? '#ff2045' : '#2a3046'; g.fillRect(sx, sy, 16, 8); g.fillStyle = '#ffffff'; g.fillRect(hard ? sx + 9 : sx + 1, sy + 1, 6, 6); }
+  tileBox(pb, cur.open, { lock: !cur.open, col: '#00a86b' }); drawTextC(g, cur.open ? 'PLAY ' + (cur.id === 'dark' ? 'DARK SIDE' : cur.id) : 'LOCKED', pb.x + pb.w / 2, pb.y + 12, cur.open ? '#ffffff' : '#5c6370', 1, '#000');
+}
+function drawRosterBack(){ backBtn(); }
+function drawTimes(){
+  menuBG(); backBtn(); drawTextC(g, 'BEST TIMES', 140, 8, '#FFD400', 1, '#000'); drawTextC(g, 'GOLD = CLEARED  RED = HARD', 140, 19, '#8b909c');
+  drawTiny(g, 'WORLD', 4, 36, '#5c6370'); ['-1', '-2', '-3', '-4'].forEach((s, k) => drawTiny(g, s, 52 + k * 51, 36, '#5c6370'));
+  for (let w = 1; w <= 10; w++){
+    const y = 44 + (w - 1) * 14; g.fillStyle = w % 2 ? '#0d1020' : '#090b14'; g.fillRect(2, y - 2, 252, 13);
+    drawText(g, String(w), 6, y + 1, '#FFD400');
+    WORLDS[w].levels.forEach((id, k) => { const b = save.best[id], c = save.clr[id]; drawText(g, b ? fmtT(b) : '-:--.--', 26 + k * 57, y + 1, c ? (c.h ? '#ff6a80' : '#ffd21a') : '#3a4052'); });
+  }
+  const y0 = 188, row = (lab, v, col, y) => { drawText(g, lab, 10, y, '#cbbcd9'); drawText(g, v ? fmtT(v) : '-:--.--', 150, y, v ? col : '#3a4052'); };
+  row('DARK SIDE', save.best.dark, save.clr.dark && save.clr.dark.h ? '#ff6a80' : '#e7a6cf', y0);
+  row('FULL RUN 1-1 TO MARS', save.runBest, save.runHard ? '#ff6a80' : '#00e5ff', y0 + 12);
+  row('BOSS RUSH', save.rushBest, save.rushHard ? '#ff6a80' : '#00e5ff', y0 + 24);
+  const tot = LEVEL_ORDER.reduce((a, id) => a + (save.best[id] || 0), 0), all = LEVEL_ORDER.every(id => save.best[id]);
+  drawText(g, 'SUM OF BESTS' + (all ? '' : ' (SO FAR)'), 10, y0 + 36, '#8b909c'); drawText(g, fmtT(tot), 150, y0 + 36, '#8b909c');
+}
+function drawOptions(){
+  menuBG(); backBtn(); drawTextC(g, 'OPTIONS', 140, 8, '#FFD400', 1, '#000'); drawTextC(g, 'SAVED ON THIS DEVICE', 140, 19, '#8b909c');
+  const o = save.opts;
+  optRows().forEach((r, i) => {
+    const sel = i === G.osel; tileBox(r, sel);
+    drawText(g, r.label, r.x + 8, r.y + 12, sel ? '#FFD400' : '#ffffff', 1, '#000');
+    if (r.kind === 'vol'){
+      tileBox(r.minus, false); drawTextC(g, '-', r.minus.x + 17, r.minus.y + 11, '#FFD400');
+      tileBox(r.plus, false); drawTextC(g, '+', r.plus.x + 17, r.plus.y + 11, '#FFD400');
+      for (let k = 0; k < 10; k++){ g.fillStyle = k < o[r.id] ? (k < 7 ? '#00e5ff' : '#b54e8c') : '#2a3046'; g.fillRect(166 + k * 4, r.y + 20 - k, 3, 4 + k); }
+      drawTiny(g, 'VOL ' + o[r.id], 167, r.y + 3, '#8b909c');
+    } else if (r.kind === 'bool'){
+      const on = !!o[r.id], sx = r.x + r.w - 40, sy = r.y + 10; g.fillStyle = on ? '#00a86b' : '#2a3046'; g.fillRect(sx, sy, 30, 12); g.fillStyle = '#ffffff'; g.fillRect(on ? sx + 18 : sx + 2, sy + 2, 10, 8);
+      drawText(g, on ? 'ON' : 'OFF', sx - 26, r.y + 12, on ? '#00e5ff' : '#5c6370');
+    }
+  });
+  const tch = typeof TouchInput !== 'undefined' && TouchInput.active;
+  drawTextC(g, tch ? 'TAP - / + OR A ROW' : 'UP/DOWN PICK  LEFT/RIGHT CHANGE', 128, 220, '#5c6370');
+}
+function drawRushCard(){
+  menuBG('rgba(255,32,69,0.06)'); const i = G.rushI || 0, id = RUSH[i], wd = WORLDS[LEVELS[id].world];
+  logoAt('BOSS RUSH', 128, 26, 3);
+  drawTextC(g, i ? 'BOSS ' + i + ' OF 10 DOWN' : '10 CASTLE BOSSES, BACK TO BACK', 128, 58, '#ffffff');
+  for (let k = 0; k < 10; k++){ const x = 34 + k * 19, done = k < i, cur = k === i; g.fillStyle = cur ? '#FFD400' : done ? '#00a86b' : '#2a3046'; g.fillRect(x, 72, 15, 15); g.fillStyle = '#0b0d16'; g.fillRect(x + 2, 74, 11, 11); drawTiny(g, String(k + 1), x + (k === 9 ? 3 : 6), 77, done ? '#00e5ff' : '#ffffff'); }
+  drawTextC(g, 'NEXT: ' + id + '  ' + (wd.boss || ''), 128, 100, '#FFD400');
+  drawTextC(g, 'TIME  ' + fmtT(G.runT || 0), 128, 118, '#00e5ff');
+  if (save.rushBest) drawTextC(g, 'BEST  ' + fmtT(save.rushBest), 128, 130, '#8b909c');
+  const hp = G.rushHp != null ? G.rushHp : MAX_HP;
+  drawTextC(g, i ? 'HEARTS CARRY OVER  +1 BETWEEN FIGHTS' : 'HEARTS CARRY OVER BETWEEN FIGHTS', 128, 150, '#cbbcd9');
+  for (let k = 0; k < MAX_HP; k++){ const x = 110 + k * 13; g.fillStyle = k < hp ? '#ff2045' : '#2a3046'; g.fillRect(x, 162, 10, 9); g.fillRect(x + 2, 160, 2, 2); g.fillRect(x + 6, 160, 2, 2); }
+  if (G.hard) drawTextC(g, 'HARD MODE: A HIT COSTS 2 HEARTS', 128, 180, '#ff6a80');
+  if ((G.stateT >> 4) % 2 === 0 && G.stateT > 30) drawTextC(g, 'PRESS START OR TAP', 128, 204, '#ffffff');
+  if (G.stateT < 12) staticFill(1 - G.stateT / 12);
+}
+function drawResult(){
+  menuBG(); const r = G.result || {};
+  logoAt(r.title || 'CLEAR!', 128, 40, 2);
+  if (r.kind === 'level') drawTextC(g, levelName(r.id), 128, 62, '#00e5ff');
+  drawTextC(g, 'TIME  ' + fmtT(r.t), 128, 88, '#ffffff', 2, '#000');
+  drawTextC(g, 'BEST  ' + fmtT(r.best), 128, 112, '#8b909c');
+  if (r.nb && (G.stateT >> 3) % 2 === 0) drawTextC(g, 'NEW BEST!', 128, 126, '#FFD400', 1, '#000');
+  let bx = 128 - (r.hard ? 50 : 30); badge(bx, 144, 'clear'); drawText(g, 'CLEARED', bx + 12, 145, '#ffd21a');
+  if (r.hard){ badge(bx + 62, 144, 'hard'); drawText(g, 'HARD', bx + 74, 145, '#ff6a80'); }
+  g.drawImage(broFrame(G.curBro || 'toasty', 'jump'), 112, 164, 32, 32);
+  if (G.stateT > 50 && (G.stateT >> 4) % 2 === 0) drawTextC(g, 'PRESS START OR TAP', 128, 212, '#ffffff');
+}
+function drawSpeedTimer(){
+  if (!save.opts.timer || !P) return;
+  const x = W - 74, y = H - 23;
+  g.fillStyle = 'rgba(0,0,0,0.6)'; g.fillRect(x, y, 72, 21);
+  drawTiny(g, 'LV', x + 3, y + 3, '#8b909c'); drawText(g, fmtT(G.lvT || 0), x + 18, y + 2, '#ffffff');
+  if (G.mode === 'story' || G.mode === 'rush'){ drawTiny(g, G.mode === 'rush' ? 'RU' : 'RN', x + 3, y + 13, '#8b909c'); drawText(g, fmtT(G.runT || 0), x + 18, y + 12, G.mode === 'rush' ? '#ff6a80' : '#00e5ff'); }
+}
+
 // ---------------- main update ----------------
 function update(){
   G.frame++; G.stateT++;
   if (G.fade > 0) G.fade--;
   if (G.shake > 0) G.shake--;
   if (G.flash > 0) G.flash--;
+  // v1.4: taps go to the menus (and the pause screen's QUIT); the run / Boss Rush clock ticks everywhere except menus and pause
+  const tap = (MENU_STATES.has(G.state) || (G.state === 'play' && G.paused)) ? (tapQ.shift() || null) : (tapQ.length = 0, null);
+  G.tap = tap;
+  if ((G.mode === 'story' || G.mode === 'rush') && !MENU_STATES.has(G.state) && !(G.state === 'play' && G.paused) && G.state !== 'gameover' && G.state !== 'ending' && G.state !== 'credits' && G.state !== 'thanks') G.runT = (G.runT || 0) + 1;
+  if (MENU_STATES.has(G.state) && updateMenus(tap)) return;
   switch (G.state){
-    case 'title': {
-      const m = titleMenu(); if (G.menu >= m.length) G.menu = 0;
-      if (pressed('down')){ G.menu = (G.menu + 1) % m.length; A.sfx('tick'); }
-      if (pressed('up')){ G.menu = (G.menu + m.length - 1) % m.length; A.sfx('tick'); }
-      if (pressed('start') || pressed('jump')){ A.unlock(); A.sfx('start'); m[G.menu].act(); }
-      break; }
-    case 'select': {
-      const ents = selectEntries().filter(e => e.ok);
-      if (pressed('down')) G.sel = (G.sel + 1) % ents.length;
-      if (pressed('up')) G.sel = (G.sel + ents.length - 1) % ents.length;
-      if (pressed('run')) G.selSize = (G.selSize + 1) % 3;
-      if (pressed('left')){ G.state = 'title'; G.stateT = 0; }
-      if ((pressed('start') || pressed('jump')) && G.stateT > 5){ newGame(ents[G.sel].id); G.carrySize = G.selSize; A.sfx('start'); }
-      break; }
-    case 'roster': {
-      const n = BRO_IDS.length;
-      if (pressed('right')){ G.rsel = (G.rsel + 1) % n; A.sfx('tick'); }
-      if (pressed('left')){ G.rsel = (G.rsel + n - 1) % n; A.sfx('tick'); }
-      if (pressed('down') || pressed('up')){ G.rsel = (G.rsel + 5) % n; A.sfx('tick'); }
-      const id = BRO_IDS[G.rsel];
-      if (pressed('jump') && G.stateT > 5){ if (save.unlocked.includes(id)){ save.startBro = id; writeSave(); A.sfx('coin'); } else A.sfx('bump'); }
-      if ((pressed('start') || pressed('run')) && G.stateT > 5){ G.state = 'title'; G.stateT = 0; }
-      break; }
     case 'intro':
       if (G.stateT > 150) startLevel();
       break;
@@ -5152,7 +5526,7 @@ function update(){
       }
       break;
     case 'gameover':
-      if (G.stateT > 260 || (G.stateT > 60 && pressed('start'))){ G.state = 'title'; G.stateT = 0; G.menu = 0; }
+      if (G.stateT > 260 || (G.stateT > 60 && pressed('start'))){ if (G.mode === 'single') goMenu('select'); else toTitle(G.mode === 'rush' ? 2 : 0); } // v1.4
       break;
     case 'transition':
       if (G.stateT > 160) levelComplete();
@@ -5175,7 +5549,9 @@ function update(){
 }
 function updatePlay(){
   if (pressed('start') && !G.dialog){ G.paused = !G.paused; A.pause(G.paused); A.sfx('pause'); }
-  if (G.paused) return;
+  if (G.paused){ if (pressed('melee') || hitBtn([QUIT_BTN], G.tap)) quitToMenu(); return; } // v1.4 QUIT TO MENU
+  if (P && !(P.ctrl === 'pole' || P.ctrl === 'walkoff' || P.ctrl === 'gone' || P.ctrl === 'wait')) G.lvT = (G.lvT || 0) + 1; // v1.4 level clock (stops at the pole / castle tally)
+  if (G.modeEndT > 0 && --G.modeEndT === 0){ G.state = 'result'; G.stateT = 0; A.stopMusic(); A.sfx('worldclear'); return; }
   if (G.dialog){
     G.dialog.t++;
     if (G.camLockX !== null && camX < G.camLockX) camX = Math.min(G.camLockX, camX + 3);
@@ -6171,7 +6547,7 @@ function drawHUD(){
   drawText(g, pad(G.score, 6), 24, 15, '#ffffff', 1, sh);
   if (inPlay){ for (let i = 0; i < 3; i++){ const on = i < P.spec; g.fillStyle = '#000'; g.fillRect(4 + i * 6, 21, 5, 5); g.fillStyle = on ? BROS[bro].color : '#2a3046'; g.fillRect(5 + i * 6, 22, 3, 3); }
     if (P.size > 0){ g.fillStyle = '#000'; g.fillRect(23, 23, 7, 7); g.fillStyle = '#d7dbe3'; g.fillRect(24, 24, 5, 4); g.fillRect(25, 28, 3, 1); }
-    drawHealth(4, 31);
+    drawHealth(4, 31); if (G.hard) drawTiny(g, 'HARD', 4, 40, '#ff2045', '#000'); // v1.4
     drawText(g, 'FREED ' + G.rescued, 32, 24, '#00e5ff', 1, sh); }
   drawText(g, 'SKULLZ', 76, 6, '#FFD400', 1, sh);
   g.drawImage(S.coin, 76, 14); drawText(g, 'X' + pad(G.coins, 2), 87, 15, '#ffffff', 1, sh);
@@ -6203,7 +6579,7 @@ function drawDialog(){
   if (n > l1.length) drawText(g, l2.slice(0, n - l1.length), 46, 184, (G.frame >> 2) % 2 ? '#ff00c8' : '#00e5ff');
 }
 function drawWorld(){
-  const sx = G.shake > 0 ? ((G.frame & 1) ? 2 : -2) : 0;
+  const sx = G.shake > 0 && save.opts.shake !== false ? ((G.frame & 1) ? 2 : -2) : 0; // v1.4 option
   const cx = camX; camX = cx - sx;
   drawBG();
   drawSigns();
@@ -6256,45 +6632,6 @@ function logo(txt, y, s){
   drawText(g, txt, x + 2, y + 2, '#000', s); drawText(g, txt, x - 1, y, '#ff0040', s); drawText(g, txt, x + 1, y, '#00f0ff', s); drawText(g, txt, x, y, '#FFD400', s);
 }
 let titleArea = null;
-function drawTitle(){
-  if (!titleArea){ titleArea = LEVELS['1-1'].build().main; }
-  const sl = lv, sc = camX, st = TSET; lv = titleArea; TSET = S.tiles; camX = (G.frame * 0.25) % (60 * TS);
-  drawBG(); drawTiles(); drawPipes(); lv = sl; camX = sc; TSET = st;
-  g.fillStyle = 'rgba(5,7,13,0.62)'; g.fillRect(0, 0, W, H);
-  const t = G.frame;
-  logo('MR. TOASTY:', 36, 2); logo('TOASTY BROS', 56, 3);
-  drawTextC(g, 'NOW ON AIR: ALL 10 WORLDS - BRO EDITION', 128, 86, '#cbbcd9', 1, '#000');
-  BRO_IDS.forEach((id, i) => { const open = save.unlocked.includes(id), x = 16 + i * 23, hop = open && ((t >> 3) + i) % 16 === 0 ? -3 : 0;
-    const fr = broFrame(id, open ? ((t >> 4) + i) % 2 ? 'stand' : 'walk2' : 'stand'); g.drawImage(open ? fr : tinted(fr, '#2a3046'), x, 100 + hop);
-    if (!open) drawText(g, '?', x + 6, 104, '#5c6370'); });
-  const m = titleMenu();
-  m.forEach((it, i) => {
-    const y = 124 + i * 11, sel = i === G.menu;
-    drawTextC(g, it.label, 128, y, sel ? '#FFD400' : '#8b909c', 1, '#000');
-    if (sel && (t >> 4) % 2 === 0) drawText(g, '>', 128 - textWidth(it.label) / 2 - 10, y, '#FFD400');
-  });
-  drawTextC(g, 'HI ' + pad(save.hi, 6) + (save.beaten ? '   GAME BEATEN!' : ''), 128, 176, save.beaten ? '#ffd21a' : '#ffffff', 1, '#000');
-  const tch = typeof TouchInput !== 'undefined' && TouchInput.active;
-  drawTextC(g, tch ? 'D-PAD MOVE  A JUMP  B RUN+FIRE (HOLD)' : 'ARROWS MOVE  Z JUMP  X RUN+FIRE (HOLD)', 128, 190, '#8b909c');
-  drawTextC(g, tch ? 'S SPECIAL  M MELEE  START PAUSE' : 'C SPECIAL  V MELEE  ENTER START', 128, 200, '#8b909c');
-  drawTextC(g, 'PRESS INTO A WALL TO SLIDE, JUMP TO KICK', 128, 210, '#5c6370');
-  drawTextC(g, 'AN ORIGINAL COTY LAKE GAME  2026', 128, 224, '#5c6370');
-  if (t % 180 < 6) glitchBands(4, 12);
-}
-function drawSelect(){
-  g.fillStyle = '#05070d'; g.fillRect(0, 0, W, H);
-  drawTextC(g, 'LEVEL SELECT (DEBUG)', 128, 10, '#FFD400', 1);
-  const all = selectEntries(); let k = 0, y = 22;
-  for (const e of all){
-    const col = e.ok ? (k === G.sel ? '#FFD400' : '#ffffff') : '#5c6370';
-    if (e.ok && k === G.sel) drawText(g, '>', 6, y, '#FFD400');
-    drawText(g, e.label.slice(0, 38), 14, y, col);
-    if (e.ok) k++;
-    y += 11;
-  }
-  drawText(g, 'START: ' + ['PLAIN', 'ARMOR', 'ARMOR'][G.selSize] + '  (X)', 20, 214, '#00e5ff');
-  drawText(g, 'LEFT = BACK', 170, 214, '#8b909c');
-}
 function drawIntro(){
   g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
   const L = LEVELS[G.levelId];
@@ -6306,6 +6643,8 @@ function drawIntro(){
   drawTextC(g, BROS[G.curBro || 'toasty'].name, 128, 146, BROS[G.curBro || 'toasty'].color);
   if (G.reserve && G.reserve.length) { drawTextC(g, 'RESERVE', 128, 174, '#5c6370'); G.reserve.slice(0, 8).forEach((id, i) => g.drawImage(S.bro[id].portrait, 128 - Math.min(8, G.reserve.length) * 10 + i * 20, 184)); }
   if (G.checkpoint) drawTextC(g, 'CHECKPOINT', 128, 158, '#8b909c');
+  if (G.mode === 'rush') drawTextC(g, 'BOSS RUSH ' + ((G.rushI || 0) + 1) + ' / 10', 128, 50, '#ff6a80'); else if (G.mode === 'single') drawTextC(g, 'LEVEL SELECT', 128, 50, '#00e5ff');
+  if (G.hard) drawTextC(g, 'HARD MODE', 128, 40, '#ff2045');
   if (G.stateT < 12) staticFill(1 - G.stateT / 12);
 }
 function drawTransition(){
@@ -6407,11 +6746,13 @@ function render(){
   switch (G.state){
     case 'title': drawTitle(); break;
     case 'select': drawSelect(); break;
-    case 'roster': drawRoster(); break;
+    case 'roster': drawRoster(); drawRosterBack(); break;
+    case 'times': drawTimes(); break; case 'options': drawOptions(); break; case 'rushcard': drawRushCard(); break; case 'result': drawResult(); break; // v1.4
     case 'intro': drawIntro(); break;
     case 'play': case 'dying':
       drawWorld(); drawHUD();
-      if (G.paused){ g.fillStyle = 'rgba(0,0,0,0.5)'; g.fillRect(0, 0, W, H); drawTextC(g, 'PAUSED', 128, 112, '#FFD400', 2, '#000'); drawTextC(g, (typeof TouchInput !== 'undefined' && TouchInput.active) ? 'TAP START TO RESUME' : 'PRESS ENTER TO RESUME', 128, 134, '#ffffff', 1, '#000'); }
+      drawSpeedTimer(); // v1.4
+      if (G.paused){ g.fillStyle = 'rgba(0,0,0,0.5)'; g.fillRect(0, 0, W, H); tileBox(QUIT_BTN, false); drawTextC(g, 'QUIT TO MENU', 128, QUIT_BTN.y + 8, '#ffffff', 1, '#000'); drawTiny(g, (typeof TouchInput !== 'undefined' && TouchInput.active) ? 'OR M BUTTON' : 'OR V KEY', 106, QUIT_BTN.y + 20, '#8b909c'); drawTextC(g, 'PAUSED', 128, 112, '#FFD400', 2, '#000'); drawTextC(g, (typeof TouchInput !== 'undefined' && TouchInput.active) ? 'TAP START TO RESUME' : 'PRESS ENTER TO RESUME', 128, 134, '#ffffff', 1, '#000'); }
       if (G.fade > 0){ g.fillStyle = 'rgba(0,0,0,' + (G.fade / 14) + ')'; g.fillRect(0, 0, W, H); }
       if (P && P.star > 0 && G.frame % 40 < 2) glitchBands(3, 8);
       if (BOSS && BOSS.dying && G.frame % 6 < 2) glitchBands(3, 14);
@@ -6424,7 +6765,7 @@ function render(){
     case 'ending': drawEndingScene(); break; case 'credits': drawCredits(); break; case 'thanks': drawThanks(); break; // v1.2
     case 'gameover': drawGameOver(); break;
   }
-  if (G.state !== 'title' && G.state !== 'select' && G.state !== 'roster' && G.state !== 'play' && G.state !== 'dying' && G.state !== 'worldclear' && G.state !== 'ending' && G.state !== 'credits' && G.state !== 'thanks') drawHUD();
+  if (!MENU_STATES.has(G.state) && G.state !== 'play' && G.state !== 'dying' && G.state !== 'worldclear' && G.state !== 'ending' && G.state !== 'credits' && G.state !== 'thanks') drawHUD();
   sctx.imageSmoothingEnabled = false;
   sctx.drawImage(buf, 0, 0, screenC.width, screenC.height);
   if (scale >= 2){
@@ -6623,6 +6964,7 @@ function botCombat(b){
 function botNav(){
   const b = { right: true, run: true, left: false, down: false, jump: false, start: false, up: false };
   if (G.state === 'title'){ b.right = false; b.run = false; b.start = G.frame % 40 === 0; return b; }
+  if (G.state === 'result' || G.state === 'rushcard'){ b.right = false; b.run = false; b.start = G.frame % 40 === 0; return b; } // v1.4
   if (G.state === 'worldclear'){ b.right = false; b.run = false; b.start = !!G.nextWorldLevel && G.stateT > 130 && G.frame % 40 === 0; return b; }
   if (G.state === 'clear' || G.state === 'select'){ b.start = G.frame % 40 === 0; b.right = false; b.run = false; return b; }
   if (G.state === 'play' && P && P.ctrl === 'truck' && !G.dialog && !P.dead){ const o = botTruck(b); bot.lastJump = o.jump; return o; }
@@ -7084,6 +7426,13 @@ window.TT = {
   get shots(){ return shots; }, get booms(){ return booms; }, get turrets(){ return turrets; },
   setBro(id){ swapBro(id); }, freeCage(tx, ty){ freeCage(tx, ty); }, boom(x, y, r, o){ boom(x, y, r, o); }, damageTile(tx, ty, pw){ return damageTile(tx, ty, pw); },
   unlockAll(){ save.unlocked = BRO_IDS.slice(); writeSave(); },
+  // v1.4 menus / modes
+  tap(x, y){ tapQ.push({ x, y }); }, fmtT, RUSH, lvlOpen, rushOpen, levelComplete(){ levelComplete(); }, startRush(){ startRush(); }, playLevel(id){ playLevel(id); },
+  menus(){ const pick = b => ({ id: b.id, label: b.label, x: b.x, y: b.y, w: b.w, h: b.h, lock: !!b.lock, open: b.open });
+    return { title: titleItems().map(pick), story: storyItems().map(pick), select: selButtons().map(pick), cards: selCards(G.lw || 1).map(pick), options: optRows().map(r => [pick(r), pick(r.minus), pick(r.plus)]),
+      roster: rosterCells().map(pick), back: pick(BACK_BTN), quit: pick(QUIT_BTN) }; },
+  modes(){ return { mode: G.mode || null, hard: !!G.hard, lvT: G.lvT || 0, runT: G.runT || 0, rushI: G.rushI || 0, rushHp: G.rushHp, single: G.single || null, result: G.result, sub: G.sub || null, menu: G.menu, lw: G.lw, lc: G.lc, osel: G.osel, darkT0: G.darkT0 }; },
+  get scale(){ return scale; },
   // v1.3 animation sync probe (test_anim): step + render one frame at a time and return what was drawn next to the state
   get ANIM(){ return ANIM; }, heroPose(){ return P ? heroPose(P) : null; }, cageable(){ return cageable(); },
   animRun(n, buttons, opt){
