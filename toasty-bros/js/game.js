@@ -129,6 +129,7 @@ function enterArea(name){
     plats = lv.plats.map(d => ({ kind: d.kind, x: d.tx * TS, y: d.ty * TS, w: d.w * TS, h: 8, x0: d.tx * TS, y0: d.ty * TS, axis: d.axis, range: (d.range || 0) * TS, speed: d.speed || 0, t: d.phase || 0, dx: 0, dy: 0, fallT: 0, vy: 0, stood: false, look: d.look, len: d.len, amp: d.amp, gz: d.gz, pz: d.pz, cz: d.cz, dir: d.dir, bsp: d.bsp })).concat(pitPlats(), dinerPlats());
     if (typeof spawnLevelTrucks === 'function') spawnLevelTrucks();
     if (typeof feedEnter === 'function') feedEnter();
+    if (typeof biteEnter === 'function') biteEnter(); // v1.1 World 9 gold pats
   }
   magCoins = []; rockets = []; parts = []; coinpops = []; ftoasts = []; shots = []; booms = []; rings = []; turrets = [];
   if (!lv.cageBro){ lv.cageBro = {}; lv.dmg = {}; const locked = BRO_IDS.filter(id => !save.unlocked.includes(id)); let li = 0;
@@ -158,6 +159,7 @@ function startLevel(){
   G.portals = 0; G.portalSaid = false; G.geyserRides = 0; G.rgbHits = 0; G.sauces = 0; G.quartzDown = false; G.quartzSlams = 0; G.quartzHaz = 0; cryFx = []; // v0.8 World 6
   G.figs = 0; G.tix = 0; G.showers = 0; G.tokens7 = 0; G.shoves = 0; G.pushRides = 0; G.clawRides = 0; G.clawGrabs = 0; G.crtHops = 0; G.streaks = 0; G.vaultDown = false; G.vaultHits = 0; G.vaultWaves = 0; G.vaultHaz = 0; arcFx = []; arcToks = []; // v0.9 World 7
   G.combo = 0; G.comboT = 0; G.comboMax = 0; G.snacks = 0; G.craveHits = 0; G.craveId = (typeof SNACKS !== 'undefined' ? SNACKS[0].id : 'burger'); G.pestStomps = 0; G.coolHits = 0; G.gooHits = 0; G.beltRides = 0; G.feedHits = 0; G.fatDown = false; G.fatSlams = 0; G.fatWaves = 0; G.fatHaz = 0; feedFx = []; // v1.0 World 8
+  G.brawl = null; G.brawls = 0; G.clears = 0; G.kos = 0; G.punkStomps = 0; G.butterStomps = 0; G.golds = 0; G.goldHeals = 0; G.grillHits = 0; G.strikeHits = 0; G.flash9 = 0; G.ttDown = false; G.ttHits = 0; G.ttHaz = 0; G.ttCharges = 0; G.ttHorns = 0; G.ttToasts = 0; G.ttWaves = 0; // v1.1 World 9
   BOSS = lv.boss ? makeBoss(lv.boss) : null;
   reach(G.levelId);
   A.startMusic(lv.music || LV.music);
@@ -403,6 +405,7 @@ function updatePlayer(){
   if (TSET.crypt) cryptPlayer(p); // v0.8 Glitch Doors, the RGB switch, Hot Sauce
   if (TSET.arcade) arcadePlayer(p); // v0.9 pusher shoves, CRT power, Hot Streak
   if (TSET.feed) feedPlayer(p); // v1.0 belts + combo timer
+  if (TSET.bite) bitePlayer(p); // v1.1 brawl screen lock
   if (p.onGround) p.combo = 0;
   if (p.onGround && !p.plat){ const fr = Math.floor((p.y + p.h + 1) / TS); for (const tx of [Math.floor((p.x + 1) / TS), Math.floor((p.x + p.w - 1) / TS)]) if (tileAt(tx, fr) === 'K') startCrumble(tx, fr); }
   if (p.boost > 0 && G.frame % 2 === 0) parts.push({ x: p.x + (p.facing > 0 ? 0 : p.w), y: p.y + 4 + Math.random() * (p.h - 6), vx: -p.facing * 1.5, vy: 0, g: 0, life: 10, color: (G.frame >> 2) % 2 ? '#FFD400' : '#ffffff', size: 1 });
@@ -588,6 +591,7 @@ function spawnEnemies(){
       if (CRYPT_TYPES.has(s.type)) cryptInit(e, s); // v0.8 World 6
       if (ARCADE_TYPES.has(s.type)) arcadeInit(e, s); // v0.9 World 7
       if (FEED_TYPES.has(s.type)) feedInit(e, s); // v1.0 World 8
+      if (BITE_TYPES.has(s.type)) biteInit(e, s); // v1.1 World 9
     }
   }
 }
@@ -625,6 +629,7 @@ function updateEnemy(e){
   if (CRYPT_TYPES.has(e.type)){ updateCryptEnemy(e, dx, dy); return; }
   if (ARCADE_TYPES.has(e.type)){ updateArcadeEnemy(e, dx, dy); return; }
   if (FEED_TYPES.has(e.type)){ updateFeedEnemy(e, dx, dy); return; }
+  if (BITE_TYPES.has(e.type)){ updateBiteEnemy(e, dx, dy); return; }
   if (e.type === 'toast' && inPit() && e.anim % 3 === 0){ (e.trail = e.trail || []).push({ x: e.x, y: e.y }); if (e.trail.length > 5) e.trail.shift(); }
   if (e.type === 'truck' || e.type === 'skel' || e.type === 'rlaunch' || e.type === 'gunner'){ updateW2Enemy(e, dx, dy); return; }
   if (e.type === 'rifle'){ updateRifle(e, dx, dy); }
@@ -760,6 +765,7 @@ function playerVsEnemies(){
     if (CRYPT_TYPES.has(e.type) && cryptContact(e)) continue; // v0.8: static passes through you
     if (ARCADE_TYPES.has(e.type) && arcadeContact(e)) continue; // v0.9
     if (FEED_TYPES.has(e.type) && feedContact(e)) continue; // v1.0
+    if (BITE_TYPES.has(e.type) && biteContact(e)) continue; // v1.1
     if (BUMBO_TYPES.has(e.type) && bumboContact(e)) continue; // v0.7: the foil puppet shoves, a zapping Cord Snake burns
     if (P.star > 0){ if (DINER_TYPES.has(e.type) && dinerDeath(e, {})) continue; killFlip(e); addScore(200, e.x, e.y - 8); continue; }
     const prevBottom = P.prevY + P.h;
@@ -886,12 +892,13 @@ function hazards(){
   if (inCrypt()) cryptHazards();
   if (inArcade()) arcadeHazards();
   if (inFeed()) feedHazards();
+  if (inBite() || (BOSS && BOSS.kind === 'ttruck')) biteHazards();
 }
 
 // ---------------- items & rockets ----------------
 function updateItem(it){
   if (it.emerge > 0){ it.y -= 0.5; it.emerge -= 0.5; return; }
-  if (it.type === 'crave'){ it.vx = 0; it.vy = 0; it.y = (it.y0 != null ? it.y0 : it.y) + Math.sin((G.frame + it.x) * 0.15) * 1.5; }
+  if (it.type === 'crave' || it.type === 'gold'){ it.vx = 0; it.vy = 0; it.y = (it.y0 != null ? it.y0 : it.y) + Math.sin((G.frame + it.x) * 0.15) * 1.5; }
   else if (it.type === 'launcher' || it.type === 'ammo'){ it.vy = Math.min(it.vy + 0.3, 4); it.y += it.vy; collideY(it); }
   else {
     it.vy = Math.min(it.vy + (it.type === 'glitch' ? 0.2 : 0.3), 4);
@@ -915,6 +922,7 @@ function updateItem(it){
     else if (it.type === 'tray'){ P.magnet = 540; addScore(1000, cx, cy); A.sfx('magnet'); popup(cx - 30, cy - 10, 'CRUMB TRAY: MAGNET', '#00f0ff'); }
     else if (it.type === 'lightbar'){ P.boost = 300; G.flash = 12; addScore(1000, cx, cy); A.sfx('lightbar'); popup(cx - 30, cy - 10, '850HP LIGHTBAR!', '#FFD400'); }
     else if (it.type === 'crave'){ feedPickup(it); }
+    else if (it.type === 'gold'){ bitePickup(it); }
     G.lastPickup = it.type;
   }
 }
@@ -1037,6 +1045,7 @@ function bossChip(dmg){
   const b = BOSS; if (!b || !b.active || b.dying || b.dead) return;
   if (b.kind === 'vault' && !(b.open > 0)){ vaultClink(); return; } // v0.9 the Vault only takes hits while its payout button glows
   if (b.kind === 'fatcoty' && !(b.open > 0)){ fatCotyClink(); return; } // v1.0 Fat Coty only takes hits while he is craving
+  if (b.kind === 'ttruck' && !(b.open > 0)){ ttClink(); return; } // v1.1 the Therapy Toaster only takes hits while it's stalled
   const need = b.kind === 'glitch' ? 6 : 5;
   if (b.flash > 0){ b.chip = Math.min(need - 0.01, (b.chip || 0) + dmg * 0.25); return; }
   b.chip = (b.chip || 0) + dmg;
@@ -1061,7 +1070,7 @@ function damageEnemy(e, dmg, kb, src){
   if (DINER_TYPES.has(e.type) && dinerDeath(e, src)) return true;
   if (BUMBO_TYPES.has(e.type) && bumboDeath(e, src)) return true;
   if (CRYPT_TYPES.has(e.type) && cryptDeath(e, src)) return true;
-  killFlip(e); G.kills++; if (DINER_TYPES.has(e.type)) dinerKill(e); if (BUMBO_TYPES.has(e.type)) bumboKill(e); if (CRYPT_TYPES.has(e.type)) cryptKill(e); if (ARCADE_TYPES.has(e.type)) arcadeKill(e); if (FEED_TYPES.has(e.type)) feedKill(e);
+  killFlip(e); G.kills++; if (DINER_TYPES.has(e.type)) dinerKill(e); if (BUMBO_TYPES.has(e.type)) bumboKill(e); if (CRYPT_TYPES.has(e.type)) cryptKill(e); if (ARCADE_TYPES.has(e.type)) arcadeKill(e); if (FEED_TYPES.has(e.type)) feedKill(e); if (BITE_TYPES.has(e.type)) biteKill(e);
   addScore(e.type === 'gunner' || e.type === 'truck' ? 500 : e.type === 'rifle' || e.type === 'toast' ? 300 : 100, e.x, e.y - 8);
   burst(e.x + e.w / 2, e.y + e.h / 2, 8, JAM, 1.8, 26); burst(e.x + e.w / 2, e.y + e.h / 2, 5, ['#c8741e', '#f4c860'], 1.5, 22);
   if (e.type === 'rifle' || e.type === 'gunner' || e.type === 'goon'){ const it = spawnItem('ammo', e.x, e.y - 4); it.emerge = 0; it.vy = -3; }
@@ -1234,7 +1243,7 @@ function rollHit(p){
   for (const e of enemies) if (!e.dead && overlap(box, e)){ damageEnemy(e, 4, p.facing * 5); p.roll = 0; p.vx = -p.facing * 1.6; p.vy = -2.8; p.onGround = false; p.plat = null; p.inv = Math.max(p.inv, 24); A.sfx('kick'); return; } // bonk: hit once and hop off
   const tx = Math.floor((p.facing > 0 ? p.x + p.w + 1 : p.x - 1) / TS), ty = Math.floor((p.y + p.h / 2) / TS);
   const c = tileAt(tx, ty); if (c === 'C') freeCage(tx, ty); else if (c === 'B') damageTile(tx, ty, 1);
-  if (BOSS && (BOSS.kind === 'hive' || BOSS.kind === 'quartz' || BOSS.kind === 'vault' || BOSS.kind === 'fatcoty') && BOSS.active && !BOSS.dying && overlap(box, BOSS)){ bossChip(5); p.roll = 0; p.vx = -p.facing * 2.2; p.vy = -3.2; p.onGround = false; p.plat = null; p.inv = Math.max(p.inv, 40); A.sfx('kick'); return; } // v0.7: bonk off the Hive
+  if (BOSS && (BOSS.kind === 'hive' || BOSS.kind === 'quartz' || BOSS.kind === 'vault' || BOSS.kind === 'fatcoty' || BOSS.kind === 'ttruck') && BOSS.active && !BOSS.dying && overlap(box, BOSS)){ bossChip(5); p.roll = 0; p.vx = -p.facing * 2.2; p.vy = -3.2; p.onGround = false; p.plat = null; p.inv = Math.max(p.inv, 40); A.sfx('kick'); return; } // v0.7: bonk off the Hive
   if (BOSS && BOSS.active && !BOSS.dying && overlap(box, BOSS) && p.roll % 6 === 0) bossChip(2);
 }
 function updateTurrets(){
@@ -3825,6 +3834,363 @@ function drawFeedEnemy(e, X){
   return true;
 }
 
+// ================= v1.1 WORLD 9: FINAL BITE =================
+// Old-school street brawl on toast avenue (lore: lore/originals.md, "Bake & Rise"). Punks (fast toast-head
+// thugs, burnt variant), Butter Bruisers (slow, take more hits, frozen variant), BRAWL zones that lock the
+// screen until the wave is cleared, grill plates, storm strikes, gold pats / gold bars, and THE THERAPY
+// TOASTER in the Toaster Lot. Every hazard is 1 heart. Original art only; parody look, no real brands.
+Object.assign(EDEF, { punk: { w: 12, h: 16, hp: 2 }, bpunk: { w: 12, h: 16, hp: 2 }, butter: { w: 16, h: 20, hp: 4 }, fbutter: { w: 16, h: 20, hp: 5 } });
+const BITE_TYPES = new Set(['punk', 'bpunk', 'butter', 'fbutter']);
+const GRILL_PERIOD = 180, BRAWL_MAX = 1500;
+function inBite(){ return !!(TSET && TSET.bite); }
+function biteEnter(){
+  if (!lv || !lv.golds) return;
+  for (const c of lv.golds){
+    if (c.spawned) continue; c.spawned = true;
+    const it = spawnItem('gold', c.x * TS, c.y * TS); it.kind = c.kind || 'pat'; it.emerge = 0; it.vx = 0; it.vy = 0; it.y0 = it.y; it.w = 12; it.h = 10;
+  }
+}
+function grillState(gr, f){
+  const t = ((f === undefined ? G.lf : f) + (gr.phase || 0)) % GRILL_PERIOD;
+  if (t < 84) return { ph: 'off', left: 84 - t };
+  if (t < 108) return { ph: 'warn', left: 108 - t };
+  return { ph: 'on', left: GRILL_PERIOD - t };
+}
+function strikeState(s, f){
+  const per = s.period || 150, t = ((f === undefined ? G.lf : f) + (s.phase || 0)) % per;
+  if (t < per - 44) return { ph: 'off', left: per - 44 - t };
+  if (t < per - 14) return { ph: 'warn', left: per - 14 - t };
+  return { ph: 'strike', left: per - t };
+}
+function biteInit(e, s){ e.dir = (s && s.dir) || -1; e.state = 'walk'; e.cool = 30 + ((s && s.x) || 0) % 3 * 10; e.dash = 0; }
+function updateBiteEnemy(e, dx, dy){
+  const big = e.type === 'butter' || e.type === 'fbutter';
+  const aggro = e.brawl || (Math.abs(dx) < (big ? 140 : 170) && Math.abs(dy) < 48);
+  let sp = e.type === 'punk' ? 0.7 : e.type === 'bpunk' ? 0.95 : e.type === 'butter' ? 0.35 : 0.45;
+  if (aggro && Math.abs(dx) > 6 && !(e.dash > 0)) e.dir = dx < 0 ? -1 : 1;
+  if (!big){
+    if (e.cool > 0) e.cool--;
+    if (e.dash > 0){ e.dash--; sp *= 2.3; }
+    else if (aggro && e.cool <= 0 && Math.abs(dx) < 56 && Math.abs(dy) < 20 && e.onGround){ e.dash = 18; e.cool = 110; sfxOnce('punch9'); }
+  }
+  e.vx = e.dir * sp; e.x += e.vx; if (collideX(e)){ e.dir *= -1; e.x += e.dir; e.dash = 0; }
+  e.vy = Math.min(e.vy + 0.3, 4); e.y += e.vy; collideY(e);
+  const front = e.dir > 0 ? e.x + e.w + 1 : e.x - 1;
+  if (e.onGround && !standable(Math.floor(front / TS), Math.floor((e.y + e.h + 1) / TS))){ e.dir *= -1; e.dash = 0; e.x += e.dir * sp; }
+  e.facing = e.dir;
+}
+function biteContact(e){
+  if (!BITE_TYPES.has(e.type) || e.dead || P.star > 0) return false;
+  const prevBottom = P.prevY + P.h;
+  if (P.vy > 0 && prevBottom <= e.y + 6){
+    P.y = e.y - P.h; P.vy = btn.jump ? -5.0 : -3.6; P.jumpHeld = !!btn.jump; P.plat = null;
+    if (e.type === 'punk' || e.type === 'bpunk'){
+      e.dead = 'squash'; e.t = 28; G.kills++; G.punkStomps = (G.punkStomps || 0) + 1; addScore(200, e.x, e.y - 8); A.sfx('stomp'); A.sfx('punch9');
+      burst(e.x + 6, e.y + 4, 8, [B9.TOAST, B9.CHEESE, B9.CRUST], 1.6); biteKill(e); return true;
+    }
+    G.butterStomps = (G.butterStomps || 0) + 1; A.sfx('punch9');
+    if (e.type === 'fbutter') popup(e.x - 4, e.y - 10, 'BRRR!', B9.ICE);
+    damageEnemy(e, e.type === 'fbutter' ? 1 : 2, 0, { stomp: true });
+    return true;
+  }
+  return false;
+}
+function biteKill(e){
+  G.kos = (G.kos || 0) + 1; popup(e.x - 12, e.y - 12, 'TOASTED', B9.NEON);
+  if ((e.type === 'butter' || e.type === 'fbutter')){ const it = spawnItem('gold', e.x + 2, e.y + e.h - 14); it.kind = 'pat'; it.emerge = 0; it.vx = 0; it.vy = 0; it.y0 = it.y; it.w = 12; it.h = 10; }
+}
+function bitePickup(it){
+  G.golds = (G.golds || 0) + 1;
+  if (it.kind === 'bar'){
+    if (P.hp !== undefined && P.hp < MAX_HP){ P.hp++; P.hpFx = 40; popup(it.x - 30, it.y - 12, 'GOLD BAR: +1 HEART', B9.GOLD); G.goldHeals = (G.goldHeals || 0) + 1; }
+    else { addScore(1000, it.x, it.y - 8); popup(it.x - 20, it.y - 20, 'GOLD BAR!', B9.GOLD); }
+    A.sfx('chomp9');
+  } else { addScore(200, it.x, it.y - 8); A.sfx('gold9'); }
+  burst(it.x + 5, it.y + 4, 8, [B9.GOLD, '#fff2b0', B9.NEON], 1.4);
+}
+function biteHazards(){
+  if (P.ctrl !== 'normal' || P.dead) return;
+  const feet = P.y + P.h;
+  if (lv.grills && P.inv <= 0 && P.star <= 0) for (const gr of lv.grills){
+    if (grillState(gr).ph !== 'on') continue;
+    const x0 = gr.a * TS, x1 = (gr.b + 1) * TS, y = (gr.ty || 13) * TS;
+    if (P.x + P.w > x0 + 2 && P.x < x1 - 2 && feet > y - 12 && feet <= y + 2){
+      hurt(); G.grillHits = (G.grillHits || 0) + 1;
+      if (G.state === 'play' && !P.dead){ P.vy = -4.2; P.onGround = false; P.plat = null; popup(P.x - 12, P.y - 12, 'SIZZLE!', B9.GLOW); burst(P.x + 6, y - 2, 8, [B9.GLOW, B9.GOLD, '#ffffff'], 1.4); }
+      return;
+    }
+  }
+  if (lv.strikes && P.inv <= 0 && P.star <= 0) for (const s of lv.strikes){
+    if (strikeState(s).ph !== 'strike') continue;
+    const x0 = s.tx * TS + 3, x1 = s.tx * TS + 13;
+    if (P.x < x1 && P.x + P.w > x0 && P.y + P.h > 16){
+      hurt(); G.strikeHits = (G.strikeHits || 0) + 1;
+      if (G.state === 'play' && !P.dead){ popup(P.x - 6, P.y - 12, 'ZAP!', B9.BOLT); burst(P.x + 6, P.y + 8, 8, [B9.BOLT, B9.STORM2, '#ffffff'], 1.6); }
+      return;
+    }
+  }
+  const b = BOSS; if (b && b.kind === 'ttruck') ttHurtCheck(b);
+}
+function bitePlayer(p){
+  const br = G.brawl;
+  if (br && G.camLockX !== null){ const maxX = G.camLockX + W - p.w - 4; if (p.x > maxX){ p.x = maxX; if (p.vx > 0) p.vx = 0; } }
+}
+function biteSpawnWave(br){
+  const list = br.waves[br.wave] || [];
+  list.forEach((type, i) => {
+    const d = EDEF[type], x = G.camLockX + W - 22 - i * 22;
+    const e = spawnEnemy(type, x, 13 * TS - d.h); biteInit(e, { dir: -1, x: i }); e.brawl = true; e.brawlRef = br; e.cool = 40 + i * 25;
+  });
+  A.sfx('punch9'); popup(G.camLockX + W - 70, 60, 'WAVE ' + (br.wave + 1) + '/' + br.waves.length, B9.GOLD);
+}
+function biteClear(br){
+  br.done = true; br.active = false; G.brawl = null; G.camLockX = null;
+  for (const e of enemies) if (e.brawlRef === br && !e.dead && !e.remove){ killFlip(e); }
+  G.bigText = { text: 'CLEAR!', t: 0 }; G.clears = (G.clears || 0) + 1; A.sfx('clear9'); addScore(1000, P.x, P.y - 16);
+}
+function biteUpdate(){
+  if (!inBite() && !(BOSS && BOSS.kind === 'ttruck')) return;
+  biteEnter();
+  if (lv.brawls && P && P.ctrl === 'normal' && !P.dead && !G.brawl && !lv.camLock && !G.escape){
+    for (const br of lv.brawls){
+      if (br.done || br.active) continue;
+      if (P.x >= br.tx * TS && P.x < (br.tx + 12) * TS){ br.active = true; br.t = 0; br.wave = -1; br.gap = 20; G.brawl = br; G.camLockX = Math.round(camX); G.bigText = { text: 'BRAWL!', t: 0 }; G.brawls = (G.brawls || 0) + 1; A.sfx('bell9'); break; }
+    }
+  }
+  const br = G.brawl;
+  if (br){
+    br.t++;
+    const alive = enemies.some(e => e.brawlRef === br && !e.dead && !e.remove);
+    if (!alive){
+      if (br.gap > 0) br.gap--;
+      else if (br.wave + 1 < br.waves.length){ br.wave++; br.gap = 30; biteSpawnWave(br); }
+      else biteClear(br);
+    } else if (br.t > BRAWL_MAX) biteClear(br);
+  }
+  if (lv.grills) for (const gr of lv.grills){ const st = grillState(gr); if (st.ph === 'warn' && st.left === 1 && Math.abs(((gr.a + gr.b) / 2) * TS - camX - 128) < 200) sfxOnce('grill9'); }
+  if (lv.strikes) for (const s of lv.strikes){ const st = strikeState(s); if (st.ph === 'strike' && st.left === 14 && Math.abs(s.tx * TS - camX - 128) < 180){ sfxOnce('zap9'); G.flash9 = 6; } }
+  if (G.flash9 > 0) G.flash9--;
+  if (BOSS && BOSS.kind === 'ttruck') ttUpdateHazards(BOSS);
+}
+function biteBotSauce(b, grounded, feet){
+  const p = P, px = p.x + p.w / 2;
+  if (lv.strikes && grounded) for (const s of lv.strikes){
+    const st = strikeState(s), x0 = s.tx * TS, x1 = x0 + 16;
+    const inside = p.x + p.w > x0 + 1 && p.x < x1 - 1;
+    const ahead = x0 >= p.x + p.w - 1 && x0 - (p.x + p.w) < 24;
+    if (inside && (st.ph !== 'off' || st.left < 24)){ b.right = true; b.left = false; b.run = true; b.jump = false; return { want: false }; }
+    if (ahead && (st.ph !== 'off' || st.left < 30)){ b.right = false; b.left = false; b.run = false; b.jump = false; return { want: false }; }
+  }
+  if (lv.grills) for (const gr of lv.grills){
+    const st = grillState(gr), x0 = gr.a * TS, x1 = (gr.b + 1) * TS, y = (gr.ty || 13) * TS;
+    const on = p.x + p.w > x0 + 2 && p.x < x1 - 2 && Math.abs(feet - y) < 14;
+    const ahead = grounded && x0 > px && x0 - (p.x + p.w) < 22 && Math.abs(feet - y) < 4;
+    const span = (x1 - x0) + 24;
+    if (on && grounded && st.ph !== 'off'){ b.right = true; b.left = false; b.run = true; botJump(b, true, 30); return { want: true }; }
+    if (on && st.ph === 'off'){ b.right = true; b.left = false; b.run = true; return null; }
+    if (ahead && (st.ph !== 'off' || st.left < span / 2.2 + 8)){ b.right = false; b.left = false; b.run = false; b.jump = false; return { want: false }; }
+  }
+  return null;
+}
+
+// ---- THE THERAPY TOASTER (9-4 boss): 9 HP, 3 phases. idle -> horn telegraph -> charge -> stalled (open) -> reverse. ----
+function makeTTruck(spec){
+  spec.baseLine1 = spec.baseLine1 || spec.line1; spec.baseLine2 = spec.baseLine2 || spec.line2;
+  const deck = (spec.deckRow || 13) * TS, ax0 = spec.bounds[0] * TS, ax1 = (spec.bounds[1] + 1) * TS;
+  return { kind: 'ttruck', spec, x: ax1 - 68, y: deck - 32, w: 64, h: 32, vx: 0, vy: 0, hp: 9, flash: 0, state: 'idle', t: 0,
+    active: false, dying: false, dead: false, onGround: true, dt: 0, phase: 1, phaseHits: 0, open: 0, drips: [], facing: -1, carded: false,
+    home: ax1 - 68, ax0, ax1, deck, pop: 0, bites: 0, charges: 0, clinkT: 0 };
+}
+function ttLungeX(b){ return b.ax0 + (b.phase >= 3 ? 112 : b.phase === 2 ? 120 : 128); }
+function ttPhase(b, text){
+  b.phase++; b.open = 0; b.state = 'reverse'; b.t = 0; b.phaseHits = 0; b.drips = [];
+  G.bigText = { text, t: 0 }; popup(b.x, b.y - 16, text, B9.NEON); A.sfx('horn9'); A.setTempo(b.phase >= 3 ? 1.25 : 1.12);
+}
+function ttDamage(src){
+  const b = BOSS; if (!b || b.kind !== 'ttruck' || b.dying || b.dead || b.flash > 0) return;
+  if (!(b.open > 0) && src !== 'test'){ ttClink(); return; }
+  b.hp--; b.phaseHits++; b.flash = 24; G.shake = 9; A.sfx('bosshit'); A.sfx('punch9'); G.ttHits = (G.ttHits || 0) + 1;
+  burst(b.x + 50, b.y + 6, 12, [B9.GOLD, B9.TOAST, B9.CHROME, '#ffffff'], 2.2);
+  if (b.hp <= 0){ ttDie(src); return; }
+  popup(b.x + 20, b.y - 10, 'HP ' + b.hp, B9.GOLD);
+  if (b.hp <= 6 && b.phase === 1) ttPhase(b, 'BUTTERED UP!');
+  else if (b.hp <= 3 && b.phase === 2) ttPhase(b, 'TOP SPEED!');
+}
+function ttClink(){ const b = BOSS; if (!b || b.clinkT > 0) return; b.clinkT = 8; A.sfx('clang'); burst(b.x + 6, b.y + 18, 3, [B9.CHROME, '#ffffff'], 0.8); }
+function ttDie(by){
+  const b = BOSS; b.dying = true; b.active = false; b.open = 0; b.state = 'eaten'; b.t = 0; b.dt = 0; b.drips = []; G.ttDown = true;
+  for (const o of bolts) if (o.tt) o.remove = true;
+  G.bigText = { text: 'GRAND PRIZE. EAT IT.', t: 0 }; A.sfx('win9'); A.stopMusic(); G.shake = 14; addScore(5000, b.x + 20, b.y - 18);
+  burst(b.x + b.w / 2, b.y + b.h / 2, 20, [B9.GOLD, B9.TOAST, B9.CHROME, B9.NEON], 3);
+}
+function ttWave(b){
+  bolts.push({ kind: 'gwave', flop: true, tt: true, boss: true, x: b.x - 6, y: -80, w: 10, h: 9, vx: -1.8, vy: 0, t: 0, delay: 12, parked: true });
+  G.ttWaves = (G.ttWaves || 0) + 1;
+}
+function ttUpdateHazards(b){
+  for (const o of bolts) if (o.tt && o.delay > 0){ o.delay--; if (o.delay === 0){ o.y = b.deck - 9; o.parked = false; } }
+  for (const d of b.drips){
+    d.t++;
+    if (d.state === 'warn'){ if (d.t > 30){ d.state = 'fall'; d.t = 0; d.y = 20; d.vy = 0.5; } }
+    else if (d.state === 'fall'){ d.vy = Math.min(d.vy + 0.3, 4.5); d.y += d.vy; if (d.y > b.deck - 10){ d.state = 'gone'; burst(d.x + 5, b.deck - 2, 6, [B9.TOAST, B9.CRUST, B9.GOLD], 1.2); } }
+  }
+  b.drips = b.drips.filter(d => d.state !== 'gone');
+  if (b.clinkT > 0) b.clinkT--;
+}
+function ttHurtCheck(b){
+  if (!b || b.dead || b.dying || !b.active || P.ctrl !== 'normal' || P.dead) return;
+  if (P.inv <= 0 && P.star <= 0 && P.dash <= 0 && P.roll <= 0 && overlap(P, { x: b.x + 3, y: b.y + 6, w: b.w - 6, h: b.h - 6 })){ hurt(); G.ttHaz = (G.ttHaz || 0) + 1; }
+  for (const d of b.drips){
+    if (d.state !== 'fall') continue;
+    if (P.inv <= 0 && P.star <= 0 && overlap(P, { x: d.x, y: d.y, w: 10, h: 10 })){ hurt(); G.ttHaz = (G.ttHaz || 0) + 1; d.state = 'gone'; }
+  }
+}
+function updateTTruck(){
+  const b = BOSS; if (!b || b.kind !== 'ttruck') return;
+  if (b.flash > 0) b.flash--;
+  if (!b.carded && (G.dialog || G.dialogDone)){ b.carded = true; G.nameCard = { text: 'THE THERAPY TOASTER', t: 0 }; A.sfx('horn9'); }
+  if (!G.dialogDone){ const fc = P && P.bro === 'fatcoty'; b.spec.line1 = fc ? b.spec.fcLine1 : b.spec.baseLine1; b.spec.line2 = fc ? b.spec.fcLine2 : b.spec.baseLine2; }
+  if (b.dying){
+    b.dt++;
+    if (b.dt % 12 === 0 && b.bites < 7){ b.bites++; A.sfx('chomp9'); burst(b.x + b.w - b.bites * 8, b.y + 10, 6, [B9.TOAST, B9.CRUST, B9.CHROME, B9.GOLD], 1.8); }
+    if (b.dt === 70){ G.bigText = { text: 'HE ATE THE TRUCK.', t: 0 }; popup(b.x, b.y - 16, 'HE ATE THE TRUCK.', B9.GOLD); }
+    if (b.dt === 110){ startEscape(); }
+    if (b.dt > 160){ b.dead = true; b.active = false; }
+    return;
+  }
+  if (!b.active) return;
+  b.t++;
+  const sp = 2.8 + b.phase * 0.45;
+  if (b.state === 'idle'){
+    b.vx = 0; b.x = b.home;
+    if (b.t > Math.max(26, 60 - b.phase * 12)){ b.state = b.phase >= 2 ? 'toss' : 'tele'; b.t = 0; }
+  } else if (b.state === 'toss'){
+    b.pop = Math.min(6, b.pop + 1);
+    if (b.t === 8 || b.t === 22){
+      const lane0 = b.ax0 + 22, laneW = Math.max(24, ttLungeX(b) - 24 - lane0);
+      let x;
+      if (b.t === 8){ x = lane0 + ((b.charges * 37 + b.hp * 23 + (G.lf % 7) * 5) % laneW); b.lastToss = x; }
+      else x = lane0 + (((b.lastToss || lane0) - lane0 + laneW / 2) % laneW);
+      b.drips.push({ kind: 'toast', state: 'warn', t: 0, x: Math.round(x - 5), y: 20, vy: 0 });
+      A.sfx('pop9'); G.ttToasts = (G.ttToasts || 0) + 1;
+    }
+    if (b.t > 40){ b.state = 'tele'; b.t = 0; }
+  } else if (b.state === 'tele'){
+    if (b.t === 1){ A.sfx('horn9'); G.ttHorns = (G.ttHorns || 0) + 1; }
+    b.pop = Math.max(0, b.pop - 1);
+    b.x = b.home + ((b.t >> 1) % 2);
+    if (b.t > 46){ b.state = 'charge'; b.t = 0; b.x = b.home; }
+  } else if (b.state === 'charge'){
+    b.vx = -sp; b.x += b.vx;
+    if (b.x <= ttLungeX(b)){ b.x = ttLungeX(b); b.vx = 0; b.state = 'recover'; b.t = 0; G.shake = 10; A.sfx('crash9'); b.charges++; G.ttCharges = (G.ttCharges || 0) + 1; if (b.phase >= 3) ttWave(b);
+      burst(b.x + 2, b.y + 22, 10, [B9.CHROME, '#ffffff', B9.GOLD], 1.8); }
+  } else if (b.state === 'recover'){
+    if (b.t === 1){ b.open = 110 - b.phase * 10; popup(b.x + 6, b.y - 14, 'STALLED! HIT IT!', B9.GOLD); A.sfx('crave8'); }
+    if (b.open > 0) b.open--;
+    if (b.open <= 0){ b.state = 'reverse'; b.t = 0; }
+  } else if (b.state === 'reverse'){
+    b.open = 0; b.vx = 1.4; b.x += b.vx;
+    if (b.x >= b.home){ b.x = b.home; b.vx = 0; b.state = 'idle'; b.t = 0; }
+  }
+  b.y = b.deck - b.h;
+}
+function drawTTruck(){
+  const b = BOSS; if (!b || b.kind !== 'ttruck') return;
+  const X = Math.round(b.x - camX), Y = Math.round(b.y);
+  if (!b.dead && !(b.flash > 0 && (G.frame >> 1) % 2)){
+    if (b.dying && b.bites >= 7){ /* all eaten: crumbs only */ }
+    else drawTherapyTruck(g, X, Y, G.frame, { lights: b.state === 'tele' || b.state === 'charge', moving: b.state === 'charge' || b.state === 'reverse', pop: b.pop, bites: b.bites });
+    if (b.state === 'recover' && b.t % 6 === 0) burst(b.x + 4, b.y + 10, 2, ['#8a8090', '#d7c3c8'], 0.6);
+  }
+  if (b.open > 0){
+    g.fillStyle = B9.GOLD; g.globalAlpha = 0.35 + Math.sin(G.frame * 0.25) * 0.15; g.fillRect(X + 40, Y - 10, 22, 14); g.globalAlpha = 1;
+    drawTextC(g, 'OPEN', X + 51, Y - 20, B9.GOLD);
+  }
+  for (const d of b.drips){
+    const dx = Math.round(d.x - camX);
+    if (d.state === 'warn'){ g.fillStyle = (G.frame >> 2) % 2 ? B9.GOLD : B9.NEON; g.fillRect(dx + 3, 20, 4, 8); g.fillStyle = 'rgba(245,193,74,0.35)'; g.fillRect(dx, b.deck - 2, 10, 2); }
+    else { const sp = biteSpr(); if (sp && sp.slice) g.drawImage(sp.slice, dx, Math.round(d.y)); else { g.fillStyle = B9.TOAST; g.fillRect(dx, Math.round(d.y), 10, 10); } }
+  }
+  for (const o of bolts) if (o.tt && !o.remove && !(o.delay > 0)){ const OX = Math.round(o.x - camX), OY = Math.round(o.y); g.fillStyle = B9.BUTTER; g.fillRect(OX, OY + 5, 10, 4); g.fillStyle = B9.BUTTER2; g.fillRect(OX + 2, OY + 3, 6, 2); }
+  if (G.nameCard && G.nameCard.text === 'THE THERAPY TOASTER'){ const n = G.nameCard, t = n.t, drop = t < 10 ? -60 + t * 7 : t < 14 ? 10 - (t - 10) * 2 : t > 110 ? (t - 110) * -16 : 0, y = 44 + drop;
+    g.fillStyle = B9.DARK; g.fillRect(38, y, 180, 18); g.fillStyle = B9.CHROME3; g.fillRect(40, y + 2, 176, 14); g.fillStyle = B9.NEON; g.fillRect(40, y + 2, 176, 1); drawTextC(g, 'THE THERAPY TOASTER', 128, y + 5, B9.GOLD); }
+}
+function botTT(b, grounded, feet){
+  const p = P, B = BOSS, px = p.x + p.w / 2, ax0 = B.ax0;
+  b.right = false; b.left = false; b.run = false;
+  if (B.dead || B.dying){ botJump(b, false); return; }
+  const lx = ttLungeX(B);
+  let goal = Math.max(ax0 + 22, lx - 26);
+  const liveDrip = d => d.state === 'fall' || d.state === 'warn';
+  const dripHit = d => Math.abs(d.x + 5 - px) < 15;
+  const dripNear = d => liveDrip(d) && dripHit(d);
+  const okX = x => x > ax0 + 16 && x < lx - 20 && !B.drips.some(d => liveDrip(d) && Math.abs(d.x + 5 - x) < 16);
+  if (B.drips.some(liveDrip)){
+    if (bot.dripEsc == null || !okX(bot.dripEsc)){
+      bot.dripEsc = null; let best = null, bestD = 1e9;
+      for (let x = ax0 + 18; x < lx - 20; x += 2){ if (!okX(x)) continue; const d = Math.abs(x - px); if (d < bestD){ bestD = d; best = x; } }
+      bot.dripEsc = best;
+    }
+    if (bot.dripEsc != null) goal = bot.dripEsc;
+  } else bot.dripEsc = null;
+  if (px < goal - 3) b.right = true; else if (px > goal + 3) b.left = true;
+  if (Math.abs(px - goal) > 16) b.run = true;
+  if (p.x + p.w > Math.min(B.x, lx) - 8){ b.left = true; b.right = false; b.run = Math.abs(px - goal) > 10; }
+  const incoming = bolts.filter(o => !o.mine && o.kind === 'gwave' && !(o.delay > 0) && (o.x + 5) - px < 96 && (o.x + 5) - px > -24);
+  const nearest = incoming.slice().sort((a, b2) => a.x - b2.x).filter(o => (o.x + 5) >= px - 12)[0] || incoming[0];
+  let want = false;
+  if (nearest){ const d = (nearest.x + 5) - px; want = d < 40 + Math.abs(nearest.vx) * 4; }
+  if (want || (!grounded && incoming.length)){ b.left = false; b.right = false; b.run = false; }
+  if (B.open > 0 && !B.drips.some(dripNear) && !incoming.length && !b.left && !b.right && p.facing < 0 && G.frame % 5 === 0) b.right = true;
+  bot.hiveLock = B.drips.some(dripNear) || incoming.length ? { l: b.left, r: b.right } : null;
+  botJump(b, want, 24);
+  if (want && grounded && nearest && Math.abs(nearest.x + 5 - px) < 22) b.jump = !bot.lastJump;
+  bot.vaultOpen = B.open > 0;
+}
+function drawBiteHazards(){
+  if (!lv) return;
+  if (lv.grills) for (const gr of lv.grills){
+    const st = grillState(gr), X = Math.round(gr.a * TS - camX), w = (gr.b - gr.a + 1) * TS, Y = (gr.ty || 13) * TS;
+    if (X > W || X + w < 0) continue;
+    g.fillStyle = B9.CHROME3; g.fillRect(X, Y - 3, w, 5); g.fillStyle = st.ph === 'off' ? '#3a2a30' : (st.ph === 'warn' ? (((G.frame >> 2) % 2) ? B9.GLOW : '#5a2a20') : B9.GLOW); g.fillRect(X + 1, Y - 2, w - 2, 2);
+    for (let i = 2; i < w; i += 6){ g.fillStyle = B9.DARK; g.fillRect(X + i, Y - 3, 1, 4); }
+    if (st.ph === 'on') for (let i = 2; i < w - 2; i += 5){ const h = 6 + ((G.frame + i * 3) % 6); g.fillStyle = (i + G.frame) % 4 < 2 ? B9.GLOW : B9.GOLD; g.fillRect(X + i, Y - 3 - h, 3, h); g.fillStyle = '#ffffff'; g.fillRect(X + i + 1, Y - 4, 1, 2); }
+  }
+  if (lv.strikes) for (const s of lv.strikes){
+    const st = strikeState(s), X = Math.round(s.tx * TS - camX); if (X < -24 || X > W + 8) continue;
+    g.fillStyle = 'rgba(244,232,255,0.12)'; g.fillRect(X + 2, 205, 12, 3); // scorch mark
+    if (st.ph === 'warn'){ if ((G.frame >> 2) % 2){ g.fillStyle = B9.STORM2; g.fillRect(X - 4, 14, 24, 6); g.fillStyle = B9.BOLT; g.fillRect(X + 6, 20, 4, 4); g.fillStyle = 'rgba(244,232,255,0.4)'; g.fillRect(X + 2, 204, 12, 4); } }
+    else if (st.ph === 'strike'){
+      g.globalAlpha = 0.25; g.fillStyle = B9.BOLT; g.fillRect(X - 2, 16, 20, 192); g.globalAlpha = 1;
+      let x = X + 8; g.fillStyle = B9.BOLT;
+      for (let y = 16; y < 208; y += 12){ const nx = X + 8 + (((y * 7 + G.frame * 3) % 9) - 4); g.fillRect(Math.min(x, nx) - 1, y, Math.abs(nx - x) + 3, 12); x = nx; }
+      g.fillStyle = '#ffffff'; g.fillRect(X + 7, 200, 2, 8);
+    }
+  }
+  if (G.flash9 > 0){ g.globalAlpha = 0.08; g.fillStyle = B9.BOLT; g.fillRect(0, 0, W, H); g.globalAlpha = 1; }
+  const br = G.brawl;
+  if (br && inBite()){
+    g.fillStyle = B9.DARK; g.fillRect(6, 226, 92, 9); g.fillStyle = B9.BG3; g.fillRect(7, 227, 90, 7);
+    const left = enemies.filter(e => e.brawlRef === br && !e.dead && !e.remove).length;
+    drawTiny(g, 'BRAWL ' + Math.max(1, br.wave + 1) + '/' + br.waves.length + '  LEFT ' + left, 9, 228, B9.GOLD);
+    if ((G.frame >> 4) % 2){ drawTextC(g, 'GO!', W - 20, 110, B9.NEON); }
+  }
+}
+function drawBiteEnemy(e, X){
+  if (!BITE_TYPES.has(e.type)) return false;
+  const sp = biteSpr(), fr = (e.anim >> 3) & 1;
+  let img = null;
+  if (e.dead === 'squash') img = sp && sp.punkSq;
+  else if (sp) img = (sp[e.type] || sp.punk)[fr];
+  const Y = Math.round(e.y + e.h - (img ? img.height : e.h));
+  const flip = e.facing > 0;
+  if (e.dead === 'flip' && img){ g.save(); g.translate(X + e.w / 2, Math.round(e.y + e.h / 2)); g.scale(1, -1); g.drawImage(img, -img.width / 2, -img.height / 2); g.restore(); }
+  else if (img){ if (flip){ g.save(); g.translate(X + img.width, Y); g.scale(-1, 1); g.drawImage(img, 0, 0); g.restore(); } else g.drawImage(img, X, Y); }
+  else { g.fillStyle = B9.TOAST; g.fillRect(X, Y, e.w, e.h); }
+  if (e.hitT > 0 && !e.dead){ g.globalAlpha = 0.5; g.fillStyle = '#ffffff'; g.fillRect(X, Y, e.w, e.h); g.globalAlpha = 1; }
+  return true;
+}
+
 // ---------------- THE GLITCH (World 1 boss) ----------------
 function makeBoss(spec){
   if (spec.kind === 'toaster') return makeToaster(spec);
@@ -3834,6 +4200,7 @@ function makeBoss(spec){
   if (spec.kind === 'quartz') return makeQuartz(spec);
   if (spec.kind === 'vault') return makeVault(spec);
   if (spec.kind === 'fatcoty') return makeFatCoty(spec);
+  if (spec.kind === 'ttruck') return makeTTruck(spec);
   return { kind: 'glitch', spec, x: spec.tx * TS, y: spec.bridgeRow * TS - 28, w: 28, h: 28, vx: 0, vy: 0, hp: 5, flash: 0, state: 'dormant', t: 0, dir: -1, shots: 0,
     active: false, dying: false, dead: false, by: null, onGround: true, dt: 0 };
 }
@@ -3845,6 +4212,7 @@ function hitBoss(){
   if (b.kind === 'quartz') return quartzDamage('chip');
   if (b.kind === 'vault') return vaultDamage('chip');
   if (b.kind === 'fatcoty') return fatCotyDamage('chip');
+  if (b.kind === 'ttruck') return ttDamage('chip');
   if (b.flash > 0 || b.dying) return;
   b.hp--; b.flash = 36; A.sfx('bosshit'); G.shake = 8;
   burst(b.x + 14, b.y + 14, 14, ['#ffffff', '#00e5ff', '#ff0040', '#8a8a8a'], 2.2);
@@ -3865,6 +4233,7 @@ function updateBoss(){
   if (b.kind === 'quartz') return updateQuartz();
   if (b.kind === 'vault') return updateVault();
   if (b.kind === 'fatcoty') return updateFatCoty();
+  if (b.kind === 'ttruck') return updateTTruck();
   if (b.flash > 0) b.flash--;
   const [bx0, bx1] = b.spec.bounds;
   if (b.dying){
@@ -4181,7 +4550,7 @@ function updatePlay(){
   for (const e of enemies){ if (G.freezeT > 0 && !e.dead){ if (e.hitT > 0) e.hitT--; continue; } updateEnemy(e); } // Diner Bell: enemies freeze
   enemyPairs();
   for (const it of items) updateItem(it);
-  pitUpdate(); if (inDiner()) dinerUpdate(); if (inBumbo()) bumboUpdate(); if (inCrypt()) cryptUpdate(); if (inArcade()) arcadeUpdate(); if (inFeed()) feedUpdate();
+  pitUpdate(); if (inDiner()) dinerUpdate(); if (inBumbo()) bumboUpdate(); if (inCrypt()) cryptUpdate(); if (inArcade()) arcadeUpdate(); if (inFeed()) feedUpdate(); if (inBite() || (BOSS && BOSS.kind === 'ttruck')) biteUpdate();
   for (const r of rockets) updateRocket(r);
   updateShots(); updateTurrets();
   updateBolts(); updateBoss(); updatePatches(); updateCrumbles();
@@ -4308,6 +4677,7 @@ function bgLayers(kind){
   else if (typeof cryptLayers === 'function' && ['cryhall', 'cryjam', 'cryframe', 'crycore'].includes(kind)) cryptLayers(kind, L, tileableLayer);
   else if (typeof arcadeLayers === 'function' && ['arclobby', 'arcprize', 'arcstatic', 'arcvault'].includes(kind)) arcadeLayers(kind, L, tileableLayer);
   else if (typeof feedLayers === 'function' && ['feedfront', 'feedkitchen', 'feedline', 'feedbooth'].includes(kind)) feedLayers(kind, L, tileableLayer);
+  else if (typeof biteLayers === 'function' && ['bitestreet', 'bitediner', 'biteave', 'bitelot'].includes(kind)) biteLayers(kind, L, tileableLayer);
   else toonLayers(kind, L);
   return (BGL[kind] = L);
 }
@@ -4634,6 +5004,7 @@ function drawBoss(){
   if (BOSS && BOSS.kind === 'quartz') return drawQuartz();
   if (BOSS && BOSS.kind === 'vault') return drawVault();
   if (BOSS && BOSS.kind === 'fatcoty') return drawFatCoty();
+  if (BOSS && BOSS.kind === 'ttruck') return drawTTruck();
   if (!BOSS || BOSS.dead) { if (BOSS) drawSwitch(); return; }
   drawSwitch();
   const b = BOSS, X = Math.round(b.x - camX), Y = Math.round(b.y);
@@ -4772,6 +5143,7 @@ function drawDecor(){
     const X = Math.round(d.tx * TS - camX), Y = d.row * TS;
     if (X < -140 || X > W + 8) continue;
     if (typeof FEED_DECOR !== 'undefined' && FEED_DECOR.has(d.kind)){ drawFeedDecor(g, d, X, Y, G.frame); continue; }
+    if (typeof BITE_DECOR !== 'undefined' && BITE_DECOR.has(d.kind)){ drawBiteDecor(g, d, X, Y, G.frame); continue; }
     if (typeof ARCADE_DECOR !== 'undefined' && ARCADE_DECOR.has(d.kind)){ drawArcadeDecor(g, d, X, Y, G.frame); continue; }
     if (typeof CRYPT_DECOR !== 'undefined' && CRYPT_DECOR.has(d.kind)){ drawCryptDecor(g, d, X, Y, G.frame); continue; }
     if (typeof BUMBO_DECOR !== 'undefined' && BUMBO_DECOR.has(d.kind)){ drawBumboDecor(g, d, X, Y, G.frame); continue; }
@@ -4809,6 +5181,7 @@ function drawEnemy(e, X){
   if (CRYPT_TYPES.has(e.type) && drawCryptEnemy(e, X)) return;
   if (ARCADE_TYPES.has(e.type) && drawArcadeEnemy(e, X)) return;
   if (FEED_TYPES.has(e.type) && drawFeedEnemy(e, X)) return;
+  if (BITE_TYPES.has(e.type) && drawBiteEnemy(e, X)) return;
   {
     const L = e.facing < 0 ? '_L' : '', Yb = Math.round(e.y + e.h - 16);
     let img;
@@ -4900,6 +5273,7 @@ function drawItems(emerging){
     if (!!it.emerge !== emerging) continue;
     const X = Math.round(it.x - 1 - camX), Y = Math.round(it.y);
     if (it.type === 'crave' && typeof drawFeedSnack === 'function'){ drawFeedSnack(g, it.kind, X, Y, G.frame, true); continue; }
+    if (it.type === 'gold' && typeof drawBiteGold === 'function'){ drawBiteGold(g, it.kind, X, Y, G.frame); continue; }
     let img = S.armor;
     if (it.type === 'launcher') img = S.launcher[(G.frame >> 3) & 1];
     else if (it.type === 'glitch') img = S.glitch[(G.frame >> 2) % 4];
@@ -5154,7 +5528,7 @@ function drawWorld(){
   drawTiles();
   drawPlats();
   drawPoleAndBooth();
-  drawHazards(); drawPitHazards(); drawDinerHazards(); drawBumboHazards(); drawCryptHazards(); drawArcadeHazards(); drawFeedHazards();
+  drawHazards(); drawPitHazards(); drawDinerHazards(); drawBumboHazards(); drawCryptHazards(); drawArcadeHazards(); drawFeedHazards(); drawBiteHazards();
   drawItems(false);
   drawEnemies();
   drawBoss();
@@ -5454,14 +5828,14 @@ function botJump(b, want, holdMax){
 function botInput(){
   const b = botNav();
   if (G.state === 'play' && P && P.ctrl === 'normal' && !G.dialog && !P.dead) botCombat(b);
-  if (bot.hiveLock && BOSS && (BOSS.kind === 'hive' || BOSS.kind === 'quartz' || BOSS.kind === 'vault' || BOSS.kind === 'fatcoty') && BOSS.active){ b.left = bot.hiveLock.l; b.right = bot.hiveLock.r; }
+  if (bot.hiveLock && BOSS && (BOSS.kind === 'hive' || BOSS.kind === 'quartz' || BOSS.kind === 'vault' || BOSS.kind === 'fatcoty' || BOSS.kind === 'ttruck') && BOSS.active){ b.left = bot.hiveLock.l; b.right = bot.hiveLock.r; }
   // v0.7: a rolling skull only rolls at the Hive while it's sitting on the boards (rolling under a hop means it lands on you)
   if (b.fire && BOSS && BOSS.kind === 'vault' && BOSS.active && P.bro === 'skulrz'){
     if (!(BOSS.open > 0)) b.fire = false; // only roll at the Vault while the payout button glows
     if (bolts.some(o => !o.mine && o.kind === 'gwave' && !(o.delay > 0) && Math.abs(o.x - P.x) < 90)) b.fire = false;
     if (BOSS.drips.some(d => Math.abs(d.x - (P.x + P.w / 2)) < 30)) b.fire = false;
   }
-  if (b.fire && BOSS && BOSS.kind === 'fatcoty' && BOSS.active && P.bro === 'skulrz'){
+  if (b.fire && BOSS && (BOSS.kind === 'fatcoty' || BOSS.kind === 'ttruck') && BOSS.active && P.bro === 'skulrz'){
     if (!(BOSS.open > 0)) b.fire = false;
     if (bolts.some(o => !o.mine && o.kind === 'gwave' && !(o.delay > 0) && Math.abs(o.x - P.x) < 90)) b.fire = false;
     if (BOSS.drips.some(d => Math.abs(d.x - (P.x + P.w / 2)) < 30)) b.fire = false;
@@ -5519,7 +5893,7 @@ function botCombat(b){
       if (BOSS.open > 0 && gap > -4 && gap < Math.max(range, 28) + 24) target = true;
       if (BOSS.open > 0 && kind === 'roll' && gap < 26 && gap > -2 && !bot.mel) b.melee = true;
     }
-    if (BOSS.kind === 'fatcoty' && dir > 0){
+    if ((BOSS.kind === 'fatcoty' || BOSS.kind === 'ttruck') && dir > 0){
       const gap = BOSS.x - (p.x + p.w);
       if (BOSS.open > 0 && gap > -4 && gap < Math.max(range, 28) + 24) target = true;
       if (BOSS.open > 0 && kind === 'roll' && gap < 26 && gap > -2 && !bot.mel) b.melee = true;
@@ -5571,9 +5945,13 @@ function botNav(){
   if (BOSS && BOSS.kind === 'repairman' && G.dialogDone && !(BOSS.dead && G.escape)){ botCal(b, grounded, feet); bot.lastJump = b.jump; return b; }
   if (BOSS && BOSS.kind === 'vault' && G.dialogDone && !(BOSS.dead && G.escape)){ botVault(b, grounded, feet); bot.lastJump = b.jump; return b; }
   if (BOSS && BOSS.kind === 'fatcoty' && G.dialogDone && !(BOSS.dead && G.escape)){ botFeed(b, grounded, feet); bot.lastJump = b.jump; return b; }
+  if (BOSS && BOSS.kind === 'ttruck' && G.dialogDone && !(BOSS.dead && G.escape)){ botTT(b, grounded, feet); bot.lastJump = b.jump; return b; }
   if (BOSS && (BOSS.kind === 'hive' || BOSS.kind === 'quartz') && G.dialogDone && !(BOSS.dead && G.escape)){ botHive(b, grounded, feet); bot.lastJump = b.jump; return b; }
   if (inFeed() && !(BOSS && BOSS.kind === 'fatcoty' && G.dialogDone && !(BOSS.dead && G.escape))){
     const r = feedBotSauce(b, grounded, feet); if (r){ bot.lastJump = b.jump; return b; }
+  }
+  if (inBite() && !(BOSS && BOSS.kind === 'ttruck' && G.dialogDone && !(BOSS.dead && G.escape))){
+    const r = biteBotSauce(b, grounded, feet); if (r){ bot.lastJump = b.jump; return b; }
   }
   // pipes the route needs (marked botDown in the level data)
   if (grounded){ for (const pp of lv.pipes){ if (pp.botDown && pp.dir === 'up' && Math.abs(feet - pp.y * TS) < 0.5 && p.x >= pp.x * TS + 1 && p.x + p.w <= pp.x * TS + 31){ b.down = true; b.right = false; b.run = false; bot.lastJump = false; return b; } } }
@@ -6026,6 +6404,12 @@ window.TT = {
   dinerState(){ return { flipped: !!G.flipped, flipWarn: !!G.flipWarn, flips: G.flips || 0, freezeT: G.freezeT || 0, itsYou: !!G.itsYou, fuseBlown: !!G.fuseBlown, cancelled: !!G.rerunCancelled, hudNameMode: G.hudNameMode }; },
   bros(){ return { cur: P ? P.bro : G.curBro, reserve: G.reserve.slice(), rescued: G.rescued, unlocked: save.unlocked.slice(), spec: P ? P.spec : 0 }; },
   // v1.0 World 8
+  // v1.1 World 9
+  biteHit(){ const b = BOSS; if (b && b.kind === 'ttruck'){ b.flash = 0; ttDamage('test'); } },
+  biteChip(){ const b = BOSS; if (b && b.kind === 'ttruck'){ b.flash = 0; ttDamage('chip'); } }, // a normal hit: only counts while the truck is stalled
+  biteState(){ const b = BOSS && BOSS.kind === 'ttruck' ? BOSS : null; return { brawl: G.brawl ? { tx: G.brawl.tx, wave: G.brawl.wave, waves: G.brawl.waves.length } : null, brawls: G.brawls || 0, clears: G.clears || 0, kos: G.kos || 0, punkStomps: G.punkStomps || 0, butterStomps: G.butterStomps || 0, golds: G.golds || 0, goldHeals: G.goldHeals || 0, grillHits: G.grillHits || 0, strikeHits: G.strikeHits || 0, camLockX: G.camLockX, ttDown: !!G.ttDown, ttHits: G.ttHits || 0, ttHaz: G.ttHaz || 0, ttCharges: G.ttCharges || 0, ttHorns: G.ttHorns || 0, ttToasts: G.ttToasts || 0, ttWaves: G.ttWaves || 0, open: b ? b.open : 0, phase: b ? b.phase : 0, hp: b ? b.hp : null, x: b ? b.x : null, lungeX: b ? ttLungeX(b) : null, nameCard: G.nameCard ? G.nameCard.text : null, bigText: G.bigText ? G.bigText.text : null, ctrl: P ? P.ctrl : null, dying: !!(b && b.dying), dead: !!(b && b.dead), active: !!(b && b.active), state: b ? b.state : null, drips: b ? b.drips.length : 0, bites: b ? b.bites : 0, escape: !!G.escape }; },
+  grillState(i, f){ return lv && lv.grills && lv.grills[i] ? grillState(lv.grills[i], f) : null; },
+  strikeState(i, f){ return lv && lv.strikes && lv.strikes[i] ? strikeState(lv.strikes[i], f) : null; },
   feedHit(){ const b = BOSS; if (b && b.kind === 'fatcoty'){ b.flash = 0; fatCotyDamage('test'); } },
   coolState: (i, f) => { const q = lv && lv.coolPlates ? lv.coolPlates[i || 0] : null; return q ? Object.assign(coolState(q, f), { a: q.a, b: q.b, ty: q.ty }) : null; },
   feedState(){ const b = BOSS && BOSS.kind === 'fatcoty' ? BOSS : null; return { snacks: G.snacks || 0, combo: G.combo || 0, comboT: G.comboT || 0, comboMax: G.comboMax || 0, craveHits: G.craveHits || 0, craveId: G.craveId || null, pestStomps: G.pestStomps || 0, coolHits: G.coolHits || 0, gooHits: G.gooHits || 0, beltRides: G.beltRides || 0, feedHits: G.feedHits || 0, fatDown: !!G.fatDown, fatSlams: G.fatSlams || 0, fatWaves: G.fatWaves || 0, fatHaz: G.fatHaz || 0, open: b ? b.open : 0, phase: b ? b.phase : 0, hp: b ? b.hp : null, fill: b ? b.fill : 0, crave: b ? b.crave : null, nameCard: G.nameCard ? G.nameCard.text : null, bigText: G.bigText ? G.bigText.text : null, ctrl: P ? P.ctrl : null, dying: !!(b && b.dying), active: !!(b && b.active), state: b ? b.state : null, face: b ? b.face : null, drips: b ? b.drips.length : 0 }; },

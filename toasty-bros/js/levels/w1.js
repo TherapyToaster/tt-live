@@ -87,13 +87,14 @@ LEVELS['1-2'] = { id: '1-2', world: 1, num: 2, name: 'TOAST FACTORY', time: 300,
     main.pipes.push({ x: 186, y: 11, dir: 'left', to: { area: 'exit', mode: 'up', tx: 2, ty: 11 } });
     T.fill(190, W - 1, 2, 12, 'G');
     // warp zone
-    const warp = newArea('warp', 20, 'factory', { camLock: true, music: 'w1_under' }), Wp = areaTools(warp);
-    Wp.ground(0, 19); Wp.fill(0, 0, 2, 12, 'B'); Wp.fill(19, 19, 2, 12, 'B'); Wp.row(0, 19, 2);
+    const warp = newArea('warp', 22, 'factory', { music: 'w1_under' }) /* v1.1: scrolls now, so channels 8 and 9 past the first screen stay reachable and visible */, Wp = areaTools(warp);
+    Wp.ground(0, 21); Wp.fill(0, 0, 2, 12, 'B'); Wp.fill(21, 21, 2, 12, 'B'); Wp.row(0, 21, 2);
     [[4, 2], [8, 3], [12, 4]].forEach(([x, w]) => Wp.pipe(x - 1, 3, { enter: true, warp: w }));
     Wp.pipe(13, 2, { enter: true, warp: 5 }); // v0.7: channel 5 (SKULLZ BUMBO), a short pipe tucked against the right wall
     Wp.pipe(5, 2, { enter: true, warp: 6 }); // v0.8: channel 6 (MR. TOASTY'S CRYPT), a short pipe between channels 2 and 3 (the drop-in spot at tx 2 stays clear)
     Wp.pipe(9, 2, { enter: true, warp: 7 }); // v0.9: channel 7 (TOASTY ARCADE), a short pipe between channels 3 and 4
     Wp.pipe(16, 2, { enter: true, warp: 8 }); // v1.0: channel 8 (FEED FAT COTY), past the old right wall after the zone was widened
+    Wp.pipe(18, 2, { enter: true, warp: 9 }); // v1.1: channel 9 (FINAL BITE), the zone widened again to fit it
     Wp.sign(7.5, 4, 'WARP ZONE: PICK A CHANNEL', '#00e5ff');
     // exit street with the Channel Pole
     const exit = newArea('exit', 30, 'overworld', { music: 'w1_over' }), E = areaTools(exit);

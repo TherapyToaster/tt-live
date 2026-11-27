@@ -126,6 +126,11 @@ function areaTools(A){
     belt: (tx, w, ty, dir, speed) => A.plats.push({ kind: 'move', tx, ty, w: w || 3, axis: 'belt', dir: dir || 1, bsp: speed || 0.85, range: 0, speed: 0, phase: 0, look: 'belt' }),
     beltZone: (a, b) => (A.beltZones = A.beltZones || []).push({ a, b }),
     crave: (x, y, kind) => (A.craves = A.craves || []).push({ x, y, kind, spawned: false }),
+    // v1.1 World 9: Final Bite
+    gold: (x, y, kind) => (A.golds = A.golds || []).push({ x, y, kind: kind || 'pat', spawned: false }),
+    grill: (a, b, ty, phase) => (A.grills = A.grills || []).push({ a, b, ty: ty === undefined ? 13 : ty, phase: phase || 0 }),
+    strike: (tx, period, phase) => (A.strikes = A.strikes || []).push({ tx, period: period || 150, phase: phase || 0 }),
+    brawl: (tx, waves) => (A.brawls = A.brawls || []).push({ tx, waves, wave: -1, active: false, done: false, t: 0, ids: [] }),
   };
   return T;
 }

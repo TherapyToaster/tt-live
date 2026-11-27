@@ -6,7 +6,7 @@ const PAL = {
   's':'#b9b9c2','P':'#8a3fd1','p':'#5a2390','N':'#2a1a10','n':'#4a2c18','E':'#ff6a00'
 };
 function hexRGB(h){ h = h.replace('#',''); return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)]; }
-function mkCanvas(w, h){ const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+function mkCanvas(w, h, fn){ const c = document.createElement('canvas'); c.width = w; c.height = h; if (typeof fn === 'function') fn(c.getContext('2d')); return c; } // v1.1: optional draw callback (World 8/9 art modules pass one)
 // v0.6: read pixels through a throwaway willReadFrequently canvas (no repeated GPU readbacks / console warnings)
 function readPixels(src){ const c = mkCanvas(src.width, src.height), x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(src, 0, 0); return x.getImageData(0, 0, src.width, src.height); }
 function makeSprite(rows, over){
@@ -248,6 +248,7 @@ function buildTileset(name){
   if (th.arcade && typeof arcadeTiles === 'function') arcadeTiles(ts, th); // v0.9 World 7: confetti carpet, chrome rails, prize crates, capsule stacks, CRT platforms
   // World 8 uses theme tile colors (glossy steel / neon speckles); flag the tileset so inFeed() works.
   if (th.feed) ts.feed = true;
+  if (th.bite) ts.bite = true; // v1.1 World 9: Final Bite (bite.js)
   return (_tilesets[name] = ts);
 }
 // ---------- new enemies ----------
@@ -296,6 +297,7 @@ function buildSprites(){
   if (typeof buildCryptSprites === 'function') S.crypt = buildCryptSprites(); // v0.8 World 6
   if (typeof buildArcadeSprites === 'function') S.arcade = buildArcadeSprites(); // v0.9 World 7
   if (typeof buildFeedSprites === 'function') S.feed = buildFeedSprites(); // v1.0 World 8
+  if (typeof buildBiteSprites === 'function') S.bite = buildBiteSprites(); // v1.1 World 9
   if (typeof buildPitSprites === 'function'){ S.pit = buildPitSprites(); S.debtTable = buildDebtTable(false); S.debtTableBurnt = buildDebtTable(true); }
   return S;
 }

@@ -1,4 +1,4 @@
-# Mr. Toasty: Toasty Bros — Worlds 1-8 (v1.0 FEED FAT COTY)
+# Mr. Toasty: Toasty Bros — Worlds 1-9 (v1.1 FINAL BITE)
 Original platformer by Coty Lake. SMB is a mechanics reference only; all art, audio, names and layouts are original and
 procedural (pixel arrays + canvas + WebAudio). No external assets, no CDN, no build step. Jam is grape purple.
 
@@ -12,10 +12,35 @@ Open `index.html` directly (file:// works), or `python3 -m http.server` in this 
 - Title menu: NEW GAME · CONTINUE x-x · BRO ROSTER · LEVEL SELECT (only with `?debug`).
 - Save: `localStorage['toastyBros.save.v1']` = { furthest, hi, worldsCleared, unlocked, startBro } (older saves load fine).
 
+## v1.1 FINAL BITE (World 9)
+- **World 9 "Final Bite" is open** (9-1 CRUMB STREET → 9-2 THE DINER → 9-3 TOAST AVENUE → 9-4 TOASTER LOT), from the
+  lore's 16-bit street brawl "Bake & Rise": night brick shops with neon toast and toasters in the windows, a pink-neon diner
+  kitchen with grills and gold bars, a cracked toaster lot behind chain-link under a purple storm sky. Lore palette.
+  Warp pipe 9 (the 1-2 warp zone is wider and now scrolls, so channels 8 and 9 are on screen), level select, and a World 8
+  clear all lead here. The 8-4 end card teases "FINAL BITE: NEXT CHANNEL..."; the 9-4 card teases
+  "THERAPYTOASTER TO MARS: NEXT CHANNEL..." (World 10 stays a stub).
+- **BRAWL zones:** the screen locks ("BRAWL!"), waves of thugs walk in from the right, and "CLEAR!" unlocks it.
+- **Enemies (1 heart on contact):** PUNK (fast toast-head thug with cheese drips; one stomp = "TOASTED"; a BURNT PUNK variant is
+  faster), BUTTER BRUISER (slow, 4 HP, two stomps; FROZEN BUTTER is colder and tougher). Bruisers drop gold pats.
+- **Hazards cost 1 heart:** grill plates that flare on a telegraphed cycle (9-2), storm strikes with a flash warning (9-3/9-4),
+  the truck's body and its toast slices. Pits, the TOASTED! front and the timer stay instant.
+- **Pickups:** gold pats (score) and gold bars (+1 heart, or score at full health).
+- **THE THERAPY TOASTER** (9 HP, 3 phases) is the 9-4 boss: a silver angular pickup with a cap on the cab and a toaster in the
+  bed (two glowing slices, butter dripping). Original parody art, no marks or logos. Cycle: idle → horn telegraph (headlights)
+  → charge → STALLED (the only window where hits count) → reverse. Phase 2 "BUTTERED UP!" pops toast slices into your lane;
+  phase 3 "TOP SPEED!" also sends a butter wave along the floor. Knockdown: "GRAND PRIZE. EAT IT." → "HE ATE THE TRUCK."
+  → TOASTED! escape. Win jingle C-E-G-C. Autopilot beats it as all 8 bros.
+- Music: square street-brawl bass (55, 55, 82, 55, 49, 73, 55, 65 Hz every .24 s) under five new songs; punch, chomp,
+  horn and bell SFX.
+- A TOAST TRUCK is parked left of the 9-1 start and mid-level in 9-4.
+- Fix: `mkCanvas(w, h, draw)` now runs its draw callback, so World 8's snack pests and craving snacks (and World 9's art) render.
+- Tests: `test_w9.py` (content, autopilot 9-1..9-4, brawls, 1-heart hazards, stomps, gold, the truck boss as 8 bros, warp pipe 9,
+  8-4→9-1, mobile + touch, no console errors). Every earlier suite stays green.
+
 ## v1.0 FEED FAT COTY (World 8)
 - **World 8 "Feed Fat Coty" is open** (8-1 THE FRONT ROOM → 8-2 THE STAINLESS KITCHEN → 8-3 THE CRAVING LINE → 8-4 TOO FULL! BOOTH).
   Warp pipe 8 from the 1-2 warp zone (the zone is widened so the drop-in at tx 2 stays clear), level select, and a World 7
-  clear all lead here. The 7-4 end card teases "FEED FAT COTY: NEXT CHANNEL...". World 9 "Final Bite" stays a stub.
+  clear all lead here. The 7-4 end card teases "FEED FAT COTY: NEXT CHANNEL...". World 9 "Final Bite" is open as of v1.1.
 - A futuristic neon diner: white curved walls, red neon, stainless kitchen, oval windows, glossy floor, round blue LED ceiling.
   Distinct from World 4's classic diner. Tagline: feed the snack Fat Coty is craving, chain combos, don't let him fill up.
 - **Hazards cost 1 heart:** snack pests (stompable), cooled-off plates (hurt only while cold; they telegraph), lime/gold goo
@@ -369,7 +394,7 @@ World 10 is named **THERAPYTOASTER TO MARS** (display "TherapyToaster to Mars"),
 - `js/font.js` pixel font · `js/touch.js` touch controls · `js/audio.js` WebAudio songs (`w1_over`, `w1_under`, `w1_sky`,
   `w1_castle`, `w1_boss`) + SFX; `startMusic(name)` is the per-world music hook.
 - `js/worlds.js` — `WORLDS[1..10]` (name, built flag, level ids, palette, enemy roster, boss, music) and `THEMES`
-  (tileset palettes + background kind). Worlds 7–10 are stubbed with their lore palettes/rosters/bosses.
+  (tileset palettes + background kind). Worlds 1–9 are built; World 10 is stubbed with its lore palette/roster/boss.
 - `js/sprites.js` — sprites + `buildTileset(theme)` (themed ground/brick/CRT/conveyor/barrel/acid/bridge tiles).
 - `js/levels/common.js` — tile legend + `newArea()` / `areaTools()` builders (pipes, stairs, platforms, firebars, beams, signs).
 - `js/toon.js` — World 2 cartoon tiles/sprites (trucks, skeletons, launchers, Toaster Truck + plate font, Grand Toaster).
@@ -449,4 +474,4 @@ World 10 is named **THERAPYTOASTER TO MARS** (display "TherapyToaster to Mars"),
 - `test_w1.py` — 49 checks (incl. ammo crate, Glitch → escape → world clear, combat autopilot): autopilot title → world clear, intro cards, carry-over, save/continue/hi score, debug select,
   Glitch Filter / Spare Play Card / Toast Launcher collected in-game, bonus persistence, conveyors, butter, new enemies,
   warp zone, acid, platforms, mimic, hazards, boss both ways (+ autopilot with rockets), touch on/off, no console errors.
-- `autoplay.py [levels]` per-level bot runs · `boss_clip.py [size] [out] [level] [warpTx]` real-time boss recording (`0 boss.mp4 2-4 136` → shots/w2/boss.mp4, `0 boss.mp4 3-4 140` → shots/w3/boss.mp4, `0 boss.mp4 4-4 152` → shots/w4/boss.mp4, `0 boss.mp4 5-4 150` → shots/w5/boss.mp4, `0 boss.mp4 6-4 150` → shots/w6/boss.mp4) · `realtime_and_clip.py`.
+- `autoplay.py [levels]` per-level bot runs · `boss_clip.py [size] [out] [level] [warpTx]` real-time boss recording (`0 boss.mp4 2-4 136` → shots/w2/boss.mp4, `0 boss.mp4 3-4 140` → shots/w3/boss.mp4, `0 boss.mp4 4-4 152` → shots/w4/boss.mp4, `0 boss.mp4 5-4 150` → shots/w5/boss.mp4, `0 boss.mp4 6-4 150` → shots/w6/boss.mp4, `0 boss.mp4 9-4 150` → shots/w9/boss.mp4) · `realtime_and_clip.py`.

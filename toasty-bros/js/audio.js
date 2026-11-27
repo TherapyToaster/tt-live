@@ -332,6 +332,37 @@ const AudioSys = (function(){
         [32,69,1],[33,72,1],[34,76,1],[35,79,1],[36,76,2],[38,72,1],[39,69,1],[40,67,1],[42,69,2],[44,72,1],[45,76,1],[46,81,2],
         [48,84,1],[49,81,1],[50,79,1],[51,76,1],[52,79,2],[54,76,1],[55,72,1],[56,69,2],[58,67,1],[59,69,1],[60,69,4]],
       roots: [45, 40, 43, 36], minor: [0, 1, 0, 1] },
+    // v1.1 World 9: FINAL BITE (16-bit street-brawl square bass: 55,55,82,55,49,73,55,65 Hz every .24 s)
+    w9_street: { bpm: 125, steps: 64, wave: 'square', vol: 0.065, bass: 'brawl9', arp: 'all', hum: 'street9', kick: [0, 6, 8, 14], snare: [4, 12], hat: 'all',
+      lead: [[0,69,2],[2,72,1],[3,69,1],[4,76,2],[6,74,2],[8,72,1],[9,69,1],[10,67,2],[12,69,4],
+        [16,69,2],[18,72,1],[19,74,1],[20,76,2],[22,79,2],[24,76,1],[25,74,1],[26,72,2],[28,74,4],
+        [32,69,2],[34,72,1],[35,69,1],[36,76,2],[38,74,2],[40,72,1],[41,69,1],[42,67,2],[44,64,4],
+        [48,81,2],[50,79,1],[51,76,1],[52,74,2],[54,72,2],[56,69,1],[57,67,1],[58,69,2],[60,69,4]],
+      roots: [33, 40, 31, 36], minor: [1, 0, 0, 0] },
+    w9_diner: { bpm: 130, steps: 64, wave: 'square', vol: 0.065, bass: 'brawl9', arp: 'all', hum: 'street9', kick: [0, 4, 8, 12], snare: [4, 12], hat: 'all',
+      lead: [[0,76,1],[1,79,1],[2,81,2],[4,79,1],[5,76,1],[6,74,2],[8,76,2],[10,72,2],[12,74,4],
+        [16,76,1],[17,79,1],[18,81,2],[20,84,2],[22,81,2],[24,79,1],[25,76,1],[26,74,2],[28,76,4],
+        [32,76,1],[33,79,1],[34,81,2],[36,79,1],[37,76,1],[38,74,2],[40,72,2],[42,74,2],[44,69,4],
+        [48,81,1],[49,79,1],[50,76,2],[52,74,2],[54,72,2],[56,74,1],[57,76,1],[58,74,2],[60,69,4]],
+      roots: [33, 38, 40, 33], minor: [1, 1, 0, 1] },
+    w9_ave: { bpm: 134, steps: 64, wave: 'sawtooth', vol: 0.06, bass: 'brawl9', arp: 'all', hum: 'street9', kick: [0, 3, 8, 11], snare: [4, 12], hat: 'all',
+      lead: [[0,64,2],[2,67,2],[4,69,2],[6,72,2],[8,71,1],[9,69,1],[10,67,2],[12,64,4],
+        [16,64,2],[18,67,2],[20,69,2],[22,74,2],[24,72,1],[25,71,1],[26,69,2],[28,67,4],
+        [32,64,2],[34,67,2],[36,69,2],[38,72,2],[40,76,1],[41,74,1],[42,72,2],[44,69,4],
+        [48,76,2],[50,74,2],[52,72,2],[54,71,2],[56,69,2],[58,67,2],[60,64,4]],
+      roots: [33, 31, 36, 38], minor: [1, 0, 0, 1] },
+    w9_lot: { bpm: 118, steps: 64, wave: 'sawtooth', vol: 0.065, bass: 'brawl9', arp: 'all', hum: 'street9', kick: [0, 8], snare: [4, 12], hat: 'all',
+      lead: [[0,57,2],[2,60,2],[4,64,2],[6,62,2],[8,60,2],[10,57,2],[12,55,4],
+        [16,57,2],[18,60,2],[20,64,2],[22,67,2],[24,64,2],[26,62,2],[28,60,4],
+        [32,57,2],[34,60,2],[36,64,2],[38,62,2],[40,60,2],[42,62,2],[44,64,4],
+        [48,69,2],[50,67,2],[52,64,2],[54,62,2],[56,60,2],[58,59,2],[60,57,4]],
+      roots: [33, 31, 38, 40], minor: [1, 0, 1, 0] },
+    w9_boss: { bpm: 150, steps: 64, wave: 'sawtooth', vol: 0.075, bass: 'brawl9', arp: 'all', hum: 'street9', kick: [0, 4, 8, 10, 12], snare: [4, 12], hat: 'all', dist: true,
+      lead: [[0,69,1],[1,72,1],[2,76,1],[3,72,1],[4,69,2],[6,67,2],[8,69,1],[9,72,1],[10,76,2],[12,79,4],
+        [16,81,1],[17,79,1],[18,76,1],[19,72,1],[20,74,2],[22,72,2],[24,69,1],[25,67,1],[26,64,2],[28,69,4],
+        [32,69,1],[33,72,1],[34,76,1],[35,72,1],[36,69,2],[38,67,2],[40,69,1],[41,72,1],[42,76,2],[44,81,4],
+        [48,84,1],[49,81,1],[50,79,1],[51,76,1],[52,74,2],[54,72,2],[56,69,2],[58,67,2],[60,69,4]],
+      roots: [33, 40, 31, 36], minor: [1, 0, 0, 1] },
   };
   for (const k in SONGS){ const m = {}; SONGS[k].lead.forEach(([st, n, l]) => m[st] = [n, l]); SONGS[k].leadMap = m; }
   let song = SONGS.w1_over, lastLead = 0, distNode = null, kazooNode = null;
@@ -370,6 +401,7 @@ const AudioSys = (function(){
     else if (S.bass === 'march'){ // oom-pah: low bassoon "oom" on the beat, a higher "pah" between
       if (inBar % 4 === 0){ osc('triangle', mtof(root), null, t, spb * 1.5, 0.42, musicBus, 0.4); osc('sawtooth', mtof(root), null, t, spb * 1.3, 0.045, musicBus, 0.3); }
       else if (inBar % 4 === 2) osc('triangle', mtof(root + (inBar % 8 === 2 ? 7 : 12)), null, t, spb * 0.9, 0.26, musicBus, 0.2); }
+    else if (S.bass === 'brawl9'){ const hz = [55, 55, 82, 55, 49, 73, 55, 65]; if (inBar % 2 === 0) osc('square', hz[(s >> 1) % 8] * Math.pow(2, pt / 12), null, t, spb * 1.5, 0.1, musicBus, 0.35); } // v1.1 Final Bite street-brawl bass
     else if (S.bass === 'ostinato'){ const seq = [0, 7, 12, 7]; if (inBar % 2 === 0) osc('triangle', mtof(root + seq[(inBar >> 1) % 4]), null, t, spb * 1.8, 0.4, musicBus, 0.5); }
     if (S.kick.includes(inBar)) osc('sine', 150, 40, t, 0.13, 0.7, musicBus);
     if (S.snare.includes(inBar)){ noise(t, 0.11, 0.25, 'bandpass', 1900, musicBus); osc('triangle', 220, 110, t, 0.08, 0.15, musicBus); }
@@ -410,6 +442,7 @@ const AudioSys = (function(){
     else if (kind === 'buzz'){ const sw = (f, v) => { const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 700; const gg = ctx.createGain(); gg.gain.value = v; o.connect(lp); lp.connect(gg); gg.connect(musicBus); o.start(); nodes.push(o); }; sw(110, 0.02); sw(113.5, 0.016); tone(55, 0.02); hiss('bandpass', 700, 0.01); } // hive buzz
     else if (kind === 'crypt'){ tone(46.2, 0.02); tone(92.5, 0.006); tone(15600, 0.0015); hiss('bandpass', 1800, 0.01); hiss('lowpass', 220, 0.02); } // v0.8 crypt: a low tomb drone, server fans, CRT whine
     else if (kind === 'arcade'){ tone(60, 0.012); tone(240, 0.004); hiss('bandpass', 900, 0.006); hiss('lowpass', 300, 0.012); } // v0.9 arcade: neon buzz, a room of cabinets humming at 3 AM
+    else if (kind === 'street9'){ tone(55, 0.01); hiss('lowpass', 400, 0.012); hiss('bandpass', 2200, 0.004); } // v1.1 night street: traffic rumble, neon buzz
     else if (kind === 'diner8'){ tone(90, 0.01); tone(220, 0.005); hiss('bandpass', 1400, 0.006); tone(440, 0.002); } // v1.0 neon-diner gold/pink buzz
     else if (kind === 'arcstatic'){ tone(60, 0.012); tone(15700, 0.002); hiss('bandpass', 2600, 0.02); hiss('highpass', 7000, 0.012); } // v0.9 No Signal Hall: detuned static
     else if (kind === 'rumble'){ tone(36.7, 0.07); tone(55, 0.025); hiss('lowpass', 160, 0.1); }
@@ -551,6 +584,18 @@ const AudioSys = (function(){
     plate8(){ const t = ctx.currentTime; noise(t, 0.08, 0.08, 'bandpass', 3200); seq([84, 79], t, 0.03, 'square', 0.06); },
     sizzle8(){ const t = ctx.currentTime; noise(t, 0.14, 0.08, 'highpass', 4000); },
     full8(){ const t = ctx.currentTime; seq([48, 43, 40, 36], t, 0.09, 'sawtooth', 0.14); noise(t, 0.2, 0.1, 'bandpass', 600); },
+    // v1.1 World 9 street brawl (cartoon punch / chomp, no gore)
+    punch9(){ const t = ctx.currentTime; noise(t, 0.07, 0.22, 'lowpass', 900); osc('square', 180, 70, t, 0.06, 0.08); },
+    chomp9(){ const t = ctx.currentTime; for (let k = 0; k < 2; k++){ noise(t + k * 0.09, 0.05, 0.16, 'bandpass', 1400); osc('square', 220, 110, t + k * 0.09, 0.05, 0.06); } },
+    horn9(){ const t = ctx.currentTime; osc('sawtooth', 233, null, t, 0.32, 0.08); osc('sawtooth', 277, null, t, 0.32, 0.06); osc('square', 116, null, t, 0.32, 0.05); },
+    win9(){ const t = ctx.currentTime; seq([60, 64, 67, 72], t, 0.11, 'square', 0.12); },
+    clear9(){ const t = ctx.currentTime; seq([72, 76, 79, 84], t, 0.06, 'p25', 0.11); },
+    bell9(){ const t = ctx.currentTime; osc('square', 1320, null, t, 0.08, 0.06); osc('square', 1320, null, t + 0.12, 0.08, 0.06); osc('square', 1320, null, t + 0.24, 0.12, 0.06); },
+    gold9(){ const t = ctx.currentTime; seq([84, 91], t, 0.04, 'p25', 0.08); },
+    grill9(){ const t = ctx.currentTime; noise(t, 0.25, 0.08, 'highpass', 3500); },
+    zap9(){ const t = ctx.currentTime; noise(t, 0.22, 0.2, 'highpass', 1800); osc('sawtooth', 900, 60, t, 0.2, 0.06); },
+    pop9(){ const t = ctx.currentTime; osc('square', 300, 900, t, 0.06, 0.07); },
+    crash9(){ const t = ctx.currentTime; noise(t, 0.3, 0.25, 'lowpass', 700); osc('square', 90, 40, t, 0.2, 0.08); },
     return8(){ const t = ctx.currentTime; seq([60, 64, 67, 60], t, 0.08, 'triangle', 0.1); },
   };
   function sfx(name, arg){ if (!ready()) return; try { SFX[name](arg); } catch (e) { /* ignore audio errors */ } }
