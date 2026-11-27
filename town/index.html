@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Toaster Town — Therapy Toaster</title>
+  <!-- v3 preview: living ecosystem build -->
   <meta name="description" content="A living crumb ecosystem for Therapy Toaster. Toast, Skullz, and Cybertrucks wander Toaster Town." />
   <style>
     :root { --yellow: #FFD400; --black: #000000; }
@@ -85,24 +86,26 @@
     }
     #foot .vet { font-weight: 700; flex: 0 0 auto; }
     #foot .now { opacity: 0.85; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1 1 auto; text-align: center; }
-    #radio-btn {
+    #radio-btn, #sound-btn {
       pointer-events: auto; cursor: pointer;
       background: #000; color: var(--yellow); border: 1px solid var(--yellow);
       font: inherit; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
       padding: 4px 8px; flex: 0 0 auto;
     }
-    #radio-btn:hover, #radio-btn:focus-visible { background: var(--yellow); color: #000; }
-    #radio-btn.on { background: var(--yellow); color: #000; }
+    #radio-btn:hover, #radio-btn:focus-visible, #sound-btn:hover, #sound-btn:focus-visible { background: var(--yellow); color: #000; }
+    #radio-btn.on, #sound-btn.on { background: var(--yellow); color: #000; }
     #visits { opacity: 0.85; flex: 0 0 auto; }
     @media (max-width: 700px) {
       #hud { padding: 10px 12px 0; font-size: 10px; }
       #hud .brand { font-size: 11px; letter-spacing: 0.1em; }
       #hud .sub, #hud .census { font-size: 9px; }
-      #hint { bottom: 168px; font-size: 10px; letter-spacing: 0.1em; white-space: normal; }
+      #hud .sub .long { display: none; }
+      #hint { bottom: 74px; font-size: 9px; letter-spacing: 0.08em; white-space: normal; width: 92%; }
+      #radio-btn, #sound-btn { font-size: 9px; padding: 4px 6px; letter-spacing: 0.06em; }
       #ticker-track { font-size: 11px; }
       #foot { font-size: 9px; padding: 0 8px; gap: 6px; }
       #foot .now { display: none; }
-      #log { bottom: 78px; max-width: none; }
+      #log { bottom: 104px; max-width: none; }
     }
   </style>
 </head>
@@ -111,7 +114,7 @@
   <div id="hud">
     <div>
       <div class="brand">Toaster Town</div>
-      <div class="sub">Therapy Toaster · Living Page</div>
+      <div class="sub"><span class="long">Therapy Toaster · </span>Living Page</div>
     </div>
     <div class="right">
       <div id="clock">—</div>
@@ -121,12 +124,13 @@
   </div>
   <div id="place-label"></div>
   <div id="log" aria-live="polite"></div>
-  <div id="hint">Tap to sprinkle crumbs · Drag a trail · Tap a place to visit</div>
+  <div id="hint">Tap citizens · Tap the ground for crumbs · Tap a place to visit</div>
   <div id="ticker"><div id="ticker-track">Loading Twitter feed…</div></div>
   <div id="foot">
     <span class="vet">Proudly Veteran-Owned</span>
     <span class="now" id="now-playing"></span>
     <button id="radio-btn" type="button" aria-pressed="false">▶ Radio</button>
+    <button id="sound-btn" type="button" aria-pressed="false" title="Ambient town sounds (off until you tap)">♪ Sound</button>
     <span id="visits">Visit 1</span>
   </div>
   <script src="town.js"></script>
