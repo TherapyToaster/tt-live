@@ -1973,6 +1973,7 @@
     const bits = [];
     for (let r = 0; r < 3; r++) for (let i = 0; i < posts.length; i++) bits.push("<b>Twitter</b> " + handle + "  —  " + escapeHtml(posts[i].text));
     elTrack.innerHTML = bits.join("<span class='dot'>●</span>");
+    requestAnimationFrame(function () { var px = elTrack.scrollWidth || 4000; elTrack.style.animationDuration = Math.max(40, px / 55).toFixed(1) + "s"; });
   }
   function broadcastPulse() {
     logoPulse = 1;
