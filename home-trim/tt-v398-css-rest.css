@@ -1,0 +1,78 @@
+/* Animated store card (v8). Overrides the v6 merch-strip CSS. */
+body.homepage #ttmerch{--y:#FFD400;--r:#F6392E;--c:#0C87CC;--k:#05070d;box-sizing:border-box;position:relative;width:100%;max-width:1100px !important;margin:28px auto 8px !important;padding:0 4vw !important;background:transparent !important;color:#fff;border:0 !important;border-top:0 !important;border-bottom:0 !important;text-align:left !important;overflow:visible !important;font-family:Epilogue,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+body.homepage #ttmerch *{box-sizing:border-box}
+body.homepage #ttmerch .ttm-link{position:relative;display:grid !important;grid-template-columns:minmax(0,1.1fr) minmax(220px,.9fr);gap:28px 32px;align-items:center;width:100% !important;max-width:none !important;margin:0 auto !important;padding:28px 32px 30px;color:#fff;text-decoration:none;background:#000;border:3px solid var(--y);border-radius:16px;box-shadow:6px 6px 0 var(--r),-6px -6px 0 var(--c);outline:none;overflow:hidden;isolation:isolate}
+body.homepage #ttmerch .ttm-link::before{content:"";position:absolute;left:0;right:0;top:0;height:10px;background:repeating-linear-gradient(-45deg,#FFD400 0 10px,#000 10px 20px);pointer-events:none;z-index:3}
+body.homepage #ttmerch .ttm-link::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;background:linear-gradient(105deg,transparent 40%,rgba(255,212,0,.18) 50%,transparent 60%);transform:translateX(-120%);animation:ttmShimmer 3.2s ease-in-out infinite}
+body.homepage #ttmerch .ttm-copy{position:relative;z-index:1;padding-top:8px;min-width:0;width:100%}
+body.homepage #ttmerch .ttm-kicker{display:inline-block;margin:0 0 10px;padding:4px 10px;border:2px solid var(--y);background:#000;color:var(--y);font-family:Anton,Impact,"Arial Narrow Bold",sans-serif;font-size:15px;letter-spacing:.22em;line-height:1;text-transform:uppercase;text-shadow:2px 0 var(--c),-2px 0 var(--r);animation:ttmGlitch 6s steps(2,end) infinite}
+body.homepage #ttmerch .ttm-h{display:block;width:100%;margin:0 0 14px;font-family:Anton,Impact,"Arial Narrow Bold",sans-serif;text-transform:uppercase;font-size:clamp(28px,4.4vw,52px);line-height:1.05;color:var(--y);text-shadow:3px 3px 0 var(--r),-2px -2px 0 var(--c)}
+body.homepage #ttmerch .ttm-logo{display:block;margin-top:4px;text-transform:none;letter-spacing:.02em;white-space:nowrap;text-shadow:3px 3px 0 var(--r),-2px -2px 0 var(--c),2px 0 var(--c),-2px 0 var(--r);animation:ttmGlitch 6s steps(2,end) infinite}
+body.homepage #ttmerch .ttm-tags{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+body.homepage #ttmerch .ttm-tag{display:inline-flex;align-items:center;padding:6px 12px;border:2px solid var(--y);border-radius:999px;background:#000;color:var(--y);font-weight:800;font-size:13px;letter-spacing:.04em;line-height:1.2;white-space:nowrap;box-shadow:2px 2px 0 var(--r),-2px -2px 0 var(--c)}
+body.homepage #ttmerch .ttm-ship{display:block;margin:0 0 16px;font-size:14px;line-height:1.35;font-weight:700;color:#dee3de;letter-spacing:.02em}
+body.homepage #ttmerch .ttm-go{display:inline-flex;align-items:center;flex-wrap:nowrap;gap:8px;margin:0;background:var(--y);color:#000;border-radius:999px;padding:12px 24px;font-weight:800;font-size:15px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;box-shadow:0 0 0 0 rgba(255,212,0,.7);animation:ttmPulse 1.6s ease-in-out infinite}
+body.homepage #ttmerch .ttm-link:hover .ttm-go,body.homepage #ttmerch .ttm-link:focus-visible .ttm-go{background:#fff;animation:none}
+body.homepage #ttmerch .ttm-link:focus-visible{box-shadow:6px 6px 0 var(--r),-6px -6px 0 var(--c),0 0 0 4px #000,0 0 0 8px #fff}
+body.homepage #ttmerch .ttm-thumbs{position:relative;z-index:1;display:flex;align-items:flex-end;justify-content:center;gap:0;min-height:210px;padding-top:12px}
+body.homepage #ttmerch .ttm-thumbs img{display:block;width:min(200px,42%);height:auto;aspect-ratio:1;object-fit:cover;background:#111;border:3px solid var(--y);border-radius:12px;box-shadow:4px 4px 0 var(--r)}
+body.homepage #ttmerch .ttm-thumbs img:first-child{transform:rotate(-8deg) translate(10px,6px);z-index:1;animation:ttmTiltA 4s ease-in-out infinite}
+body.homepage #ttmerch .ttm-thumbs img:last-child{transform:rotate(7deg) translate(-10px,0);z-index:2;box-shadow:-4px 4px 0 var(--c);animation:ttmTiltB 4s ease-in-out infinite}
+body.homepage #ttmerch .ttm-link:hover .ttm-thumbs img:first-child,body.homepage #ttmerch .ttm-link:focus-visible .ttm-thumbs img:first-child{transform:rotate(-4deg) translate(6px,0)}
+body.homepage #ttmerch .ttm-link:hover .ttm-thumbs img:last-child,body.homepage #ttmerch .ttm-link:focus-visible .ttm-thumbs img:last-child{transform:rotate(3deg) translate(-6px,0)}
+@keyframes ttmShimmer{0%,25%{transform:translateX(-120%)}60%,100%{transform:translateX(120%)}}
+@keyframes ttmPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,212,0,.65);transform:scale(1)}50%{box-shadow:0 0 0 10px rgba(255,212,0,0);transform:scale(1.045)}}
+@keyframes ttmGlitch{0%,88%,100%{text-shadow:2px 0 var(--c),-2px 0 var(--r);transform:none}92%{text-shadow:-3px 0 var(--c),3px 0 var(--r);transform:translate(1px,-1px)}96%{text-shadow:3px 0 var(--c),-3px 0 var(--r);transform:translate(-1px,1px)}}
+@keyframes ttmTiltA{0%,100%{transform:rotate(-8deg) translate(10px,6px)}50%{transform:rotate(-8deg) translate(10px,-4px)}}
+@keyframes ttmTiltB{0%,100%{transform:rotate(7deg) translate(-10px,0)}50%{transform:rotate(7deg) translate(-10px,-8px)}}
+@media (max-width:700px){
+  body.homepage #ttmerch{margin:20px auto 8px;padding:0 12px}
+  body.homepage #ttmerch .ttm-link{grid-template-columns:1fr;gap:8px;padding:24px 16px 22px;box-shadow:4px 4px 0 var(--r),-4px -4px 0 var(--c);text-align:center}
+  body.homepage #ttmerch .ttm-copy{padding-top:6px}
+  body.homepage #ttmerch .ttm-h{font-size:clamp(24px,7.6vw,34px);margin-bottom:12px}
+  body.homepage #ttmerch .ttm-logo{display:block;margin-top:6px;font-size:clamp(22px,7vw,32px)}
+  body.homepage #ttmerch .ttm-tags{justify-content:center}
+  body.homepage #ttmerch .ttm-ship{margin-left:auto;margin-right:auto}
+  body.homepage #ttmerch .ttm-go{padding:12px 20px}
+  body.homepage #ttmerch .ttm-thumbs{min-height:0;order:-1;padding:8px 0 4px}
+  body.homepage #ttmerch .ttm-thumbs img{width:42%;max-width:160px}
+}
+@media (prefers-reduced-motion:reduce){
+  body.homepage #ttmerch .ttm-link::after,body.homepage #ttmerch .ttm-kicker,body.homepage #ttmerch .ttm-logo,body.homepage #ttmerch .ttm-go,body.homepage #ttmerch .ttm-thumbs img{animation:none}
+  body.homepage #ttmerch .ttm-link:hover .ttm-thumbs img:first-child,body.homepage #ttmerch .ttm-link:focus-visible .ttm-thumbs img:first-child{transform:rotate(-8deg) translate(10px,6px)}
+  body.homepage #ttmerch .ttm-link:hover .ttm-thumbs img:last-child,body.homepage #ttmerch .ttm-link:focus-visible .ttm-thumbs img:last-child{transform:rotate(7deg) translate(-10px,0)}
+}
+
+/* Extra announcement-bar loop item. The caution marquee is the sitewide
+   Squarespace header bar (announcementBarSettings + Custom CSS v37
+   .sqs-announcement-bar / ttcb-marquee), not the Home main block.
+   Existing flex items stay: <strong> welcome text (order:-1), ::before
+   Trust Everyone/No One, ::after Be Mean/Be Nice. This span joins that
+   same scroll loop. */
+#announcement-bar-text-inner-id p{
+  display:inline-flex !important;
+  flex-direction:row !important;
+  flex-wrap:nowrap !important;
+  align-items:baseline !important;
+}
+#announcement-bar-text-inner-id p .tt-aka{
+  order:-1;
+  position:relative;
+  display:block;
+  flex:0 0 auto !important;
+  white-space:nowrap;
+  pointer-events:none;
+  font-weight:700;
+  font-size:clamp(20px,3.2vw,36px);
+  letter-spacing:.06em;
+  text-transform:none;
+  color:#FFD400 !important;
+  text-shadow:0 0 10px rgba(255,212,0,.7);
+  padding-right:clamp(18px,2.4vw,36px);
+}
+@media (prefers-reduced-motion:reduce){
+  #announcement-bar-text-inner-id p .tt-aka{
+    display:inline !important;
+    padding-right:.6em;
+  }
+}

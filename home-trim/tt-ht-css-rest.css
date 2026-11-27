@@ -1,0 +1,382 @@
+/* CRT TV + VCR trailer integration inside #tt-crt-col / #tt-crt */
+#tt-crt.tt-crt-tv{
+  height:auto!important;
+  padding:8px 8px 6px!important;
+  border:2px solid #FFD400!important;
+  border-radius:14px!important;
+  background:linear-gradient(170deg,#222630 0%,#101218 55%,#07080b 100%)!important;
+  background-image:none!important;
+  box-shadow:-4px 0 0 rgba(255,40,60,.75),4px 0 0 rgba(0,240,255,.65),0 14px 32px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.16)!important;
+  overflow:visible!important;
+  line-height:normal!important;
+  display:flex!important;
+  flex-direction:column!important;
+  gap:6px!important;
+}
+#tt-crt.tt-crt-tv .tt-crt-bezel{
+  position:relative;
+  width:100%;
+  padding:7px;
+  border-radius:18px;
+  background:linear-gradient(145deg,#2e3340 0%,#0b0c10 72%);
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:inset 0 4px 12px rgba(0,0,0,.95),0 1px 0 rgba(255,255,255,.1);
+}
+#tt-crt.tt-crt-tv .tt-crt-glass{
+  position:relative;
+  width:100%;
+  aspect-ratio:16/10;
+  border-radius:18px / 15px;
+  overflow:hidden;
+  background:#040508;
+  cursor:pointer;
+  border:1px solid rgba(255,212,0,.22);
+  box-shadow:inset 0 0 28px rgba(0,0,0,.96),0 0 14px rgba(255,212,0,.18);
+  transform:translateZ(0);
+}
+#tt-crt.tt-crt-tv .tt-crt-glass:focus-visible{
+  outline:2px solid #FFD400;
+  outline-offset:2px;
+}
+#tt-crt.tt-crt-tv #tt-ht-vid,
+#tt-crt.tt-crt-tv .tt-crt-poster{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  margin:0;
+  padding:0;
+  border:0;
+  display:block;
+  object-fit:contain;
+  background:#020305;
+}
+#tt-crt.tt-crt-tv #tt-ht-vid{display:block}
+#tt-crt.tt-crt-tv .tt-crt-poster{display:none}
+#tt-crt.tt-crt-tv.tt-tv-stopped #tt-ht-vid{display:none!important}
+#tt-crt.tt-crt-tv.tt-tv-stopped .tt-crt-poster{display:block!important}
+#tt-crt.tt-crt-tv .tt-crt-scan{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  z-index:4;
+  background:repeating-linear-gradient(to bottom,rgba(0,0,0,.32) 0 1px,transparent 1px 3px);
+  opacity:.68;
+}
+#tt-crt.tt-crt-tv .tt-crt-curve{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  z-index:5;
+  border-radius:inherit;
+  background:
+    radial-gradient(ellipse 115% 75% at 26% 12%,rgba(255,255,255,.16) 0%,rgba(255,255,255,.04) 32%,transparent 58%),
+    radial-gradient(ellipse at center,transparent 54%,rgba(0,0,0,.76) 100%);
+  box-shadow:inset 0 0 20px rgba(0,0,0,.9);
+}
+#tt-crt.tt-crt-tv .tt-crt-ch{
+  position:absolute;
+  top:7px;
+  right:9px;
+  z-index:6;
+  pointer-events:none;
+  padding:2px 6px;
+  border-radius:4px;
+  background:rgba(0,0,0,.74);
+  border:1px solid rgba(255,212,0,.55);
+  color:#FFD400;
+  font:700 10px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.08em;
+  text-shadow:0 0 6px rgba(255,212,0,.6);
+}
+#tt-crt.tt-crt-tv.tt-tv-trailer:not(.tt-tv-paused):not(.tt-tv-stopped) .tt-crt-ch{
+  color:#4dff7c;
+  border-color:rgba(77,255,124,.55);
+  text-shadow:0 0 6px rgba(77,255,124,.6);
+  opacity:.8;
+}
+#tt-crt.tt-crt-tv .tt-crt-cta{
+  position:absolute;
+  left:50%;
+  bottom:9px;
+  transform:translateX(-50%);
+  z-index:6;
+  pointer-events:none;
+  display:none;
+  align-items:center;
+  gap:5px;
+  padding:4px 9px;
+  border-radius:999px;
+  background:#05070d;
+  border:1.5px solid #FFD400;
+  color:#FFD400;
+  font:800 9px/1 system-ui,-apple-system,Segoe UI,sans-serif;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  white-space:nowrap;
+  box-shadow:0 2px 10px rgba(0,0,0,.85);
+}
+#tt-crt.tt-crt-tv.tt-tv-show-badge .tt-crt-cta{display:inline-flex}
+#tt-crt.tt-crt-tv.tt-tv-flash .tt-crt-glass::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:7;
+  pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.35) 0 2px,rgba(255,212,0,.22) 2px 4px);
+  animation:ttCrtZap .26s steps(3,end) both;
+}
+@keyframes ttCrtZap{
+  0%{opacity:.95}
+  100%{opacity:0}
+}
+#tt-crt.tt-crt-tv .tt-crt-chin{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:2px 4px 1px;
+  color:#a9b0bd;
+  font:700 9px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+#tt-crt.tt-crt-tv .tt-crt-brand{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  color:#FFD400;
+}
+#tt-crt.tt-crt-tv .tt-crt-led{
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:#FFD400;
+  box-shadow:0 0 6px 1px rgba(255,212,0,.85);
+}
+#tt-crt.tt-crt-tv.tt-tv-trailer:not(.tt-tv-paused):not(.tt-tv-stopped) .tt-crt-led{
+  background:#4dff7c;
+  box-shadow:0 0 7px 1px rgba(77,255,124,.9);
+}
+#tt-crt.tt-crt-tv .tt-crt-dials{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+}
+#tt-crt.tt-crt-tv .tt-crt-knob{
+  width:14px;
+  height:14px;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#4a505e,#15171d 70%);
+  border:1px solid rgba(255,212,0,.5);
+  position:relative;
+  box-shadow:0 1px 2px rgba(0,0,0,.8);
+}
+#tt-crt.tt-crt-tv .tt-crt-knob::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:2px;
+  width:2px;
+  height:5px;
+  margin-left:-1px;
+  background:#FFD400;
+  border-radius:1px;
+}
+#tt-crt.tt-crt-tv .tt-crt-vents{
+  width:26px;
+  height:10px;
+  background:repeating-linear-gradient(90deg,#050608 0 2px,transparent 2px 4px);
+  opacity:.85;
+}
+
+/* Retro VCR Deck directly beneath #tt-crt inside #tt-crt-col */
+#tt-vcr{
+  box-sizing:border-box;
+  width:100%;
+  padding:7px 8px 6px;
+  border:2px solid #FFD400;
+  border-radius:10px;
+  background:linear-gradient(180deg,#232730 0%,#12141a 22%,#0a0b0f 100%);
+  box-shadow:-4px 0 0 rgba(255,40,60,.7),4px 0 0 rgba(0,240,255,.6),0 10px 24px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.16);
+  color:#e5e9f0;
+  font-family:system-ui,-apple-system,Segoe UI,sans-serif;
+}
+#tt-vcr *{box-sizing:border-box}
+#tt-vcr .vcr-top{
+  display:grid;
+  grid-template-columns:minmax(0,1.18fr) minmax(0,.82fr);
+  gap:7px;
+  align-items:stretch;
+  margin-bottom:7px;
+}
+#tt-vcr .vcr-slot{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:6px;
+  padding:5px 8px;
+  border-radius:5px;
+  background:linear-gradient(180deg,#06070a 0%,#101218 100%);
+  border:1px solid #484f5e;
+  box-shadow:inset 0 2px 6px rgba(0,0,0,.95),inset 0 0 0 1px rgba(255,212,0,.18);
+  min-height:36px;
+}
+#tt-vcr .vcr-slot::before{
+  content:"";
+  position:absolute;
+  left:4px;
+  right:4px;
+  top:2px;
+  height:2px;
+  background:linear-gradient(90deg,#6e7585,#b8bfcd,#6e7585);
+  border-radius:1px;
+  opacity:.8;
+}
+#tt-vcr .vcr-tape{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  min-width:0;
+  padding-top:2px;
+}
+#tt-vcr .vcr-reel{
+  width:13px;
+  height:13px;
+  border-radius:50%;
+  border:1.5px solid #FFD400;
+  background:radial-gradient(circle,#FFD400 22%,#1a1d24 26%,#090a0d 100%);
+  flex:none;
+}
+#tt-vcr.vcr-playing .vcr-reel{
+  animation:vcrSpin 2.2s linear infinite;
+}
+@keyframes vcrSpin{to{transform:rotate(360deg)}}
+#tt-vcr.vcr-ejected .vcr-reel{opacity:.25;border-color:#5a6170}
+#tt-vcr .vcr-label{
+  font:800 9px/1.15 ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.05em;
+  color:#FFD400;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+#tt-vcr.vcr-ejected .vcr-label{color:#8c94a5}
+#tt-vcr .vcr-led{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:4px 8px;
+  border-radius:5px;
+  background:#030905;
+  border:1px solid #354038;
+  box-shadow:inset 0 2px 6px rgba(0,0,0,.95);
+  min-height:36px;
+}
+#tt-vcr .vcr-led-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:4px;
+  font:700 8px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.08em;
+  color:#4dff7c;
+  text-shadow:0 0 6px rgba(77,255,124,.7);
+}
+#tt-vcr .vcr-led-mute{
+  color:#ff4d6d;
+  text-shadow:0 0 6px rgba(255,77,109,.7);
+  display:none;
+}
+#tt-vcr.vcr-muted .vcr-led-mute{display:inline}
+#tt-vcr .vcr-led-time{
+  margin-top:2px;
+  font:700 14px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-variant-numeric:tabular-nums;
+  letter-spacing:.08em;
+  color:#FFD400;
+  text-shadow:0 0 8px rgba(255,212,0,.75);
+}
+#tt-vcr .vcr-keys{
+  display:grid;
+  grid-template-columns:repeat(7,minmax(0,1fr));
+  gap:4px;
+}
+#tt-vcr .vcr-btn{
+  appearance:none;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:2px;
+  min-width:0;
+  padding:5px 2px 4px;
+  border-radius:5px;
+  border:1px solid #5c6576;
+  border-bottom:2px solid #040507;
+  background:linear-gradient(180deg,#404756 0%,#21252f 60%,#14171e 100%);
+  color:#f2f5fa;
+  cursor:pointer;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 2px 4px rgba(0,0,0,.7);
+  transition:transform .08s ease,background .12s ease,border-color .12s ease;
+}
+#tt-vcr .vcr-btn[data-vcr="play"]{
+  border-color:rgba(255,212,0,.7);
+  color:#FFD400;
+}
+#tt-vcr .vcr-btn:hover,
+#tt-vcr .vcr-btn:focus-visible{
+  border-color:#FFD400;
+  color:#FFD400;
+  outline:none;
+}
+#tt-vcr .vcr-btn:active{
+  transform:translateY(1px);
+}
+#tt-vcr .vcr-btn.is-on{
+  background:linear-gradient(180deg,#FFE24D 0%,#FFD400 70%,#d6ae00 100%);
+  color:#05070d;
+  border-color:#fff2a6;
+  box-shadow:0 0 10px rgba(255,212,0,.55),inset 0 1px 0 rgba(255,255,255,.5);
+}
+#tt-vcr .vcr-ic{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  height:12px;
+  font:900 11px/1 system-ui,-apple-system,Segoe UI,sans-serif;
+  letter-spacing:-.04em;
+}
+#tt-vcr .vcr-ic svg{
+  width:12px;
+  height:12px;
+  display:block;
+}
+#tt-vcr .vcr-tx{
+  font:800 7px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+}
+#tt-vcr .vcr-foot{
+  margin-top:5px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:6px;
+  font:700 8px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:#98a0af;
+}
+#tt-vcr .vcr-foot b{color:#FFD400;font-weight:800}
+
+@media screen and (max-width:799px){
+  #tt-crt.tt-crt-tv{padding:7px 7px 5px!important}
+  #tt-vcr{padding:7px 7px 6px}
+}
+@media (prefers-reduced-motion:reduce){
+  #tt-crt.tt-crt-tv.tt-tv-flash .tt-crt-glass::after{animation:none}
+  #tt-vcr.vcr-playing .vcr-reel{animation:none}
+  #tt-crt.tt-crt-tv{box-shadow:-4px 0 0 rgba(255,40,60,.75),4px 0 0 rgba(0,240,255,.65)!important}
+}
