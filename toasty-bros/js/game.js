@@ -22,6 +22,7 @@ if (window.visualViewport) window.visualViewport.addEventListener('resize', resi
 resize(); setTimeout(resize, 50);
 const S = buildSprites();
 S.bro = buildBroSprites(S.hero);
+if (typeof buildToastTruckSprites === 'function') S.toastTruck = buildToastTruckSprites();
 const A = AudioSys;
 
 // ---------------- save data ----------------
@@ -118,14 +119,15 @@ function newGame(levelId){
 // ---------------- areas ----------------
 function surfaceRow(tx){ let seenAir = false; for (let y = 2; y < 15; y++){ if (standable(tx, y)){ if (seenAir) return y; } else seenAir = true; } return 15; }
 function enterArea(name){
-  if (lv) lv.rt = { enemies, items, plats, patches, bolts, camX };
+  if (lv) lv.rt = { enemies, items, plats, patches, bolts, camX, rides };
   lv = AREAS[name]; G.area = name; TSET = S.tileset(lv.theme);
   const r = lv.rt;
-  if (r){ enemies = r.enemies; items = r.items; plats = r.plats; patches = r.patches; bolts = r.bolts; }
+  if (r){ enemies = r.enemies; items = r.items; plats = r.plats; patches = r.patches; bolts = r.bolts; rides = r.rides || []; }
   else {
     enemies = []; items = []; bolts = []; lv.crumbles = {};
     patches = (lv.patchesInit || []).map(q => ({ kind: q.kind, x: q.a * TS, y: q.row * TS, w: (q.b - q.a + 1) * TS, t: Infinity }));
     plats = lv.plats.map(d => ({ kind: d.kind, x: d.tx * TS, y: d.ty * TS, w: d.w * TS, h: 8, x0: d.tx * TS, y0: d.ty * TS, axis: d.axis, range: (d.range || 0) * TS, speed: d.speed || 0, t: d.phase || 0, dx: 0, dy: 0, fallT: 0, vy: 0, stood: false, look: d.look, len: d.len, amp: d.amp, gz: d.gz, pz: d.pz, cz: d.cz })).concat(pitPlats(), dinerPlats());
+    if (typeof spawnLevelTrucks === 'function') spawnLevelTrucks();
   }
   magCoins = []; rockets = []; parts = []; coinpops = []; ftoasts = []; shots = []; booms = []; rings = []; turrets = [];
   if (!lv.cageBro){ lv.cageBro = {}; lv.dmg = {}; const locked = BRO_IDS.filter(id => !save.unlocked.includes(id)); let li = 0;
@@ -157,6 +159,7 @@ function startLevel(){
   BOSS = lv.boss ? makeBoss(lv.boss) : null;
   reach(G.levelId);
   A.startMusic(lv.music || LV.music);
+  G.levelCard = { t: 0 }; // v0.9: a short in-level title plaque
 }
 function levelComplete(){
   G.carrySize = P.size; G.curBro = P.bro; bumpHi();
@@ -281,6 +284,7 @@ function spawnItem(type, x, y){
 
 // ---------------- player ----------------
 function hurt(){
+  if (P.ctrl === 'truck'){ truckHit(P.ride); return; }
   if (P.inv > 0 || P.star > 0 || P.ctrl !== 'normal' || P.dead || P.dash > 0 || P.roll > 0 || P.slam) return;
   if (P.mitt){ P.mitt = false; P.inv = 100; G.mittBlocks = (G.mittBlocks || 0) + 1; A.sfx('mitt'); burst(P.x + 6, P.y + 6, 12, [BUM.E, BUM.E2, BUM.P], 2); popup(P.x - 24, P.y - 12, 'OVEN MITT: BLOCKED!', BUM.E2); return; } // v0.7 World 5 pickup
   if (P.size > 0){ P.size = 0; P.inv = 130; A.sfx('clang'); A.sfx('shrink'); burst(P.x + 6, P.y + 6, 12, ['#d7dbe3', '#ffffff', '#8b909c'], 2); popup(P.x - 10, P.y - 12, 'ARMOR!', '#d7dbe3'); return; }
@@ -298,6 +302,7 @@ function grow(to){
 function die(){
   if (G.state === 'dying') return;
   if (DEBUG) G.deathCause = (new Error().stack || '').split('\n').slice(2, 5).map(l => l.trim().replace(/\(.*game\.js:/, '(').replace(/^at /, '')).join(' < ');
+  if (P.ride){ const t = P.ride; P.ride = null; P.ctrl = 'normal'; if (t && !t.wrecked){ t.wrecked = true; t.hp = 0; } }
   G.state = 'dying'; G.stateT = 0; P.dead = true; P.hp = 0; P.star = 0; P.vx = 0; P.vy = 0; G.carrySize = 0; G.deaths++;
   A.stopMusic(); A.sfx('die'); bumpHi(); writeSave();
 }
@@ -472,6 +477,7 @@ function playerCollideY(p){
 function updateCtrl(){
   const p = P;
   switch (p.ctrl){
+    case 'truck': truckDrive(); break; // v0.9 TOAST TRUCK
     case 'claw': arcadeClawCarry(); break; // v0.9 a Claw Drop carries you back
     case 'pipeDown':
       p.y += 1; p.ctrlT++;
@@ -598,7 +604,7 @@ function stomp(e){
   else if (e.type === 'truck'){ e.dead = 'squash'; e.t = 50; G.shake = 6; burst(cx, e.y + 4, 12, ['#b8c6d8', '#FFD400', '#ffffff', '#1b2a4a'], 2); popup(e.x, e.y - 14, 'TOWED!', '#FFD400'); A.sfx('honk'); }
   else if (e.type === 'skel'){ e.state = 'bones'; e.t = 260; const b = e.y + e.h; e.h = 8; e.y = b - 8; e.vx = 0; burst(cx, cy, 8, ['#f4f1e8', '#dcd6c8', '#FFD400'], 1.6); A.sfx('bone'); return; }
   else { e.remove = true; burst(cx, cy, 12, ['#3a3f4a', '#f0ead8', '#ff2a3a'], 1.8); }
-  A.sfx('stomp');
+  A.sfx('stomp'); G.hitStop = Math.max(G.hitStop, 2); G.shake = Math.max(G.shake, 3);
 }
 function fireBolt(x, y, ang, spd){ bolts.push({ x: x - 3, y: y - 3, w: 6, h: 6, vx: Math.cos(ang) * spd, vy: Math.sin(ang) * spd, t: 0 }); }
 function updateEnemy(e){
@@ -2550,6 +2556,59 @@ function botBumbo(b, grounded, feet, fx, want, hold){
   }
   return { want, hold };
 }
+
+function botVault(b, grounded, feet){
+  const p = P, B = BOSS, px = p.x + p.w / 2, ax0 = B.spec.bounds[0] * TS, ax1 = (B.spec.bounds[1] + 1) * TS;
+  b.right = false; b.left = false; b.run = false;
+  if (B.dead || B.dying){ botJump(b, false); return; }
+  const kind = BROS[p.bro].weapon.kind, range = BOT_RANGE[kind] || 60;
+  // stand left of the vault. A rolling skull only closes in while the payout button is lit, so the roll actually reaches it and then bonks off.
+  const stand = (kind === 'roll') ? (B.open > 0 ? 22 : 64) : Math.min(Math.max(36, range - 8), 80);
+  let goal = Math.max(ax0 + 20, Math.min(B.x - 22, B.x - stand));
+  // start sidestepping as soon as a claw / ticket is telegraphed (tickets only hurt on X, so a hop will not save you)
+  const liveDrip = d => d.state === 'fall' || d.state === 'warn';
+  const dripHit = d => Math.abs(d.x - px) < (d.kind === 'tickets' ? 16 : 18);
+  const dripNear = d => liveDrip(d) && dripHit(d);
+  const okX = x => x > ax0 + 18 && x < B.x - 22 && !B.drips.some(d => liveDrip(d) && Math.abs(d.x - x) < 22);
+  if (B.drips.some(liveDrip)){
+    if (bot.dripEsc == null || !okX(bot.dripEsc)){
+      bot.dripEsc = null;
+      let best = null, bestD = 1e9;
+      for (let x = ax0 + 20; x < B.x - 22; x += 4){
+        if (!okX(x)) continue;
+        const d = Math.abs(x - px);
+        if (d < bestD){ bestD = d; best = x; }
+      }
+      bot.dripEsc = best;
+    }
+    if (bot.dripEsc != null) goal = bot.dripEsc;
+  } else bot.dripEsc = null;
+  if (px < goal - 3) b.right = true; else if (px > goal + 3) b.left = true;
+  if (Math.abs(px - goal) > 16) b.run = true;
+  // never walk into the machine
+  if (p.x + p.w > B.x - 6){ b.left = true; b.right = false; b.run = false; }
+  // hop token waves straight up; a phase-2/3 train is staggered, so jump early and hold so we don't land on the next one
+  const incoming = bolts.filter(o => !o.mine && o.kind === 'gwave' && !(o.delay > 0) && (o.x + 5) - px < 96 && (o.x + 5) - px > -24);
+  const nearest = incoming.slice().sort((a, b2) => a.x - b2.x).filter(o => (o.x + 5) >= px - 12)[0] || incoming[0];
+  const ticketsOn = B.drips.some(d => d.kind === 'tickets' && liveDrip(d) && dripHit(d));
+  let want = false;
+  if (nearest && !ticketsOn){
+    const d = (nearest.x + 5) - px;
+    want = d < (incoming.length >= 2 ? 80 : 52) + Math.abs(nearest.vx) * 4;
+  } else if (nearest && ticketsOn){
+    want = Math.abs(nearest.x + 5 - px) < 18; // hop only if a wave is already underfoot; tickets need a sidestep
+  }
+  if (want || (!grounded && incoming.length)){ b.left = false; b.right = false; b.run = false;
+    const wv = nearest; if (wv && Math.sign(p.vx) === Math.sign(wv.vx) && Math.abs(p.vx) > 0.2){ b.left = wv.vx > 0; b.right = wv.vx < 0; } }
+  // when the payout is open and we're clear, face the vault so shots / the roll land
+  if (B.open > 0 && !B.drips.some(dripNear) && !incoming.length && !b.left && !b.right && p.facing < 0 && G.frame % 5 === 0) b.right = true;
+  bot.hiveLock = B.drips.some(dripNear) || incoming.length ? { l: b.left, r: b.right } : null;
+  botJump(b, want, incoming.length >= 2 ? 42 : 22);
+  // if a wave is already underfoot on the landing frame, hop again this frame (botJump otherwise waits one frame)
+  if (want && grounded && nearest && Math.abs(nearest.x + 5 - px) < 22) b.jump = !bot.lastJump;
+  bot.vaultOpen = B.open > 0;
+}
+
 function botHive(b, grounded, feet){
   const p = P, B = BOSS, px = p.x + p.w / 2, ax0 = B.spec.bounds[0] * TS, ax1 = (B.spec.bounds[1] + 1) * TS;
   b.right = false; b.left = false; b.run = false;
@@ -3203,7 +3262,7 @@ function vaultDie(by){
 function vaultHazard(b, x, kind){ const ax0 = b.spec.bounds[0] * TS + 10, ax1 = b.x - 14; b.drips.push({ x: Math.max(ax0, Math.min(ax1, x)), kind, state: 'warn', t: 0 }); }
 function vaultUpdateHazards(b){
   for (const d of b.drips){ d.t++;
-    if (d.state === 'warn'){ if (d.t > (b.phase === 3 ? 38 : 50)){ d.state = 'fall'; d.t = 0; A.sfx(d.kind === 'claw' ? 'clang' : 'ticket7'); if (d.kind === 'claw'){ G.shake = Math.max(G.shake, 5); burst(d.x, b.deck - 2, 6, [ARC.CH, ARC.W], 1.4); } G.vaultHaz = (G.vaultHaz || 0) + 1; } }
+    if (d.state === 'warn'){ if (d.t > (b.phase === 3 ? 56 : 64)){ d.state = 'fall'; d.t = 0; A.sfx(d.kind === 'claw' ? 'clang' : 'ticket7'); if (d.kind === 'claw'){ G.shake = Math.max(G.shake, 5); burst(d.x, b.deck - 2, 6, [ARC.CH, ARC.W], 1.4); } G.vaultHaz = (G.vaultHaz || 0) + 1; } }
     else if (d.t > (d.kind === 'claw' ? 40 : 34)) d.remove = true; }
   b.drips = b.drips.filter(d => !d.remove);
 }
@@ -3211,11 +3270,11 @@ function clawArmY(d, deck){ if (d.state === 'warn') return 3 * TS; const t = d.t
 function vaultHurtCheck(b){
   const pcx = P.x + P.w / 2;
   for (const d of b.drips){ if (d.state !== 'fall') continue;
-    if (d.kind === 'claw' && Math.abs(pcx - d.x) < 10 && P.y + P.h > clawArmY(d, b.deck) + 2 && P.y < clawArmY(d, b.deck) + 18){ hurt(); return; }
-    if (d.kind === 'tickets' && Math.abs(pcx - d.x) < 8 && d.t > 2 && d.t < 30){ hurt(); return; } }
+    if (d.kind === 'claw' && Math.abs(pcx - d.x) < 8 && P.y + P.h > clawArmY(d, b.deck) + 2 && P.y < clawArmY(d, b.deck) + 18){ hurt(); return; }
+    if (d.kind === 'tickets' && Math.abs(pcx - d.x) < 7 && d.t > 4 && d.t < 26){ hurt(); return; } }
 }
 function vaultWave(b){
-  const n = b.phase, sp = b.phase === 3 ? 2.1 : b.phase === 2 ? 1.9 : 1.7;
+  const n = b.phase, sp = b.phase === 3 ? 1.8 : b.phase === 2 ? 1.6 : 1.45;
   for (let i = 0; i < n; i++) bolts.push({ kind: 'gwave', boss: true, vault: true, x: b.x - 14 + i * 40, y: b.deck - 12, w: 12, h: 12, vx: -sp, vy: 0, t: -i * 22, delay: i * 22 });
   G.vaultWaves = (G.vaultWaves || 0) + 1; A.sfx('push7'); b.face = 'shout'; G.shake = Math.max(G.shake, 4);
 }
@@ -3246,8 +3305,9 @@ function updateVault(){
     case 'tickets': if (b.t === 10){ vaultHazard(b, pcx, 'tickets'); vaultHazard(b, pcx + (pcx < ax0 + 90 ? 70 : -70), 'tickets'); if (b.phase === 3) vaultHazard(b, ax0 + 20 + Math.random() * 120, 'tickets'); b.face = 'shout'; A.sfx('ticket7'); }
       if (b.t === 30) b.face = 'idle'; if (b.t > 96 / sp){ b.state = 'idle'; b.t = 0; } break;
     case 'open': // jammed: the payout button glows. Hit it!
-      if (b.t === 1){ b.open = b.phase === 3 ? 240 : 300; b.face = 'dizzy'; A.sfx('payout7'); if (!b.said){ b.said = true; popup(b.x - 52, b.y + 2, 'HIT THE PAYOUT BUTTON!', ARC.Y); } else popup(b.x - 12, b.y + 2, 'JAMMED!', ARC.AM); }
-      if (b.phase === 3 && b.t === 80) vaultWave(b);
+      if (b.t === 1){ b.open = b.phase === 3 ? 280 : 340; b.face = 'dizzy'; A.sfx('payout7'); if (!b.said){ b.said = true; popup(b.x - 52, b.y + 2, 'HIT THE PAYOUT BUTTON!', ARC.Y); } else popup(b.x - 12, b.y + 2, 'JAMMED!', ARC.AM); }
+      if (b.phase === 3 && b.t === 40) b.face = 'shout';
+      if (b.phase === 3 && b.t === 130) vaultWave(b);
       if (b.phaseHits >= 3 && b.open > 0){ b.open = 0; b.state = 'idle'; b.t = 0; b.face = 'idle'; }
       break;
   }
@@ -3752,6 +3812,8 @@ function updatePlay(){
   if (inDiner()) dinerPrePlats();
   updatePlats();
   updatePlayer();
+  if (typeof updateTrucks === 'function') updateTrucks();
+  if (G.levelCard){ G.levelCard.t++; if (G.levelCard.t > 110) G.levelCard = null; }
   if (G.state !== 'play') return;
   checkPole();
   updateCastle();
@@ -4007,7 +4069,11 @@ function drawBG(){
       for (let i = 0; i < 70; i++){ const x = ((i * 53 + G.frame * 3 - camX * 0.8) % 270 + 270) % 270 - 7, y = ((i * 97 + G.frame * 7) % 250) - 10; g.fillRect(x | 0, y, 1, 4); }
       g.globalAlpha = 1;
     }
-    if (th.bg === 'factory'){ g.fillStyle = 'rgba(255,106,0,0.05)'; g.fillRect(0, 150, W, 90); }
+    if (th.bg === 'factory'){ g.fillStyle = 'rgba(255,106,0,0.05)'; g.fillRect(0, 150, W, 90);
+      // v0.9: a slow far steam layer so the factory has a third parallax rate
+      g.fillStyle = 'rgba(200,190,180,0.12)';
+      for (let i = 0; i < 5; i++){ const x = ((i * 90 - camX * 0.12 + G.frame * 0.15) % 300 + 300) % 300 - 20, y = 50 + (i * 17) % 40, w = 28 + (i % 3) * 8; g.beginPath(); g.ellipse(x, y, w, 7, 0, 0, Math.PI * 2); g.fill(); }
+    }
   }
   if (lv.waterFloor){ // sea / marsh water under the pier and the bridge
     g.fillStyle = '#1b2a4a'; g.fillRect(0, 219, W, 1); g.fillStyle = lv.theme === 'pier' ? '#16506e' : '#2f7fd8'; g.fillRect(0, 220, W, 20);
@@ -4570,6 +4636,7 @@ function drawShots(){
       case 'iou': g.fillStyle = '#10121e'; g.fillRect(X - 1, Y - 1, 8, 6); g.fillStyle = '#f0ead8'; g.fillRect(X, Y, 6, 4); g.fillStyle = '#2e8b3a'; g.fillRect(X + 1, Y + 1, 4, 1); g.fillRect(X + 1, Y + 3, 2, 1); break;
       case 'wave': { g.globalAlpha = 0.75; const n = 3; for (let i = 0; i < n; i++){ g.fillStyle = i % 2 ? '#ff5ab4' : '#ffffff'; const xx = s.vx > 0 ? X + i * 3 : X + s.w - i * 3 - 2; g.fillRect(xx, Y + i * 2, 2, Math.max(2, Math.round(s.h) - i * 4)); } g.globalAlpha = 1; break; }
       case 'zap': g.fillStyle = '#00e5ff'; g.fillRect(X, Y, 6, 2); g.fillStyle = '#ffffff'; g.fillRect(X + 2, Y, 2, 2); break;
+      case 'mg': g.fillStyle = '#FFD400'; g.fillRect(X, Y, 5, 2); g.fillStyle = '#ffffff'; g.fillRect(X, Y, 2, 2); break;
       case 'crumb': g.fillStyle = '#10121e'; g.fillRect(X - 1, Y - 1, 5, 5); g.fillStyle = (s.t >> 1) % 2 ? '#f4c860' : '#c8741e'; g.fillRect(X, Y, 3, 3); break;
       case 'bomb': { g.fillStyle = '#10121e'; g.fillRect(X - 1, Y - 1, 10, 10); g.fillStyle = '#f0ead8'; g.fillRect(X, Y, 8, 8); g.fillStyle = '#10121e'; g.fillRect(X + 2, Y + 2, 2, 2); g.fillRect(X + 5, Y + 2, 2, 2); g.fillRect(X + 3, Y + 5, 3, 1);
         g.fillStyle = s.life < 20 && (s.t >> 1) % 2 ? '#ff2a3a' : '#FFD400'; g.fillRect(X + 6, Y - 3, 2, 3); break; }
@@ -4596,7 +4663,16 @@ function drawBroOverlays(){
     if (fx > -40){ const grd = g.createLinearGradient(Math.max(0, fx - 60), 0, fx + 10, 0); grd.addColorStop(0, 'rgba(255,106,0,0.45)'); grd.addColorStop(1, 'rgba(255,106,0,0)'); g.fillStyle = grd; g.fillRect(0, 0, Math.max(0, fx + 10), H); }
     if ((G.frame >> 3) % 2) drawTextC(g, 'RUN!  EXIT >>>', 128, 40, '#ff6a00', 1, '#000');
   }
-  if (G.bigText){ const t = G.bigText.t, fit = Math.max(1, Math.floor(250 / (String(G.bigText.text).length * 6))), s = Math.min(fit, t < 8 ? 3 + (8 - t) * 0.4 : 3); if (t < 100 || (t >> 2) % 2) { const y = 72, sz = Math.round(s); g.fillStyle = 'rgba(6,4,10,0.72)'; g.fillRect(0, y - 6, W, sz * 7 + 12); g.fillStyle = 'rgba(255,212,0,0.5)'; g.fillRect(0, y - 6, W, 1); g.fillRect(0, y + sz * 7 + 5, W, 1); drawTextC(g, G.bigText.text, 128 + ((G.frame & 1) ? 1 : -1), y, '#ff6a00', Math.round(s), '#000'); drawTextC(g, G.bigText.text, 128, y, '#FFD400', Math.round(s)); } }
+  if (G.bigText){ const t = G.bigText.t, fit = Math.max(1, Math.floor(250 / (String(G.bigText.text).length * 6))), s = Math.min(fit, t < 8 ? 3 + (8 - t) * 0.4 : 3); if (t < 100 || (t >> 2) % 2) { const y = 72, sz = Math.round(s), bh = Math.max(sz * 7 + 12, 50); g.fillStyle = 'rgba(6,4,10,0.72)'; g.fillRect(0, y - 6, W, bh); g.fillStyle = 'rgba(255,212,0,0.5)'; g.fillRect(0, y - 6, W, 1); g.fillRect(0, y - 7 + bh, W, 1); drawTextC(g, G.bigText.text, 128 + ((G.frame & 1) ? 1 : -1), y, '#ff6a00', Math.round(s), '#000'); drawTextC(g, G.bigText.text, 128, y, '#FFD400', Math.round(s)); } }
+  if (G.levelCard && G.levelCard.t < 100){
+    const t = G.levelCard.t, L = LEVELS[G.levelId], slide = t < 8 ? (8 - t) * 8 : t > 86 ? (t - 86) * 8 : 0;
+    const y = 44, a = t > 86 ? Math.max(0, 1 - (t - 86) / 14) : 1;
+    g.globalAlpha = a; g.fillStyle = 'rgba(0,0,0,0.72)'; g.fillRect(48, y, 160, 26);
+    g.fillStyle = '#FFD400'; g.fillRect(48, y, 160, 1); g.fillRect(48, y + 25, 160, 1);
+    drawTextC(g, G.levelId + '  ' + (L ? L.name : ''), 128, y + 4, '#FFD400');
+    drawTextC(g, WORLDS[L.world].name, 128, y + 14, '#00e5ff');
+    g.globalAlpha = 1;
+  }
   if (G.broFlash && !broFlashHeld()){
     const f = G.broFlash, t = f.t;
     if (t < 6){ g.fillStyle = 'rgba(255,255,255,' + (0.6 - t * 0.1).toFixed(2) + ')'; g.fillRect(0, 0, W, H); }
@@ -4710,7 +4786,8 @@ function drawWorld(){
   drawItems(false);
   drawEnemies();
   drawBoss();
-  if (P) drawPlayer();
+  if (typeof drawTrucks === 'function') drawTrucks();
+  if (P && P.ctrl !== 'truck') drawPlayer();
   drawPipes();
   drawShots();
   drawFx();
@@ -4755,7 +4832,7 @@ function drawTitle(){
   g.fillStyle = 'rgba(5,7,13,0.62)'; g.fillRect(0, 0, W, H);
   const t = G.frame;
   logo('MR. TOASTY:', 36, 2); logo('TOASTY BROS', 56, 3);
-  drawTextC(g, 'NOW ON AIR: WORLDS 1-6  - BRO EDITION', 128, 86, '#cbbcd9', 1, '#000');
+  drawTextC(g, 'NOW ON AIR: WORLDS 1-7  - BRO EDITION', 128, 86, '#cbbcd9', 1, '#000');
   BRO_IDS.forEach((id, i) => { const open = save.unlocked.includes(id), x = 24 + i * 26, hop = open && ((t >> 3) + i) % 16 === 0 ? -3 : 0;
     const fr = broFrame(id, open ? ((t >> 4) + i) % 2 ? 'stand' : 'walk2' : 'stand'); g.drawImage(open ? fr : tinted(fr, '#2a3046'), x, 100 + hop);
     if (!open) drawText(g, '?', x + 6, 104, '#5c6370'); });
@@ -5007,7 +5084,11 @@ function botInput(){
   if (G.state === 'play' && P && P.ctrl === 'normal' && !G.dialog && !P.dead) botCombat(b);
   if (bot.hiveLock && BOSS && (BOSS.kind === 'hive' || BOSS.kind === 'quartz' || BOSS.kind === 'vault') && BOSS.active){ b.left = bot.hiveLock.l; b.right = bot.hiveLock.r; }
   // v0.7: a rolling skull only rolls at the Hive while it's sitting on the boards (rolling under a hop means it lands on you)
-  if (b.fire && BOSS && BOSS.kind === 'vault' && BOSS.active && P.bro === 'skulrz' && !(BOSS.open > 0)) b.fire = false; // v0.9 only roll at the Vault while the button glows
+  if (b.fire && BOSS && BOSS.kind === 'vault' && BOSS.active && P.bro === 'skulrz'){
+    if (!(BOSS.open > 0)) b.fire = false; // only roll at the Vault while the payout button glows
+    if (bolts.some(o => !o.mine && o.kind === 'gwave' && !(o.delay > 0) && Math.abs(o.x - P.x) < 90)) b.fire = false;
+    if (BOSS.drips.some(d => Math.abs(d.x - (P.x + P.w / 2)) < 30)) b.fire = false;
+  }
   if (b.fire && BOSS && (BOSS.kind === 'hive' || BOSS.kind === 'quartz') && BOSS.active && P.bro === 'skulrz' && (!BOSS.onGround || BOSS.state === 'hop' || Math.abs(P.x + P.w / 2 - (BOSS.x + BOSS.w / 2)) > 84)) b.fire = false;
   // v0.5: rising into a firebar sweep? cut the jump short (variable jump height) instead of flying into it
   if (G.state === 'play' && P && P.ctrl === 'normal' && !P.onGround && !P.plat && P.vy < -0.5 && b.jump && (lv.firebars.length || (lv.forks && lv.forks.length))){
@@ -5055,6 +5136,12 @@ function botCombat(b){
     const dx = (BOSS.x + BOSS.w / 2 - px) * dir;
     if (dx > 0 && dx < range + BOSS.w / 2 && Math.abs((BOSS.y + BOSS.h / 2) - (p.y + p.h / 2)) < BOSS.h / 2 + 10) target = true;
     if (BOSS.kind === 'glitch' && b.run && botRanged()) target = true;
+    // Jackpot Vault: shoot (or roll / punch) the glowing payout button from the left. Use the face of the cabinet, not its center.
+    if (BOSS.kind === 'vault' && dir > 0){
+      const gap = BOSS.x - (p.x + p.w);
+      if (BOSS.open > 0 && gap > -4 && gap < Math.max(range, 28) + 24) target = true;
+      if (BOSS.open > 0 && kind === 'roll' && gap < 26 && gap > -2 && !bot.mel) b.melee = true;
+    }
   }
   // a cage dead ahead: stop and shoot it open instead of hopping over it
   if (firstSolid && firstSolid.c === 'C' && grounded && firstSolid.d < Math.max(40, Math.min(range, 90)) && !nearExplosive){
@@ -5092,6 +5179,7 @@ function botNav(){
   if (G.state === 'title'){ b.right = false; b.run = false; b.start = G.frame % 40 === 0; return b; }
   if (G.state === 'worldclear'){ b.right = false; b.run = false; b.start = !!G.nextWorldLevel && G.stateT > 130 && G.frame % 40 === 0; return b; }
   if (G.state === 'clear' || G.state === 'select'){ b.start = G.frame % 40 === 0; b.right = false; b.run = false; return b; }
+  if (G.state === 'play' && P && P.ctrl === 'truck' && !G.dialog && !P.dead){ const o = botTruck(b); bot.lastJump = o.jump; return o; }
   if (G.state !== 'play' || !P || P.ctrl !== 'normal' || G.dialog){ bot.lastJump = false; b.right = false; return b; }
   const p = P, grounded = p.onGround || !!p.plat;
   const fx = p.x + p.w, feet = p.y + p.h, feetRow = Math.floor((feet - EPS) / TS);
@@ -5099,7 +5187,8 @@ function botNav(){
   if (BOSS && BOSS.kind === 'toaster' && G.dialogDone && !(BOSS.dead && G.escape)){ botToaster(b, grounded, feet); bot.lastJump = b.jump; return b; }
   if (BOSS && BOSS.kind === 'breadlord' && G.dialogDone && !(BOSS.dead && G.escape)){ botBread(b, grounded, feet); bot.lastJump = b.jump; return b; }
   if (BOSS && BOSS.kind === 'repairman' && G.dialogDone && !(BOSS.dead && G.escape)){ botCal(b, grounded, feet); bot.lastJump = b.jump; return b; }
-  if (BOSS && (BOSS.kind === 'hive' || BOSS.kind === 'quartz' || BOSS.kind === 'vault') && G.dialogDone && !(BOSS.dead && G.escape)){ botHive(b, grounded, feet); bot.lastJump = b.jump; return b; }
+  if (BOSS && BOSS.kind === 'vault' && G.dialogDone && !(BOSS.dead && G.escape)){ botVault(b, grounded, feet); bot.lastJump = b.jump; return b; }
+  if (BOSS && (BOSS.kind === 'hive' || BOSS.kind === 'quartz') && G.dialogDone && !(BOSS.dead && G.escape)){ botHive(b, grounded, feet); bot.lastJump = b.jump; return b; }
   // pipes the route needs (marked botDown in the level data)
   if (grounded){ for (const pp of lv.pipes){ if (pp.botDown && pp.dir === 'up' && Math.abs(feet - pp.y * TS) < 0.5 && p.x >= pp.x * TS + 1 && p.x + p.w <= pp.x * TS + 31){ b.down = true; b.right = false; b.run = false; bot.lastJump = false; return b; } } }
   // steer onto a route pipe ahead and stop there
@@ -5309,6 +5398,208 @@ function loop(ts){
   render();
   requestAnimationFrame(loop);
 }
+
+// ---------------- TOAST TRUCK (gameplay; sprites live in js/truck.js) ----------------
+let rides = [];
+function makeToastTruck(spec){
+  const tx = spec.tx, surf = (typeof surfaceRow === 'function' ? surfaceRow(tx) : 13);
+  const ty = spec.ty !== undefined ? spec.ty : surf;
+  return { kind: 'toasttruck', x: tx * TS, y: ty * TS - TRUCK_H, w: TRUCK_W, h: TRUCK_H, vx: 0, vy: 0,
+    facing: 1, onGround: true, hp: TRUCK_HP, inv: 0, heat: 0, spin: 0, aim: 0, jumpBuf: 0, jumpHeld: false,
+    parked: true, wrecked: false, wreckT: 0, flash: 0, driver: null, casings: [], muzzle: 0, hopT: 0 };
+}
+function placeToastTruck(tx, ty){ const t = makeToastTruck({ tx, ty }); rides.push(t); return t; }
+function pickDriver(){
+  const cur = (P && P.bro) || G.curBro || 'toasty';
+  const pool = (save && save.unlocked && save.unlocked.length > 1 ? save.unlocked : BRO_IDS).filter(id => id !== cur);
+  return pool[(Math.abs((G.frame || 0) + (G.rescued || 0) * 7) % Math.max(1, pool.length))] || (BRO_IDS.find(id => id !== cur) || 'skelly');
+}
+function spawnLevelTrucks(){
+  rides = (lv && lv.toastTrucks ? lv.toastTrucks : []).map(s => makeToastTruck(s));
+}
+function truckRiding(){ return !!(P && P.ctrl === 'truck' && P.ride); }
+function truckOf(p){ return p && p.ride; }
+function parkedTruckAt(p){
+  if (!p || p.ctrl !== 'normal' || p.dead) return null;
+  for (const t of rides){ if (t.wrecked || !t.parked) continue; if (overlap(p, { x: t.x - 2, y: t.y, w: t.w + 4, h: t.h + 4 })) return t; }
+  return null;
+}
+function boardTruck(t){
+  if (!t || t.wrecked || !P || P.dead) return;
+  t.parked = false; t.driver = t.driver || pickDriver(); t.flash = 8;
+  P.ctrl = 'truck'; P.ride = t; P.vx = 0; P.vy = 0; P.plat = null; P.anim = 0;
+  seatPlayer(t); A.sfx('rev'); popup(t.x, t.y - 12, 'TOAST TRUCK!', TT_STEEL.Y); G.shake = Math.max(G.shake, 3);
+}
+function dismountTruck(hop){
+  const t = P && P.ride; if (!t || P.ctrl !== 'truck') return;
+  P.ctrl = 'normal'; P.ride = null; P.onGround = t.onGround; P.vx = (hop ? t.facing * 1.4 : t.vx * 0.4); P.vy = hop ? -3.2 : Math.min(t.vy, -1);
+  P.x = t.x + (t.facing > 0 ? 4 : t.w - P.w - 4); P.y = t.y - 2; P.inv = Math.max(P.inv, 40); P.plat = null;
+  t.parked = Math.abs(t.vx) < 0.2 && t.onGround; t.spin = 0; A.sfx('jump');
+}
+function seatPlayer(t){
+  // gunner stands in the bed (rear)
+  P.x = t.facing > 0 ? t.x + 8 : t.x + t.w - 8 - P.w;
+  P.y = t.y - P.h + 10; P.vx = t.vx; P.vy = t.vy; P.facing = t.facing; P.onGround = t.onGround;
+}
+function truckHit(t, amt){
+  t = t || (P && P.ride); if (!t || t.wrecked || t.inv > 0) return;
+  t.hp -= (amt || 1); t.inv = 50; t.flash = 40; G.shake = Math.max(G.shake, 6); A.sfx('clang');
+  burst(t.x + t.w / 2, t.y + 8, 8, [TT_STEEL.M, TT_STEEL.Y, TT_STEEL.W], 1.6);
+  if (t.hp <= 0) wreckTruck(t);
+}
+function wreckTruck(t){
+  if (t.wrecked) return;
+  t.wrecked = true; t.wreckT = 0; t.vx = 0; t.hp = 0; G.shake = 14;
+  boom(t.x + t.w / 2, t.y + t.h / 2, 28, { power: 6, dmg: 0, owner: 'fx' });
+  A.sfx('powerdown'); A.sfx('bosshit'); popup(t.x, t.y - 14, 'TOAST TRUCK: WRECKED!', TT_STEEL.R);
+  if (P && P.ride === t){ P.ctrl = 'normal'; P.ride = null; P.inv = Math.max(P.inv, 90); P.vx = t.facing * -1.2; P.vy = -3.6; P.onGround = false; P.plat = null; P.x = t.x + t.w / 2; P.y = t.y - 4; }
+}
+function truckDrive(){
+  const p = P, t = p.ride; if (!t || t.wrecked){ if (p.ctrl === 'truck') dismountTruck(true); return; }
+  if (t.inv > 0) t.inv--; if (t.flash > 0) t.flash--;
+  const dir = (btn.right ? 1 : 0) - (btn.left ? 1 : 0);
+  const max = 2.85, acc = 0.1, fr = 0.07;
+  if (dir){ t.facing = dir; t.vx += dir * acc; if (Math.abs(t.vx) > max) t.vx = dir * max; }
+  else { const s = Math.sign(t.vx), a = Math.abs(t.vx) - fr; t.vx = a > 0 ? s * a : 0; }
+  if (pressed('jump')) t.jumpBuf = 6; else if (t.jumpBuf > 0) t.jumpBuf--;
+  if (t.onGround && t.jumpBuf > 0){ t.jumpBuf = 0; t.vy = -4.7; t.onGround = false; t.jumpHeld = true; t.hopT = 8; A.sfx('jump'); }
+  if (!btn.jump) t.jumpHeld = false;
+  t.vy += (t.vy < 0 && t.jumpHeld) ? 0.13 : 0.22; if (t.vy > 4.8) t.vy = 4.8;
+  t.x += t.vx; if (collideX(t)) t.vx = 0;
+  t.y += t.vy; t.onGround = false; if (collideY(t)){ if (t.vy >= 0) t.onGround = true; t.vy = 0; }
+  // pit: still an instant loss
+  if (t.y > H + 8){ if (lv.waterFloor) A.sfx('splash'); die(); return; }
+  seatPlayer(t);
+  // aim ±30°
+  if (btn.up) t.aim = Math.max(t.aim - 0.06, -TRUCK_AIM);
+  else if (btn.down) t.aim = Math.min(t.aim + 0.06, TRUCK_AIM);
+  else t.aim *= 0.85;
+  // minigun: hold fire or run. spin-up, casings, light overheat
+  const shooting = btn.fire || btn.run;
+  if (shooting){ t.spin = Math.min(24, t.spin + 1); }
+  else { t.spin = Math.max(0, t.spin - 2); t.heat = Math.max(0, t.heat - 0.6); }
+  if (t.heat > 0 && !shooting) t.heat -= 0.4;
+  if (shooting && t.spin >= 16 && t.heat < 80 && (G.frame % (t.heat > 58 ? 6 : 3) === 0)){
+    fireMinigun(t); t.heat = Math.min(90, t.heat + 3.2); t.muzzle = 3;
+    if (t.heat >= 80){ A.sfx('zap'); popup(t.x + 8, t.y - 10, 'OVERHEAT', TT_STEEL.R); }
+  } else if (t.heat >= 80) t.heat -= 0.8;
+  if (t.muzzle > 0) t.muzzle--;
+  truckCrush(t);
+  if (pressed('special')) dismountTruck(true);
+  camFollowTruck(t);
+}
+function gunMuzzle(t){
+  const bedX = t.facing > 0 ? t.x + 18 : t.x + t.w - 18, bedY = t.y + 4;
+  const ang = t.facing > 0 ? t.aim : Math.PI - t.aim;
+  return { x: bedX + Math.cos(ang) * 16, y: bedY + Math.sin(ang) * 12, ang };
+}
+function fireMinigun(t){
+  const m = gunMuzzle(t), sp = 5.4, spr = (Math.random() - 0.5) * 0.08;
+  shot('mg', m.x, m.y, Math.cos(m.ang + spr) * sp, Math.sin(m.ang + spr) * sp, { w: 5, h: 2, life: 28, dmg: 2, kb: 1.2, terrain: 1, only: ['B', 'C', 'X', '?'], from: 'truck' });
+  t.casings.push({ x: m.x - t.facing * 4, y: m.y + 2, vx: -t.facing * (0.6 + Math.random()), vy: -1.2 - Math.random(), t: 0 });
+  if (t.casings.length > 18) t.casings.shift();
+  A.sfx('fire');
+  parts.push({ x: m.x, y: m.y, vx: Math.cos(m.ang) * 1.2, vy: Math.sin(m.ang) * 1.2, g: 0, life: 6, color: TT_STEEL.Y, size: 2 });
+}
+function truckCrush(t){
+  const box = { x: t.x + 2, y: t.y + 6, w: t.w - 4, h: t.h - 6 };
+  for (const e of enemies){
+    if (e.dead || e === t) continue;
+    if (!overlap(box, e)) continue;
+    const small = (e.h <= 16 && e.w <= 22 && e !== BOSS && !(e.type === 'truck' || e.type === 'gunner' || e.type === 'clawd'));
+    if (small && Math.abs(t.vx) + Math.abs(t.vy) > 0.8){ stomp(e); addScore(200, e.x, e.y - 8); G.shake = Math.max(G.shake, 4); }
+    else if (!t.inv) truckHit(t, 1);
+  }
+  // smash destructible tiles at the bumper (look a couple of pixels ahead: collideX leaves us flush with the face, short of the tile)
+  const face = t.facing > 0 ? t.x + t.w + 2 : t.x - 2;
+  const txs = [Math.floor(face / TS), Math.floor((t.facing > 0 ? t.x + t.w - 1 : t.x) / TS)];
+  const ty0 = Math.floor((t.y + 8) / TS), ty1 = Math.floor((t.y + t.h - 1) / TS);
+  for (const tx of txs) for (let ty = ty0; ty <= ty1; ty++){ const c = tileAt(tx, ty); if (c === 'B' || c === '?' || c === 'C' || c === 'T' || c === 'F' || c === 'W') damageTile(tx, ty, 2); }
+  // acid puddles cost one truck hit
+  const mid = Math.floor((t.x + t.w / 2) / TS), feet = Math.floor((t.y + t.h + 1) / TS);
+  if (tileAt(mid, feet) === 'A' && t.inv <= 0) truckHit(t, 1);
+  // enemy / boss bolts
+  for (const o of bolts){
+    if (o.mine || o.from === 'truck') continue;
+    if (overlap(box, { x: o.x, y: o.y, w: o.w || 6, h: o.h || 6 })){ if (!t.inv) truckHit(t, 1); o.remove = true; }
+  }
+}
+function camFollowTruck(t){
+  if (lv.camLock || G.camLockX !== null){ camX = lv.camLock ? 0 : Math.min(camX, G.camLockX); return; }
+  const want = t.x - 80; camX = Math.max(0, Math.min(want, lv.w * TS - W));
+}
+function updateTrucks(){
+  if (!rides) rides = [];
+  // offer a board at a parked pickup
+  if (P && P.ctrl === 'normal' && !P.dead){
+    const t = parkedTruckAt(P);
+    if (t){ if ((G.frame % 50) === 0) popup(t.x + 4, t.y - 14, 'DOWN : RIDE', TT_STEEL.C);
+      if (pressed('down')) boardTruck(t); }
+  }
+  for (const t of rides){
+    if (t.wrecked){ t.wreckT++; continue; }
+    t.casings = t.casings.filter(c => { c.t++; c.x += c.vx; c.y += c.vy; c.vy += 0.2; return c.t < 40 && c.y < H + 8; });
+    if (P && P.ride === t) continue; // driven in truckDrive / updateCtrl
+    // idle parked / coasting without a driver
+    if (!t.parked){
+      t.vx *= 0.96; t.vy += 0.22; t.x += t.vx; if (collideX(t)) t.vx = 0; t.y += t.vy; t.onGround = false;
+      if (collideY(t)){ if (t.vy >= 0) t.onGround = true; t.vy = 0; }
+      if (t.onGround && Math.abs(t.vx) < 0.15){ t.vx = 0; t.parked = true; }
+      if (t.y > H + 8) t.wrecked = true;
+    }
+    if (t.inv > 0) t.inv--; if (t.flash > 0) t.flash--;
+  }
+  rides = rides.filter(t => !t.wrecked || t.wreckT < 240);
+  if (typeof TouchInput !== 'undefined' && TouchInput.setRide) TouchInput.setRide(truckRiding());
+}
+function drawTrucks(){
+  const art = S.toastTruck; if (!art) return;
+  for (const t of rides){
+    const X = Math.round(t.x - camX), Y = Math.round(t.y);
+    if (X < -70 || X > W + 8) continue;
+    if (t.flash > 0 && (G.frame & 2)) g.filter = 'brightness(1.8)';
+    const body = t.wrecked ? art.wreck : (t.facing > 0 ? art.bodyR : art.bodyL);
+    if (t.facing < 0 && !t.wrecked){ g.save(); g.translate(X + t.w, Y); g.scale(-1, 1); g.drawImage(art.bodyR, 0, 0); g.restore(); }
+    else g.drawImage(body, X, Y);
+    g.filter = 'none';
+    if (!t.wrecked){
+      // plate
+      g.fillStyle = TT_STEEL.I; g.fillRect(X + (t.facing > 0 ? 32 : 8), Y + 14, 17, 5);
+      drawText(g, 'TT', X + (t.facing > 0 ? 35 : 11), Y + 14, TT_STEEL.Y, 1);
+      // driver in the cab
+      if (t.driver && S.bro[t.driver]){ const pr = S.bro[t.driver].portrait; const cx = t.facing > 0 ? X + 34 : X + 8; g.drawImage(pr, cx, Y - 1, 14, 10); }
+      // gunner + minigun in the bed
+      const gx = t.facing > 0 ? X + 10 : X + 28, gy = Y - 6;
+      if (P && P.ride === t && !P.dead){ const fr = broFrame(P.bro, 'stand'); g.drawImage(fr, gx, gy); }
+      g.save(); const px = t.facing > 0 ? X + 18 : X + 36, py = Y + 4; g.translate(px, py); g.rotate(t.facing > 0 ? t.aim : Math.PI - t.aim);
+      g.fillStyle = TT_STEEL.K; g.fillRect(0, -2, 16, 3); g.fillStyle = TT_STEEL.Y; g.fillRect(15, -2, 2, 3);
+      if (t.muzzle){ g.fillStyle = TT_STEEL.W; g.fillRect(16, -3, 5, 5); g.fillStyle = TT_STEEL.Y; g.fillRect(18, -2, 4, 3); }
+      g.restore();
+      // HP pips over the cab
+      for (let i = 0; i < TRUCK_HP; i++){ g.fillStyle = '#000'; g.fillRect(X + 2 + i * 5, Y - 6, 4, 4); g.fillStyle = i < t.hp ? (t.hp <= 2 ? TT_STEEL.R : TT_STEEL.C) : '#2a3046'; g.fillRect(X + 3 + i * 5, Y - 5, 2, 2); }
+      if (t.heat > 50){ const w = Math.min(30, (t.heat / 80) * 30); g.fillStyle = t.heat >= 80 ? TT_STEEL.R : TT_STEEL.Y; g.fillRect(X + 12, Y - 9, w, 1); }
+    }
+    for (const c of t.casings){ g.fillStyle = TT_STEEL.Y; g.fillRect(Math.round(c.x - camX), Math.round(c.y), 2, 1); }
+  }
+}
+function truckState(){
+  const t = (P && P.ride) || rides[0] || null;
+  return { n: rides.length, riding: truckRiding(), parked: t ? !!t.parked : null, hp: t ? t.hp : null, wrecked: t ? !!t.wrecked : null,
+    x: t ? +t.x.toFixed(2) : null, y: t ? +t.y.toFixed(2) : null, vx: t ? +t.vx.toFixed(3) : null, vy: t ? +t.vy.toFixed(3) : null,
+    aim: t ? +t.aim.toFixed(3) : null, heat: t ? +t.heat.toFixed(2) : null, spin: t ? t.spin : null, facing: t ? t.facing : null,
+    driver: t ? t.driver : null, gunner: P ? P.bro : null, inv: t ? t.inv : null };
+}
+function botTruck(b){
+  const t = P && P.ride; if (!t || t.wrecked){ b.special = true; return b; }
+  b.right = t.facing > 0 || true; b.left = false; b.run = true; b.fire = true; b.jump = false; b.special = false;
+  // hop a gap ahead
+  const front = t.facing > 0 ? t.x + t.w + 8 : t.x - 8, row = Math.floor((t.y + t.h + 1) / TS);
+  if (t.onGround && !standable(Math.floor(front / TS), row) && !standable(Math.floor(front / TS) + t.facing, row)) b.jump = !bot.lastJump;
+  if (BOSS && BOSS.active && Math.abs(t.x - BOSS.x) < 80) b.special = true;
+  if (lv.pole && t.x + t.w > lv.pole.tx * TS - 20) b.special = true;
+  return b;
+}
+
 window.TT = {
   G, S, get P(){ return P; }, get lv(){ return lv; }, get LV(){ return LV; }, get camX(){ return camX; }, get enemies(){ return enemies; }, get items(){ return items; },
   get plats(){ return plats; }, get ftoasts(){ return ftoasts; }, get bolts(){ return bolts; }, get patches(){ return patches; }, get BOSS(){ return BOSS; }, get save(){ return save; }, get rockets(){ return rockets; },
@@ -5318,6 +5609,8 @@ window.TT = {
   snap(){ return { state: G.state, level: G.levelId, area: G.area, x: P ? +P.x.toFixed(2) : null, y: P ? +P.y.toFixed(2) : null, vx: P ? +P.vx.toFixed(4) : null, vy: P ? +P.vy.toFixed(4) : null, onGround: P ? P.onGround : null, size: P ? P.size : null, hp: P ? P.hp : null, ctrl: P ? P.ctrl : null, lives: G.lives, coins: G.coins, score: G.score, time: G.time, camX, enemies: enemies.length, deaths: G.deaths, boss: BOSS ? { kind: BOSS.kind, hp: BOSS.hp, state: BOSS.state, dead: BOSS.dead, dying: BOSS.dying, dents: BOSS.dents } : null, boost: P ? P.boost : 0, bro: P ? P.bro : G.curBro, spec: P ? P.spec : 0, rescued: G.rescued, escape: !!G.escape, wall: P ? P.wall : 0 }; },
   warp(tx, ty){ P.x = tx * TS + 2; P.y = (ty !== undefined ? ty : (function(){ if (!isSolid(tx, 14)) return surfaceRow(tx); let y = 14; while (y > 0 && isSolid(tx, y - 1)) y--; return y; })()) * TS - P.h; P.vx = 0; P.vy = 0; P.plat = null; camX = lv.camLock ? 0 : Math.max(0, Math.min(P.x - 100, lv.w * TS - W)); if (G.camLockX !== null) camX = Math.min(camX, G.camLockX); for (const s of lv.spawns) if (s.x * TS < camX) s.done = true; enemies = enemies.filter(e => e.x > camX); },
   give(size){ grow(size); P.morph = 0; }, hurt(){ hurt(); }, die(){ die(); }, get MAX_HP(){ return MAX_HP; },
+  placeTruck(tx, ty){ return placeToastTruck(tx, ty); }, boardTruck(t){ boardTruck(t || rides[0]); }, dismountTruck(){ dismountTruck(true); },
+  truckHit(n){ truckHit((P && P.ride) || rides[0], n || 1); }, truckState(){ return truckState(); }, get rides(){ return rides; },
   clearEnemies(){ enemies = []; for (const s of lv.spawns) s.done = true; },
   tileAt: (x, y) => tileAt(x, y),
   startLevel(id, size){ G.levelId = id; G.checkpoint = false; G.carrySize = size || 0; startLevel(); },

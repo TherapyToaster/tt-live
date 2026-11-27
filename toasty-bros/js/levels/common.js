@@ -55,6 +55,8 @@ function areaTools(A){
     butter: (a, b, row) => A.patchesInit.push({ kind: 'butter', a, b, row: row === undefined ? 13 : row }),
     boost: (tx, row) => A.boosts.push({ tx, row: row === undefined ? 13 : row }),
     decor: (kind, tx, row, extra) => A.decor.push(Object.assign({ kind, tx, row: row === undefined ? 13 : row }, extra || {})),
+    // TOAST TRUCK parking spot (v0.9). Reusable for World 10's moon stretch later.
+    rideTruck: (tx, ty) => { (A.toastTrucks = A.toastTrucks || []).push({ tx, ty }); },
     stone: (x, y) => set(x, y, 'X'),
     // v0.4 Bro helpers
     surface: (x) => { for (let y = 3; y < A.h; y++) if (A.t[y][x] !== '.' && A.t[y][x] !== 'o') return y; return A.h; },

@@ -92,7 +92,7 @@ LEVELS['1-2'] = { id: '1-2', world: 1, num: 2, name: 'TOAST FACTORY', time: 300,
     [[4, 2], [8, 3], [12, 4]].forEach(([x, w]) => Wp.pipe(x - 1, 3, { enter: true, warp: w }));
     Wp.pipe(13, 2, { enter: true, warp: 5 }); // v0.7: channel 5 (SKULLZ BUMBO), a short pipe tucked against the right wall
     Wp.pipe(5, 2, { enter: true, warp: 6 }); // v0.8: channel 6 (MR. TOASTY'S CRYPT), a short pipe between channels 2 and 3 (the drop-in spot at tx 2 stays clear)
-    if (WORLDS[7].built) Wp.pipe(9, 2, { enter: true, warp: 7 }); // v0.9: channel 7 (TOASTY ARCADE), a short pipe between channels 3 and 4
+    Wp.pipe(9, 2, { enter: true, warp: 7 }); // v0.9: channel 7 (TOASTY ARCADE), a short pipe between channels 3 and 4
     Wp.sign(7.5, 4, 'WARP ZONE: PICK A CHANNEL', '#00e5ff');
     // exit street with the Channel Pole
     const exit = newArea('exit', 30, 'overworld', { music: 'w1_over' }), E = areaTools(exit);

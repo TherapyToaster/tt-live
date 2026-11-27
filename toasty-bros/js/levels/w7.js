@@ -3,7 +3,7 @@
 // CRT screens that flicker on and off (7-3); the Jackpot Vault waits in 7-4. Tokens and prize tickets are score only:
 // no cash, no betting, no wallets. Jam is always grape purple. No real brands, no gore.
 'use strict';
-if (WORLDS[7].built) LEVEL_ORDER.push('7-1', '7-2', '7-3', '7-4'); // gated until World 7 ships
+LEVEL_ORDER.push('7-1', '7-2', '7-3', '7-4');
 
 // ---------------- 7-1 The Lobby (pusher shelves: ride the sliding shelves over the token pits; token showers from the ceiling) ----------------
 LEVELS['7-1'] = { id: '7-1', world: 7, num: 1, name: 'THE LOBBY', time: 300, music: 'w7_lobby', start: { area: 'main', tx: 3 }, checkpoint: 100,
@@ -11,6 +11,7 @@ LEVELS['7-1'] = { id: '7-1', world: 7, num: 1, name: 'THE LOBBY', time: 300, mus
     const W = 216, main = newArea('main', W, 'arclobby'), T = areaTools(main);
     const pit = (a, b) => { for (let x = a; x <= b; x++){ T.set(x, 13, '.'); T.set(x, 14, '.'); } };
     T.ground(0, W - 1);
+    T.rideTruck(0); T.sign(0, 8, 'TOAST TRUCK  -  DOWN TO RIDE', '#FFD400');
     T.sign(5, 7, 'RIDE THE PUSHER SHELVES!', '#FFD400'); T.decor('neon7', 4, 3, { text: 'TOASTY ARCADE' }); T.decor('cabinet', 11, 13, { v: 0 }); T.decor('mirrorball', 20, 4);
     T.en('ttoken', 16); T.q(20, 9, 'streak'); T.decor('pusherbox', 22, 13); T.tix(14, 18, 11); T.fig(20, 5); // a mini figure on top of the first prize machine's bump
     pit(30, 36); T.pusher(30, 3, 13, 4, 0); // pusher pit #1
@@ -81,7 +82,8 @@ LEVELS['7-4'] = { id: '7-4', world: 7, num: 4, name: 'CASTLE JACKPOT VAULT', tim
     T.claw(64, 3, 12, 6.5, 7, 40); T.fill(69, 70, 6, 12, 'X'); T.fig(70, 5); // a claw crane over a vault-steel wall
     T.en('ttoken', 80); T.decor('crtwall', 82, 13, { n: 2 }); T.q(88, 9, 'jam'); T.cage(92); T.en('sghost', 96, 8);
     pit(102, 112); T.crt(103, 104, 13, 0); T.crt(106, 107, 13, 1); T.crt(109, 110, 13, 0); T.crtZone(102, 112); // a CRT crossing
-    T.en('tsnake', 120); T.decor('banner7', 124, 4, { w: 64, text: 'JACKPOT VAULT' }); T.en('ccrab', 130); T.q(136, 9, 'streak'); T.gas(140); T.en('ttoken', 146); T.cage(150); T.fig(152, 9); T.tank(154);
+    T.en('tsnake', 120); T.decor('banner7', 124, 4, { w: 64, text: 'JACKPOT VAULT' }); T.rideTruck(122); T.sign(123, 8, 'RIDE TO THE VAULT', '#00f0ff');
+    T.en('ccrab', 130); T.q(136, 9, 'streak'); T.gas(140); T.en('ttoken', 146); T.cage(150); T.fig(152, 9); T.tank(154);
     // boss arena (one screen, camera locks at tx 160): the vault floor
     T.fill(176, 177, 2, 12, 'S'); main.escapeWall = { x0: 176, x1: 177, y0: 2, y1: 12 };
     T.decor('mirrorball', 164, 4); T.decor('bulbs', 160, 3, { w: 96 }); T.decor('beams', 166, 0);

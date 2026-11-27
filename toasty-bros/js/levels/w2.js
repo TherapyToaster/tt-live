@@ -8,7 +8,7 @@ LEVELS['2-1'] = { id: '2-1', world: 2, num: 1, name: 'MONDAY ERRANDS', time: 300
   build(){
     const W = 212, main = newArea('main', W, 'suburb'), T = areaTools(main);
     T.ground(0, 62); T.ground(66, 112); T.ground(116, 162); T.ground(166, W - 1);
-    T.decor('truck', 0); // Coty's Toaster Truck, parked at the curb (plate: THERAPY TOASTER)
+    T.rideTruck(0); T.sign(1, 8, 'TOAST TRUCK  -  DOWN TO RIDE', '#FFD400'); // parked left of the start (tx 9)
     T.q(14, 9); T.br(17, 9); T.q(18, 9, 'power'); T.br(19, 9); T.q(20, 9); T.br(21, 9); T.q(19, 5, 'coin');
     T.boost(25); T.en('crumb', 30); T.en('crumb', 33);
     T.decor('sign', 37, 13, { text: 'NO TRUCKS ON MONDAYS', color: '#FFD400' });

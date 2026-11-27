@@ -167,6 +167,13 @@ const TouchInput = (function(){
     window.addEventListener('blur', release); window.addEventListener('pagehide', release);
     document.addEventListener('visibilitychange', () => { if (document.hidden) release(); });
   }
+  function setRide(on){
+    const bS = btns.find(b => (b.dataset.keys || '') === 'special');
+    if (!bS) return;
+    bS.textContent = on ? 'OUT' : 'S';
+    bS.setAttribute('aria-label', on ? 'dismount' : 'special');
+    bS.classList.toggle('ride', !!on);
+  }
   if (document.body) init(); else document.addEventListener('DOMContentLoaded', init);
-  return { state, poll, release, fit, safe, stats, get active(){ return !!root; }, get portrait(){ return portrait; }, get touches(){ return owners.size; } };
+  return { state, poll, release, fit, safe, stats, setRide, get active(){ return !!root; }, get portrait(){ return portrait; }, get touches(){ return owners.size; } };
 })();
