@@ -130,6 +130,12 @@ function areaTools(A){
     gold: (x, y, kind) => (A.golds = A.golds || []).push({ x, y, kind: kind || 'pat', spawned: false }),
     grill: (a, b, ty, phase) => (A.grills = A.grills || []).push({ a, b, ty: ty === undefined ? 13 : ty, phase: phase || 0 }),
     strike: (tx, period, phase) => (A.strikes = A.strikes || []).push({ tx, period: period || 150, phase: phase || 0 }),
+    // v1.2 World 10: TherapyToaster to Mars
+    fuel: (x, y) => (A.fuels = A.fuels || []).push({ x, y, spawned: false }),
+    vent: (tx, period, phase, h) => (A.vents = A.vents || []).push({ tx, period: period || 160, phase: phase || 0, h: h || 4 }),
+    meteor: (tx, period, phase) => (A.meteors = A.meteors || []).push({ tx, period: period || 170, phase: phase || 0 }),
+    comm: (tx, text) => (A.comms = A.comms || []).push({ tx, text, done: false }),
+    sep: (warnTx, sepTx) => { A.sep = { warnTx, sepTx, state: 'idle', t: 0 }; },
     brawl: (tx, waves) => (A.brawls = A.brawls || []).push({ tx, waves, wave: -1, active: false, done: false, t: 0, ids: [] }),
   };
   return T;

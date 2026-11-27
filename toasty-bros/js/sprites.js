@@ -249,6 +249,7 @@ function buildTileset(name){
   // World 8 uses theme tile colors (glossy steel / neon speckles); flag the tileset so inFeed() works.
   if (th.feed) ts.feed = true;
   if (th.bite) ts.bite = true; // v1.1 World 9: Final Bite (bite.js)
+  if (th.mars) ts.mars = true; // v1.2 World 10: TherapyToaster to Mars (mars.js)
   return (_tilesets[name] = ts);
 }
 // ---------- new enemies ----------
@@ -298,6 +299,7 @@ function buildSprites(){
   if (typeof buildArcadeSprites === 'function') S.arcade = buildArcadeSprites(); // v0.9 World 7
   if (typeof buildFeedSprites === 'function') S.feed = buildFeedSprites(); // v1.0 World 8
   if (typeof buildBiteSprites === 'function') S.bite = buildBiteSprites(); // v1.1 World 9
+  if (typeof buildMarsSprites === 'function') S.mars = buildMarsSprites(); // v1.2 World 10
   if (typeof buildPitSprites === 'function'){ S.pit = buildPitSprites(); S.debtTable = buildDebtTable(false); S.debtTableBurnt = buildDebtTable(true); }
   return S;
 }

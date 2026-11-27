@@ -1,5 +1,5 @@
 // World registry for Mr. Toasty: Toasty Bros. One entry per world (studio lore in /workspace/toasty-bros/lore/).
-// Worlds 1-9 are built; World 10 carries its palette, roster, boss and music hooks for a later milestone.
+// All 10 worlds are built (v1.2: World 10 TherapyToaster to Mars, the final world).
 'use strict';
 const WORLDS = [null,
   { n: 1, name: 'NO SIGNAL SKULLZ', built: true, levels: ['1-1', '1-2', '1-3', '1-4'],
@@ -49,8 +49,11 @@ const WORLDS = [null,
     music: { over: 'w9_street', diner: 'w9_diner', ave: 'w9_ave', castle: 'w9_lot', boss: 'w9_boss' },
     clear: ['GRAND PRIZE. EAT IT.', 'FINAL BITE: HE ATE THE TRUCK.'], tease: 'THERAPYTOASTER TO MARS: NEXT CHANNEL...' },
   // World 10 display name (Coty's pick): "TherapyToaster to Mars". The game font is all caps. Change it only here.
-  { n: 10, name: 'THERAPYTOASTER TO MARS', display: 'TherapyToaster to Mars', built: false, palette: ['#07080c', '#ece8e1', '#d7dbe3', '#d7c36a', '#c5c6cc'],
-    roster: ['LAUNCH TOWER', 'DECOY CRATERS', 'LOW FUEL'], boss: 'YELLOW BLANKEY / CYBER_BOY', music: { over: 'w10_mission' } },
+  { n: 10, name: 'THERAPYTOASTER TO MARS', display: 'TherapyToaster to Mars', built: true, levels: ['10-1', '10-2', '10-3', '10-4'],
+    palette: ['#07080c', '#12141a', '#1a1d26', '#ece8e1', '#8b909c', '#2a2e38', '#d7dbe3', '#d7c36a', '#c5c6cc'],
+    roster: ['SECURITY DRONE', 'CRATER CRAWLER', 'ENGINE VENTS', 'METEOR SHOWERS', 'LAUNCH TOWER', 'DECOY CRATERS', 'LOW FUEL'], boss: 'YELLOW BLANKEY / CYBER_BOY',
+    music: { over: 'w10_pad', moon: 'w10_moon', ship: 'w10_ship', flight: 'w10_flight', castle: 'w10_mars', boss: 'w10_boss', credits: 'w10_credits' },
+    clear: ['TUCKED IN. LOGGED OFF.', 'THERAPYTOASTER TO MARS: MADE IT.'], tease: 'THE END. THANKS FOR PLAYING.' },
 ];
 // Visual themes (tileset + background). Levels pick one per area.
 const THEMES = {
@@ -207,6 +210,31 @@ const THEMES = {
     ground: { base: '#2a2430', mortar: '#12080f', hi: '#4a4458', speck: ['#5a2a7a', '#d7c3c8'], top: '#6a6070', topNoise: ['#d7c3c8', '#f4e8ff', '#ff2d8a'] },
     brick: { base: '#6a6070', mortar: '#12080f', hi: '#9a90a0', lo: '#3a3440', dots: ['#ff2d8a', '#f5c14a'] },
     solid: { edge: '#12080f', base: '#6a6070', hi: '#d7c3c8', lo: '#3a3440', mid: '#8a8090', dark: '#2a2430' } },
+  // ---- v1.2 World 10: TherapyToaster to Mars (mars: true -> mars.js) ----
+  mpad: { bg: 'mpad', mars: true, sky: ['#2a3a5a', '#e8a26a'],
+    ground: { base: '#3a3e48', mortar: '#12141a', hi: '#5a5e6a', speck: ['#d7c36a', '#8b909c'], top: '#8b909c', topNoise: ['#d7dbe3', '#ece8e1', '#d7c36a'] },
+    brick: { base: '#8b909c', mortar: '#12141a', hi: '#d7dbe3', lo: '#5a5e6a', dots: ['#d7c36a', '#ece8e1'] },
+    solid: { edge: '#12141a', base: '#8b909c', hi: '#d7dbe3', lo: '#4a4e5a', mid: '#c5c6cc', dark: '#2a2e38' } },
+  mmoon: { bg: 'mmoon', mars: true, sky: ['#07080c', '#12141a'],
+    ground: { base: '#5a5c62', mortar: '#2a2c32', hi: '#8a8c92', speck: ['#c5c6cc', '#3a3c42'], top: '#b0b2b8', topNoise: ['#d7dbe3', '#8b909c', '#ece8e1'] },
+    brick: { base: '#8b909c', mortar: '#2a2c32', hi: '#d7dbe3', lo: '#5a5c62', dots: ['#d7c36a', '#c5c6cc'] },
+    solid: { edge: '#1a1d26', base: '#7a7c82', hi: '#c5c6cc', lo: '#4a4c52', mid: '#9a9ca2', dark: '#2a2c32' } },
+  mship: { bg: 'mship', mars: true, sky: ['#12141a', '#1a1d26'],
+    ground: { base: '#2a2e38', mortar: '#07080c', hi: '#4a4e5a', speck: ['#d7c36a', '#8b909c'], top: '#c5c6cc', topNoise: ['#ece8e1', '#d7dbe3', '#d7c36a'] },
+    brick: { base: '#8b909c', mortar: '#07080c', hi: '#d7dbe3', lo: '#4a4e5a', dots: ['#d7c36a', '#ece8e1'] },
+    solid: { edge: '#07080c', base: '#9aa0ac', hi: '#ece8e1', lo: '#5a5e6a', mid: '#c5c6cc', dark: '#2a2e38' } },
+  morbit: { bg: 'morbit', mars: true, sky: ['#07080c', '#07080c'],
+    ground: { base: '#2a2e38', mortar: '#07080c', hi: '#4a4e5a', speck: ['#d7c36a', '#8b909c'], top: '#c5c6cc', topNoise: ['#ece8e1', '#d7dbe3', '#d7c36a'] },
+    brick: { base: '#8b909c', mortar: '#07080c', hi: '#d7dbe3', lo: '#4a4e5a', dots: ['#d7c36a', '#ece8e1'] },
+    solid: { edge: '#07080c', base: '#c5c6cc', hi: '#ece8e1', lo: '#8b909c', mid: '#d7dbe3', dark: '#4a4e5a' } },
+  mland: { bg: 'mland', mars: true, sky: ['#3a1a14', '#c86a3a'],
+    ground: { base: '#7a3a22', mortar: '#3a1a10', hi: '#a85a36', speck: ['#d88a5a', '#4a2414'], top: '#c8784a', topNoise: ['#e8a070', '#a85a36', '#f0e0d0'] },
+    brick: { base: '#a85a36', mortar: '#3a1a10', hi: '#d88a5a', lo: '#6a3018', dots: ['#d7c36a', '#f0e0d0'] },
+    solid: { edge: '#2a1008', base: '#8a4a2a', hi: '#d88a5a', lo: '#5a2a16', mid: '#a85a36', dark: '#3a1a10' } },
+  mcastle: { bg: 'mcastle', mars: true, sky: ['#1a0a10', '#6a2a1a'],
+    ground: { base: '#4a2016', mortar: '#1a0a08', hi: '#6a3020', speck: ['#ffd21a', '#d88a5a'], top: '#8a4a2a', topNoise: ['#d88a5a', '#ffd21a', '#f0e0d0'] },
+    brick: { base: '#7a3a22', mortar: '#1a0a08', hi: '#a85a36', lo: '#4a2016', dots: ['#ffd21a', '#00e5ff'] },
+    solid: { edge: '#1a0a08', base: '#6a5a58', hi: '#c5c6cc', lo: '#3a2a28', mid: '#8b7a78', dark: '#2a1a18' } },
   fortress: { bg: 'fortress', toon: true, sky: ['#ff9a6a', '#ffd8a0'],
     ground: { top: '#b8c6d8', topLight: '#e8f0fa', topDark: '#7e8ea6', base: '#5a6a80', light: '#6e7e96', dark: '#3e4a5c', steel: true },
     brick: { base: '#c86a3a', light: '#e8925a', dark: '#8e4626' }, solid: { base: '#8a96a8', light: '#c0cad8', dark: '#5a6476' } },

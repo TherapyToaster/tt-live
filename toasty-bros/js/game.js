@@ -28,7 +28,7 @@ const A = AudioSys;
 // ---------------- save data ----------------
 const SAVE_KEY = 'toastyBros.save.v1';
 function loadSave(){
-  const d = () => ({ furthest: '1-1', hi: 0, worldsCleared: [], unlocked: ['toasty'], startBro: 'toasty' });
+  const d = () => ({ furthest: '1-1', hi: 0, worldsCleared: [], unlocked: ['toasty'], startBro: 'toasty', beaten: false });
   let s; try { s = Object.assign(d(), JSON.parse(localStorage.getItem(SAVE_KEY) || '{}')); } catch (e) { s = d(); }
   if (!Array.isArray(s.unlocked) || !s.unlocked.length) s.unlocked = ['toasty'];
   s.unlocked = BRO_IDS.filter(id => s.unlocked.includes(id) || id === 'toasty');
@@ -112,7 +112,7 @@ function newPlayer(x, y){
 }
 function newGame(levelId){
   G.score = 0; G.coins = 0; G.lives = 3; G.carrySize = 0; G.checkpoint = false; G.levelId = levelId || '1-1'; G.deaths = 0;
-  G.curBro = save.unlocked.includes(save.startBro) ? save.startBro : 'toasty'; G.reserve = []; G.rescued = 0; G.kills = 0;
+  G.curBro = save.unlocked.includes(save.startBro) ? save.startBro : 'toasty'; G.reserve = []; G.rescued = 0; G.kills = 0; G.fuelBank = 0;
   G.state = 'intro'; G.stateT = 0;
 }
 
@@ -130,6 +130,7 @@ function enterArea(name){
     if (typeof spawnLevelTrucks === 'function') spawnLevelTrucks();
     if (typeof feedEnter === 'function') feedEnter();
     if (typeof biteEnter === 'function') biteEnter(); // v1.1 World 9 gold pats
+    if (typeof marsEnter === 'function') marsEnter(); // v1.2 World 10 fuel cans
   }
   magCoins = []; rockets = []; parts = []; coinpops = []; ftoasts = []; shots = []; booms = []; rings = []; turrets = [];
   if (!lv.cageBro){ lv.cageBro = {}; lv.dmg = {}; const locked = BRO_IDS.filter(id => !save.unlocked.includes(id)); let li = 0;
@@ -160,6 +161,8 @@ function startLevel(){
   G.figs = 0; G.tix = 0; G.showers = 0; G.tokens7 = 0; G.shoves = 0; G.pushRides = 0; G.clawRides = 0; G.clawGrabs = 0; G.crtHops = 0; G.streaks = 0; G.vaultDown = false; G.vaultHits = 0; G.vaultWaves = 0; G.vaultHaz = 0; arcFx = []; arcToks = []; // v0.9 World 7
   G.combo = 0; G.comboT = 0; G.comboMax = 0; G.snacks = 0; G.craveHits = 0; G.craveId = (typeof SNACKS !== 'undefined' ? SNACKS[0].id : 'burger'); G.pestStomps = 0; G.coolHits = 0; G.gooHits = 0; G.beltRides = 0; G.feedHits = 0; G.fatDown = false; G.fatSlams = 0; G.fatWaves = 0; G.fatHaz = 0; feedFx = []; // v1.0 World 8
   G.brawl = null; G.brawls = 0; G.clears = 0; G.kos = 0; G.punkStomps = 0; G.butterStomps = 0; G.golds = 0; G.goldHeals = 0; G.grillHits = 0; G.strikeHits = 0; G.flash9 = 0; G.ttDown = false; G.ttHits = 0; G.ttHaz = 0; G.ttCharges = 0; G.ttHorns = 0; G.ttToasts = 0; G.ttWaves = 0; // v1.1 World 9
+  G.fl = null; G.comm = null; G.sepFx = null; G.ventHits = 0; G.meteorHits = 0; G.marsKOs = 0; G.marsStomps = 0; G.comms = 0; G.seps = 0; G.sepHits = 0; G.docks = 0; G.dockGrade = null; G.landGrade = null; G.lands = 0; G.landHits = 0; G.flCrashes = 0; G.lowFuel = 0; G.fuelCans = 0; G.bbDown = false; G.bbHits = 0; G.bbHaz = 0; G.bbLasers = 0; G.bbCharges = 0; G.bbZaps = 0; G.bbWaves = 0; G.bbFlops = 0; G.bbDrops = 0; G.bbOpens = 0; G.bbPhases = 1; // v1.2 World 10
+  if (typeof marsStart === 'function') marsStart(); // v1.2 World 10: flight start / truck start / two-area checkpoints
   BOSS = lv.boss ? makeBoss(lv.boss) : null;
   reach(G.levelId);
   A.startMusic(lv.music || LV.music);
@@ -175,6 +178,7 @@ function levelComplete(){
     if (!save.worldsCleared.includes(LV.world)) save.worldsCleared.push(LV.world);
     G.clearedWorld = LV.world; G.clearedId = G.levelId; G.nextWorldLevel = next || null;
     if (next){ G.levelId = next; reach(next); }
+    if (!next && LV.world === 10){ writeSave(); G.state = 'ending'; G.stateT = 0; A.stopMusic(); A.sfx('final10'); return; } // v1.2 the final world: ending -> credits -> THANKS FOR PLAYING
     writeSave(); G.state = 'worldclear'; G.stateT = 0; A.stopMusic(); A.sfx('worldclear');
   }
 }
@@ -484,6 +488,7 @@ function updateCtrl(){
   const p = P;
   switch (p.ctrl){
     case 'truck': truckDrive(); break; // v0.9 TOAST TRUCK
+    case 'flight': marsFlight(); break; // v1.2 docking / landing
     case 'claw': arcadeClawCarry(); break; // v0.9 a Claw Drop carries you back
     case 'pipeDown':
       p.y += 1; p.ctrlT++;
@@ -592,6 +597,7 @@ function spawnEnemies(){
       if (ARCADE_TYPES.has(s.type)) arcadeInit(e, s); // v0.9 World 7
       if (FEED_TYPES.has(s.type)) feedInit(e, s); // v1.0 World 8
       if (BITE_TYPES.has(s.type)) biteInit(e, s); // v1.1 World 9
+      if (MARS_TYPES.has(s.type)) marsInit(e, s); // v1.2 World 10
     }
   }
 }
@@ -630,6 +636,7 @@ function updateEnemy(e){
   if (ARCADE_TYPES.has(e.type)){ updateArcadeEnemy(e, dx, dy); return; }
   if (FEED_TYPES.has(e.type)){ updateFeedEnemy(e, dx, dy); return; }
   if (BITE_TYPES.has(e.type)){ updateBiteEnemy(e, dx, dy); return; }
+  if (MARS_TYPES.has(e.type)){ updateMarsEnemy(e, dx, dy); return; } // v1.2
   if (e.type === 'toast' && inPit() && e.anim % 3 === 0){ (e.trail = e.trail || []).push({ x: e.x, y: e.y }); if (e.trail.length > 5) e.trail.shift(); }
   if (e.type === 'truck' || e.type === 'skel' || e.type === 'rlaunch' || e.type === 'gunner'){ updateW2Enemy(e, dx, dy); return; }
   if (e.type === 'rifle'){ updateRifle(e, dx, dy); }
@@ -766,6 +773,7 @@ function playerVsEnemies(){
     if (ARCADE_TYPES.has(e.type) && arcadeContact(e)) continue; // v0.9
     if (FEED_TYPES.has(e.type) && feedContact(e)) continue; // v1.0
     if (BITE_TYPES.has(e.type) && biteContact(e)) continue; // v1.1
+    if (MARS_TYPES.has(e.type) && marsContact(e)) continue; // v1.2
     if (BUMBO_TYPES.has(e.type) && bumboContact(e)) continue; // v0.7: the foil puppet shoves, a zapping Cord Snake burns
     if (P.star > 0){ if (DINER_TYPES.has(e.type) && dinerDeath(e, {})) continue; killFlip(e); addScore(200, e.x, e.y - 8); continue; }
     const prevBottom = P.prevY + P.h;
@@ -893,12 +901,13 @@ function hazards(){
   if (inArcade()) arcadeHazards();
   if (inFeed()) feedHazards();
   if (inBite() || (BOSS && BOSS.kind === 'ttruck')) biteHazards();
+  if (inMars() || (BOSS && BOSS.kind === 'blankey')) marsHazards(); // v1.2
 }
 
 // ---------------- items & rockets ----------------
 function updateItem(it){
   if (it.emerge > 0){ it.y -= 0.5; it.emerge -= 0.5; return; }
-  if (it.type === 'crave' || it.type === 'gold'){ it.vx = 0; it.vy = 0; it.y = (it.y0 != null ? it.y0 : it.y) + Math.sin((G.frame + it.x) * 0.15) * 1.5; }
+  if (it.type === 'crave' || it.type === 'gold' || it.type === 'fuel'){ it.vx = 0; it.vy = 0; it.y = (it.y0 != null ? it.y0 : it.y) + Math.sin((G.frame + it.x) * 0.15) * 1.5; }
   else if (it.type === 'launcher' || it.type === 'ammo'){ it.vy = Math.min(it.vy + 0.3, 4); it.y += it.vy; collideY(it); }
   else {
     it.vy = Math.min(it.vy + (it.type === 'glitch' ? 0.2 : 0.3), 4);
@@ -923,6 +932,7 @@ function updateItem(it){
     else if (it.type === 'lightbar'){ P.boost = 300; G.flash = 12; addScore(1000, cx, cy); A.sfx('lightbar'); popup(cx - 30, cy - 10, '850HP LIGHTBAR!', '#FFD400'); }
     else if (it.type === 'crave'){ feedPickup(it); }
     else if (it.type === 'gold'){ bitePickup(it); }
+    else if (it.type === 'fuel'){ marsPickup(it); } // v1.2
     G.lastPickup = it.type;
   }
 }
@@ -1046,6 +1056,7 @@ function bossChip(dmg){
   if (b.kind === 'vault' && !(b.open > 0)){ vaultClink(); return; } // v0.9 the Vault only takes hits while its payout button glows
   if (b.kind === 'fatcoty' && !(b.open > 0)){ fatCotyClink(); return; } // v1.0 Fat Coty only takes hits while he is craving
   if (b.kind === 'ttruck' && !(b.open > 0)){ ttClink(); return; } // v1.1 the Therapy Toaster only takes hits while it's stalled
+  if (b.kind === 'blankey' && !(b.open > 0)){ bbClink(); return; } // v1.2 the final boss only takes hits while it naps / reboots
   const need = b.kind === 'glitch' ? 6 : 5;
   if (b.flash > 0){ b.chip = Math.min(need - 0.01, (b.chip || 0) + dmg * 0.25); return; }
   b.chip = (b.chip || 0) + dmg;
@@ -1070,7 +1081,7 @@ function damageEnemy(e, dmg, kb, src){
   if (DINER_TYPES.has(e.type) && dinerDeath(e, src)) return true;
   if (BUMBO_TYPES.has(e.type) && bumboDeath(e, src)) return true;
   if (CRYPT_TYPES.has(e.type) && cryptDeath(e, src)) return true;
-  killFlip(e); G.kills++; if (DINER_TYPES.has(e.type)) dinerKill(e); if (BUMBO_TYPES.has(e.type)) bumboKill(e); if (CRYPT_TYPES.has(e.type)) cryptKill(e); if (ARCADE_TYPES.has(e.type)) arcadeKill(e); if (FEED_TYPES.has(e.type)) feedKill(e); if (BITE_TYPES.has(e.type)) biteKill(e);
+  killFlip(e); G.kills++; if (DINER_TYPES.has(e.type)) dinerKill(e); if (BUMBO_TYPES.has(e.type)) bumboKill(e); if (CRYPT_TYPES.has(e.type)) cryptKill(e); if (ARCADE_TYPES.has(e.type)) arcadeKill(e); if (FEED_TYPES.has(e.type)) feedKill(e); if (BITE_TYPES.has(e.type)) biteKill(e); if (MARS_TYPES.has(e.type)) marsKill(e);
   addScore(e.type === 'gunner' || e.type === 'truck' ? 500 : e.type === 'rifle' || e.type === 'toast' ? 300 : 100, e.x, e.y - 8);
   burst(e.x + e.w / 2, e.y + e.h / 2, 8, JAM, 1.8, 26); burst(e.x + e.w / 2, e.y + e.h / 2, 5, ['#c8741e', '#f4c860'], 1.5, 22);
   if (e.type === 'rifle' || e.type === 'gunner' || e.type === 'goon'){ const it = spawnItem('ammo', e.x, e.y - 4); it.emerge = 0; it.vy = -3; }
@@ -1243,7 +1254,7 @@ function rollHit(p){
   for (const e of enemies) if (!e.dead && overlap(box, e)){ damageEnemy(e, 4, p.facing * 5); p.roll = 0; p.vx = -p.facing * 1.6; p.vy = -2.8; p.onGround = false; p.plat = null; p.inv = Math.max(p.inv, 24); A.sfx('kick'); return; } // bonk: hit once and hop off
   const tx = Math.floor((p.facing > 0 ? p.x + p.w + 1 : p.x - 1) / TS), ty = Math.floor((p.y + p.h / 2) / TS);
   const c = tileAt(tx, ty); if (c === 'C') freeCage(tx, ty); else if (c === 'B') damageTile(tx, ty, 1);
-  if (BOSS && (BOSS.kind === 'hive' || BOSS.kind === 'quartz' || BOSS.kind === 'vault' || BOSS.kind === 'fatcoty' || BOSS.kind === 'ttruck') && BOSS.active && !BOSS.dying && overlap(box, BOSS)){ bossChip(5); p.roll = 0; p.vx = -p.facing * 2.2; p.vy = -3.2; p.onGround = false; p.plat = null; p.inv = Math.max(p.inv, 40); A.sfx('kick'); return; } // v0.7: bonk off the Hive
+  if (BOSS && (BOSS.kind === 'hive' || BOSS.kind === 'quartz' || BOSS.kind === 'vault' || BOSS.kind === 'fatcoty' || BOSS.kind === 'ttruck' || BOSS.kind === 'blankey') && BOSS.active && !BOSS.dying && overlap(box, BOSS)){ bossChip(5); p.roll = 0; p.vx = -p.facing * 2.2; p.vy = -3.2; p.onGround = false; p.plat = null; p.inv = Math.max(p.inv, 40); A.sfx('kick'); return; } // v0.7: bonk off the Hive
   if (BOSS && BOSS.active && !BOSS.dying && overlap(box, BOSS) && p.roll % 6 === 0) bossChip(2);
 }
 function updateTurrets(){
@@ -4191,6 +4202,598 @@ function drawBiteEnemy(e, X){
   return true;
 }
 
+// ================= v1.2 WORLD 10: THERAPYTOASTER TO MARS =================
+// The final world (lore: lore/originals.md flight + landing, blended with platforming). Security drones and crater
+// crawlers, engine vents, meteor showers, fuel cans, ACID on comms, a timed launch window (10-1), a TOAST TRUCK drive
+// on the Moon (10-2), a docking trial + booster separation (10-3), a graded Mars landing (10-4) and the final boss
+// YELLOW BLANKEY / CYBER_BOY. Then the ending, the credits and THANKS FOR PLAYING (save.beaten).
+// Every hazard is 1 heart; pits and the timer stay instant. No agency or rocket-company names or logos.
+Object.assign(EDEF, { drone10: { w: 14, h: 10, hp: 1 }, crawl10: { w: 14, h: 10, hp: 2 } });
+const MARS_TYPES = new Set(['drone10', 'crawl10']);
+const MARS_THEMES = ['mpad', 'mmoon', 'mship', 'morbit', 'mland', 'mcastle'];
+function inMars(){ return !!(TSET && TSET.mars); }
+function marsCycle(o, f, warn, act){
+  const per = o.period || 160, t = ((f === undefined ? G.lf : f) + (o.phase || 0)) % per;
+  if (t < per - warn - act) return { ph: 'off', left: per - warn - act - t };
+  if (t < per - act) return { ph: 'warn', left: per - act - t };
+  return { ph: 'on', left: per - t };
+}
+function ventState(v, f){ return marsCycle(v, f, 34, 30); }
+function meteorState(m, f){ return marsCycle(m, f, 44, 14); }
+function marsEnter(){
+  if (!lv || !lv.fuels) return;
+  for (const c of lv.fuels){
+    if (c.spawned) continue; c.spawned = true;
+    const it = spawnItem('fuel', c.x * TS, c.y * TS); it.emerge = 0; it.vx = 0; it.vy = 0; it.y0 = it.y; it.w = 12; it.h = 12;
+  }
+}
+function marsHurt(){ // hurt() ignores non-normal control (flight); a crash still costs exactly 1 heart
+  if (!P || P.dead || P.inv > 0) return false;
+  const c = P.ctrl; P.ctrl = 'normal'; hurt(); if (!P.dead && G.state === 'play') P.ctrl = c; return true;
+}
+function marsStart(){
+  if (!LV || LV.world !== 10 || !P) return;
+  G.fl = null; G.comm = null; G.sepFx = null; G.landGrade = G.landGrade || null;
+  // checkpoint respawns in a two-area level go straight to the main area
+  if (G.checkpoint && LV.cpArea && G.area !== LV.cpArea){
+    enterArea(LV.cpArea);
+    let stx = LV.checkpoint - 2; while (stx > 1 && surfaceRow(stx) >= 15) stx--;
+    P.x = stx * TS + 2; P.y = surfaceRow(stx) * TS - P.h; P.vx = 0; P.vy = 0;
+    camX = lv.camLock ? 0 : Math.max(0, Math.min(P.x - 40, lv.w * TS - W));
+    for (const s of lv.spawns) if (s.x * TS < camX + 8 || (s.x >= stx && s.x <= stx + 6)) s.done = true;
+    for (const c of (lv.comms || [])) if (c.tx < stx) c.done = true;
+  }
+  if (lv.flight) flightBegin();
+  if (LV.startTruck && rides && rides[0] && P.ctrl === 'normal') boardTruck(rides[0]);
+}
+// ---- flight (docking 10-3, landing 10-4) ----
+function flightBegin(){
+  const f = lv.flight;
+  const bonus = f.mode === 'land' ? Math.min(30, (G.fuelBank || 0) * 5) : 0;
+  G.fl = { mode: f.mode, fuel: f.fuel + bonus, fuelMax: f.fuel + bonus, t: 0, done: false, doneT: 0, grade: null, crashes: 0, thr: {}, lowFuel: 0, wp: 0 };
+  P.ctrl = 'flight'; P.x = f.sx; P.y = f.sy; P.vx = f.svx || 0; P.vy = 0; P.onGround = false; P.plat = null; P.facing = 1; camX = 0;
+  G.comm = { text: f.mode === 'dock' ? 'ACID: DOCKING. SLOW IS SMOOTH. SMOOTH IS FAST.' : 'ACID: TEXTBOOK OR DEAD STICK. YOUR CALL.', t: 0 };
+}
+function flightReset(){ const f = lv.flight; P.x = f.sx; P.y = f.sy; P.vx = f.svx || 0; P.vy = 0; G.fl.wp = 0; }
+function flightCrash(text){
+  const fl = G.fl; fl.crashes++; G.flCrashes = (G.flCrashes || 0) + 1;
+  popup(P.x - 20, P.y - 12, text, M10.RED); burst(P.x + 6, P.y + 8, 12, [M10.FLAME, M10.CHROME, '#ffffff'], 2); A.sfx('crash9'); G.shake = 8;
+  if (fl.mode === 'land') fl.fuel = Math.max(fl.fuel, 40);
+  const ok = marsHurt(); if (P.dead || G.state !== 'play') return;
+  if (!ok) P.inv = Math.max(P.inv, 30);
+  flightReset();
+}
+function marsFlight(){
+  const p = P, fl = G.fl, f = lv.flight; if (!fl || !f){ p.ctrl = 'normal'; return; }
+  if (p.inv > 0) p.inv--; fl.t++; camX = 0;
+  if (fl.done){
+    fl.doneT++; p.vx *= 0.85; if (fl.mode === 'dock') p.vy *= 0.85;
+    if (fl.doneT > 90) flightExit();
+    return;
+  }
+  const up = btn.up || btn.jump, dn = btn.down, lt = btn.left, rt = btn.right, gas = fl.fuel > 0;
+  fl.thr = { up: gas && up, down: gas && dn && fl.mode === 'dock', left: gas && lt, right: gas && rt };
+  let ax = ((fl.thr.right ? 1 : 0) - (fl.thr.left ? 1 : 0)) * (fl.mode === 'dock' ? 0.05 : 0.035), ay;
+  if (fl.mode === 'dock') ay = ((fl.thr.down ? 1 : 0) - (fl.thr.up ? 1 : 0)) * 0.05;
+  else ay = (f.g || 0.035) - (fl.thr.up ? 0.085 : 0);
+  const burn = (fl.thr.up ? 0.22 : 0) + (fl.thr.down ? 0.12 : 0) + ((fl.thr.left || fl.thr.right) ? 0.12 : 0);
+  if (burn > 0){ fl.fuel = Math.max(0, fl.fuel - burn); if (fl.t % 6 === 0) A.sfx('thrust10'); }
+  p.vx = Math.max(-3, Math.min(3, p.vx + ax)); p.vy = Math.max(-3, Math.min(3.6, p.vy + ay));
+  if (fl.mode === 'dock'){ p.vx *= 0.996; p.vy *= 0.996; }
+  if (ax) p.facing = ax > 0 ? 1 : -1;
+  // out of fuel while docking: ACID sends a spare tank (1 heart)
+  if (fl.mode === 'dock' && fl.fuel <= 0){ fl.lowFuel++; G.lowFuel = (G.lowFuel || 0) + 1; popup(p.x - 16, p.y - 12, 'LOW FUEL!', M10.RED); fl.fuel = 60; G.comm = { text: "ACID: SPARE TANK. DON'T MAKE IT A HABIT.", t: 0 }; marsHurt(); if (P.dead) return; }
+  const vx0 = p.vx, vy0 = p.vy;
+  p.x += p.vx; const hx = collideX(p);
+  if (hx){
+    const port = f.port;
+    if (fl.mode === 'dock' && port && hx > 0 && p.y >= port.ty0 * TS - 1 && p.y + p.h <= (port.ty1 + 1) * TS + 1 && Math.abs(vx0) < 1.5 && Math.abs(vy0) < 0.8){
+      fl.done = true; fl.grade = Math.abs(vx0) < 0.8 ? 'SOFT DOCK' : 'DOCKED'; G.docks = (G.docks || 0) + 1; G.dockGrade = fl.grade;
+      p.vx = 0; p.vy = 0; A.sfx('dock10'); G.bigText = { text: fl.grade + '!', t: 0 }; addScore(fl.grade === 'SOFT DOCK' ? 3000 : 1500, p.x, p.y - 12);
+      G.comm = { text: 'ACID: CLAMPS ARE ON. WELCOME ABOARD.', t: 0 };
+      return;
+    }
+    flightCrash(fl.mode === 'dock' && hx > 0 && Math.abs(vx0) >= 1.5 ? 'TOO FAST!' : 'OFF COURSE!'); return;
+  }
+  p.y += p.vy; const hy = collideY(p);
+  if (hy){
+    if (fl.mode === 'land' && hy === 'floor'){ flightTouchdown(vy0); return; }
+    flightCrash('OFF COURSE!'); return;
+  }
+  if (p.y < -8 || p.y > H) { flightCrash('LOST VEHICLE!'); return; }
+}
+function flightTouchdown(vy){
+  const p = P, fl = G.fl, f = lv.flight, cx = p.x + p.w / 2, a = f.pad.a * TS, b = (f.pad.b + 1) * TS, mid = (a + b) / 2;
+  const onPad = cx >= a && cx <= b, off = Math.abs(cx - mid);
+  let grade;
+  if (fl.fuel <= 0) grade = 'DEAD STICK';
+  else if (!onPad) grade = 'MISSED THE PAD';
+  else if (vy >= 2.4) grade = 'HARD IMPACT';
+  else if (vy >= 1.5) grade = 'HARD LANDING';
+  else if (vy < 0.9 && off < 8) grade = 'PINPOINT';
+  else grade = 'TEXTBOOK';
+  fl.done = true; fl.grade = grade; fl.touchVy = +vy.toFixed(2); fl.off = Math.round(off); G.landGrade = grade; G.lands = (G.lands || 0) + 1;
+  p.vx = 0; p.vy = 0; p.onGround = true; G.bigText = { text: grade + '!', t: 0 };
+  const good = grade === 'PINPOINT' || grade === 'TEXTBOOK';
+  if (good){ A.sfx('land10'); addScore(grade === 'PINPOINT' ? 5000 : 3000, p.x, p.y - 12); }
+  else { A.sfx('crash9'); G.shake = 10; burst(cx, p.y + p.h, 12, [M10.RUST3, M10.DUST, '#ffffff'], 1.8); G.landHits = (G.landHits || 0) + 1; marsHurt(); }
+  if (f.crater && cx >= f.crater.a * TS && cx <= (f.crater.b + 1) * TS) G.comm = { text: 'ACID: PRETTY CRATER. USELESS CRATER.', t: 0 };
+  else G.comm = { text: good ? 'ACID: ' + grade + '. I AM NOT CRYING, YOU ARE.' : 'ACID: ' + grade + '. WE WILL CALL THAT A LANDING.', t: 0 };
+}
+function flightExit(){
+  const f = lv.flight; G.fl = null;
+  enterArea(f.next);
+  const tx = f.exitTx || 3;
+  P.ctrl = 'normal'; P.x = tx * TS + 2; P.y = surfaceRow(tx) * TS - P.h; P.vx = 0; P.vy = 0; P.onGround = true; P.plat = null; P.facing = 1;
+  camX = lv.camLock ? 0 : Math.max(0, Math.min(P.x - 40, lv.w * TS - W));
+  for (const s of lv.spawns) if (s.x * TS < camX + 8 || (s.x >= tx && s.x <= tx + 6)) s.done = true;
+  if (lv.boss && !BOSS) BOSS = makeBoss(lv.boss);
+  A.startMusic(lv.music || LV.music);
+}
+function botFlight(b){
+  const p = P, fl = G.fl, f = lv.flight;
+  b.right = false; b.left = false; b.run = false; b.jump = false; b.up = false; b.down = false;
+  if (!fl || fl.done || !f) return b;
+  const steer = (cur, want, plus, minus) => { if (cur < want - 0.04) b[plus] = true; else if (cur > want + 0.04) b[minus] = true; };
+  if (fl.mode === 'dock'){
+    const way = f.way || [], w = way[Math.min(fl.wp, way.length - 1)], last = fl.wp >= way.length - 1;
+    const ex = w[0] - p.x, ey = w[1] - p.y, vmax = last ? 0.6 : 1.3;
+    if (!last && Math.abs(ex) < 5 && Math.abs(ey) < 5) fl.wp++;
+    steer(p.vx, Math.max(-vmax, Math.min(vmax, ex * 0.04)), 'right', 'left');
+    steer(p.vy, Math.max(-vmax, Math.min(vmax, ey * 0.04)), 'down', 'up');
+    if (last && Math.abs(ey) > 3){ steer(p.vx, 0, 'right', 'left'); } // line up before the last push in
+    return b;
+  }
+  const a = f.pad.a * TS, bb = (f.pad.b + 1) * TS, mid = (a + bb) / 2, ex = mid - (p.x + p.w / 2);
+  const deck = 13 * TS, alt = deck - (p.y + p.h);
+  steer(p.vx, Math.max(-1.1, Math.min(1.1, ex * 0.03)), 'right', 'left');
+  let dvy = alt > 70 ? 1.6 : alt > 24 ? 0.9 : 0.45;
+  if (Math.abs(ex) > 24 && alt < 60) dvy = 0;
+  if (p.vy > dvy) b.up = true;
+  return b;
+}
+function drawFlight(){
+  const p = P, fl = G.fl; if (!fl) return false;
+  if (p.inv > 0 && (G.frame >> 1) % 2) return true;
+  const img = (typeof broFrame === 'function') ? broFrame(p.bro, 'stand') : null;
+  drawCapsule(g, Math.round(p.x - 1 - camX), Math.round(p.y + p.h - 20), { frame: G.frame, flameUp: fl.thr.up, flameL: fl.thr.left, flameR: fl.thr.right, flameD: fl.thr.down, bro: img });
+  if (fl.mode === 'land' && !fl.done){ // a ghost marker over the pad + altitude line
+    const f = lv.flight, a = f.pad.a * TS - camX, w = (f.pad.b - f.pad.a + 1) * TS;
+    g.globalAlpha = 0.5 + Math.sin(G.frame * 0.2) * 0.2; g.fillStyle = M10.GOLD; g.fillRect(a, 13 * TS - 2, w, 2); g.globalAlpha = 1;
+    g.fillStyle = 'rgba(215,195,106,0.35)'; g.fillRect(Math.round(p.x + p.w / 2 - camX), Math.round(p.y + p.h), 1, Math.max(0, 13 * TS - (p.y + p.h)));
+  }
+  if (fl.mode === 'dock' && !fl.done){ const port = lv.flight.port; if ((G.frame >> 3) % 2){ g.fillStyle = M10.GOLD; g.fillRect(port.tx * TS - camX - 2, port.ty0 * TS, 2, (port.ty1 - port.ty0 + 1) * TS); } }
+  return true;
+}
+// ---- enemies ----
+function marsInit(e, s){ e.dir = (s && s.dir) || -1; e.t = ((s && s.x) || 0) * 7; e.x0 = e.x; e.y0 = e.y; e.state = 'walk'; }
+function updateMarsEnemy(e, dx, dy){
+  e.t = (e.t || 0) + 1;
+  if (e.type === 'drone10'){
+    e.vx = e.dir * 0.6; e.x += e.vx;
+    if (e.x < e.x0 - 48){ e.x = e.x0 - 48; e.dir = 1; } else if (e.x > e.x0 + 48){ e.x = e.x0 + 48; e.dir = -1; }
+    if (collideX(e)) e.dir *= -1;
+    e.y = e.y0 + Math.sin(e.t * 0.06) * 6; e.vy = 0; e.facing = e.dir; e.onGround = false;
+    return;
+  }
+  e.vx = e.dir * 0.5; e.x += e.vx; if (collideX(e)){ e.dir *= -1; e.x += e.dir; }
+  e.vy = Math.min(e.vy + 0.3, 4); e.y += e.vy; collideY(e);
+  const front = e.dir > 0 ? e.x + e.w + 1 : e.x - 1;
+  if (e.onGround && !standable(Math.floor(front / TS), Math.floor((e.y + e.h + 1) / TS))){ e.dir *= -1; e.x += e.dir * 0.5; }
+  e.facing = e.dir;
+}
+function marsContact(e){
+  if (!MARS_TYPES.has(e.type) || e.dead || P.star > 0) return false;
+  if (P.vy > 0 && P.prevY + P.h <= e.y + 6){
+    P.y = e.y - P.h; P.vy = btn.jump ? -5.0 : -3.6; P.jumpHeld = !!btn.jump; P.plat = null;
+    e.dead = 'squash'; e.t = 28; G.kills++; G.marsStomps = (G.marsStomps || 0) + 1; addScore(200, e.x, e.y - 8); A.sfx('stomp');
+    burst(e.x + 7, e.y + 4, 8, [M10.CHROME, M10.GOLD, M10.STEEL], 1.6); marsKill(e); return true;
+  }
+  return false;
+}
+function marsKill(e){ G.marsKOs = (G.marsKOs || 0) + 1; popup(e.x - 12, e.y - 12, 'TOASTED', M10.GOLD); }
+function marsPickup(it){
+  G.fuelBank = (G.fuelBank || 0) + 1; G.fuelCans = (G.fuelCans || 0) + 1;
+  addScore(300, it.x, it.y - 8); popup(it.x - 16, it.y - 14, 'FUEL +', M10.GOLD); A.sfx('gold9');
+  burst(it.x + 5, it.y + 4, 8, [M10.GOLD, M10.CHROME, '#ffffff'], 1.4);
+}
+function drawMarsEnemy(e, X){
+  if (!MARS_TYPES.has(e.type)) return false;
+  const sp = marsSpr(); let img = null;
+  if (e.dead === 'squash') img = sp && (e.type === 'crawl10' ? sp.crawl10sq : sp.drone10[0]);
+  else if (sp) img = sp[e.type][(e.t >> 3) & 1];
+  const Y = Math.round(e.y + e.h - (img ? img.height : e.h));
+  if (e.dead === 'flip' && img){ g.save(); g.translate(X + e.w / 2, Math.round(e.y + e.h / 2)); g.scale(1, -1); g.drawImage(img, -img.width / 2, -img.height / 2); g.restore(); }
+  else if (img){ if (e.facing > 0){ g.save(); g.translate(X + img.width, Y); g.scale(-1, 1); g.drawImage(img, 0, 0); g.restore(); } else g.drawImage(img, X, Y); }
+  else { g.fillStyle = M10.CHROME; g.fillRect(X, Y, e.w, e.h); }
+  if (e.hitT > 0 && !e.dead){ g.globalAlpha = 0.5; g.fillStyle = '#ffffff'; g.fillRect(X, Y, e.w, e.h); g.globalAlpha = 1; }
+  return true;
+}
+// ---- hazards ----
+function marsHazards(){
+  if (P.ctrl !== 'normal' || P.dead) return;
+  if (P.inv <= 0 && P.star <= 0){
+    if (lv.vents) for (const v of lv.vents){
+      if (ventState(v).ph !== 'on') continue;
+      const x0 = v.tx * TS + 2, x1 = v.tx * TS + 14, y0 = (13 - v.h) * TS;
+      if (P.x < x1 && P.x + P.w > x0 && P.y + P.h > y0 && P.y < 13 * TS){
+        hurt(); G.ventHits = (G.ventHits || 0) + 1;
+        if (G.state === 'play' && !P.dead){ P.vy = -3.6; P.onGround = false; P.plat = null; popup(P.x - 6, P.y - 12, 'HOT!', M10.FLAME); burst(P.x + 6, P.y + 10, 8, [M10.FLAME, M10.FLAME2, '#ffffff'], 1.4); }
+        return;
+      }
+    }
+    if (lv.meteors) for (const m of lv.meteors){
+      if (meteorState(m).ph !== 'on') continue;
+      const x0 = m.tx * TS + 1, x1 = m.tx * TS + 15;
+      if (P.x < x1 && P.x + P.w > x0 && P.y + P.h > 16){
+        hurt(); G.meteorHits = (G.meteorHits || 0) + 1;
+        if (G.state === 'play' && !P.dead){ popup(P.x - 6, P.y - 12, 'METEOR!', M10.FLAME); burst(P.x + 6, P.y + 8, 8, [M10.MOON3, M10.FLAME, '#ffffff'], 1.6); }
+        return;
+      }
+    }
+  }
+  const b = BOSS; if (b && b.kind === 'blankey') bbHurtCheck(b);
+}
+function marsUpdate(){
+  if (!P) return;
+  marsEnter();
+  // meteors also dent the TOAST TRUCK (one truck hit each)
+  if (P.ctrl === 'truck' && P.ride && lv.meteors) for (const m of lv.meteors){
+    if (meteorState(m).ph !== 'on') continue; const t = P.ride, x0 = m.tx * TS + 1, x1 = x0 + 14;
+    if (t.x < x1 && t.x + t.w > x0 && !(t.inv > 0)){ truckHit(t, 1); G.meteorHits = (G.meteorHits || 0) + 1; popup(t.x, t.y - 12, 'METEOR!', M10.FLAME); }
+  }
+  if (lv.meteors) for (const m of lv.meteors){ const st = meteorState(m); if (st.ph === 'on' && st.left === 14 && Math.abs(m.tx * TS - camX - 128) < 180){ sfxOnce('meteor10'); G.shake = Math.max(G.shake, 4); } }
+  if (lv.vents) for (const v of lv.vents){ const st = ventState(v); if (st.ph === 'on' && st.left === 30 && Math.abs(v.tx * TS - camX - 128) < 160) sfxOnce('vent10'); }
+  // ACID on comms
+  if (lv.comms && (P.ctrl === 'normal' || P.ctrl === 'truck')) for (const c of lv.comms){ if (!c.done && P.x >= c.tx * TS){ c.done = true; G.comm = { text: c.text, t: 0 }; G.comms = (G.comms || 0) + 1; A.sfx('beep10'); } }
+  if (G.comm){ G.comm.t++; if (G.comm.t > 220) G.comm = null; }
+  // booster separation (10-3)
+  const s = lv.sep;
+  if (s){
+    if (s.state === 'idle' && P.ctrl === 'normal' && !P.dead && P.x >= s.warnTx * TS){ s.state = 'count'; s.t = 0; G.bigText = { text: 'BOOSTER SEP IN 3', t: 0 }; A.sfx('beep10'); }
+    else if (s.state === 'count'){
+      s.t++;
+      if (s.t === 50){ G.bigText = { text: 'BOOSTER SEP IN 2', t: 0 }; A.sfx('beep10'); }
+      if (s.t === 100){ G.bigText = { text: 'BOOSTER SEP IN 1', t: 0 }; A.sfx('beep10'); }
+      if (s.t >= 150) marsSeparate(s);
+    }
+  }
+  if (G.sepFx) G.sepFx.t++;
+  if (LV.launchWindow && G.time === 20 && G.timeT === 0) G.comm = { text: 'ACID: WINDOW IS CLOSING. MOVE.', t: 0 };
+}
+function marsSeparate(s){
+  s.state = 'done'; G.seps = (G.seps || 0) + 1; G.sepFx = { t: 0, x: s.sepTx * TS };
+  A.sfx('sep10'); G.shake = 14; G.bigText = { text: 'BOOSTER SEP!', t: 0 };
+  if (P && !P.dead && P.x + P.w < s.sepTx * TS + 2){ // still behind the stage line: 1 heart, and the hatch shoves you through
+    G.sepHits = (G.sepHits || 0) + 1; P.inv = 0; P.star = 0; hurt();
+    if (G.state === 'play' && !P.dead){ P.x = s.sepTx * TS + 4; P.y = surfaceRow(s.sepTx) * TS - P.h; P.vx = 0; P.vy = 0; P.plat = null; popup(P.x - 10, P.y - 12, 'HATCH!', M10.GOLD); }
+  }
+  for (let ty = 2; ty <= 12; ty++) lv.t[ty][s.sepTx - 1] = 'S'; // the bulkhead seals behind you
+  for (const e of enemies) if (!e.dead && e.x < s.sepTx * TS - 16) e.remove = true;
+}
+function marsBotSauce(b, grounded, feet){
+  const p = P, px = p.x + p.w / 2;
+  if (lv.vents && grounded) for (const v of lv.vents){
+    const st = ventState(v), x0 = v.tx * TS, x1 = x0 + 16;
+    const inside = p.x + p.w > x0 + 1 && p.x < x1 - 1;
+    const ahead = x0 >= p.x + p.w - 1 && x0 - (p.x + p.w) < 24;
+    if (inside && (st.ph !== 'off' || st.left < 22)){ b.right = true; b.left = false; b.run = true; b.jump = false; return { want: false }; }
+    if (ahead && (st.ph !== 'off' || st.left < 40)){ b.right = false; b.left = false; b.run = false; b.jump = false; return { want: false }; }
+  }
+  if (lv.meteors && grounded) for (const m of lv.meteors){
+    const st = meteorState(m), x0 = m.tx * TS, x1 = x0 + 16;
+    const inside = p.x + p.w > x0 + 1 && p.x < x1 - 1;
+    const ahead = x0 >= p.x + p.w - 1 && x0 - (p.x + p.w) < 24;
+    if (inside && (st.ph !== 'off' || st.left < 24)){ b.right = true; b.left = false; b.run = true; b.jump = false; return { want: false }; }
+    if (ahead && (st.ph !== 'off' || st.left < 30)){ b.right = false; b.left = false; b.run = false; b.jump = false; return { want: false }; }
+  }
+  if (lv.sep && lv.sep.state === 'count'){ b.right = true; b.left = false; b.run = true; }
+  return null;
+}
+function drawMarsHazards(){
+  if (!lv) return;
+  if (lv.vents) for (const v of lv.vents){
+    const st = ventState(v), X = Math.round(v.tx * TS - camX), Y = 13 * TS; if (X < -24 || X > W + 8) continue;
+    g.fillStyle = M10.STEEL; g.fillRect(X + 1, Y - 3, 14, 3); g.fillStyle = M10.BG; for (let i = 3; i < 14; i += 3) g.fillRect(X + i, Y - 3, 1, 3);
+    if (st.ph === 'warn'){ if ((G.frame >> 2) % 2){ g.fillStyle = 'rgba(255,176,48,0.5)'; g.fillRect(X + 2, Y - 6, 12, 3); } g.globalAlpha = 0.35; g.fillStyle = '#ffffff'; g.fillRect(X + 4 + ((G.frame >> 2) % 3), Y - 10 - (G.frame % 8), 4, 4); g.globalAlpha = 1; }
+    else if (st.ph === 'on'){
+      const h = v.h * TS;
+      for (let y = 0; y < h; y += 4){ const w = 8 + ((y * 3 + G.frame * 2) % 6); g.fillStyle = y < h * 0.3 ? '#ffffff' : (y < h * 0.7 ? M10.FLAME : M10.FLAME2); g.fillRect(X + 8 - w / 2, Y - 3 - y - 4, w, 4); }
+    }
+  }
+  if (lv.meteors) for (const m of lv.meteors){
+    const st = meteorState(m), X = Math.round(m.tx * TS - camX); if (X < -24 || X > W + 8) continue;
+    g.fillStyle = 'rgba(0,0,0,0.25)'; g.fillRect(X + 2, 206, 12, 3);
+    if (st.ph === 'warn'){ const k = 1 - st.left / 44; g.fillStyle = (G.frame >> 2) % 2 ? M10.RED : M10.FLAME; g.fillRect(X + 2, 204, 12, 2);
+      const my = Math.round(8 + k * 40); g.fillStyle = M10.MOON2; g.fillRect(X + 5, my, 6, 6); g.fillStyle = M10.FLAME; g.fillRect(X + 6, my - 6, 4, 6); }
+    else if (st.ph === 'on'){ g.globalAlpha = 0.3; g.fillStyle = M10.FLAME; g.fillRect(X, 16, 16, 192); g.globalAlpha = 1; g.fillStyle = M10.MOON2; g.fillRect(X + 3, 196, 10, 10); g.fillStyle = M10.FLAME; g.fillRect(X + 1, 200, 14, 4); }
+  }
+  if (G.sepFx && lv.sep){ // the spent booster falls away behind the stage line
+    const t = G.sepFx.t, X = Math.round(G.sepFx.x - camX);
+    if (X > 0){ g.globalAlpha = Math.min(0.85, t / 60); g.fillStyle = M10.BG; g.fillRect(0, 0, Math.min(W, X - 16), H); g.globalAlpha = 1;
+      if (t < 160){ g.fillStyle = M10.CHROME; g.fillRect(X - 80, 40 + t * 1.2, 50, 90); g.fillStyle = M10.GRAY; g.fillRect(X - 80, 40 + t * 1.2, 50, 4); g.fillStyle = M10.FLAME; g.fillRect(X - 66, 130 + t * 1.2, 22, 6 + (G.frame % 4)); } }
+  }
+  if (lv.sep && lv.sep.state !== 'done'){ const X = Math.round(lv.sep.sepTx * TS - camX); if (X > -8 && X < W + 8){ for (let y = 32; y < 208; y += 8){ g.fillStyle = (y >> 3) % 2 ? M10.GOLD : M10.BG; g.fillRect(X - 1, y, 2, 6); } } }
+  const b = BOSS; if (b && b.kind === 'blankey') drawBlankeyFx(b);
+  drawMarsHud();
+}
+function drawMarsHud(){
+  if (!P || !LV || LV.world !== 10 || G.state !== 'play' && G.state !== 'dying') return;
+  // ACID comms box (portrait + line)
+  const c = G.comm;
+  if (c){
+    const y = 26, slide = Math.min(0, -30 + c.t * 4);
+    g.fillStyle = M10.BG; g.fillRect(4, y + slide, 248, 22); g.fillStyle = M10.STEEL; g.fillRect(5, y + 1 + slide, 246, 20); g.fillStyle = M10.GOLD; g.fillRect(5, y + 1 + slide, 246, 1);
+    const img = (typeof broFrame === 'function') ? broFrame('acid', 'stand') : null; if (img){ g.save(); g.beginPath(); g.rect(7, y + 3 + slide, 18, 17); g.clip(); g.drawImage(img, 8, y + 3 + slide); g.restore(); }
+    const shown = c.text.slice(0, Math.min(c.text.length, c.t * 2));
+    const words = shown.split(' '); let l1 = '', l2 = ''; for (const w of words){ if (textWidth((l1 + ' ' + w).trim(), 1) < 218 && !l2) l1 = (l1 + ' ' + w).trim(); else l2 = (l2 + ' ' + w).trim(); }
+    drawTiny(g, l1, 28, y + 5 + slide, M10.IVORY); if (l2) drawTiny(g, l2, 28, y + 13 + slide, M10.IVORY);
+  }
+  // mission HUD strip
+  g.fillStyle = M10.BG; g.fillRect(4, 226, 160, 10); g.fillStyle = M10.BG3; g.fillRect(5, 227, 158, 8);
+  const fl = G.fl;
+  if (fl){
+    const alt = Math.max(0, Math.round(13 * TS - (P.y + P.h))), spd = Math.hypot(P.vx, P.vy).toFixed(1);
+    drawTiny(g, 'ALT ' + alt + '  SPD ' + spd + '  FUEL', 7, 228, fl.fuel < 20 && (G.frame >> 3) % 2 ? M10.RED : M10.GOLD);
+    g.fillStyle = M10.STEEL; g.fillRect(110, 228, 50, 5); g.fillStyle = fl.fuel < 20 ? M10.RED : M10.GOLD; g.fillRect(110, 228, Math.round(50 * fl.fuel / Math.max(1, fl.fuelMax)), 5);
+  } else {
+    const secs = Math.floor(G.lf / 60), mm = Math.floor(secs / 60), ss = secs % 60;
+    const lead = LV.launchWindow ? 'LAUNCH WINDOW ' + G.time : 'T+' + mm + ':' + (ss < 10 ? '0' : '') + ss;
+    drawTiny(g, lead + '  STAGE ' + LV.num + '  FUEL CANS ' + (G.fuelBank || 0), 7, 228, LV.launchWindow && G.time <= 60 && (G.frame >> 3) % 2 ? M10.RED : M10.GOLD);
+  }
+}
+
+// ---- YELLOW BLANKEY / CYBER_BOY (10-4, the final boss): 12 HP, 3 phases, every attack telegraphed, hit it only while it naps / reboots ----
+const BB_SEQ = { 1: ['pillows', 'flop'], 2: ['laser', 'bricks'], 3: ['flop', 'laser', 'mix'] };
+function makeBlankey(spec){
+  spec.baseLine1 = spec.baseLine1 || spec.line1; spec.baseLine2 = spec.baseLine2 || spec.line2;
+  const deck = (spec.deckRow || 13) * TS, ax0 = spec.bounds[0] * TS, ax1 = (spec.bounds[1] + 1) * TS, home = ax1 - 44;
+  return { kind: 'blankey', spec, x: home, y: deck - 36 - 18, w: 28, h: 36, vx: 0, vy: 0, hp: 12, flash: 0, state: 'idle', t: 0,
+    active: false, dying: false, dead: false, onGround: false, dt: 0, phase: 1, open: 0, drips: [], laser: null, facing: -1, carded: false,
+    home, ax0, ax1, deck, cyc: 0, step: 0, clinkT: 0, form: 'blankey', tell: false };
+}
+function bbDamage(src){
+  const b = BOSS; if (!b || b.kind !== 'blankey' || b.dying || b.dead || b.flash > 0) return;
+  if (!(b.open > 0) && src !== 'test'){ bbClink(); return; }
+  b.hp--; b.flash = 24; G.shake = 9; A.sfx('bosshit'); G.bbHits = (G.bbHits || 0) + 1;
+  burst(b.x + 14, b.y + 12, 12, [M10.YEL, M10.CYAN, M10.IVORY, '#ffffff'], 2.2);
+  if (b.hp <= 0){ bbDie(); return; }
+  popup(b.x + 2, b.y - 10, 'HP ' + b.hp, M10.YEL);
+  if (b.hp <= 8 && b.phase === 1) bbPhase(b, 2, 'BLANKEY OFF! CYBER_BOY ONLINE.');
+  else if (b.hp <= 4 && b.phase === 2) bbPhase(b, 3, 'BLANKEY UP. FINAL FORM.');
+}
+function bbClink(){ const b = BOSS; if (!b || b.clinkT > 0) return; b.clinkT = 8; A.sfx('clang'); burst(b.x + 4, b.y + 16, 3, [M10.CHROME, '#ffffff'], 0.8); }
+function bbPhase(b, n, text){
+  b.phase = n; b.open = 0; b.state = 'morph'; b.t = 0; b.step = 0; b.drips = []; b.laser = null; b.form = n === 2 ? 'cyber' : 'final';
+  for (const o of bolts) if (o.bb) o.remove = true;
+  G.bigText = { text, t: 0 }; popup(b.x - 20, b.y - 16, text, M10.CYAN); A.sfx('cyber10'); A.setTempo(n >= 3 ? 1.25 : 1.12); G.bbPhases = (G.bbPhases || 1) + 1;
+  burst(b.x + 14, b.y + 18, 16, n === 2 ? [M10.YEL, M10.YEL2, M10.YEL3] : [M10.CYAN, M10.YEL, '#ffffff'], 2.4);
+}
+function bbDie(){
+  const b = BOSS; b.dying = true; b.active = false; b.open = 0; b.state = 'down'; b.t = 0; b.dt = 0; b.drips = []; b.laser = null; G.bbDown = true;
+  for (const o of bolts) if (o.bb) o.remove = true;
+  G.bigText = { text: 'TUCKED IN. LOGGED OFF.', t: 0 }; A.sfx('final10'); A.stopMusic(); G.shake = 16; addScore(10000, b.x, b.y - 18);
+  burst(b.x + b.w / 2, b.y + b.h / 2, 24, [M10.YEL, M10.CYAN, M10.IVORY, '#ffffff'], 3);
+}
+function bbWave(b){
+  bolts.push({ kind: 'gwave', flop: true, bb: true, boss: true, x: b.x - 6, y: -80, w: 10, h: 9, vx: b.phase >= 3 ? -2.0 : -1.7, vy: 0, t: 0, delay: 12, parked: true });
+  G.bbWaves = (G.bbWaves || 0) + 1;
+}
+function bbDrop(b, kind, i, n){
+  const lane0 = b.ax0 + 20, laneW = Math.max(40, b.home - 36 - lane0);
+  const x = lane0 + ((b.cyc * 41 + i * Math.floor(laneW / Math.max(1, n)) + b.hp * 13 + 7) % laneW);
+  b.drips.push({ kind, state: 'warn', t: 0, x: Math.round(x - 5), y: 20, vy: 0 });
+  A.sfx(kind === 'brick' ? 'beep10' : 'blanket10'); G.bbDrops = (G.bbDrops || 0) + 1;
+}
+function bbUpdateHazards(b){
+  for (const o of bolts) if (o.bb && o.delay > 0){ o.delay--; if (o.delay === 0){ o.y = b.deck - 9; o.parked = false; } }
+  for (const d of b.drips){
+    d.t++;
+    if (d.state === 'warn'){ if (d.t > 32){ d.state = 'fall'; d.t = 0; d.y = 20; d.vy = 0.5; } }
+    else if (d.state === 'fall'){ d.vy = Math.min(d.vy + 0.3, 4.5); d.y += d.vy; if (d.y > b.deck - 10){ d.state = 'gone'; burst(d.x + 5, b.deck - 2, 6, d.kind === 'brick' ? [M10.CYAN, M10.CYAN2] : [M10.YEL, M10.YEL3], 1.2); } }
+  }
+  b.drips = b.drips.filter(d => d.state !== 'gone');
+  const L = b.laser;
+  if (L){
+    L.t++;
+    if (L.state === 'charge' && L.t >= L.len){ L.state = 'fire'; L.t = 0; A.sfx('laser10'); G.bbLasers = (G.bbLasers || 0) + 1; G.shake = Math.max(G.shake, 4); }
+    else if (L.state === 'fire' && L.t >= 16){ b.laser = null; }
+  }
+  if (b.clinkT > 0) b.clinkT--;
+}
+function bbLaserRect(b){ return { x: b.ax0, y: b.deck - 12, w: Math.max(0, b.x - b.ax0), h: 10 }; }
+function bbHurtCheck(b){
+  if (!b || b.dead || b.dying || !b.active || P.ctrl !== 'normal' || P.dead) return;
+  if (P.inv > 0 || P.star > 0) return;
+  if (P.dash <= 0 && P.roll <= 0 && overlap(P, { x: b.x + 4, y: b.y + 4, w: b.w - 8, h: b.h - 4 })){ hurt(); G.bbHaz = (G.bbHaz || 0) + 1; return; }
+  for (const d of b.drips){ if (d.state === 'fall' && overlap(P, { x: d.x, y: d.y, w: 10, h: 10 })){ hurt(); G.bbHaz = (G.bbHaz || 0) + 1; d.state = 'gone'; return; } }
+  if (b.laser && b.laser.state === 'fire' && overlap(P, bbLaserRect(b))){ hurt(); G.bbHaz = (G.bbHaz || 0) + 1; G.bbZaps = (G.bbZaps || 0) + 1; popup(P.x - 8, P.y - 12, 'ZAP!', M10.RED); }
+}
+function updateBlankey(){
+  const b = BOSS; if (!b || b.kind !== 'blankey') return;
+  if (b.flash > 0) b.flash--;
+  if (!b.carded && (G.dialog || G.dialogDone)){ b.carded = true; G.nameCard = { text: 'YELLOW BLANKEY / CYBER_BOY', t: 0 }; A.sfx('cyber10'); }
+  if (!G.dialogDone){ const fc = P && P.bro === 'fatcoty'; b.spec.line1 = fc ? b.spec.fcLine1 : b.spec.baseLine1; b.spec.line2 = fc ? b.spec.fcLine2 : b.spec.baseLine2; }
+  bbUpdateHazards(b);
+  if (b.dying){
+    b.dt++; b.y = Math.min(b.deck - b.h, b.y + 1);
+    if (b.dt === 70){ G.bigText = { text: 'GOOD NIGHT, CYBER_BOY.', t: 0 }; popup(b.x - 20, b.y - 16, 'GOOD NIGHT, CYBER_BOY.', M10.YEL); b.form = 'blankey'; }
+    if (b.dt === 110) startEscape();
+    if (b.dt > 160){ b.dead = true; b.active = false; }
+    return;
+  }
+  if (!b.active) return;
+  b.t++; b.tell = false;
+  const floorY = b.deck - b.h, hoverY = floorY - 18, wantY = (b.state === 'open') ? floorY : hoverY;
+  b.y += (wantY - b.y) * 0.2; if (Math.abs(wantY - b.y) < 0.3) b.y = wantY; b.x = b.home;
+  const P1 = b.phase;
+  switch (b.state){
+    case 'idle': {
+      if (b.t > [0, 40, 32, 26][P1]){
+        const seq = BB_SEQ[P1];
+        if (b.step >= seq.length){ b.step = 0; b.state = 'open'; } else b.state = seq[b.step++];
+        b.t = 0;
+      }
+      break;
+    }
+    case 'pillows': case 'bricks': case 'mix': {
+      const n = b.state === 'pillows' ? 2 : 3;
+      for (let i = 0; i < n; i++) if (b.t === 8 + i * 14) bbDrop(b, b.state === 'bricks' ? 'brick' : b.state === 'mix' ? (i % 2 ? 'brick' : 'pillow') : 'pillow', i, n);
+      b.tell = b.t < 8;
+      if (b.t > 8 + n * 14 + 30){ b.state = 'idle'; b.t = 0; }
+      break;
+    }
+    case 'flop': { // telegraph: the blanket bunches up and shakes, then flops a ground wave across the floor
+      if (b.t === 1){ A.sfx('blanket10'); G.bbFlops = (G.bbFlops || 0) + 1; }
+      b.tell = b.t < 30; if (b.tell) b.x = b.home + ((b.t >> 1) % 2);
+      if (b.t === 30) bbWave(b);
+      if (P1 >= 3 && b.t === 96) bbWave(b); // a second wave, a full hop apart
+      if (b.t > (P1 >= 3 ? 130 : 66)){ b.state = 'idle'; b.t = 0; }
+      break;
+    }
+    case 'laser': { // the visor charges (sound + red glow + a dotted aim line at ankle height), then a floor-level beam: jump it
+      const len = P1 >= 3 ? 46 : 56;
+      if (b.t === 1){ b.laser = { state: 'charge', t: 0, len }; A.sfx('charge10'); G.bbCharges = (G.bbCharges || 0) + 1; }
+      if (!b.laser && b.t > len + 24){ b.state = 'idle'; b.t = 0; }
+      break;
+    }
+    case 'open': {
+      if (b.t === 1){ b.open = [0, 100, 95, 90][P1]; popup(b.x - 16, b.y - 14, P1 === 1 ? 'NAP TIME! HIT IT!' : P1 === 2 ? 'REBOOTING! HIT IT!' : 'OPEN! HIT IT!', M10.YEL); A.sfx('crave8'); G.bbOpens = (G.bbOpens || 0) + 1; }
+      if (b.open > 0) b.open--;
+      if (b.open <= 0){ b.state = 'idle'; b.t = 0; b.cyc++; }
+      break;
+    }
+    case 'morph': { if (b.t > 80){ b.state = 'idle'; b.t = 0; } break; }
+  }
+}
+function drawBlankeyBoss(){
+  const b = BOSS; if (!b || b.kind !== 'blankey') return;
+  const X = Math.round(b.x - camX), Y = Math.round(b.y);
+  if (!b.dead && !(b.flash > 0 && (G.frame >> 1) % 2)){
+    const charge = b.laser && b.laser.state === 'charge' ? b.laser.t / b.laser.len : 0;
+    drawBlankey(g, X, Y, G.frame, { form: b.state === 'morph' && b.t < 40 ? (b.phase === 2 ? 'blankey' : 'cyber') : b.form, open: b.open > 0 || b.dying, tell: b.tell, hover: b.state !== 'open' && !b.dying, charge });
+  }
+  if (b.open > 0){ g.fillStyle = M10.YEL; g.globalAlpha = 0.3 + Math.sin(G.frame * 0.25) * 0.15; g.fillRect(X - 2, Y - 2, b.w + 4, b.h + 4); g.globalAlpha = 1; drawTextC(g, 'OPEN', X + 14, Y - 18, M10.YEL); }
+  if (G.nameCard && G.nameCard.text === 'YELLOW BLANKEY / CYBER_BOY'){ const n = G.nameCard, t = n.t, drop = t < 10 ? -60 + t * 7 : t < 14 ? 10 - (t - 10) * 2 : t > 110 ? (t - 110) * -16 : 0, y = 44 + drop;
+    g.fillStyle = M10.BG; g.fillRect(28, y, 200, 18); g.fillStyle = M10.HOOD2; g.fillRect(30, y + 2, 196, 14); g.fillStyle = M10.YEL; g.fillRect(30, y + 2, 98, 1); g.fillStyle = M10.CYAN; g.fillRect(128, y + 2, 98, 1); drawTextC(g, 'YELLOW BLANKEY / CYBER_BOY', 128, y + 5, M10.YEL); }
+}
+function drawBlankeyFx(b){
+  const sp = marsSpr();
+  for (const d of b.drips){
+    const dx = Math.round(d.x - camX);
+    if (d.state === 'warn'){ g.fillStyle = (G.frame >> 2) % 2 ? (d.kind === 'brick' ? M10.CYAN : M10.YEL) : M10.IVORY; g.fillRect(dx + 3, 20, 4, 8); g.fillStyle = d.kind === 'brick' ? 'rgba(0,229,255,0.35)' : 'rgba(255,210,26,0.35)'; g.fillRect(dx, b.deck - 2, 10, 2); }
+    else { const img = sp && (d.kind === 'brick' ? sp.databrick : sp.pillow); if (img) g.drawImage(img, dx, Math.round(d.y)); else { g.fillStyle = M10.YEL; g.fillRect(dx, Math.round(d.y), 10, 10); } }
+  }
+  for (const o of bolts) if (o.bb && !o.remove && !(o.delay > 0)){ const OX = Math.round(o.x - camX), OY = Math.round(o.y); g.fillStyle = M10.YEL2; g.fillRect(OX, OY + 4, 10, 5); g.fillStyle = M10.YEL; g.fillRect(OX + 1, OY + 2, 8, 3); g.fillStyle = M10.YEL3; g.fillRect(OX + 3, OY + 2, 3, 1); }
+  const L = b.laser;
+  if (L){
+    const r = bbLaserRect(b), X = Math.round(r.x - camX);
+    if (L.state === 'charge'){ if ((G.frame >> 2) % 2 || L.len - L.t < 12) for (let x = 0; x < r.w; x += 8){ g.fillStyle = M10.RED; g.fillRect(X + x, r.y + 4, 4, 1); } if (L.len - L.t < 20) drawTextC(g, 'JUMP!', X + r.w / 2, r.y - 22, M10.RED); }
+    else { g.fillStyle = M10.RED; g.fillRect(X, r.y, r.w, r.h); g.fillStyle = '#ffffff'; g.fillRect(X, r.y + 3, r.w, 3); g.globalAlpha = 0.3; g.fillStyle = M10.RED; g.fillRect(X, r.y - 3, r.w, r.h + 6); g.globalAlpha = 1; }
+  }
+}
+function botBB(b, grounded, feet){
+  const p = P, B = BOSS, px = p.x + p.w / 2, ax0 = B.ax0;
+  b.right = false; b.left = false; b.run = false;
+  if (B.dead || B.dying){ botJump(b, false); return; }
+  const kind = BROS[p.bro].weapon.kind, range = BOT_RANGE[kind] || 60;
+  const stand = kind === 'roll' ? (B.open > 0 ? 18 : 56) : Math.min(Math.max(30, range - 12), 90); // short-range bros wait close, so a nap / reboot window is not spent walking
+  let goal = Math.max(ax0 + 20, B.x - stand);
+  const lx = B.x;
+  const liveDrip = d => d.state === 'fall' || d.state === 'warn';
+  const dripNear = d => liveDrip(d) && Math.abs(d.x + 5 - px) < 15;
+  const okX = x => x > ax0 + 14 && x < lx - 20 && !B.drips.some(d => liveDrip(d) && Math.abs(d.x + 5 - x) < 16);
+  if (B.drips.some(liveDrip)){
+    if (bot.dripEsc == null || !okX(bot.dripEsc)){
+      bot.dripEsc = null; let best = null, bestD = 1e9;
+      for (let x = ax0 + 16; x < lx - 20; x += 2){ if (!okX(x)) continue; const d = Math.abs(x - px); if (d < bestD){ bestD = d; best = x; } }
+      bot.dripEsc = best;
+    }
+    if (bot.dripEsc != null) goal = bot.dripEsc;
+  } else bot.dripEsc = null;
+  if (px < goal - 3) b.right = true; else if (px > goal + 3) b.left = true;
+  if (Math.abs(px - goal) > 16) b.run = true;
+  if (p.x + p.w > B.x - 8){ b.left = true; b.right = false; b.run = Math.abs(px - goal) > 10; }
+  const incoming = bolts.filter(o => !o.mine && o.kind === 'gwave' && !(o.delay > 0) && (o.x + 5) - px < 96 && (o.x + 5) - px > -24);
+  const nearest = incoming.slice().sort((a, c) => a.x - c.x).filter(o => (o.x + 5) >= px - 12)[0] || incoming[0];
+  let want = false;
+  if (nearest){ const d = (nearest.x + 5) - px; want = d < 34 + Math.abs(nearest.vx) * 4; }
+  const L = B.laser, lz = !!(L && ((L.state === 'charge' && L.len - L.t <= 7) || L.state === 'fire'));
+  if (L && L.state === 'charge' && !lz){ b.left = b.left && grounded; b.right = b.right && grounded; }
+  if (lz) want = true;
+  if (want || (!grounded && incoming.length)){ b.left = false; b.right = false; b.run = false; }
+  if (B.open > 0 && !B.drips.some(dripNear) && !incoming.length && !b.left && !b.right && p.facing < 0 && G.frame % 5 === 0) b.right = true;
+  bot.hiveLock = B.drips.some(dripNear) || incoming.length || lz ? { l: b.left, r: b.right } : null;
+  botJump(b, want, lz ? 44 : 24);
+  if (want && grounded && nearest && !lz && Math.abs(nearest.x + 5 - px) < 22) b.jump = !bot.lastJump;
+  if (lz && grounded) b.jump = true;
+}
+
+// ---- the ending, the credits roll, THANKS FOR PLAYING (save.beaten) ----
+function creditLines(){
+  const L = ['MR. TOASTY: TOASTY BROS', '', 'AN ORIGINAL COTY LAKE GAME', '', 'CREATED BY', 'COTY LAKE', 'THERAPYTOASTER', '', 'MADE AT', 'TOASTY BROS STUDIO', '',
+    'DESIGN  ART  CODE  MUSIC', 'TOASTY BROS STUDIO', '', 'MISSION CONTROL', 'ACID', '', 'THE BROS'];
+  for (const id of BRO_IDS) L.push(BROS[id].name);
+  L.push('', 'THE WORLDS'); for (let n = 1; n <= 10; n++) if (WORLDS[n]) L.push(n + '  ' + WORLDS[n].name);
+  L.push('', 'THE BOSSES'); for (let n = 1; n <= 10; n++) if (WORLDS[n] && WORLDS[n].boss) L.push(WORLDS[n].boss);
+  L.push('', 'JAM IS ALWAYS GRAPE PURPLE.', 'NO REAL BRANDS WERE TOASTED.', 'THE TRUCK STAYED ON THE MOON.', '', 'COTY LAKE / THERAPYTOASTER', 'TOASTY BROS STUDIO  2026');
+  return L;
+}
+function creditsLen(){ return creditLines().length * 14 + H + 20; }
+function marsEndingUpdate(){
+  const fast = btn.jump || btn.start || btn.run;
+  if (G.state === 'ending'){
+    if (G.stateT > 600 || (G.stateT > 240 && (pressed('jump') || pressed('start')))){ G.state = 'credits'; G.stateT = 0; G.creditY = 0; A.startMusic((WORLDS[10].music || {}).credits || 'w10_credits'); }
+  } else if (G.state === 'credits'){
+    G.creditY = (G.creditY || 0) + (fast ? 2 : 0.5);
+    if (G.creditY >= creditsLen()){ G.state = 'thanks'; G.stateT = 0; marsBeaten(); }
+  } else if (G.state === 'thanks'){
+    if (G.stateT > 150 && (pressed('start') || pressed('jump'))){ bumpHi(); writeSave(); A.stopMusic(); G.state = 'title'; G.stateT = 0; G.menu = 0; }
+  }
+}
+function marsBeaten(){
+  save.beaten = true; save.beatenCount = (save.beatenCount || 0) + 1; save.beatenBro = G.curBro || (P && P.bro) || 'toasty';
+  if (!save.worldsCleared.includes(10)) save.worldsCleared.push(10);
+  bumpHi(); writeSave(); A.sfx('final10');
+}
+function drawEndingScene(){
+  const t = G.stateT;
+  const grd = g.createLinearGradient(0, 0, 0, 200); grd.addColorStop(0, '#2a1018'); grd.addColorStop(1, '#d87a4a'); g.fillStyle = grd; g.fillRect(0, 0, W, H);
+  const r = rng(91); for (let i = 0; i < 30; i++){ g.fillStyle = '#ece8e1'; g.fillRect((r() * W) | 0, (r() * 80) | 0, 1, 1); }
+  g.fillStyle = '#6ac8ff'; g.beginPath(); g.arc(210, 40, 3, 0, Math.PI * 2); g.fill(); // the Earth, a tiny blue dot
+  g.fillStyle = M10.RUST2; g.beginPath(); g.moveTo(0, 170); for (let x = 0; x <= W; x += 16) g.lineTo(x, 160 + Math.sin(x * 0.04) * 8); g.lineTo(W, H); g.lineTo(0, H); g.fill();
+  g.fillStyle = M10.RUST; g.fillRect(0, 196, W, 44);
+  // the capsule on the pad, the castle far off, the bro and a toast flag
+  drawCapsule(g, 40, 176, { frame: G.frame }); drawMarsDecor(g, { kind: 'pad10', w: 48 }, 24, 180, G.frame);
+  g.fillStyle = '#3a1a12'; g.fillRect(186, 140, 50, 56); for (let i = 0; i < 50; i += 10){ g.fillRect(186 + i, 134, 6, 6); } g.fillStyle = M10.YEL; g.fillRect(206, 168, 10, 28);
+  const bro = broFrame(G.curBro || 'toasty', 'stand'), bx = Math.min(120, 64 + t * 0.4);
+  if (bro) g.drawImage(bro, Math.round(bx), 196 - bro.height);
+  if (t > 160) drawMarsDecor(g, { kind: 'flag10' }, Math.round(bx) + 16, 180, G.frame);
+  const lines = ['YELLOW BLANKEY IS TUCKED IN.', 'CYBER_BOY IS LOGGED OFF.', 'MR. TOASTY MADE IT TO MARS.'];
+  lines.forEach((l, i) => { if (t > 40 + i * 60) drawTextC(g, l, 128, 56 + i * 14, i === 2 ? M10.YEL : M10.IVORY, 1, '#000'); });
+  if (t > 230){ g.fillStyle = M10.BG; g.fillRect(16, 108, 224, 18); drawTextC(g, "ACID: TOLD YOU. MOON FIRST.", 128, 113, M10.GOLD); }
+  if (t > 240 && (G.frame >> 4) % 2) drawTextC(g, 'PRESS JUMP', 128, 228, M10.IVORY);
+}
+function drawCredits(){
+  g.fillStyle = M10.BG; g.fillRect(0, 0, W, H);
+  const r = rng(55); for (let i = 0; i < 50; i++){ g.fillStyle = r() < 0.7 ? '#ece8e1' : '#d7c36a'; g.fillRect((r() * W) | 0, (((r() * H) + (G.creditY || 0) * 0.2) % H) | 0, 1, 1); }
+  const L = creditLines(), y0 = H + 10 - (G.creditY || 0);
+  const heads = new Set(['CREATED BY', 'MADE AT', 'DESIGN  ART  CODE  MUSIC', 'MISSION CONTROL', 'THE BROS', 'THE WORLDS', 'THE BOSSES']);
+  L.forEach((l, i) => { const y = y0 + i * 14; if (y < -10 || y > H) return; const big = i === 0;
+    drawTextC(g, l, 128, y, big ? M10.YEL : heads.has(l) ? M10.GOLD : (l === 'COTY LAKE' || l === 'THERAPYTOASTER' || l === 'TOASTY BROS STUDIO' ? M10.YEL : M10.IVORY), 1, '#000'); });
+  drawTiny(g, 'HOLD JUMP TO SPEED UP', 6, 230, M10.GRAY);
+}
+function drawThanks(){
+  g.fillStyle = M10.BG; g.fillRect(0, 0, W, H);
+  const r = rng(12); for (let i = 0; i < 70; i++){ g.fillStyle = r() < 0.5 ? M10.YEL : M10.CYAN; g.fillRect((r() * W) | 0, ((r() * H + G.stateT * (0.3 + r())) % H) | 0, 1, 1); }
+  drawTextC(g, 'THANKS FOR PLAYING', 128, 80, M10.YEL, 2, '#000');
+  drawTextC(g, 'MR. TOASTY: TOASTY BROS', 128, 112, M10.IVORY);
+  drawTextC(g, 'ALL 10 WORLDS CLEARED. GAME BEATEN!', 128, 130, M10.GOLD);
+  drawTextC(g, 'SCORE ' + pad(G.score, 6) + '   HI ' + pad(save.hi, 6), 128, 146, '#ffffff');
+  drawTextC(g, 'COTY LAKE / THERAPYTOASTER', 128, 166, M10.GRAY); drawTextC(g, 'TOASTY BROS STUDIO', 128, 178, M10.GRAY);
+  if (G.stateT > 150 && (G.frame >> 4) % 2) drawTextC(g, 'PRESS START', 128, 200, M10.IVORY);
+}
+
 // ---------------- THE GLITCH (World 1 boss) ----------------
 function makeBoss(spec){
   if (spec.kind === 'toaster') return makeToaster(spec);
@@ -4201,6 +4804,7 @@ function makeBoss(spec){
   if (spec.kind === 'vault') return makeVault(spec);
   if (spec.kind === 'fatcoty') return makeFatCoty(spec);
   if (spec.kind === 'ttruck') return makeTTruck(spec);
+  if (spec.kind === 'blankey') return makeBlankey(spec);
   return { kind: 'glitch', spec, x: spec.tx * TS, y: spec.bridgeRow * TS - 28, w: 28, h: 28, vx: 0, vy: 0, hp: 5, flash: 0, state: 'dormant', t: 0, dir: -1, shots: 0,
     active: false, dying: false, dead: false, by: null, onGround: true, dt: 0 };
 }
@@ -4213,6 +4817,7 @@ function hitBoss(){
   if (b.kind === 'vault') return vaultDamage('chip');
   if (b.kind === 'fatcoty') return fatCotyDamage('chip');
   if (b.kind === 'ttruck') return ttDamage('chip');
+  if (b.kind === 'blankey') return bbDamage('chip');
   if (b.flash > 0 || b.dying) return;
   b.hp--; b.flash = 36; A.sfx('bosshit'); G.shake = 8;
   burst(b.x + 14, b.y + 14, 14, ['#ffffff', '#00e5ff', '#ff0040', '#8a8a8a'], 2.2);
@@ -4234,6 +4839,7 @@ function updateBoss(){
   if (b.kind === 'vault') return updateVault();
   if (b.kind === 'fatcoty') return updateFatCoty();
   if (b.kind === 'ttruck') return updateTTruck();
+  if (b.kind === 'blankey') return updateBlankey();
   if (b.flash > 0) b.flash--;
   const [bx0, bx1] = b.spec.bounds;
   if (b.dying){
@@ -4511,6 +5117,7 @@ function update(){
     case 'warpcard':
       if (G.stateT > (WORLDS[G.warpTo].built ? 170 : 230)){ G.levelId = G.warpTarget || latestWorldStart(); G.checkpoint = false; reach(G.levelId); G.state = 'intro'; G.stateT = 0; }
       break;
+    case 'ending': case 'credits': case 'thanks': marsEndingUpdate(); break; // v1.2
     case 'worldclear':
       if (G.stateT > 120 && (pressed('start') || pressed('jump'))){
         bumpHi(); writeSave();
@@ -4550,7 +5157,7 @@ function updatePlay(){
   for (const e of enemies){ if (G.freezeT > 0 && !e.dead){ if (e.hitT > 0) e.hitT--; continue; } updateEnemy(e); } // Diner Bell: enemies freeze
   enemyPairs();
   for (const it of items) updateItem(it);
-  pitUpdate(); if (inDiner()) dinerUpdate(); if (inBumbo()) bumboUpdate(); if (inCrypt()) cryptUpdate(); if (inArcade()) arcadeUpdate(); if (inFeed()) feedUpdate(); if (inBite() || (BOSS && BOSS.kind === 'ttruck')) biteUpdate();
+  pitUpdate(); if (inDiner()) dinerUpdate(); if (inBumbo()) bumboUpdate(); if (inCrypt()) cryptUpdate(); if (inArcade()) arcadeUpdate(); if (inFeed()) feedUpdate(); if (inBite() || (BOSS && BOSS.kind === 'ttruck')) biteUpdate(); if (inMars() || (BOSS && BOSS.kind === 'blankey')) marsUpdate();
   for (const r of rockets) updateRocket(r);
   updateShots(); updateTurrets();
   updateBolts(); updateBoss(); updatePatches(); updateCrumbles();
@@ -4678,6 +5285,7 @@ function bgLayers(kind){
   else if (typeof arcadeLayers === 'function' && ['arclobby', 'arcprize', 'arcstatic', 'arcvault'].includes(kind)) arcadeLayers(kind, L, tileableLayer);
   else if (typeof feedLayers === 'function' && ['feedfront', 'feedkitchen', 'feedline', 'feedbooth'].includes(kind)) feedLayers(kind, L, tileableLayer);
   else if (typeof biteLayers === 'function' && ['bitestreet', 'bitediner', 'biteave', 'bitelot'].includes(kind)) biteLayers(kind, L, tileableLayer);
+  else if (typeof marsLayers === 'function' && ['mpad', 'mmoon', 'mship', 'morbit', 'mland', 'mcastle'].includes(kind)) marsLayers(kind, L, tileableLayer);
   else toonLayers(kind, L);
   return (BGL[kind] = L);
 }
@@ -5005,6 +5613,7 @@ function drawBoss(){
   if (BOSS && BOSS.kind === 'vault') return drawVault();
   if (BOSS && BOSS.kind === 'fatcoty') return drawFatCoty();
   if (BOSS && BOSS.kind === 'ttruck') return drawTTruck();
+  if (BOSS && BOSS.kind === 'blankey') return drawBlankeyBoss();
   if (!BOSS || BOSS.dead) { if (BOSS) drawSwitch(); return; }
   drawSwitch();
   const b = BOSS, X = Math.round(b.x - camX), Y = Math.round(b.y);
@@ -5127,6 +5736,7 @@ function heroSprite(){
 function drawPlayer(){
   const p = P;
   if (p.ctrl === 'gone') return;
+  if (p.ctrl === 'flight' && typeof drawFlight === 'function' && drawFlight()) return; // v1.2 capsule
   if (p.inv > 0 && !p.dead && (G.frame >> 1) % 2) return;
   const img = heroSprite();
   const X = Math.round(p.x - 2 - camX), Y = Math.round(p.y + p.h - img.height);
@@ -5144,6 +5754,7 @@ function drawDecor(){
     if (X < -140 || X > W + 8) continue;
     if (typeof FEED_DECOR !== 'undefined' && FEED_DECOR.has(d.kind)){ drawFeedDecor(g, d, X, Y, G.frame); continue; }
     if (typeof BITE_DECOR !== 'undefined' && BITE_DECOR.has(d.kind)){ drawBiteDecor(g, d, X, Y, G.frame); continue; }
+    if (typeof MARS_DECOR !== 'undefined' && MARS_DECOR.has(d.kind)){ drawMarsDecor(g, d, X, Y, G.frame); continue; }
     if (typeof ARCADE_DECOR !== 'undefined' && ARCADE_DECOR.has(d.kind)){ drawArcadeDecor(g, d, X, Y, G.frame); continue; }
     if (typeof CRYPT_DECOR !== 'undefined' && CRYPT_DECOR.has(d.kind)){ drawCryptDecor(g, d, X, Y, G.frame); continue; }
     if (typeof BUMBO_DECOR !== 'undefined' && BUMBO_DECOR.has(d.kind)){ drawBumboDecor(g, d, X, Y, G.frame); continue; }
@@ -5182,6 +5793,7 @@ function drawEnemy(e, X){
   if (ARCADE_TYPES.has(e.type) && drawArcadeEnemy(e, X)) return;
   if (FEED_TYPES.has(e.type) && drawFeedEnemy(e, X)) return;
   if (BITE_TYPES.has(e.type) && drawBiteEnemy(e, X)) return;
+  if (MARS_TYPES.has(e.type) && drawMarsEnemy(e, X)) return;
   {
     const L = e.facing < 0 ? '_L' : '', Yb = Math.round(e.y + e.h - 16);
     let img;
@@ -5274,6 +5886,7 @@ function drawItems(emerging){
     const X = Math.round(it.x - 1 - camX), Y = Math.round(it.y);
     if (it.type === 'crave' && typeof drawFeedSnack === 'function'){ drawFeedSnack(g, it.kind, X, Y, G.frame, true); continue; }
     if (it.type === 'gold' && typeof drawBiteGold === 'function'){ drawBiteGold(g, it.kind, X, Y, G.frame); continue; }
+    if (it.type === 'fuel' && typeof drawMarsItem === 'function'){ drawMarsItem(g, 'fuel', X, Y, G.frame); continue; }
     let img = S.armor;
     if (it.type === 'launcher') img = S.launcher[(G.frame >> 3) & 1];
     else if (it.type === 'glitch') img = S.glitch[(G.frame >> 2) % 4];
@@ -5528,7 +6141,7 @@ function drawWorld(){
   drawTiles();
   drawPlats();
   drawPoleAndBooth();
-  drawHazards(); drawPitHazards(); drawDinerHazards(); drawBumboHazards(); drawCryptHazards(); drawArcadeHazards(); drawFeedHazards(); drawBiteHazards();
+  drawHazards(); drawPitHazards(); drawDinerHazards(); drawBumboHazards(); drawCryptHazards(); drawArcadeHazards(); drawFeedHazards(); drawBiteHazards(); drawMarsHazards();
   drawItems(false);
   drawEnemies();
   drawBoss();
@@ -5578,7 +6191,7 @@ function drawTitle(){
   g.fillStyle = 'rgba(5,7,13,0.62)'; g.fillRect(0, 0, W, H);
   const t = G.frame;
   logo('MR. TOASTY:', 36, 2); logo('TOASTY BROS', 56, 3);
-  drawTextC(g, 'NOW ON AIR: WORLDS 1-7  - BRO EDITION', 128, 86, '#cbbcd9', 1, '#000');
+  drawTextC(g, 'NOW ON AIR: ALL 10 WORLDS - BRO EDITION', 128, 86, '#cbbcd9', 1, '#000');
   BRO_IDS.forEach((id, i) => { const open = save.unlocked.includes(id), x = 24 + i * 26, hop = open && ((t >> 3) + i) % 16 === 0 ? -3 : 0;
     const fr = broFrame(id, open ? ((t >> 4) + i) % 2 ? 'stand' : 'walk2' : 'stand'); g.drawImage(open ? fr : tinted(fr, '#2a3046'), x, 100 + hop);
     if (!open) drawText(g, '?', x + 6, 104, '#5c6370'); });
@@ -5588,7 +6201,7 @@ function drawTitle(){
     drawTextC(g, it.label, 128, y, sel ? '#FFD400' : '#8b909c', 1, '#000');
     if (sel && (t >> 4) % 2 === 0) drawText(g, '>', 128 - textWidth(it.label) / 2 - 10, y, '#FFD400');
   });
-  drawTextC(g, 'HI ' + pad(save.hi, 6), 128, 176, '#ffffff', 1, '#000');
+  drawTextC(g, 'HI ' + pad(save.hi, 6) + (save.beaten ? '   GAME BEATEN!' : ''), 128, 176, save.beaten ? '#ffd21a' : '#ffffff', 1, '#000');
   const tch = typeof TouchInput !== 'undefined' && TouchInput.active;
   drawTextC(g, tch ? 'D-PAD MOVE  A JUMP  B RUN+FIRE (HOLD)' : 'ARROWS MOVE  Z JUMP  X RUN+FIRE (HOLD)', 128, 190, '#8b909c');
   drawTextC(g, tch ? 'S SPECIAL  M MELEE  START PAUSE' : 'C SPECIAL  V MELEE  ENTER START', 128, 200, '#8b909c');
@@ -5734,9 +6347,10 @@ function render(){
     case 'clear': drawClear(); break;
     case 'warpcard': drawWarpCard(); break;
     case 'worldclear': drawWorldClear(); break;
+    case 'ending': drawEndingScene(); break; case 'credits': drawCredits(); break; case 'thanks': drawThanks(); break; // v1.2
     case 'gameover': drawGameOver(); break;
   }
-  if (G.state !== 'title' && G.state !== 'select' && G.state !== 'roster' && G.state !== 'play' && G.state !== 'dying' && G.state !== 'worldclear') drawHUD();
+  if (G.state !== 'title' && G.state !== 'select' && G.state !== 'roster' && G.state !== 'play' && G.state !== 'dying' && G.state !== 'worldclear' && G.state !== 'ending' && G.state !== 'credits' && G.state !== 'thanks') drawHUD();
   sctx.imageSmoothingEnabled = false;
   sctx.drawImage(buf, 0, 0, screenC.width, screenC.height);
   if (scale >= 2){
@@ -5828,14 +6442,16 @@ function botJump(b, want, holdMax){
 function botInput(){
   const b = botNav();
   if (G.state === 'play' && P && P.ctrl === 'normal' && !G.dialog && !P.dead) botCombat(b);
-  if (bot.hiveLock && BOSS && (BOSS.kind === 'hive' || BOSS.kind === 'quartz' || BOSS.kind === 'vault' || BOSS.kind === 'fatcoty' || BOSS.kind === 'ttruck') && BOSS.active){ b.left = bot.hiveLock.l; b.right = bot.hiveLock.r; }
+  if (bot.hiveLock && BOSS && (BOSS.kind === 'hive' || BOSS.kind === 'quartz' || BOSS.kind === 'vault' || BOSS.kind === 'fatcoty' || BOSS.kind === 'ttruck' || BOSS.kind === 'blankey') && BOSS.active){ b.left = bot.hiveLock.l; b.right = bot.hiveLock.r; }
   // v0.7: a rolling skull only rolls at the Hive while it's sitting on the boards (rolling under a hop means it lands on you)
   if (b.fire && BOSS && BOSS.kind === 'vault' && BOSS.active && P.bro === 'skulrz'){
     if (!(BOSS.open > 0)) b.fire = false; // only roll at the Vault while the payout button glows
     if (bolts.some(o => !o.mine && o.kind === 'gwave' && !(o.delay > 0) && Math.abs(o.x - P.x) < 90)) b.fire = false;
     if (BOSS.drips.some(d => Math.abs(d.x - (P.x + P.w / 2)) < 30)) b.fire = false;
   }
-  if (b.fire && BOSS && (BOSS.kind === 'fatcoty' || BOSS.kind === 'ttruck') && BOSS.active && P.bro === 'skulrz'){
+  if (b.fire && BOSS && BOSS.kind === 'blankey' && BOSS.active && P.bro === 'skulrz' && BOSS.laser) b.fire = false; // v1.2 never roll into a laser
+  if (b.fire && BOSS && BOSS.kind === 'blankey' && BOSS.active && P && !P.onGround && bolts.some(o => !o.mine && o.kind === 'gwave' && !(o.delay > 0) && Math.abs(o.x - P.x) < 70)) b.fire = false; // v1.2 no recoil drift mid-hop over a wave
+  if (b.fire && BOSS && (BOSS.kind === 'fatcoty' || BOSS.kind === 'ttruck' || BOSS.kind === 'blankey') && BOSS.active && P.bro === 'skulrz'){
     if (!(BOSS.open > 0)) b.fire = false;
     if (bolts.some(o => !o.mine && o.kind === 'gwave' && !(o.delay > 0) && Math.abs(o.x - P.x) < 90)) b.fire = false;
     if (BOSS.drips.some(d => Math.abs(d.x - (P.x + P.w / 2)) < 30)) b.fire = false;
@@ -5893,7 +6509,7 @@ function botCombat(b){
       if (BOSS.open > 0 && gap > -4 && gap < Math.max(range, 28) + 24) target = true;
       if (BOSS.open > 0 && kind === 'roll' && gap < 26 && gap > -2 && !bot.mel) b.melee = true;
     }
-    if ((BOSS.kind === 'fatcoty' || BOSS.kind === 'ttruck') && dir > 0){
+    if ((BOSS.kind === 'fatcoty' || BOSS.kind === 'ttruck' || BOSS.kind === 'blankey') && dir > 0){
       const gap = BOSS.x - (p.x + p.w);
       if (BOSS.open > 0 && gap > -4 && gap < Math.max(range, 28) + 24) target = true;
       if (BOSS.open > 0 && kind === 'roll' && gap < 26 && gap > -2 && !bot.mel) b.melee = true;
@@ -5936,6 +6552,8 @@ function botNav(){
   if (G.state === 'worldclear'){ b.right = false; b.run = false; b.start = !!G.nextWorldLevel && G.stateT > 130 && G.frame % 40 === 0; return b; }
   if (G.state === 'clear' || G.state === 'select'){ b.start = G.frame % 40 === 0; b.right = false; b.run = false; return b; }
   if (G.state === 'play' && P && P.ctrl === 'truck' && !G.dialog && !P.dead){ const o = botTruck(b); bot.lastJump = o.jump; return o; }
+  if (G.state === 'play' && P && P.ctrl === 'flight' && !P.dead && typeof botFlight === 'function'){ const o = botFlight(b); bot.lastJump = false; return o; } // v1.2
+  if (G.state === 'ending' || G.state === 'credits' || G.state === 'thanks'){ b.right = false; b.run = false; b.start = G.stateT > 260 && G.frame % 40 === 0; return b; } // v1.2
   if (G.state !== 'play' || !P || P.ctrl !== 'normal' || G.dialog){ bot.lastJump = false; b.right = false; return b; }
   const p = P, grounded = p.onGround || !!p.plat;
   const fx = p.x + p.w, feet = p.y + p.h, feetRow = Math.floor((feet - EPS) / TS);
@@ -5946,9 +6564,13 @@ function botNav(){
   if (BOSS && BOSS.kind === 'vault' && G.dialogDone && !(BOSS.dead && G.escape)){ botVault(b, grounded, feet); bot.lastJump = b.jump; return b; }
   if (BOSS && BOSS.kind === 'fatcoty' && G.dialogDone && !(BOSS.dead && G.escape)){ botFeed(b, grounded, feet); bot.lastJump = b.jump; return b; }
   if (BOSS && BOSS.kind === 'ttruck' && G.dialogDone && !(BOSS.dead && G.escape)){ botTT(b, grounded, feet); bot.lastJump = b.jump; return b; }
+  if (BOSS && BOSS.kind === 'blankey' && G.dialogDone && !(BOSS.dead && G.escape)){ botBB(b, grounded, feet); bot.lastJump = b.jump; return b; }
   if (BOSS && (BOSS.kind === 'hive' || BOSS.kind === 'quartz') && G.dialogDone && !(BOSS.dead && G.escape)){ botHive(b, grounded, feet); bot.lastJump = b.jump; return b; }
   if (inFeed() && !(BOSS && BOSS.kind === 'fatcoty' && G.dialogDone && !(BOSS.dead && G.escape))){
     const r = feedBotSauce(b, grounded, feet); if (r){ bot.lastJump = b.jump; return b; }
+  }
+  if (inMars() && !(BOSS && BOSS.kind === 'blankey' && G.dialogDone && !(BOSS.dead && G.escape))){
+    const r = marsBotSauce(b, grounded, feet); if (r){ bot.lastJump = b.jump; return b; }
   }
   if (inBite() && !(BOSS && BOSS.kind === 'ttruck' && G.dialogDone && !(BOSS.dead && G.escape))){
     const r = biteBotSauce(b, grounded, feet); if (r){ bot.lastJump = b.jump; return b; }
@@ -6406,6 +7028,11 @@ window.TT = {
   // v1.0 World 8
   // v1.1 World 9
   biteHit(){ const b = BOSS; if (b && b.kind === 'ttruck'){ b.flash = 0; ttDamage('test'); } },
+  skipFlight(){ if (lv && lv.flight){ flightExit(); } }, // tests: jump past the docking / landing screen
+  bbHit(){ const b = BOSS; if (b && b.kind === 'blankey'){ b.flash = 0; bbDamage('test'); } },
+  bbChip(){ const b = BOSS; if (b && b.kind === 'blankey'){ b.flash = 0; bbDamage('chip'); } }, // a normal hit: only counts while it naps / reboots
+  marsState(){ const b = BOSS && BOSS.kind === 'blankey' ? BOSS : null, fl = G.fl; return { area: G.area, ctrl: P ? P.ctrl : null, fuelBank: G.fuelBank || 0, fuelCans: G.fuelCans || 0, ventHits: G.ventHits || 0, meteorHits: G.meteorHits || 0, marsKOs: G.marsKOs || 0, marsStomps: G.marsStomps || 0, comms: G.comms || 0, comm: G.comm ? G.comm.text : null, sep: lv && lv.sep ? lv.sep.state : null, seps: G.seps || 0, sepHits: G.sepHits || 0, flight: fl ? { mode: fl.mode, fuel: +fl.fuel.toFixed(1), done: fl.done, grade: fl.grade, crashes: fl.crashes, lowFuel: fl.lowFuel } : null, docks: G.docks || 0, dockGrade: G.dockGrade || null, landGrade: G.landGrade || null, lands: G.lands || 0, landHits: G.landHits || 0, flCrashes: G.flCrashes || 0, lowFuel: G.lowFuel || 0, beaten: !!save.beaten, boss: b ? { hp: b.hp, phase: b.phase, state: b.state, open: b.open, form: b.form, laser: b.laser ? b.laser.state : null, active: b.active, dying: b.dying, dead: b.dead } : null, bbHits: G.bbHits || 0, bbHaz: G.bbHaz || 0, bbLasers: G.bbLasers || 0, bbCharges: G.bbCharges || 0, bbZaps: G.bbZaps || 0, bbWaves: G.bbWaves || 0, bbFlops: G.bbFlops || 0, bbDrops: G.bbDrops || 0, bbOpens: G.bbOpens || 0, bbPhases: G.bbPhases || 1, bbDown: !!G.bbDown }; },
+  ventState: (i, f) => ventState(lv.vents[i || 0], f), meteorState: (i, f) => meteorState(lv.meteors[i || 0], f), creditLines: () => creditLines(), get fl(){ return G.fl; },
   biteChip(){ const b = BOSS; if (b && b.kind === 'ttruck'){ b.flash = 0; ttDamage('chip'); } }, // a normal hit: only counts while the truck is stalled
   biteState(){ const b = BOSS && BOSS.kind === 'ttruck' ? BOSS : null; return { brawl: G.brawl ? { tx: G.brawl.tx, wave: G.brawl.wave, waves: G.brawl.waves.length } : null, brawls: G.brawls || 0, clears: G.clears || 0, kos: G.kos || 0, punkStomps: G.punkStomps || 0, butterStomps: G.butterStomps || 0, golds: G.golds || 0, goldHeals: G.goldHeals || 0, grillHits: G.grillHits || 0, strikeHits: G.strikeHits || 0, camLockX: G.camLockX, ttDown: !!G.ttDown, ttHits: G.ttHits || 0, ttHaz: G.ttHaz || 0, ttCharges: G.ttCharges || 0, ttHorns: G.ttHorns || 0, ttToasts: G.ttToasts || 0, ttWaves: G.ttWaves || 0, open: b ? b.open : 0, phase: b ? b.phase : 0, hp: b ? b.hp : null, x: b ? b.x : null, lungeX: b ? ttLungeX(b) : null, nameCard: G.nameCard ? G.nameCard.text : null, bigText: G.bigText ? G.bigText.text : null, ctrl: P ? P.ctrl : null, dying: !!(b && b.dying), dead: !!(b && b.dead), active: !!(b && b.active), state: b ? b.state : null, drips: b ? b.drips.length : 0, bites: b ? b.bites : 0, escape: !!G.escape }; },
   grillState(i, f){ return lv && lv.grills && lv.grills[i] ? grillState(lv.grills[i], f) : null; },

@@ -1,4 +1,4 @@
-# Mr. Toasty: Toasty Bros — Worlds 1-9 (v1.1 FINAL BITE)
+# Mr. Toasty: Toasty Bros — Worlds 1-10 (v1.2 THERAPYTOASTER TO MARS)
 Original platformer by Coty Lake. SMB is a mechanics reference only; all art, audio, names and layouts are original and
 procedural (pixel arrays + canvas + WebAudio). No external assets, no CDN, no build step. Jam is grape purple.
 
@@ -10,7 +10,44 @@ Open `index.html` directly (file:// works), or `python3 -m http.server` in this 
 - Touch (v0.5 hardened, see **Mobile controls** below): left 8-way D-pad, right A (jump) / B (run+fire) / S (special, OUT while in the TOAST TRUCK) / M (melee)
   + START, only on touch devices (force with `?touch`).
 - Title menu: NEW GAME · CONTINUE x-x · BRO ROSTER · LEVEL SELECT (only with `?debug`).
-- Save: `localStorage['toastyBros.save.v1']` = { furthest, hi, worldsCleared, unlocked, startBro } (older saves load fine).
+- Save: `localStorage['toastyBros.save.v1']` = { furthest, hi, worldsCleared, unlocked, startBro, beaten, beatenCount, beatenBro } (older saves load fine;
+  `beaten` is set by the post-credits THANKS FOR PLAYING screen, and the title shows GAME BEATEN!).
+
+## v1.2 THERAPYTOASTER TO MARS (World 10, the final world)
+- **World 10 "TherapyToaster to Mars" is open**, and with it the whole game: 10-1 LAUNCH PAD → 10-2 MOONBASE → 10-3 BOARD THE
+  SHIP → 10-4 MARS. Moon first. Original art in `js/mars.js` (launch tower, rocket, moon regolith, ship hull, Mars dunes and a
+  rust-red castle). No agency or rocket-company names or logos. Warp pipe 10 (the 1-2 warp zone is 24 tiles now), level
+  select, and the World 9 clear (9-4 card → 10-1) all lead here.
+- **10-1 LAUNCH PAD** — a platformer up the gantry with a timed **LAUNCH WINDOW** in the HUD; ENGINE VENTS flare on a
+  telegraphed cycle and SECURITY DRONES patrol. Reach the pad before the window closes.
+- **10-2 MOONBASE** — a TOAST TRUCK drive across the Moon: crater pits, DECOY CRATERS and METEOR SHOWERS with a shadow + warning
+  before each strike. CRATER CRAWLERS take one stomp.
+- **10-3 BOARD THE SHIP** — fly the capsule (thrust/steer, fuel gauge, ALT/SPD readout) through debris into the docking port.
+  Too fast = 1 heart and a retry; ease in for **SOFT DOCK**. Inside the ship: **BOOSTER SEP** counts down, and anyone behind the
+  STAGE LINE when it fires takes 1 heart and is pulled forward as the bulkhead seals.
+- **10-4 MARS** — opens with a **graded landing** (low gravity, limited fuel, a pad between craters): PINPOINT and TEXTBOOK are
+  free; HARD LANDING, HARD IMPACT, MISSED THE PAD and DEAD STICK each cost 1 heart. LOW FUEL refills the tank for 1 heart.
+  Then the Mars castle and the final boss.
+- **FINAL BOSS: YELLOW BLANKEY / CYBER_BOY** (12 HP, the most in the game, 3 phases, every attack telegraphed). Original
+  design: a yellow blanket bundle that becomes a cyber kid in a hoodie with a cyan visor and jet boots, then a blanket-caped
+  final form. Hits only count in the **NAP TIME! HIT IT!** open window (100/95/90 frames); otherwise they clink.
+  - Phase 1 BLANKEY: pillow drops (shadow warning first) and the blanket flop (floor wave).
+  - Phase 2 "BLANKEY OFF! CYBER_BOY ONLINE.": a charged ankle-height laser (56-frame charge, JUMP! cue) and falling data bricks.
+  - Phase 3 "BLANKEY UP. FINAL FORM.": flop with a spaced double wave, a faster laser, and a mixed pattern.
+  - Knockdown: "TUCKED IN. LOGGED OFF." → "GOOD NIGHT, CYBER_BOY." → TOASTED! escape. Fat Coty gets his own lines.
+    The autopilot beats it as all 8 bros without losing a heart.
+- **Ending → credits → THANKS FOR PLAYING:** an ending scene on Mars, a credits roll (Coty Lake / TherapyToaster, Toasty Bros
+  Studio, the bros, the worlds and their bosses; hold jump to speed it up), then a post-credits **THANKS FOR PLAYING** screen
+  that saves `beaten: true`.
+- ACID talks you through every level in a comms box. All hazards cost 1 heart (vents, meteors, drones, crawlers, lasers, waves,
+  pillows, bricks, docking, separation, rough landings). Pits, the TOASTED! front and the timer stay instant.
+- Music: a triangle "mission" drone (55 / 82.5 / 110 Hz) under seven new songs (pad, moon, ship, flight, Mars, boss,
+  credits) plus thrust, beep, dock, land, liftoff, separation, meteor, vent, laser, charge, blanket and final-hit SFX.
+- The pixel font gains `_` (so CYBER_BOY reads right).
+- Tests: `test_w10.py` (83 checks: content rules, progression + warp 10, vents, meteors, docking + SOFT DOCK, booster sep +
+  bulkhead, every landing grade, the boss's phases, telegraphs and open window, the autopilot chain 10-1 → THANKS FOR PLAYING,
+  the boss as 8 bros, the save flag, mobile + touch, no console errors). `test_w9.py` and the warp-zone checks in
+  `test_w6`–`test_w8` now expect World 10. Every suite stays green.
 
 ## v1.1 FINAL BITE (World 9)
 - **World 9 "Final Bite" is open** (9-1 CRUMB STREET → 9-2 THE DINER → 9-3 TOAST AVENUE → 9-4 TOASTER LOT), from the
@@ -18,7 +55,7 @@ Open `index.html` directly (file:// works), or `python3 -m http.server` in this 
   kitchen with grills and gold bars, a cracked toaster lot behind chain-link under a purple storm sky. Lore palette.
   Warp pipe 9 (the 1-2 warp zone is wider and now scrolls, so channels 8 and 9 are on screen), level select, and a World 8
   clear all lead here. The 8-4 end card teases "FINAL BITE: NEXT CHANNEL..."; the 9-4 card teases
-  "THERAPYTOASTER TO MARS: NEXT CHANNEL..." (World 10 stays a stub).
+  "THERAPYTOASTER TO MARS: NEXT CHANNEL..." (World 10 was a stub until v1.2).
 - **BRAWL zones:** the screen locks ("BRAWL!"), waves of thugs walk in from the right, and "CLEAR!" unlocks it.
 - **Enemies (1 heart on contact):** PUNK (fast toast-head thug with cheese drips; one stomp = "TOASTED"; a BURNT PUNK variant is
   faster), BUTTER BRUISER (slow, 4 HP, two stomps; FROZEN BUTTER is colder and tougher). Bruisers drop gold pats.
@@ -388,13 +425,13 @@ Music is original procedural glitch chiptune: minor-key dungeon loops through a 
     arcade cabinet showing CH 7, teasing **"TOASTY ARCADE: NEXT CHANNEL... WORLD 7 - COMING SOON"**.
 - Progression: clearing 5-4 → World 5 card → START → 6-1. Warp pipe 6 → 6-1. Level select lists 6-1..6-4; saves record World 6.
 
-World 10 is named **THERAPYTOASTER TO MARS** (display "TherapyToaster to Mars"), set only in `js/worlds.js`.
+World 10 is **THERAPYTOASTER TO MARS** (display "TherapyToaster to Mars"), built in v1.2 (see above).
 
 ## Code layout (data-driven, ready for 10 worlds)
 - `js/font.js` pixel font · `js/touch.js` touch controls · `js/audio.js` WebAudio songs (`w1_over`, `w1_under`, `w1_sky`,
   `w1_castle`, `w1_boss`) + SFX; `startMusic(name)` is the per-world music hook.
 - `js/worlds.js` — `WORLDS[1..10]` (name, built flag, level ids, palette, enemy roster, boss, music) and `THEMES`
-  (tileset palettes + background kind). Worlds 1–9 are built; World 10 is stubbed with its lore palette/roster/boss.
+  (tileset palettes + background kind). All 10 worlds are built.
 - `js/sprites.js` — sprites + `buildTileset(theme)` (themed ground/brick/CRT/conveyor/barrel/acid/bridge tiles).
 - `js/levels/common.js` — tile legend + `newArea()` / `areaTools()` builders (pipes, stairs, platforms, firebars, beams, signs).
 - `js/toon.js` — World 2 cartoon tiles/sprites (trucks, skeletons, launchers, Toaster Truck + plate font, Grand Toaster).
@@ -402,13 +439,15 @@ World 10 is named **THERAPYTOASTER TO MARS** (display "TherapyToaster to Mars"),
 - `js/bumbo.js` — World 5 palette, cardboard tiles (corrugated floors, taped boxes, `?` gift boxes, butter goo, Pop-Up Springs), sprites (gremlin, slime + globs, Fork Ghoul, bagel bat, Cord Snake, foil puppet, Hive Skull, honey, Buzz Crumbs, Oven Mitt), the static TV booth, puppet-theater decor/backgrounds and post-fx.
 - `js/crypt.js` — World 6 palette, crypt tiles (stone, server racks, RGB switch, cyan bridge / magenta firewall blocks, jam and magma), sprites (Rage Toaster, Burnt End + crumbs, Butter Blob, Static Skull, Glitchling, Fuse Bun, Quartz Shard, Quartz King, Hot Sauce), Glitch Doors, jam geysers, the CRT gate, decor, background layers and RGB-split/scanline post-fx.
 - `js/pit.js` — World 3 palette, tiles (coils, outlets, fridges, neon trim), sprites (skulls, smoke detector, goon, tray, IOU, slice, Breadlord), ledger table, graffiti/poster/background layers.
-- `js/levels/w1.js` … `js/levels/w6.js` — `LEVELS[...]`, pushed onto `LEVEL_ORDER` (defined in common.js). Add a world = new `js/levels/wN.js` + `built: true` in worlds.js
+- `js/mars.js` — World 10 palette, decor (tower, rocket, dish, hab, craters, ship windows, castle banners), sprites (security drone, crater crawler, fuel can, pillow, data brick), the capsule and `drawBlankey()`.
+- `js/levels/w1.js` … `js/levels/w10.js` — `LEVELS[...]`, pushed onto `LEVEL_ORDER` (defined in common.js). Add a world = new `js/levels/wN.js` + `built: true` in worlds.js
   + a `<script>` tag.
 - `js/bros.js` — `BROS` / `BRO_IDS` roster data + `buildBroSprites()` (bro frames, portraits, cage, tank, gas can).
 - `js/game.js` — engine (v0.4 bro system block: terrain HP, booms, shots, melee, specials, cages, escape): physics, multi-area runtime (each area keeps its own enemies/items/platforms, so the main level is
   unchanged when you come back from a bonus room), entities, boss, states, rendering, autopilot, `window.TT` test hooks.
 
 ## Tests (Playwright, from ../tests, server on 127.0.0.1:18923)
+- `test_w10.py` — 83 v1.2 checks (see the v1.2 section). Writes shots/w10/ (incl. credits.png); `boss_clip.py 0 boss.mp4 10-4 150` → shots/w10/boss.mp4.
 - `test_w6.py` — 61 v0.8 checks:
   - Content rules: banned names/words in World 6 strings (lore do-not-use list, no Binding of Isaac / Undertale), lore palette,
     jam #b54e8c, glitch-chiptune songs + boss variant, no coin/shop/wallet mechanics, local scripts only.

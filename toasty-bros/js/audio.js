@@ -363,6 +363,42 @@ const AudioSys = (function(){
         [32,69,1],[33,72,1],[34,76,1],[35,72,1],[36,69,2],[38,67,2],[40,69,1],[41,72,1],[42,76,2],[44,81,4],
         [48,84,1],[49,81,1],[50,79,1],[51,76,1],[52,74,2],[54,72,2],[56,69,2],[58,67,2],[60,69,4]],
       roots: [33, 40, 31, 36], minor: [1, 0, 0, 1] },
+    // v1.2 World 10: TherapyToaster to Mars. Mission-control drone (sine 55 / 82.5, tri 110), engine growl, square blips.
+    w10_pad: { bpm: 120, steps: 64, wave: 'square', vol: 0.06, bass: 'drone10', arp: 'all', hum: 'mission10', kick: [0, 8], snare: [4, 12], hat: 'all',
+      lead: [[0,64,2],[2,67,2],[4,71,4],[8,69,2],[10,67,2],[12,64,4],
+        [16,64,2],[18,67,2],[20,72,4],[24,71,2],[26,69,2],[28,67,4],
+        [32,64,2],[34,67,2],[36,71,4],[40,74,2],[42,72,2],[44,71,4],
+        [48,76,2],[50,74,2],[52,72,2],[54,71,2],[56,69,4],[60,67,4]],
+      roots: [40, 36, 43, 38], minor: [1, 0, 0, 0] },
+    w10_moon: { bpm: 128, steps: 64, wave: 'square', vol: 0.06, bass: 'drone10', arp: 'all', hum: 'mission10', kick: [0, 6, 8, 14], snare: [4, 12], hat: 'all',
+      lead: [[0,71,1],[1,74,1],[2,76,2],[4,74,2],[6,71,2],[8,69,4],[12,71,4],
+        [16,71,1],[17,74,1],[18,79,2],[20,76,2],[22,74,2],[24,76,4],[28,74,4],
+        [32,71,1],[33,74,1],[34,76,2],[36,74,2],[38,71,2],[40,69,4],[44,67,4],
+        [48,76,2],[50,79,2],[52,81,4],[56,79,2],[58,76,2],[60,74,4]],
+      roots: [35, 31, 38, 33], minor: [1, 0, 0, 1] },
+    w10_ship: { bpm: 112, steps: 64, wave: 'triangle', vol: 0.07, bass: 'drone10', arp: 'all', hum: 'mission10', kick: [0, 8], snare: [12], hat: 'all',
+      lead: [[0,62,4],[4,65,4],[8,69,4],[12,67,4],[16,62,4],[20,65,4],[24,70,4],[28,69,4],
+        [32,62,4],[36,65,4],[40,69,4],[44,72,4],[48,74,4],[52,72,4],[56,70,4],[60,69,4]],
+      roots: [38, 34, 41, 36], minor: [1, 0, 0, 0] },
+    w10_flight: { bpm: 96, steps: 64, wave: 'triangle', vol: 0.06, bass: 'drone10', arp: 'none', hum: 'mission10', kick: [0], snare: [], hat: 'none',
+      lead: [[0,57,8],[8,60,8],[16,64,8],[24,62,8],[32,57,8],[40,60,8],[48,65,8],[56,64,8]],
+      roots: [33, 36, 40, 38], minor: [1, 0, 1, 0] },
+    w10_mars: { bpm: 116, steps: 64, wave: 'sawtooth', vol: 0.06, bass: 'drone10', arp: 'all', hum: 'mission10', kick: [0, 8, 10], snare: [4, 12], hat: 'all',
+      lead: [[0,57,2],[2,60,2],[4,64,2],[6,63,2],[8,60,2],[10,57,2],[12,56,4],
+        [16,57,2],[18,60,2],[20,64,2],[22,67,2],[24,66,2],[26,64,2],[28,63,4],
+        [32,57,2],[34,60,2],[36,64,2],[38,63,2],[40,60,2],[42,63,2],[44,64,4],
+        [48,69,2],[50,68,2],[52,64,2],[54,63,2],[56,60,2],[58,59,2],[60,57,4]],
+      roots: [33, 32, 38, 40], minor: [1, 0, 1, 0] },
+    w10_boss: { bpm: 156, steps: 64, wave: 'sawtooth', vol: 0.075, bass: 'drone10', arp: 'all', hum: 'mission10', kick: [0, 4, 8, 10, 12, 14], snare: [4, 12], hat: 'all', dist: true,
+      lead: [[0,69,1],[1,72,1],[2,76,1],[3,79,1],[4,81,2],[6,79,2],[8,76,1],[9,72,1],[10,69,2],[12,68,4],
+        [16,69,1],[17,72,1],[18,76,1],[19,80,1],[20,81,2],[22,83,2],[24,84,2],[26,83,2],[28,81,4],
+        [32,69,1],[33,72,1],[34,76,1],[35,79,1],[36,81,2],[38,79,2],[40,76,1],[41,72,1],[42,69,2],[44,64,4],
+        [48,88,1],[49,86,1],[50,84,1],[51,83,1],[52,81,2],[54,80,2],[56,76,2],[58,72,2],[60,69,4]],
+      roots: [33, 41, 40, 32], minor: [1, 0, 0, 0] },
+    w10_credits: { bpm: 100, steps: 64, wave: 'square', vol: 0.06, bass: 'drone10', arp: 'all', hum: 'mission10', kick: [0, 8], snare: [12], hat: 'all',
+      lead: [[0,72,4],[4,76,4],[8,79,4],[12,77,4],[16,76,4],[20,74,4],[24,72,8],
+        [32,72,4],[36,76,4],[40,79,4],[44,84,4],[48,83,4],[52,79,4],[56,84,8]],
+      roots: [36, 41, 43, 36], minor: [0, 0, 0, 0] },
   };
   for (const k in SONGS){ const m = {}; SONGS[k].lead.forEach(([st, n, l]) => m[st] = [n, l]); SONGS[k].leadMap = m; }
   let song = SONGS.w1_over, lastLead = 0, distNode = null, kazooNode = null;
@@ -401,6 +437,7 @@ const AudioSys = (function(){
     else if (S.bass === 'march'){ // oom-pah: low bassoon "oom" on the beat, a higher "pah" between
       if (inBar % 4 === 0){ osc('triangle', mtof(root), null, t, spb * 1.5, 0.42, musicBus, 0.4); osc('sawtooth', mtof(root), null, t, spb * 1.3, 0.045, musicBus, 0.3); }
       else if (inBar % 4 === 2) osc('triangle', mtof(root + (inBar % 8 === 2 ? 7 : 12)), null, t, spb * 0.9, 0.26, musicBus, 0.2); }
+    else if (S.bass === 'drone10'){ const hz = [55, 82.5, 110, 82.5]; if (inBar % 4 === 0) osc('triangle', hz[(s >> 2) % 4] * Math.pow(2, pt / 12), null, t, spb * 3, 0.12, musicBus, 0.4); } // v1.2 mission-control drone bass
     else if (S.bass === 'brawl9'){ const hz = [55, 55, 82, 55, 49, 73, 55, 65]; if (inBar % 2 === 0) osc('square', hz[(s >> 1) % 8] * Math.pow(2, pt / 12), null, t, spb * 1.5, 0.1, musicBus, 0.35); } // v1.1 Final Bite street-brawl bass
     else if (S.bass === 'ostinato'){ const seq = [0, 7, 12, 7]; if (inBar % 2 === 0) osc('triangle', mtof(root + seq[(inBar >> 1) % 4]), null, t, spb * 1.8, 0.4, musicBus, 0.5); }
     if (S.kick.includes(inBar)) osc('sine', 150, 40, t, 0.13, 0.7, musicBus);
@@ -442,6 +479,7 @@ const AudioSys = (function(){
     else if (kind === 'buzz'){ const sw = (f, v) => { const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 700; const gg = ctx.createGain(); gg.gain.value = v; o.connect(lp); lp.connect(gg); gg.connect(musicBus); o.start(); nodes.push(o); }; sw(110, 0.02); sw(113.5, 0.016); tone(55, 0.02); hiss('bandpass', 700, 0.01); } // hive buzz
     else if (kind === 'crypt'){ tone(46.2, 0.02); tone(92.5, 0.006); tone(15600, 0.0015); hiss('bandpass', 1800, 0.01); hiss('lowpass', 220, 0.02); } // v0.8 crypt: a low tomb drone, server fans, CRT whine
     else if (kind === 'arcade'){ tone(60, 0.012); tone(240, 0.004); hiss('bandpass', 900, 0.006); hiss('lowpass', 300, 0.012); } // v0.9 arcade: neon buzz, a room of cabinets humming at 3 AM
+    else if (kind === 'mission10'){ tone(55, 0.012); tone(82.5, 0.008); hiss('lowpass', 260, 0.01); } // v1.2 mission control: sine drone 55 / 82.5 + low engine growl
     else if (kind === 'street9'){ tone(55, 0.01); hiss('lowpass', 400, 0.012); hiss('bandpass', 2200, 0.004); } // v1.1 night street: traffic rumble, neon buzz
     else if (kind === 'diner8'){ tone(90, 0.01); tone(220, 0.005); hiss('bandpass', 1400, 0.006); tone(440, 0.002); } // v1.0 neon-diner gold/pink buzz
     else if (kind === 'arcstatic'){ tone(60, 0.012); tone(15700, 0.002); hiss('bandpass', 2600, 0.02); hiss('highpass', 7000, 0.012); } // v0.9 No Signal Hall: detuned static
@@ -596,6 +634,20 @@ const AudioSys = (function(){
     zap9(){ const t = ctx.currentTime; noise(t, 0.22, 0.2, 'highpass', 1800); osc('sawtooth', 900, 60, t, 0.2, 0.06); },
     pop9(){ const t = ctx.currentTime; osc('square', 300, 900, t, 0.06, 0.07); },
     crash9(){ const t = ctx.currentTime; noise(t, 0.3, 0.25, 'lowpass', 700); osc('square', 90, 40, t, 0.2, 0.08); },
+    // v1.2 World 10 (engine, blips, docking clamps, the final boss)
+    thrust10(){ const t = ctx.currentTime; noise(t, 0.08, 0.06, 'lowpass', 500); },
+    beep10(){ const t = ctx.currentTime; osc('square', 1760, null, t, 0.05, 0.05); },
+    dock10(){ const t = ctx.currentTime; noise(t, 0.12, 0.2, 'lowpass', 800); seq([67, 72, 79], t + 0.1, 0.07, 'square', 0.1); },
+    land10(){ const t = ctx.currentTime; noise(t, 0.3, 0.2, 'lowpass', 400); seq([60, 67, 72, 76], t + 0.15, 0.08, 'p25', 0.1); },
+    liftoff10(){ const t = ctx.currentTime; noise(t, 1.2, 0.25, 'lowpass', 300); osc('sawtooth', 40, 120, t, 1.2, 0.08); },
+    sep10(){ const t = ctx.currentTime; noise(t, 0.4, 0.3, 'lowpass', 900); osc('square', 140, 50, t, 0.3, 0.08); },
+    meteor10(){ const t = ctx.currentTime; noise(t, 0.3, 0.22, 'lowpass', 600); osc('sawtooth', 600, 60, t, 0.25, 0.05); },
+    vent10(){ const t = ctx.currentTime; noise(t, 0.3, 0.1, 'highpass', 2500); },
+    laser10(){ const t = ctx.currentTime; osc('sawtooth', 1200, 300, t, 0.3, 0.07); osc('square', 600, 150, t, 0.3, 0.04); },
+    charge10(){ const t = ctx.currentTime; osc('sine', 300, 1400, t, 0.6, 0.06); },
+    blanket10(){ const t = ctx.currentTime; noise(t, 0.18, 0.12, 'bandpass', 700); },
+    cyber10(){ const t = ctx.currentTime; seq([84, 79, 84, 91], t, 0.05, 'square', 0.08); },
+    final10(){ const t = ctx.currentTime; seq([60, 64, 67, 72, 76, 79, 84], t, 0.1, 'square', 0.12); },
     return8(){ const t = ctx.currentTime; seq([60, 64, 67, 60], t, 0.08, 'triangle', 0.1); },
   };
   function sfx(name, arg){ if (!ready()) return; try { SFX[name](arg); } catch (e) { /* ignore audio errors */ } }
