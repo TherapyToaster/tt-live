@@ -1,4 +1,4 @@
-# Mr. Toasty: Toasty Bros — Worlds 1-10 (v1.2 THERAPYTOASTER TO MARS)
+# Mr. Toasty: Toasty Bros — Worlds 1-10 (v1.3 DARK SIDE, NEW BROS, ANIMATION SYNC)
 Original platformer by Coty Lake. SMB is a mechanics reference only; all art, audio, names and layouts are original and
 procedural (pixel arrays + canvas + WebAudio). No external assets, no CDN, no build step. Jam is grape purple.
 
@@ -12,6 +12,54 @@ Open `index.html` directly (file:// works), or `python3 -m http.server` in this 
 - Title menu: NEW GAME · CONTINUE x-x · BRO ROSTER · LEVEL SELECT (only with `?debug`).
 - Save: `localStorage['toastyBros.save.v1']` = { furthest, hi, worldsCleared, unlocked, startBro, beaten, beatenCount, beatenBro } (older saves load fine;
   `beaten` is set by the post-credits THANKS FOR PLAYING screen, and the title shows GAME BEATEN!).
+
+## v1.3 DARK SIDE, NEW BROS, ANIMATION SYNC
+- **Dark Side of the Moon (secret level).** In 10-2 MOONBASE, one crater just past the dish is a real hole. Hop out of the
+  TOAST TRUCK (S / OUT), stand in the dip and press DOWN. It has no pipe cap and no blinking arrow, only a faint grape glint.
+  - The level is short and hard and almost pitch dark: the terrain fades into black away from your light, but hazards, enemies
+    and loot stay bright. It has crater pits with one-tile pillars, timed meteors, vents, drones and crawlers, and a rescue cage on a mesa.
+  - The reward room fires **DARK SIDE CLEARED!**: +5000, a 1UP and full hearts, plus about 50 skullz, fuel cans and ? blocks.
+  - Two exits: **BACK TO 10-2** brings you up out of a flush crater by the moon dock, and **SHORTCUT 10-3** warps straight to 10-3 BOARD THE SHIP
+    (a DARK SIDE card, no truck needed). Every hazard is 1 heart; pits stay instant.
+- **Two new bros (10 in the roster):**
+  - **SPACE ACID**: ACID in a white space suit with a bubble helmet and a backpack. No cigarette, no agency logos.
+    PLASMA PISTOL, HELMET BONK melee. Special: **JETPACK HOVER** (hold altitude for 4 s; Up/A rise, Down sink). He can come out of rescue cages.
+  - **YELLOW BLANKEY**: the post-game bro. He unlocks when you beat the game (the THANKS FOR PLAYING screen says so), and only after that
+    can a cage free him. PILLOW TOSS, BLANKET SNAP melee. Special: **BLANKET GLIDE** (6 s of slow fall, 2.4 px/frame air speed).
+  - Both new bros ride the TOAST TRUCK as gunner and co-driver. Both have every pose frame. They beat every boss in the bro-wide boss loops,
+    and their names fit the HUD slot. The roster screen now has 5 columns; Up/Down jumps a row.
+- **Animation sync pass.** The game now records what it actually drew each frame (`TT.animRun`), and the new `test_anim` suite
+  compares that with the simulation. Fixes:
+  1. New pose frames for all 10 bros: fall, land (squash), skid, hurt, die, wall-slide and climb, plus Blankey's glide. Before, the jump frame
+     stood in for falling, and the idle frame stood in for skid, land and hurt.
+  2. One pose function picks the frame. Jump shows while rising and fall while falling. Land shows for 6 frames after a real fall. Idle only shows at
+     zero speed. The run cycle advances 0.16 frames per px of speed for every bro.
+  3. Skid: the bro now turns to the new direction at once. Before, he faced backwards until the slide ended, so his gun and shots pointed the wrong way.
+     A committed Skulrz roll keeps its heading (a mid-roll skid used to reverse the roll). The `?autoplay` test pilot keeps the old slide heading it aims by.
+  4. Wall-slide: the frame faces away from the wall (it used to face into it). A wall-jump switches straight to the jump frame.
+  5. Hurt frame on every hit, including an armor hit. The i-frame flicker runs every 2 frames for exactly the invulnerable window, then the sprite stays visible.
+  6. Muzzle flash = shot frame. Rockets, snack spray, shotgun, sniper, zaps and plasma now leave the drawn barrel tip on the flash frame,
+     centered on the barrel. They used to spawn at the body edge, 5 px behind the flash and 1-2 px low.
+  7. Skulrz: an air roll that does nothing no longer flashes a throw pose. Pipe-side walk cadence 0.12 → 0.16 (the same as walking).
+  8. Truck minigun: the muzzle used 12 px on the y axis but 17 px on x, so tilted shots left below the drawn tip. Now it is 17 px on both.
+     Casings drop from the breech (they came from the muzzle). The gunner sits at the gun pivot facing the truck's way, with a land frame on boarding.
+  9. Enemy edge turns now happen before the step (22 walker types), so there is no one-frame moonwalk at ledges.
+  10. Enemy rifles: the round leaves the barrel tip (it started 8 px inside the body). The flash is lit on the shot frame instead of a free-running blink.
+      The window gunner's drawn gun moved to the bullet line, and its flash is on the shot frame.
+  11. Snack Pest (W8): it never flipped its sprite, so it always faced left, and it turned at ledges a step late. Now it faces where it walks.
+  12. Enemy bump: walkers that steer by direction got a new facing but kept walking, so they moonwalked while overlapping. Now they keep facing the way
+      they walk and pass each other (their paths are unchanged). Other enemies still turn on a bump.
+  13. Brawlers (W9 punks and butter bruisers): blocked by a wall or ledge while chasing, they flipped every frame (42 jitter samples in 9-3).
+      Now they brace, planting their feet and facing Mr. Toasty.
+  14. Rye Knight: no more marching in place when it stops to guard.
+  15. Bosses were checked for telegraph leads. Every projectile or shockwave follows at least 10 frames of an attack tell, or is a telegraphed warn hazard.
+      Contact charges are revved for 25-47 frames. No boss timing had to change, and `test_anim` now enforces this.
+- **Fix:** "GOOD NIGHT, CYBER_BOY." showed twice (a banner plus a popup). Now it is one banner.
+- **Autopilot (tests only):** it now hops Fat Coty's sliding plates instead of trying to outrun them, so every one of the 10 bros wins the W8 fairness loop on the first try.
+- **Tests (v1.3): 16 suites, 838 / 838 green.** New `test_anim.py` (32). Every bro-wide loop (W4-W10 bosses, cages, truck, roster) now runs all 10 bros.
+  game 27 · w1 49 · w2 42 · w3 42 · w4 52 · w5 57 · w6 61 · w7 79 · w8 38 · w9 57 · w10 83 · bro 50 · truck 28 · health 22 · mobile 119 · anim 32.
+- New shots and a clip are in `shots/extras/`: `anim-sync.mp4` (40 s, captioned, slow motion on the shot frames, from `tests/anim_clip.py`),
+  the Dark Side (start, reward, shortcut card, phone), the 10-bro roster, the glide, both new bros in the truck, and the muzzle and gunner sync.
 
 ## v1.2 THERAPYTOASTER TO MARS (World 10, the final world)
 - **World 10 "TherapyToaster to Mars" is open**, and with it the whole game: 10-1 LAUNCH PAD → 10-2 MOONBASE → 10-3 BOARD THE
@@ -447,6 +495,10 @@ World 10 is **THERAPYTOASTER TO MARS** (display "TherapyToaster to Mars"), built
   unchanged when you come back from a bonus room), entities, boss, states, rendering, autopilot, `window.TT` test hooks.
 
 ## Tests (Playwright, from ../tests, server on 127.0.0.1:18923)
+- `test_anim.py` — 32 v1.3 animation-sync checks: pose frames, per-frame pose vs state for all 10 bros, the run cycle vs speed, skid,
+  land, stomp, hurt, i-frames, death, wall-slide, pole, muzzle flash vs spawn frame and tip, hover and glide, truck boarding, gunner, minigun tip,
+  angle, flash and casings, enemy moonwalk, jitter, march-in-place, deaths and gun flashes over 17 levels, boss telegraph leads for all 10 bosses,
+  GOOD NIGHT once, and the Dark Side (entry, autopilot clear as 3 bros, reward, both exits, phone). Writes shots/extras/.
 - `test_w10.py` — 83 v1.2 checks (see the v1.2 section). Writes shots/w10/ (incl. credits.png); `boss_clip.py 0 boss.mp4 10-4 150` → shots/w10/boss.mp4.
 - `test_w6.py` — 61 v0.8 checks:
   - Content rules: banned names/words in World 6 strings (lore do-not-use list, no Binding of Isaac / Undertale), lore palette,
@@ -455,7 +507,7 @@ World 10 is **THERAPYTOASTER TO MARS** (display "TherapyToaster to Mars"), built
     switch live, QUARTZ KING 9 → 0 through all 3 phases with slams and crystal hazards, CROWNLESS!, TOASTED! escape, save).
   - Mechanics: Glitch Door, geyser cycle + riding + sinking, RGB switch (bump, shoot, time out), every enemy's move, Hot Sauce,
     a direct Quartz King run (name card, slams, spikes, PRISM MODE, beams + shard, FULL FACET, CROWNLESS!, escape, Fat Coty's lines).
-  - The King beaten by the autopilot as each of the 8 bros.
+  - The King beaten by the autopilot as each of the 10 bros.
   - Progression: 5-4 → 6-1, the World 7 tease card, warp pipe 6 → 6-1, save, level select, warp zone pipes 2-6.
   - The two v0.8 fixes (persona line cleared on swap; BRO FREED held behind the name card). Mobile: touch UI fits, d-pad walks
     through a Glitch Door. No console errors or warnings. Writes shots/w6/.
@@ -465,11 +517,11 @@ World 10 is **THERAPYTOASTER TO MARS** (display "TherapyToaster to Mars"), built
     all 3 phases with slams, CURTAIN!, TOASTED! escape, save).
   - Mechanics: spring launch over a wall, tide cycle + perches + tide damage, swing planks sweep and carry you, every enemy's move,
     globs, Oven Mitt, foil puppet shriek + gate, Chrome Screamer's own lines, a direct Hive run (slams, drips, phases, Buzz Crumbs, CURTAIN!, escape).
-  - The Hive beaten by the autopilot as each of the 8 bros (each starts the fight with one grape-jam armor, like the castle's jam box).
+  - The Hive beaten by the autopilot as each of the 10 bros (each starts the fight with one grape-jam armor, like the castle's jam box).
   - Progression: 4-4 → 5-1, World 5 end card, warp pipe 5 → 5-1, save, level select. Mobile: touch UI fits, d-pad + A ride a spring.
   - No console errors. Writes shots/w5/.
 - `test_w4.py` — 52 v0.6 checks:
-  - HUD: every bro name (+ stress names) is pixel-checked inside the slot. The in-game mode is checked for each of the 8 bros.
+  - HUD: every bro name (+ stress names) is pixel-checked inside the slot. The in-game mode is checked for each of the 10 bros.
   - The autopilot clears 4-1 → 4-4 → World 4 clear. The Fuse Box flips and is blown, and THE REPAIRMAN goes 9 → 0 HP through all 3
     phases, then CANCELLED, TOASTED! escape and world clear.
   - A direct boss run checks the intro, wrenches + zap cards, THE LEAN, IT'S YOU, Reflections mirroring the bro,
@@ -502,7 +554,7 @@ World 10 is **THERAPYTOASTER TO MARS** (display "TherapyToaster to Mars"), built
   - START pauses and resumes; the game auto-pauses when hidden.
   - Rotation re-lays out; safe-area insets are respected (CDP `Emulation.setSafeAreaInsetsOverride`). No console errors.
   - Writes shots/mobile/ (landscape.png, portrait.png, paused.png, pixel-*.png).
-- `test_bro.py` — 42 v0.4 checks: roster data + 8 distinct sprites/weapons/specials, every bro's gun/melee/special, 3 specials
+- `test_bro.py` — 50 checks (v0.4 + v1.3): roster data + 10 distinct sprites/weapons/specials, every bro's gun/melee/special, 3 specials
   + ammo refill, auto-fire, hit flash + knockback, cages (swap, +life, reserve, save, reload, respawn as next bro), tile HP/cracks,
   craters, bedrock + borders, chain reaction, shake/hit-stop, own-blast safety, wall-slide/jump, riflemen + gunners + ammo drop,
   Toast Armor, roster screen, TOASTED! escape, combat autopilot clears all 8 W1/W2 levels, no console errors; writes shots/bro/.

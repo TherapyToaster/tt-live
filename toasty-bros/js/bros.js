@@ -1,7 +1,10 @@
 // v0.4 BRO ROSTER: eight original playable bros. Each one is data (stats, weapon, melee, special) + original pixel frames.
 // Every sprite is hand-placed pixels drawn in code. No outside art.
 'use strict';
-const BRO_IDS = ['toasty', 'fatcoty', 'skelly', 'acid', 'breadlord', 'screamer', 'cal', 'skulrz'];
+const BRO_IDS = ['toasty', 'fatcoty', 'skelly', 'acid', 'breadlord', 'screamer', 'cal', 'skulrz', 'spaceacid', 'yblankey'];
+// v1.3: two new bros. SPACE ACID (ACID in a plain white space suit, no patches or logos) frees from cages like the rest;
+// YELLOW BLANKEY only joins the cage pool (and is unlocked outright) once the game is beaten.
+const BRO_AFTER_BEATEN = ['yblankey'];
 const BROS = {
   toasty: { name: 'MR. TOASTY', short: 'TOASTY', color: '#FFD400',
     stats: { speed: 1.0, jump: 1.0 },
@@ -43,6 +46,16 @@ const BROS = {
     weapon: { kind: 'roll', label: 'ROLL DASH', rate: 34, auto: true },
     melee: { kind: 'punch', label: 'HEADBUTT' },
     special: { kind: 'bonebomb', label: 'BONE BOMB' } },
+  spaceacid: { name: 'SPACE ACID', short: 'SPACE ACID', color: '#eef0f4',
+    stats: { speed: 1.0, jump: 1.0 },
+    weapon: { kind: 'plasma', label: 'PLASMA PISTOL', rate: 14, auto: true },
+    melee: { kind: 'punch', label: 'HELMET BONK' },
+    special: { kind: 'hover', label: 'JETPACK HOVER' } },
+  yblankey: { name: 'YELLOW BLANKEY', short: 'BLANKEY', color: '#FFD400', afterBeaten: true,
+    stats: { speed: 1.0, jump: 1.0 },
+    weapon: { kind: 'pillow', label: 'PILLOW TOSS', rate: 20, auto: true },
+    melee: { kind: 'punch', label: 'BLANKET SNAP' },
+    special: { kind: 'glide', label: 'BLANKET GLIDE' } },
 };
 
 // ---- pixel frames (16x16, facing right). Rows 13-15 are legs and get swapped for the run / jump frames. ----
@@ -173,6 +186,52 @@ const BRO_ART = {
     '....PPP.PPP.....',
     '....PPP.PPP.....',
     '...KKKK.KKKK....'] },
+  // v1.3 SPACE ACID: white suit, bubble helmet (shades on, no cigarette), a backpack jetpack, a plain grape-jam shoulder square
+  spaceacid: { pal: { W: '#eef0f4', w: '#b8bec8', c: '#9adcff', h: '#e2a77c', D: '#2a2c32', g: '#7d828c', J: '#b54e8c', o: '#ff8a2a' },
+    legs: ['W', 'g'], rows: [
+    '.....WWWWWW.....',
+    '....WccccccW....',
+    '...WcchhhhccW...',
+    '...WcDDhDDhcW...',
+    '...WchhhhhhcW...',
+    '...WcchhhhccW...',
+    '....WccccccW....',
+    '...wWWWWWWWWw...',
+    'gg.WWWJWWWWWW...',
+    'ggwWWWWWWWWWWw..',
+    'ggwWWWWWWWWWWw..',
+    'gg.WWooooooWW...',
+    '...WWWWWWWWWW...'] },
+  // v1.3 YELLOW BLANKEY: the final boss's blanket form, bro-sized: a yellow blanket hood with two cyan eyes
+  yblankey: { pal: { Y: '#FFD400', y: '#c9a400', f: '#1a1d26', B: '#00e5ff', J: '#b54e8c' },
+    legs: ['y', 'G'], rows: [
+    '......YYY.......',
+    '....YYYYYYY.....',
+    '...YYYYYYYYYy...',
+    '..YYyffffffYy...',
+    '..YYfBffBfffYy..',
+    '..YYffffffffYy..',
+    '..YYyffffffyYy..',
+    '..yYYYYYYYYYYy..',
+    '.YYYYyYYYJYYYYy.',
+    '.YYYyYYYYYYYYYy.',
+    '.yYYYYYyYYYYYYy.',
+    '..yYYYYYYYYYYy..',
+    '..yyYYYYYYYYyy..'],
+    glide: [
+    '......YYY.......',
+    '....YYYYYYY.....',
+    '...YYYYYYYYYy...',
+    '..YYyffffffYy...',
+    '..YYfBffBfffYy..',
+    '..YYffffffffYy..',
+    '..YYyffffffyYy..',
+    'yYYYYYYYYYYYYYYy',
+    'YYYyYYYYYJYYYyYY',
+    '.YYYYyYYYYYyYYY.',
+    '..YYYYYYYYYYYY..',
+    '....yYYYYYYy....',
+    '.....YYYYYY.....'] },
 };
 // SkulRz Skull also has a rolling ball frame (used by its roll-dash)
 const SKULL_ROLL = [
@@ -197,12 +256,23 @@ function broLegs(L, F, wide, k){
     walk1: ['...LLL...LLL....', '..LLL.....LLL...', '.FFFF.....FFFF..'],
     walk2: ['....LLL.LLL.....', '.....LLLLL......', '....FFFFFF......'],
     walk3: ['.....LLLLL......', '....LLL.LLL.....', '...FFF...FFF....'],
-    jump: ['...LLLL.LLL.....', '..LLL.....LL....', '..FFF.....FFF...'] };
+    jump: ['...LLLL.LLL.....', '..LLL.....LL....', '..FFF.....FFF...'],
+    // v1.3 animation sync poses
+    fall: ['.....LL.LL......', '.....LL.LL......', '.....FF.FFF.....'],
+    skid: ['...LLL.LLL......', '..LLL.....LLL...', '.FFF.......FFFF.'],
+    wall: ['....LLLLLL......', '....LL...LL.....', '....FF....FFF...'],
+    climb: ['....LLL.LLL.....', '....LLL..LL.....', '...FFFF..FF.....'],
+    hurt: ['..LLL.....LLL...', '.LL.........LL..', 'FF...........FF.'] };
   const w = { stand: ['..LLLLLLLLLLL...', '..LLLL...LLLL...', '..FFFF...FFFF...'],
     walk1: ['..LLLLLLLLLLL...', '.LLLL.....LLLL..', 'FFFF.......FFFF.'],
     walk2: ['..LLLLLLLLLLL...', '...LLLL.LLLL....', '...FFFF.FFFF....'],
     walk3: ['..LLLLLLLLLLL...', '..LLLL..LLLL....', '.FFFF....FFFF...'],
-    jump: ['..LLLLLLLLLLL...', '.LLLL....LLLL...', '.FFF......FFF...'] };
+    jump: ['..LLLLLLLLLLL...', '.LLLL....LLLL...', '.FFF......FFF...'],
+    fall: ['..LLLLLLLLLLL...', '...LLLL..LLLL...', '...FFFF..FFFF...'],
+    skid: ['..LLLLLLLLLLL...', '.LLLL.....LLLL..', 'FFF.........FFFF'],
+    wall: ['..LLLLLLLLLLL...', '..LLLL...LLLLL..', '..FFFF....FFFF..'],
+    climb: ['..LLLLLLLLLLL...', '..LLLL..LLLL....', '.FFFFF..FFFF....'],
+    hurt: ['.LLLLL...LLLLL..', 'LLLL.......LLLL.', 'FF...........FF.'] };
   return (wide ? w : n)[k].map(r => r.replace(/L/g, L).replace(/F/g, F));
 }
 // Auto outline (dark navy) around every opaque pixel, so each bro reads on any background.
@@ -214,19 +284,24 @@ function broOutline(src, col){
   for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) if (!op(i, j) && (op(i - 1, j) || op(i + 1, j) || op(i, j - 1) || op(i, j + 1))) y.fillRect(i, j, 1, 1);
   y.drawImage(src, 0, 0); return c;
 }
+function broSquash(src){ const c = mkCanvas(16, 16), x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(src, 0, 0, 16, 16, -1, 3, 18, 13); return c; }
 function buildBroSprites(hero){
   const out = {};
   for (const id of BRO_IDS){
     const set = {};
     if (id === 'toasty'){ // Mr. Toasty keeps his original v0.1 frames
-      for (const k of ['stand', 'walk1', 'walk2', 'walk3', 'jump', 'skid']) set[k] = hero.small[k];
+      for (const k of ['stand', 'walk1', 'walk2', 'walk3', 'jump', 'skid', 'fall', 'wall', 'climb', 'hurt']) set[k] = hero.small[k];
       set.die = hero.small.die || hero.small.stand;
     } else {
       const a = BRO_ART[id];
-      for (const k of ['stand', 'walk1', 'walk2', 'walk3', 'jump']) set[k] = broOutline(makeSprite(a.rows.slice(0, 13).concat(broLegs(a.legs[0], a.legs[1], a.wide, k)), a.pal));
-      set.skid = set.walk2; set.die = set.stand;
+      for (const k of ['stand', 'walk1', 'walk2', 'walk3', 'jump', 'fall', 'skid', 'wall', 'climb']) set[k] = broOutline(makeSprite(a.rows.slice(0, 13).concat(broLegs(a.legs[0], a.legs[1], a.wide, k)), a.pal));
+      // v1.3 hurt flinch: the body snaps back a pixel and the legs splay
+      set.hurt = broOutline(makeSprite(a.rows.slice(0, 13).map(r => r.slice(1) + '.').concat(broLegs(a.legs[0], a.legs[1], a.wide, 'hurt')), a.pal));
+      set.die = flipV(set.hurt); // v1.3 a real KO frame (it used to be the stand frame)
       if (id === 'skulrz') set.roll = broOutline(makeSprite(SKULL_ROLL, a.pal));
+      if (a.glide) set.glide = broOutline(makeSprite(a.glide.concat(broLegs(a.legs[0], a.legs[1], a.wide, 'fall')), a.pal));
     }
+    set.land = broSquash(set.stand); // v1.3 landing squash (generic: the stand frame, 2 px shorter and 1 px wider)
     for (const k of Object.keys(set)) set[k + '_L'] = flipH(set[k]);
     // portrait: the head (top 10 rows) on a dark plate, 16x12
     const pc = mkCanvas(18, 13), px = pc.getContext('2d');

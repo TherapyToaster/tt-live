@@ -54,6 +54,11 @@ const SM_BODY = {
   walk3: ['..KGCCCCCCCCGK..', '.YKGCcGGGGcCGK..', '.YKGCCCCCCCCGKY.', '...GGGGGGGGGG...', '...KKK...KKK....', '..KKKK...KKKK...'],
   skid:  ['..KGCCCCCCCCGKY.', '..KGCcGGGGcCGKY.', '.YKGCCCCCCCCGK..', '...GGGGGGGGGG...', '....KKK..KKK....', '..KKKK...KKKK...'],
   jump:  ['.YKGCCCCCCCCGKY.', '..KGCcGGGGcCGK..', '...GCCCCCCCCG...', '...GGGGGGGGGG...', '..KKK.....KKK...', '.KKK.......KKKK.'],
+  // v1.3 animation sync: own frames for falling, wall-sliding, the pole climb and the hurt flinch (they used to reuse jump / stand)
+  fall:  ['..KGCCCCCCCCGK..', 'YYKGCcGGGGcCGKYY', '...GCCCCCCCCG...', '...GGGGGGGGGG...', '....KKK..KKK....', '....KKK..KKK....'],
+  wall:  ['..KGCCCCCCCCGKY.', '..KGCcGGGGcCGKY.', '..KGCCCCCCCCGK..', '...GGGGGGGGGG...', '...KKKK..KKK....', '...KKK....KKKK..'],
+  climb: ['.YKGCCCCCCCCGK..', '..KGCcGGGGcCGKY.', '...GCCCCCCCCG...', '...GGGGGGGGGG...', '...KKK..KKK.....', '....KKK..KKK....'],
+  hurt:  ['..KGCCCCCCCCGK..', 'Y.KGCcGGGGcCGK.Y', '.YKGCCCCCCCCGKY.', '...GGGGGGGGGG...', '..KKK......KKK..', '.KK..........KK.'],
 };
 const BIG_TORSO = [
   '...KKKKKKKKKK...',

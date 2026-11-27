@@ -130,9 +130,9 @@ function marsLayers(kind, L, tileableLayer){
     x.fillStyle = 'rgba(255,255,255,0.6)'; x.fillRect(104, 40, 14, 2); x.fillRect(118, 66, 10, 2);
     x.fillStyle = 'rgba(0,0,0,0.45)'; x.beginPath(); x.arc(128, 52, 22, -Math.PI / 2, Math.PI / 2); x.fill();
   });
-  const moonHills = () => tileableLayer((x, r) => {
-    x.fillStyle = M10.MOON2; x.beginPath(); x.moveTo(0, 200); for (let i = 0; i <= 512; i += 32) x.lineTo(i, 150 + Math.sin(i * 0.03) * 14 + ((r() * 8) | 0)); x.lineTo(512, 240); x.lineTo(0, 240); x.fill();
-    for (let i = 0; i < 14; i++){ const cx = (r() * 512) | 0, cy = 170 + ((r() * 30) | 0), rr = 4 + ((r() * 10) | 0); x.fillStyle = '#4a4c52'; x.beginPath(); x.ellipse(cx, cy, rr, rr * 0.35, 0, 0, Math.PI * 2); x.fill(); x.fillStyle = '#7a7c82'; x.fillRect(cx - rr, cy - 1, rr * 2, 1); }
+  const moonHills = (hc, cc, rc) => tileableLayer((x, r) => {
+    x.fillStyle = hc || M10.MOON2; x.beginPath(); x.moveTo(0, 200); for (let i = 0; i <= 512; i += 32) x.lineTo(i, 150 + Math.sin(i * 0.03) * 14 + ((r() * 8) | 0)); x.lineTo(512, 240); x.lineTo(0, 240); x.fill();
+    for (let i = 0; i < 14; i++){ const cx = (r() * 512) | 0, cy = 170 + ((r() * 30) | 0), rr = 4 + ((r() * 10) | 0); x.fillStyle = cc || '#4a4c52'; x.beginPath(); x.ellipse(cx, cy, rr, rr * 0.35, 0, 0, Math.PI * 2); x.fill(); x.fillStyle = rc || '#7a7c82'; x.fillRect(cx - rr, cy - 1, rr * 2, 1); }
   });
   const domes = () => tileableLayer((x, r) => {
     for (let i = 0; i < 512; i += 160){ x.fillStyle = M10.CHROME; x.beginPath(); x.arc(i + 60, 196, 22, Math.PI, 0); x.fill(); x.fillStyle = M10.SILVER; x.fillRect(i + 44, 182, 8, 2);
@@ -174,6 +174,7 @@ function marsLayers(kind, L, tileableLayer){
 
   if (kind === 'mpad'){ L.far = grad(M10.DUSK2, M10.DUSK, 160); L.clouds = tileableLayer(x => { x.fillStyle = 'rgba(255,200,160,0.25)'; x.fillRect(40, 40, 120, 4); x.fillRect(260, 60, 160, 3); }); L.mid = gulf(); L.near = fence(); }
   else if (kind === 'mmoon'){ L.far = stars(120, M10.BG); L.clouds = earth(); L.mid = moonHills(); L.near = domes(); }
+  else if (kind === 'mdark'){ L.far = stars(200, '#020206', '#b54e8c'); L.clouds = tileableLayer(() => {}); L.mid = moonHills('#17181e', '#0a0b10', '#2a2c32'); L.near = tileableLayer(() => {}); } // v1.3 the Dark Side: no Earth in the sky
   else if (kind === 'mship'){ L.far = stars(60, M10.BG); L.clouds = tileableLayer(() => {}); L.mid = shipWall(); L.near = tileableLayer(x => { x.fillStyle = 'rgba(215,195,106,0.08)'; x.fillRect(0, 196, 512, 12); }); }
   else if (kind === 'morbit'){ L.far = stars(160, M10.BG, '#6ac8ff'); L.clouds = tileableLayer(() => {}); L.mid = orbitEarth(); L.near = tileableLayer(() => {}); }
   else if (kind === 'mland'){ L.far = marsSky('#3a1a14', '#c86a3a'); L.clouds = marsCap(); L.mid = dunes(); L.near = dust(); }

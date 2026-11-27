@@ -47,16 +47,41 @@ LEVELS['10-2'] = { id: '10-2', world: 10, num: 2, name: 'MOONBASE', time: 300, s
     crater(24, 26); T.decor('crater10', 32, 12, { w: 40 }); T.comm(28, 'ACID: PRETTY CRATER. USELESS CRATER.');
     T.en('crawl10', 40); T.meteor(46, 170, 0); T.en('drone10', 52, 10); T.fuel(55, 9);
     crater(60, 63); T.en('crawl10', 70); T.decor('dish10', 72, 12); T.meteor(78, 170, 60);
-    T.decor('crater10', 84, 12, { w: 32 }); T.en('crawl10', 90); crater(96, 99);
+    // v1.3: the hidden Dark Side crater. A one-tile dip with a crater hole in it: step out of the truck, stand in it, press DOWN.
+    for (let x = 85; x <= 88; x++) T.set(x, 13, '.');
+    T.pipe(86, 1, { enter: true, secret: true, crater: true, to: { area: 'dark', mode: 'drop', tx: 3 } }, 14);
+    T.decor('crater10', 84, 12, { w: 32 }); T.en('crawl10', 92); crater(96, 99);
     T.en('drone10', 108, 10); T.meteor(112, 150, 30); T.fuel(115, 9); T.en('crawl10', 120);
     crater(130, 133); T.decor('hab10', 138, 12, { w: 64 }); T.meteor(150, 150, 90); T.en('crawl10', 156); T.en('drone10', 162, 10);
-    crater(168, 170); T.decor('crater10', 174, 12, { w: 32 });
+    crater(168, 170); T.decor('crater10', 174, 12, { w: 32 }); T.pipe(178, 1, { crater: true }, 13); // the Dark Side return hole (flush)
     T.comm(176, 'ACID: PARK IT AT THE DOCK. THE TRUCK STAYS ON THE MOON.');
     T.decor('sign10', 180, 12, { text: 'MOON DOCK: TRUCKS PARK HERE' });
     main.pole = { tx: 190 }; T.set(190, 12, 'S'); main.booth = { tx: 195, door: 198 };
     T.decor('rocket10', 205, 12, { h: 150 }); T.decor('tower10', 202, 12, { h: 160 });
     T.cage(12);
-    return { main };
+    // ---- v1.3 DARK SIDE OF THE MOON (secret): short, hard, rewarding. Out: back to 10-2 or a shortcut to 10-3 ----
+    const DW = 112, dark = newArea('dark', DW, 'mdark', { music: 'w10_flight' }), K = areaTools(dark);
+    const hole = (a, b) => { for (let x = a; x <= b; x++){ K.set(x, 13, '.'); K.set(x, 14, '.'); } };
+    dark.dark = true; dark.darkBonus = { tx: 87 };
+    K.ground(0, DW - 1); K.fill(0, 0, 0, 12, 'X'); K.fill(DW - 2, DW - 1, 0, 12, 'X');
+    K.comm(2, 'ACID: THE DARK SIDE. NO SIGNAL, NO TRUCK, LOTS OF LOOT. STAY CLOSE TO YOUR LIGHT.');
+    K.coins(5, 10, 10); K.en('crawl10', 10);
+    hole(12, 14); K.coins(12, 14, 9); K.meteor(17, 120, 0);
+    K.en('drone10', 20, 9); K.q(19, 9, 'jam'); K.vent(22, 120, 30);
+    hole(24, 28); K.col(26, 3, 14); K.coins(25, 27, 9);
+    K.en('crawl10', 31); K.en('crawl10', 35); K.vent(33, 120, 70); K.coins(30, 36, 10);
+    hole(38, 42); K.col(40, 3, 14); K.en('drone10', 40, 8);
+    K.meteor(45, 110, 40); K.q(47, 9, 'star'); K.fuel(49, 9); K.en('crawl10', 50);
+    hole(52, 54); K.coins(52, 54, 9);
+    K.stairs(57, 3, true); K.cage(62, 9); K.fill(60, 63, 10, 12, 'S'); K.stairs(64, 3, false);
+    hole(68, 73); K.col(70, 2, 14); K.col(71, 2, 14); K.coins(69, 72, 9); K.meteor(71, 130, 90);
+    K.en('crawl10', 77); K.vent(76, 110, 0); K.vent(80, 110, 55); K.en('drone10', 79, 9); K.coins(75, 81, 10);
+    hole(83, 85); K.en('drone10', 84, 8);
+    // the reward room (bonus fires at tx 87: +5000, 1UP, hearts refilled)
+    K.coins(88, 96, 9); K.coins(88, 96, 10); K.q(90, 6, 'power'); K.q(93, 6, 'jam'); K.fuel(95, 11);
+    K.sign(98, 9, 'BACK TO 10-2', '#00e5ff'); K.pipe(98, 2, { enter: true, to: { area: 'main', mode: 'up', tx: 178, ty: 13 } });
+    K.sign(104, 8, 'SHORTCUT 10-3', '#FFD400'); K.pipe(104, 3, { enter: true, toLevel: '10-3', label: 'SHORTCUT TO 10-3' });
+    return { main, dark };
   } };
 
 // ---------------- 10-3 Board the Ship (dock the capsule, cross the ship, beat the booster separation) ----------------
