@@ -120,6 +120,12 @@ function areaTools(A){
     // a token shower from the ceiling when you pass column tx (tokens = score only)
     shower: (tx) => (A.showers = A.showers || []).push({ tx, done: false }),
     fig: (x, y) => set(x, y, 'g'), tix: (a, b, y) => { for (let x = a; x <= b; x++) set(x, y, 'k'); },
+    // v1.0 World 8 helpers
+    goo: (a, b, ty) => (A.goo = A.goo || []).push({ a, b, ty: ty === undefined ? 13 : ty }),
+    cool: (a, b, ty, phase) => (A.coolPlates = A.coolPlates || []).push({ a, b, ty: ty === undefined ? 13 : ty, phase: phase || 0 }),
+    belt: (tx, w, ty, dir, speed) => A.plats.push({ kind: 'move', tx, ty, w: w || 3, axis: 'belt', dir: dir || 1, bsp: speed || 0.85, range: 0, speed: 0, phase: 0, look: 'belt' }),
+    beltZone: (a, b) => (A.beltZones = A.beltZones || []).push({ a, b }),
+    crave: (x, y, kind) => (A.craves = A.craves || []).push({ x, y, kind, spawned: false }),
   };
   return T;
 }

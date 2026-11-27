@@ -13,7 +13,7 @@
 if(window.__ttTbCard)return;window.__ttTbCard=1;
 var NAME="Mr. Toasty: Toasty Bros",NAME_UP="MR. TOASTY: TOASTY BROS";
 var LIVE="https://therapytoaster.github.io/tt-live/toasty-bros/";
-var ART_V="090";
+var ART_V="100";
 var U=(function(){
   var s=document.currentScript&&document.currentScript.src;
   if(s){var u=s.replace(/arcade-card\.js(?:\?.*)?$/i,"");if(u)return u}
@@ -37,7 +37,7 @@ showStyle();
 var THUMB=U+"arcade-thumb.jpg?v="+ART_V;
 var CARD='<button type="button" class="tt-ns-shot" data-tb-play aria-label="Play '+NAME+'" style="background-image:url('+THUMB+')"><span class="tt-ns-new">NEW</span></button>'+
  '<div><p class="tt-ns-k">// new machine</p><h2 class="tt-ns-t">'+NAME+'</h2>'+
- '<p class="tt-ns-d">Run, stomp and blow up 10 worlds of the Toasty universe. Free caged bros, smash the walls, and get out of every castle before it&#39;s TOASTED. Worlds 1-7 are open now.</p>'+
+ '<p class="tt-ns-d">Run, stomp and blow up 10 worlds of the Toasty universe. Free caged bros, smash the walls, and get out of every castle before it&#39;s TOASTED. Worlds 1-8 are open now.</p>'+
  '<button type="button" class="tt-ns-play" data-tb-play>&#9654; PLAY</button>'+
  '<a class="tt-ns-new-tab" href="'+LIVE+'" target="_blank" rel="noopener">open in new tab &#8599;</a>'+
  '<p class="tt-ns-keys">ARROWS / WASD MOVE &middot; Z / SPACE JUMP &middot; X / SHIFT RUN + FIRE &middot; C SPECIAL &middot; V MELEE &middot; ENTER START / PAUSE &middot; GAMEPAD OK &middot; PHONES: TOUCH CONTROLS</p></div>';

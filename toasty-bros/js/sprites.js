@@ -246,6 +246,8 @@ function buildTileset(name){
   if (th.bumbo && typeof bumboTiles === 'function') bumboTiles(ts, th); // v0.7 World 5: corrugated cardboard, tape, paper shelves, butter goo, Pop-Up Springs
   if (th.crypt && typeof cryptTiles === 'function') cryptTiles(ts, th); // v0.8 World 6: crypt flagstones, CRT blocks, RGB switch blocks, jam / magma pools
   if (th.arcade && typeof arcadeTiles === 'function') arcadeTiles(ts, th); // v0.9 World 7: confetti carpet, chrome rails, prize crates, capsule stacks, CRT platforms
+  // World 8 uses theme tile colors (glossy steel / neon speckles); flag the tileset so inFeed() works.
+  if (th.feed) ts.feed = true;
   return (_tilesets[name] = ts);
 }
 // ---------- new enemies ----------
@@ -293,6 +295,7 @@ function buildSprites(){
   if (typeof buildBumboSprites === 'function') S.bumbo = buildBumboSprites(); // v0.7 World 5
   if (typeof buildCryptSprites === 'function') S.crypt = buildCryptSprites(); // v0.8 World 6
   if (typeof buildArcadeSprites === 'function') S.arcade = buildArcadeSprites(); // v0.9 World 7
+  if (typeof buildFeedSprites === 'function') S.feed = buildFeedSprites(); // v1.0 World 8
   if (typeof buildPitSprites === 'function'){ S.pit = buildPitSprites(); S.debtTable = buildDebtTable(false); S.debtTableBurnt = buildDebtTable(true); }
   return S;
 }

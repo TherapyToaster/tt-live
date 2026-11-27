@@ -301,6 +301,37 @@ const AudioSys = (function(){
         [32,74,1],[33,77,1],[34,79,1],[35,81,1],[36,79,2],[38,77,1],[39,74,1],[40,72,1],[42,74,2],[44,77,1],[45,79,1],[46,81,2],
         [48,84,1],[49,81,1],[50,79,1],[51,77,1],[52,79,2],[54,81,1],[55,79,1],[56,77,2],[58,76,1],[59,74,1],[60,74,4]],
       roots: [38, 43, 41, 45], minor: [1, 0, 1, 1] },
+    // v1.0 World 8: FEED FAT COTY (bouncy neon-diner gold/pink)
+    w8_front: { bpm: 126, steps: 64, wave: 'square', vol: 0.07, bass: 'pulse', arp: 'all', hum: 'diner8', kick: [0, 6, 8, 14], snare: [4, 12], hat: 'all',
+      lead: [[0,69,1],[1,72,1],[2,74,1],[3,76,1],[4,74,2],[6,72,1],[7,69,1],[8,67,2],[10,69,2],[12,72,1],[13,74,1],[14,76,2],
+        [16,69,1],[17,72,1],[18,74,1],[19,77,1],[20,76,2],[22,74,1],[23,72,1],[24,69,2],[26,67,1],[27,69,1],[28,72,4],
+        [32,69,1],[33,72,1],[34,74,1],[35,76,1],[36,74,2],[38,72,1],[39,69,1],[40,67,2],[42,69,2],[44,72,1],[45,74,1],[46,77,2],
+        [48,81,1],[49,77,1],[50,76,1],[51,74,1],[52,76,2],[54,74,1],[55,72,1],[56,69,2],[58,67,1],[59,69,1],[60,69,4]],
+      roots: [45, 40, 43, 38], minor: [0, 1, 0, 0] },
+    w8_kitchen: { bpm: 132, steps: 64, wave: 'triangle', vol: 0.075, bass: 'pulse', arp: 'all', hum: 'diner8', kick: [0, 4, 8, 12], snare: [4, 12], hat: 'all',
+      lead: [[0,64,2],[2,67,1],[3,69,1],[4,71,2],[6,69,1],[7,67,1],[8,64,2],[10,62,2],[12,64,1],[13,67,1],[14,69,2],
+        [16,64,2],[18,67,1],[19,69,1],[20,72,2],[22,69,1],[23,67,1],[24,64,2],[26,62,1],[27,64,1],[28,67,4],
+        [32,64,2],[34,67,1],[35,69,1],[36,71,2],[38,69,1],[39,67,1],[40,64,2],[42,67,2],[44,69,1],[45,71,1],[46,72,2],
+        [48,76,1],[49,72,1],[50,71,1],[51,69,1],[52,71,2],[54,69,1],[55,67,1],[56,64,2],[58,62,1],[59,64,1],[60,64,4]],
+      roots: [40, 35, 38, 43], minor: [0, 0, 1, 0] },
+    w8_line: { bpm: 138, steps: 64, wave: 'square', vol: 0.07, bass: 'pulse', arp: 'all', hum: 'diner8', kick: [0, 3, 8, 11], snare: [4, 12], hat: 'all',
+      lead: [[0,72,1],[1,76,1],[2,79,1],[3,76,1],[4,72,2],[6,69,1],[7,72,1],[8,74,2],[10,76,1],[11,79,1],[12,81,2],[14,79,2],
+        [16,72,1],[17,76,1],[18,79,1],[19,76,1],[20,81,2],[22,79,1],[23,76,1],[24,72,2],[26,69,1],[27,72,1],[28,74,4],
+        [32,72,1],[33,76,1],[34,79,1],[35,76,1],[36,72,2],[38,69,1],[39,72,1],[40,74,2],[42,76,2],[44,79,1],[45,81,1],[46,84,2],
+        [48,81,1],[49,79,1],[50,76,1],[51,74,1],[52,76,2],[54,74,1],[55,72,1],[56,69,2],[58,67,1],[59,69,1],[60,72,4]],
+      roots: [45, 41, 43, 38], minor: [0, 0, 0, 1] },
+    w8_castle: { bpm: 118, steps: 64, wave: 'sawtooth', vol: 0.07, bass: 'pulse', arp: 'all', hum: 'diner8', kick: [0, 8], snare: [4, 12], hat: 'all',
+      lead: [[0,57,2],[2,60,2],[4,64,2],[6,60,2],[8,57,2],[10,55,2],[12,57,1],[13,60,1],[14,64,2],
+        [16,57,2],[18,60,2],[20,65,2],[22,64,2],[24,60,2],[26,57,2],[28,55,4],
+        [32,57,2],[34,60,2],[36,64,2],[38,60,2],[40,57,2],[42,60,2],[44,64,1],[45,67,1],[46,64,2],
+        [48,69,2],[50,64,2],[52,60,2],[54,57,2],[56,55,2],[58,57,2],[60,57,4]],
+      roots: [33, 36, 38, 31], minor: [1, 0, 1, 1] },
+    w8_boss: { bpm: 148, steps: 64, wave: 'sawtooth', vol: 0.08, bass: 'pulse', arp: 'all', hum: 'diner8', kick: [0, 4, 8, 10, 12], snare: [4, 12], hat: 'all', dist: true,
+      lead: [[0,69,1],[1,72,1],[2,76,1],[3,79,1],[4,76,2],[6,72,1],[7,69,1],[8,67,1],[10,69,2],[12,72,1],[13,76,1],[14,79,2],
+        [16,69,1],[17,72,1],[18,76,1],[19,81,1],[20,79,2],[22,76,1],[23,72,1],[24,69,2],[26,72,1],[27,76,1],[28,69,4],
+        [32,69,1],[33,72,1],[34,76,1],[35,79,1],[36,76,2],[38,72,1],[39,69,1],[40,67,1],[42,69,2],[44,72,1],[45,76,1],[46,81,2],
+        [48,84,1],[49,81,1],[50,79,1],[51,76,1],[52,79,2],[54,76,1],[55,72,1],[56,69,2],[58,67,1],[59,69,1],[60,69,4]],
+      roots: [45, 40, 43, 36], minor: [0, 1, 0, 1] },
   };
   for (const k in SONGS){ const m = {}; SONGS[k].lead.forEach(([st, n, l]) => m[st] = [n, l]); SONGS[k].leadMap = m; }
   let song = SONGS.w1_over, lastLead = 0, distNode = null, kazooNode = null;
@@ -379,6 +410,7 @@ const AudioSys = (function(){
     else if (kind === 'buzz'){ const sw = (f, v) => { const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 700; const gg = ctx.createGain(); gg.gain.value = v; o.connect(lp); lp.connect(gg); gg.connect(musicBus); o.start(); nodes.push(o); }; sw(110, 0.02); sw(113.5, 0.016); tone(55, 0.02); hiss('bandpass', 700, 0.01); } // hive buzz
     else if (kind === 'crypt'){ tone(46.2, 0.02); tone(92.5, 0.006); tone(15600, 0.0015); hiss('bandpass', 1800, 0.01); hiss('lowpass', 220, 0.02); } // v0.8 crypt: a low tomb drone, server fans, CRT whine
     else if (kind === 'arcade'){ tone(60, 0.012); tone(240, 0.004); hiss('bandpass', 900, 0.006); hiss('lowpass', 300, 0.012); } // v0.9 arcade: neon buzz, a room of cabinets humming at 3 AM
+    else if (kind === 'diner8'){ tone(90, 0.01); tone(220, 0.005); hiss('bandpass', 1400, 0.006); tone(440, 0.002); } // v1.0 neon-diner gold/pink buzz
     else if (kind === 'arcstatic'){ tone(60, 0.012); tone(15700, 0.002); hiss('bandpass', 2600, 0.02); hiss('highpass', 7000, 0.012); } // v0.9 No Signal Hall: detuned static
     else if (kind === 'rumble'){ tone(36.7, 0.07); tone(55, 0.025); hiss('lowpass', 160, 0.1); }
     humNodes = nodes;
@@ -513,6 +545,13 @@ const AudioSys = (function(){
     streak7(){ const t = ctx.currentTime; seq([69, 73, 76, 81, 85, 88], t, 0.05, 'p25', 0.12); noise(t, 0.25, 0.1, 'bandpass', 2000, null, 5000); },
     payout7(){ const t = ctx.currentTime; seq([76, 79, 84], t, 0.07, 'square', 0.1); },
     start(){ const t = ctx.currentTime; seq([64, 71, 76, 83], t, 0.06, 'p25', 0.16); noise(t, 0.2, 0.12, 'bandpass', 2600); },
+    // v1.0 World 8 diner (cartoon honk for "Too full!" — not gore)
+    crave8(){ const t = ctx.currentTime; seq([76, 81, 88], t, 0.05, 'triangle', 0.1); },
+    combo8(){ const t = ctx.currentTime; seq([72, 76, 79, 84, 88], t, 0.04, 'p25', 0.1); },
+    plate8(){ const t = ctx.currentTime; noise(t, 0.08, 0.08, 'bandpass', 3200); seq([84, 79], t, 0.03, 'square', 0.06); },
+    sizzle8(){ const t = ctx.currentTime; noise(t, 0.14, 0.08, 'highpass', 4000); },
+    full8(){ const t = ctx.currentTime; seq([48, 43, 40, 36], t, 0.09, 'sawtooth', 0.14); noise(t, 0.2, 0.1, 'bandpass', 600); },
+    return8(){ const t = ctx.currentTime; seq([60, 64, 67, 60], t, 0.08, 'triangle', 0.1); },
   };
   function sfx(name, arg){ if (!ready()) return; try { SFX[name](arg); } catch (e) { /* ignore audio errors */ } }
   return { unlock, startMusic, stopMusic, setTempo, setMode, pause, sfx, get ctx(){ return ctx; }, isPlaying: () => playing, current: () => current, songs: () => Object.keys(SONGS) };

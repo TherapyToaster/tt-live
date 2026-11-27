@@ -1,4 +1,4 @@
-# Mr. Toasty: Toasty Bros — Worlds 1-7 (v0.9 TOASTY ARCADE)
+# Mr. Toasty: Toasty Bros — Worlds 1-8 (v1.0 FEED FAT COTY)
 Original platformer by Coty Lake. SMB is a mechanics reference only; all art, audio, names and layouts are original and
 procedural (pixel arrays + canvas + WebAudio). No external assets, no CDN, no build step. Jam is grape purple.
 
@@ -12,10 +12,27 @@ Open `index.html` directly (file:// works), or `python3 -m http.server` in this 
 - Title menu: NEW GAME · CONTINUE x-x · BRO ROSTER · LEVEL SELECT (only with `?debug`).
 - Save: `localStorage['toastyBros.save.v1']` = { furthest, hi, worldsCleared, unlocked, startBro } (older saves load fine).
 
+## v1.0 FEED FAT COTY (World 8)
+- **World 8 "Feed Fat Coty" is open** (8-1 THE FRONT ROOM → 8-2 THE STAINLESS KITCHEN → 8-3 THE CRAVING LINE → 8-4 TOO FULL! BOOTH).
+  Warp pipe 8 from the 1-2 warp zone (the zone is widened so the drop-in at tx 2 stays clear), level select, and a World 7
+  clear all lead here. The 7-4 end card teases "FEED FAT COTY: NEXT CHANNEL...". World 9 "Final Bite" stays a stub.
+- A futuristic neon diner: white curved walls, red neon, stainless kitchen, oval windows, glossy floor, round blue LED ceiling.
+  Distinct from World 4's classic diner. Tagline: feed the snack Fat Coty is craving, chain combos, don't let him fill up.
+- **Hazards cost 1 heart:** snack pests (stompable), cooled-off plates (hurt only while cold; they telegraph), lime/gold goo
+  splat patches. Conveyor belts in the kitchen carry you over pits. Glowing craving snacks chain a combo meter.
+- **FAT COTY** (9 HP, 3 phases) is the 8-4 boss, using the same look as the playable bro (goatee, gold-mirror shades, black
+  ACID cap, black tee with a blue streak, silver chains), just scaled up. Shots and snacks only count while he is craving
+  (his open window). Telegraphed belly flops, flying plates and goo drips. "Coty will be right back. A little rounder."
+  then "Too full!". Defeat is "TOO FULL!" then the TOASTED! escape. Autopilot (all 8 bros, including SkulRz's short roll)
+  can beat him fairly — not a pushover, and no free armor on the way.
+- A TOAST TRUCK is parked left of the 8-1 start and mid-level in 8-4 for a ride to the booth.
+- Tests: `test_w8.py` (content, autopilot 8-1..8-4, 1-heart hazards, combo snacks, 8-bro Fat Coty, warp pipe 8, 7-4→8-1,
+  mobile, no console errors). Every earlier suite stays green.
+
 ## v0.9 TOASTY ARCADE (World 7 + TOAST TRUCK)
 - **World 7 "Toasty Arcade" is open** (7-1 THE LOBBY → 7-2 PRIZE SHELVES → 7-3 NO SIGNAL HALL → 7-4 CASTLE JACKPOT VAULT).
   Warp pipe 7 from the 1-2 warp zone, level select, and a World 6 clear all lead here. The 6-4 end card teases
-  "TOASTY ARCADE: NEXT CHANNEL...". World 8 "Feed Fat Coty" stays a stub.
+  "TOASTY ARCADE: NEXT CHANNEL...". World 8 "Feed Fat Coty" is open as of v1.0.
 - **JACKPOT VAULT** (9 HP, 3 phases): shots only count while the payout button glows. Token waves, claw slams and
   ticket drips are the hazards. Autopilot (including SkulRz's short roll and Fat Coty's snack spray) can beat it
   fairly — telegraphs and open windows were tuned; the boss is not a pushover and there is no free armor to get there.

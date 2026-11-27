@@ -126,8 +126,9 @@ function enterArea(name){
   else {
     enemies = []; items = []; bolts = []; lv.crumbles = {};
     patches = (lv.patchesInit || []).map(q => ({ kind: q.kind, x: q.a * TS, y: q.row * TS, w: (q.b - q.a + 1) * TS, t: Infinity }));
-    plats = lv.plats.map(d => ({ kind: d.kind, x: d.tx * TS, y: d.ty * TS, w: d.w * TS, h: 8, x0: d.tx * TS, y0: d.ty * TS, axis: d.axis, range: (d.range || 0) * TS, speed: d.speed || 0, t: d.phase || 0, dx: 0, dy: 0, fallT: 0, vy: 0, stood: false, look: d.look, len: d.len, amp: d.amp, gz: d.gz, pz: d.pz, cz: d.cz })).concat(pitPlats(), dinerPlats());
+    plats = lv.plats.map(d => ({ kind: d.kind, x: d.tx * TS, y: d.ty * TS, w: d.w * TS, h: 8, x0: d.tx * TS, y0: d.ty * TS, axis: d.axis, range: (d.range || 0) * TS, speed: d.speed || 0, t: d.phase || 0, dx: 0, dy: 0, fallT: 0, vy: 0, stood: false, look: d.look, len: d.len, amp: d.amp, gz: d.gz, pz: d.pz, cz: d.cz, dir: d.dir, bsp: d.bsp })).concat(pitPlats(), dinerPlats());
     if (typeof spawnLevelTrucks === 'function') spawnLevelTrucks();
+    if (typeof feedEnter === 'function') feedEnter();
   }
   magCoins = []; rockets = []; parts = []; coinpops = []; ftoasts = []; shots = []; booms = []; rings = []; turrets = [];
   if (!lv.cageBro){ lv.cageBro = {}; lv.dmg = {}; const locked = BRO_IDS.filter(id => !save.unlocked.includes(id)); let li = 0;
@@ -156,6 +157,7 @@ function startLevel(){
   G.foilMet = false; G.foilCut = false; G.hiveDown = false; G.nameCard = null; G.curtain = null; G.springs = 0; G.tideY = null; G.tidePh = null; G.shrieks = 0; G.hiveSlams = 0; G.mittBlocks = 0; bumFx = [];
   G.portals = 0; G.portalSaid = false; G.geyserRides = 0; G.rgbHits = 0; G.sauces = 0; G.quartzDown = false; G.quartzSlams = 0; G.quartzHaz = 0; cryFx = []; // v0.8 World 6
   G.figs = 0; G.tix = 0; G.showers = 0; G.tokens7 = 0; G.shoves = 0; G.pushRides = 0; G.clawRides = 0; G.clawGrabs = 0; G.crtHops = 0; G.streaks = 0; G.vaultDown = false; G.vaultHits = 0; G.vaultWaves = 0; G.vaultHaz = 0; arcFx = []; arcToks = []; // v0.9 World 7
+  G.combo = 0; G.comboT = 0; G.comboMax = 0; G.snacks = 0; G.craveHits = 0; G.craveId = (typeof SNACKS !== 'undefined' ? SNACKS[0].id : 'burger'); G.pestStomps = 0; G.coolHits = 0; G.gooHits = 0; G.beltRides = 0; G.feedHits = 0; G.fatDown = false; G.fatSlams = 0; G.fatWaves = 0; G.fatHaz = 0; feedFx = []; // v1.0 World 8
   BOSS = lv.boss ? makeBoss(lv.boss) : null;
   reach(G.levelId);
   A.startMusic(lv.music || LV.music);
@@ -400,6 +402,7 @@ function updatePlayer(){
   if (p.onGround && TSET.bumbo) bumboSpring(p); // v0.7 Pop-Up Springs
   if (TSET.crypt) cryptPlayer(p); // v0.8 Glitch Doors, the RGB switch, Hot Sauce
   if (TSET.arcade) arcadePlayer(p); // v0.9 pusher shoves, CRT power, Hot Streak
+  if (TSET.feed) feedPlayer(p); // v1.0 belts + combo timer
   if (p.onGround) p.combo = 0;
   if (p.onGround && !p.plat){ const fr = Math.floor((p.y + p.h + 1) / TS); for (const tx of [Math.floor((p.x + 1) / TS), Math.floor((p.x + p.w - 1) / TS)]) if (tileAt(tx, fr) === 'K') startCrumble(tx, fr); }
   if (p.boost > 0 && G.frame % 2 === 0) parts.push({ x: p.x + (p.facing > 0 ? 0 : p.w), y: p.y + 4 + Math.random() * (p.h - 6), vx: -p.facing * 1.5, vy: 0, g: 0, life: 10, color: (G.frame >> 2) % 2 ? '#FFD400' : '#ffffff', size: 1 });
@@ -584,6 +587,7 @@ function spawnEnemies(){
       if (BUMBO_TYPES.has(s.type)) bumboInit(e, s); // v0.7 World 5
       if (CRYPT_TYPES.has(s.type)) cryptInit(e, s); // v0.8 World 6
       if (ARCADE_TYPES.has(s.type)) arcadeInit(e, s); // v0.9 World 7
+      if (FEED_TYPES.has(s.type)) feedInit(e, s); // v1.0 World 8
     }
   }
 }
@@ -620,6 +624,7 @@ function updateEnemy(e){
   if (BUMBO_TYPES.has(e.type)){ updateBumboEnemy(e, dx, dy); return; }
   if (CRYPT_TYPES.has(e.type)){ updateCryptEnemy(e, dx, dy); return; }
   if (ARCADE_TYPES.has(e.type)){ updateArcadeEnemy(e, dx, dy); return; }
+  if (FEED_TYPES.has(e.type)){ updateFeedEnemy(e, dx, dy); return; }
   if (e.type === 'toast' && inPit() && e.anim % 3 === 0){ (e.trail = e.trail || []).push({ x: e.x, y: e.y }); if (e.trail.length > 5) e.trail.shift(); }
   if (e.type === 'truck' || e.type === 'skel' || e.type === 'rlaunch' || e.type === 'gunner'){ updateW2Enemy(e, dx, dy); return; }
   if (e.type === 'rifle'){ updateRifle(e, dx, dy); }
@@ -754,6 +759,7 @@ function playerVsEnemies(){
     if (e.type === 'fusebox' && !(P.vy > 0 && P.prevY + P.h <= e.y + 7)){ P.vx = -2.2; P.x = Math.min(P.x, e.x - P.w - 1); P.inv = Math.max(P.inv, 0); sfxOnce('clang'); burst(e.x, P.y + 8, 3, [DIN.Y, '#ffffff'], 1, 8); continue; } // mounted box: it shoves you off, the sparks are what hurt
     if (CRYPT_TYPES.has(e.type) && cryptContact(e)) continue; // v0.8: static passes through you
     if (ARCADE_TYPES.has(e.type) && arcadeContact(e)) continue; // v0.9
+    if (FEED_TYPES.has(e.type) && feedContact(e)) continue; // v1.0
     if (BUMBO_TYPES.has(e.type) && bumboContact(e)) continue; // v0.7: the foil puppet shoves, a zapping Cord Snake burns
     if (P.star > 0){ if (DINER_TYPES.has(e.type) && dinerDeath(e, {})) continue; killFlip(e); addScore(200, e.x, e.y - 8); continue; }
     const prevBottom = P.prevY + P.h;
@@ -792,6 +798,7 @@ function playerVsEnemies(){
 function updateBolts(){
   for (const b of bolts){
     if (b.homing){ updateHoming(b); continue; }
+    if (!b.mine && b.kind === 'gwave' && b.flop && b.delay > 0) continue; // v1.0 parked belly-flop waves stay off the floor until they launch
     if (!b.mine && (b.kind === 'shock' || b.kind === 'gwave' || b.kind === 'iou')){ updatePitBolt(b); continue; }
     if (!b.mine && CRYPT_BOLTS.has(b.kind)){ updateCryptBolt(b); continue; } // v0.8 toast slices, RGB shots
     if (!b.mine && b.kind === 'glob'){ updateBumboBolt(b); continue; } // v0.7 butter globs
@@ -850,7 +857,7 @@ function updatePlats(){
       if (pl.fallT >= 26){ pl.vy = Math.min(pl.vy + 0.18, 4); pl.y += pl.vy; }
       if (pl.y > H + 24) pl.dead = true;
     }
-    pl.dx = pl.x - ox; pl.dy = pl.y - oy; pl.stood = false;
+    pl.dx = pl.x - ox; pl.dy = pl.y - oy; if (pl.axis === 'belt') pl.dx = (pl.dir || 1) * (pl.bsp || 0.85); pl.stood = false;
   }
 }
 function updatePatches(){ for (const b of patches) b.t--; patches = patches.filter(b => b.t > 0); }
@@ -878,12 +885,14 @@ function hazards(){
   if (inBumbo()) bumboHazards();
   if (inCrypt()) cryptHazards();
   if (inArcade()) arcadeHazards();
+  if (inFeed()) feedHazards();
 }
 
 // ---------------- items & rockets ----------------
 function updateItem(it){
   if (it.emerge > 0){ it.y -= 0.5; it.emerge -= 0.5; return; }
-  if (it.type === 'launcher' || it.type === 'ammo'){ it.vy = Math.min(it.vy + 0.3, 4); it.y += it.vy; collideY(it); }
+  if (it.type === 'crave'){ it.vx = 0; it.vy = 0; it.y = (it.y0 != null ? it.y0 : it.y) + Math.sin((G.frame + it.x) * 0.15) * 1.5; }
+  else if (it.type === 'launcher' || it.type === 'ammo'){ it.vy = Math.min(it.vy + 0.3, 4); it.y += it.vy; collideY(it); }
   else {
     it.vy = Math.min(it.vy + (it.type === 'glitch' ? 0.2 : 0.3), 4);
     it.x += it.vx; if (collideX(it)) it.vx = -it.vx;
@@ -905,6 +914,7 @@ function updateItem(it){
     else if (it.type === 'bell'){ G.freezeT = 180; addScore(1000, cx, cy); A.sfx('ding'); popup(cx - 30, cy - 10, 'DINER BELL: FREEZE!', '#00edff'); }
     else if (it.type === 'tray'){ P.magnet = 540; addScore(1000, cx, cy); A.sfx('magnet'); popup(cx - 30, cy - 10, 'CRUMB TRAY: MAGNET', '#00f0ff'); }
     else if (it.type === 'lightbar'){ P.boost = 300; G.flash = 12; addScore(1000, cx, cy); A.sfx('lightbar'); popup(cx - 30, cy - 10, '850HP LIGHTBAR!', '#FFD400'); }
+    else if (it.type === 'crave'){ feedPickup(it); }
     G.lastPickup = it.type;
   }
 }
@@ -1026,6 +1036,7 @@ function detonate(b){
 function bossChip(dmg){
   const b = BOSS; if (!b || !b.active || b.dying || b.dead) return;
   if (b.kind === 'vault' && !(b.open > 0)){ vaultClink(); return; } // v0.9 the Vault only takes hits while its payout button glows
+  if (b.kind === 'fatcoty' && !(b.open > 0)){ fatCotyClink(); return; } // v1.0 Fat Coty only takes hits while he is craving
   const need = b.kind === 'glitch' ? 6 : 5;
   if (b.flash > 0){ b.chip = Math.min(need - 0.01, (b.chip || 0) + dmg * 0.25); return; }
   b.chip = (b.chip || 0) + dmg;
@@ -1050,7 +1061,7 @@ function damageEnemy(e, dmg, kb, src){
   if (DINER_TYPES.has(e.type) && dinerDeath(e, src)) return true;
   if (BUMBO_TYPES.has(e.type) && bumboDeath(e, src)) return true;
   if (CRYPT_TYPES.has(e.type) && cryptDeath(e, src)) return true;
-  killFlip(e); G.kills++; if (DINER_TYPES.has(e.type)) dinerKill(e); if (BUMBO_TYPES.has(e.type)) bumboKill(e); if (CRYPT_TYPES.has(e.type)) cryptKill(e); if (ARCADE_TYPES.has(e.type)) arcadeKill(e);
+  killFlip(e); G.kills++; if (DINER_TYPES.has(e.type)) dinerKill(e); if (BUMBO_TYPES.has(e.type)) bumboKill(e); if (CRYPT_TYPES.has(e.type)) cryptKill(e); if (ARCADE_TYPES.has(e.type)) arcadeKill(e); if (FEED_TYPES.has(e.type)) feedKill(e);
   addScore(e.type === 'gunner' || e.type === 'truck' ? 500 : e.type === 'rifle' || e.type === 'toast' ? 300 : 100, e.x, e.y - 8);
   burst(e.x + e.w / 2, e.y + e.h / 2, 8, JAM, 1.8, 26); burst(e.x + e.w / 2, e.y + e.h / 2, 5, ['#c8741e', '#f4c860'], 1.5, 22);
   if (e.type === 'rifle' || e.type === 'gunner' || e.type === 'goon'){ const it = spawnItem('ammo', e.x, e.y - 4); it.emerge = 0; it.vy = -3; }
@@ -1223,7 +1234,7 @@ function rollHit(p){
   for (const e of enemies) if (!e.dead && overlap(box, e)){ damageEnemy(e, 4, p.facing * 5); p.roll = 0; p.vx = -p.facing * 1.6; p.vy = -2.8; p.onGround = false; p.plat = null; p.inv = Math.max(p.inv, 24); A.sfx('kick'); return; } // bonk: hit once and hop off
   const tx = Math.floor((p.facing > 0 ? p.x + p.w + 1 : p.x - 1) / TS), ty = Math.floor((p.y + p.h / 2) / TS);
   const c = tileAt(tx, ty); if (c === 'C') freeCage(tx, ty); else if (c === 'B') damageTile(tx, ty, 1);
-  if (BOSS && (BOSS.kind === 'hive' || BOSS.kind === 'quartz' || BOSS.kind === 'vault') && BOSS.active && !BOSS.dying && overlap(box, BOSS)){ bossChip(5); p.roll = 0; p.vx = -p.facing * 2.2; p.vy = -3.2; p.onGround = false; p.plat = null; p.inv = Math.max(p.inv, 40); A.sfx('kick'); return; } // v0.7: bonk off the Hive
+  if (BOSS && (BOSS.kind === 'hive' || BOSS.kind === 'quartz' || BOSS.kind === 'vault' || BOSS.kind === 'fatcoty') && BOSS.active && !BOSS.dying && overlap(box, BOSS)){ bossChip(5); p.roll = 0; p.vx = -p.facing * 2.2; p.vy = -3.2; p.onGround = false; p.plat = null; p.inv = Math.max(p.inv, 40); A.sfx('kick'); return; } // v0.7: bonk off the Hive
   if (BOSS && BOSS.active && !BOSS.dying && overlap(box, BOSS) && p.roll % 6 === 0) bossChip(2);
 }
 function updateTurrets(){
@@ -3468,6 +3479,352 @@ function botArcade(b, grounded, feet, fx, want, hold){
   return { want, hold };
 }
 
+// ================= v1.0 WORLD 8: FEED FAT COTY =================
+// Futuristic neon diner (lore: lore/originals.md). Snack pests, cooled-off plates, lime/gold goo,
+// glowing craving snacks that chain combos, and FAT COTY in the Too Full! booth. Every hazard is
+// 1 heart. Jam is always grape purple (#b54e8c). Original art only; no real brands, no gore, no wallets.
+Object.assign(EDEF, { spest: { w: 12, h: 11, hp: 1 } });
+const FEED_TYPES = new Set(['spest']);
+const COOL_PERIOD = 200, COMBO_TIME = 180;
+let feedFx = [];
+function inFeed(){ return !!(TSET && TSET.feed); }
+function feedEnter(){
+  if (!lv) return;
+  if (lv.craves) for (const c of lv.craves){
+    if (c.spawned) continue; c.spawned = true;
+    const it = spawnItem('crave', c.x * TS, c.y * TS); it.kind = c.kind || 'burger'; it.emerge = 0; it.vx = 0; it.vy = 0; it.y0 = it.y; it.w = 10; it.h = 10;
+  }
+}
+function coolState(pl, f){
+  const t = ((f === undefined ? G.lf : f) + (pl.phase || 0)) % COOL_PERIOD;
+  if (t < 90) return { ph: 'warm', left: 90 - t };
+  if (t < 114) return { ph: 'warn', left: 114 - t };
+  return { ph: 'cool', left: COOL_PERIOD - t };
+}
+function feedInit(e, s){ e.dir = s.dir || -1; e.state = 'walk'; e.cool = 0; }
+function updateFeedEnemy(e, dx, dy){
+  if (e.type !== 'spest') return;
+  if (e.state === 'walk'){
+    e.vx = e.dir * 0.55; e.x += e.vx; if (collideX(e)){ e.dir *= -1; e.x += e.dir; }
+    e.vy = Math.min(e.vy + 0.3, 4); e.y += e.vy; collideY(e);
+    const front = e.dir > 0 ? e.x + e.w + 1 : e.x - 1;
+    if (e.onGround && !standable(Math.floor(front / TS), Math.floor((e.y + e.h + 1) / TS))) e.dir *= -1;
+    e.anim++;
+  }
+}
+function feedContact(e){
+  if (e.type !== 'spest' || e.dead) return false;
+  const prevBottom = P.prevY + P.h;
+  if (P.vy > 0 && prevBottom <= e.y + 5){ stomp(e); killFlip(e); G.kills++; G.pestStomps = (G.pestStomps || 0) + 1; addScore(100, e.x, e.y - 8); A.sfx('stomp');
+    if (Math.random() < 0.45){ const it = spawnItem('crave', e.x, e.y - 4); it.kind = (typeof SNACKS !== 'undefined' ? SNACKS[Math.floor(Math.abs(G.frame + e.x)) % SNACKS.length].id : 'burger'); it.emerge = 0; it.vy = -2; it.vx = 0; it.y0 = it.y; }
+    P.y = e.y - P.h; P.vy = btn.jump ? -5.0 : -3.4; P.jumpHeld = !!btn.jump; return true; }
+  return false;
+}
+function feedKill(e){ /* snack drop is handled on stomp; shot-kills just score */ }
+function feedPickup(it){
+  const id = it.kind || 'burger', name = (typeof snackById === 'function' ? snackById(id).name : 'SNACK');
+  G.snacks = (G.snacks || 0) + 1; G.combo = (G.combo || 0) + 1; G.comboT = COMBO_TIME; G.comboMax = Math.max(G.comboMax || 0, G.combo);
+  const want = G.craveId || (typeof SNACKS !== 'undefined' ? SNACKS[0].id : 'burger');
+  const match = id === want; if (match){ G.craveHits = (G.craveHits || 0) + 1; G.craveId = typeof SNACKS !== 'undefined' ? SNACKS[(SNACKS.findIndex(s => s.id === want) + 1) % SNACKS.length].id : want; }
+  addScore((match ? 400 : 200) * G.combo, it.x, it.y - 8);
+  A.sfx(match ? 'combo8' : 'crave8'); popup(it.x - 24, it.y - 12, (match ? 'CRAVING! ' : '') + 'COMBO X' + G.combo, match ? F8.GOLD : F8.PINK);
+  burst(it.x + 4, it.y + 4, 8, [F8.GOLD, F8.PINK, F8.NEON], 1.5);
+  // if Fat Coty is open and we're close, a matching snack also chips him
+  const b = BOSS; if (b && b.kind === 'fatcoty' && b.open > 0 && !b.dying && Math.abs((P.x + P.w / 2) - (b.x + b.w / 2)) < 80){ fatCotyDamage(match ? 'snack' : 'snack'); }
+}
+function feedHazards(){
+  if (P.ctrl !== 'normal' || P.dead) return;
+  const feet = P.y + P.h;
+  if (P.onGround && lv.coolPlates) for (const pl of lv.coolPlates){
+    const st = coolState(pl);
+    const x0 = pl.a * TS, x1 = (pl.b + 1) * TS, y = (pl.ty || 13) * TS;
+    if (P.x + P.w > x0 + 2 && P.x < x1 - 2 && Math.abs(feet - y) < 3){
+      if (st.ph === 'cool' && P.inv <= 0 && P.star <= 0){ hurt(); G.coolHits = (G.coolHits || 0) + 1; if (G.state === 'play' && !P.dead){ P.vy = -4.2; P.onGround = false; P.plat = null; popup(P.x - 16, P.y - 12, 'COOLED OFF!', F8.COOL); burst(P.x + 6, y, 8, [F8.COOL, '#ffffff'], 1.4); } return; }
+    }
+  }
+  if (P.inv <= 0 && P.star <= 0 && lv.goo) for (const q of lv.goo){
+    const x0 = q.a * TS, x1 = (q.b + 1) * TS, y = (q.ty || 13) * TS;
+    if (P.x + P.w > x0 + 1 && P.x < x1 - 1 && P.y + P.h > y - 4 && P.y < y + 8){
+      hurt(); G.gooHits = (G.gooHits || 0) + 1; if (G.state === 'play' && !P.dead){ P.vy = -3.6; P.onGround = false; P.plat = null; popup(P.x - 10, P.y - 12, 'SPLAT!', F8.LIME); burst(P.x + 6, y, 8, [F8.LIME, F8.GOO, '#ffffff'], 1.4); } return;
+    }
+  }
+  const b = BOSS; if (b && b.kind === 'fatcoty') fatCotyHurtCheck(b);
+}
+function feedPlayer(p){
+  if (p.plat && p.plat.axis === 'belt' && !p.plat.ridden){ p.plat.ridden = true; G.beltRides = (G.beltRides || 0) + 1; }
+  if (G.comboT > 0){ G.comboT--; if (G.comboT <= 0) G.combo = 0; }
+}
+function feedUpdate(){
+  if (!inFeed() && !(BOSS && BOSS.kind === 'fatcoty')) return;
+  feedEnter();
+  for (const pl of plats) if (pl.axis === 'belt' && P && P.plat !== pl) pl.ridden = false;
+  if (lv && lv.coolPlates) for (const pl of lv.coolPlates){ const st = coolState(pl); if (st.ph === 'warn' && st.left === 1 && Math.abs(((pl.a + pl.b) / 2) * TS - camX - 128) < 200) sfxOnce('plate8'); }
+  // boss projectiles already live on bolts / drips
+  if (BOSS && BOSS.kind === 'fatcoty') fatCotyUpdateHazards(BOSS);
+  for (const fx of feedFx) fx.t++;
+  feedFx = feedFx.filter(fx => fx.t < (fx.life || 40));
+}
+function feedBotSauce(b, grounded, feet){
+  const p = P, px = p.x + p.w / 2;
+  // stay out of goo
+  if (lv.goo) for (const q of lv.goo){
+    const x0 = q.a * TS, x1 = (q.b + 1) * TS;
+    if (x1 > p.x - 8 && x0 < p.x + p.w + 28 && Math.abs(feet - (q.ty || 13) * TS) < 8){
+      const mid = (x0 + x1) / 2;
+      if (px < mid) { b.left = true; b.right = false; } else { b.right = true; b.left = false; }
+      b.run = true; if (grounded && x0 < p.x + p.w + 10 && x1 > p.x - 4){ botJump(b, true, 28); }
+      return { want: grounded, hold: 28 };
+    }
+  }
+  // hop or wait if the plate under / ahead is going cold
+  if (lv.coolPlates && grounded) for (const pl of lv.coolPlates){
+    const st = coolState(pl), x0 = pl.a * TS, x1 = (pl.b + 1) * TS, y = (pl.ty || 13) * TS;
+    const on = p.x + p.w > x0 + 2 && p.x < x1 - 2 && Math.abs(feet - y) < 4;
+    const ahead = x0 > px && x0 - (p.x + p.w) < 20 && Math.abs(feet - y) < 4;
+    if ((on || ahead) && (st.ph === 'cool' || (st.ph === 'warn' && st.left < 12))){
+      if (on && st.ph === 'cool'){ botJump(b, true, 30); b.right = true; }
+      else if (ahead){ b.right = false; b.run = false; } // wait it out
+      return { want: on && st.ph === 'cool', hold: 30 };
+    }
+  }
+  return null;
+}
+
+// ---- FAT COTY (8-4 boss): 9 HP, 3 phases. Shots and snacks only count while he is craving (open). ----
+function fatCotySize(phase){ return phase >= 3 ? [44, 48] : phase === 2 ? [40, 44] : [36, 40]; }
+function makeFatCoty(spec){
+  spec.baseLine1 = spec.baseLine1 || spec.line1; spec.baseLine2 = spec.baseLine2 || spec.line2;
+  const [w, h] = fatCotySize(1);
+  const deck = (spec.deckRow || 13) * TS;
+  const b = { kind: 'fatcoty', spec, x: spec.tx * TS - 8, y: deck - h, w, h, vx: 0, vy: 0, hp: 9, flash: 0, state: 'idle', t: 0,
+    active: false, dying: false, dead: false, onGround: true, dt: 0, phase: 1, phaseHits: 0, open: 0, fill: 0, face: 'idle',
+    drips: [], crave: (typeof SNACKS !== 'undefined' ? SNACKS[0].id : 'burger'), facing: -1, carded: false, slam: 0 };
+  b.deck = deck;
+  return b;
+}
+function fatCotyFeet(b){ b.y = b.deck - b.h; }
+function fatCotyPhase(b, text){
+  b.phase++; const [w, h] = fatCotySize(b.phase); b.w = w; b.h = h; fatCotyFeet(b); b.face = b.phase >= 3 ? 'huge' : 'fat';
+  b.state = 'return'; b.t = 0; b.open = 0; b.phaseHits = 0; b.fill = 0; b.drips = [];
+  G.bigText = { text: text || (b.phase >= 3 ? 'TOO FULL!' : 'A LITTLE ROUNDER.'), t: 0 };
+  popup(b.x - 20, b.y - 16, b.phase >= 3 ? 'TOO FULL!' : 'COTY WILL BE RIGHT BACK. A LITTLE ROUNDER.', F8.PINK);
+  A.sfx('return8'); A.setTempo(b.phase >= 3 ? 1.25 : 1.12);
+}
+function fatCotyDamage(src){
+  const b = BOSS; if (!b || b.kind !== 'fatcoty' || b.dying || b.dead || b.flash > 0) return;
+  if (!(b.open > 0) && src !== 'test'){ fatCotyClink(); return; }
+  b.hp--; b.phaseHits++; b.flash = 24; G.shake = 9; A.sfx('bosshit'); A.sfx('crave8'); b.face = 'hurt'; G.feedHits = (G.feedHits || 0) + 1;
+  burst(b.x + b.w / 2, b.y + b.h / 2, 12, [F8.GOLD, F8.PINK, F8.NEON, '#ffffff'], 2.2);
+  b.fill = Math.max(0, b.fill - 12);
+  if (b.hp <= 0){ fatCotyDie(src); return; }
+  popup(b.x - 8, b.y + 10, 'FED ' + Math.min(3, b.phaseHits) + '/3', F8.GOLD);
+  if (b.hp <= 6 && b.phase === 1) fatCotyPhase(b, 'A LITTLE ROUNDER.');
+  else if (b.hp <= 3 && b.phase === 2) fatCotyPhase(b, 'TOO FULL!');
+}
+function fatCotyClink(){ const b = BOSS; if (!b || b.clinkT > 0) return; b.clinkT = 8; A.sfx('plate8'); burst(b.x + 8, b.y + 12, 3, [F8.STEEL, '#ffffff'], 0.8); }
+function fatCotyDie(by){
+  const b = BOSS; b.dying = true; b.active = false; b.open = 0; b.state = 'sick'; b.t = 0; b.face = 'sick'; b.dt = 0; G.fatDown = true;
+  G.bigText = { text: 'TOO FULL!', t: 0 }; A.sfx('full8'); A.stopMusic(); G.shake = 14;
+  burst(b.x + b.w / 2, b.y + b.h / 2, 20, [F8.GOLD, F8.PINK, F8.NEON, F8.CREAM], 3);
+}
+function fatCotySpawnFlop(b, dir, n){
+  const fy = b.deck;
+  for (let i = 0; i < n; i++) bolts.push({ kind: 'gwave', flop: true, boss: true, x: (dir < 0 ? b.x : b.x + b.w) - 4, y: -80, w: 10, h: 9, vx: dir * (1.5 + b.phase * 0.15), vy: 0, t: 0, delay: i * 10, parked: true });
+  G.fatWaves = (G.fatWaves || 0) + 1; A.sfx('sizzle8');
+}
+function fatCotyUpdateHazards(b){
+  for (const o of bolts) if (o.flop && o.delay > 0){ o.delay--; if (o.delay === 0){ o.y = b.deck - 9; o.parked = false; } }
+  for (const d of b.drips){
+    d.t++;
+    if (d.state === 'warn'){ if (d.t > 28){ d.state = 'fall'; d.t = 0; if (d.kind === 'plate') d.vx = d.dir * 1.7; } }
+    else if (d.state === 'fall'){
+      if (d.kind === 'goo'){ d.vy = Math.min((d.vy || 0) + 0.18, 3.2); d.y += d.vy; if (d.y > b.deck - 4){ d.state = 'gone'; } }
+      else { d.x += d.vx || 0; if (d.x < b.spec.bounds[0] * TS - 8 || d.x > (b.spec.bounds[1] + 1) * TS + 8) d.state = 'gone'; }
+    }
+  }
+  b.drips = b.drips.filter(d => d.state !== 'gone');
+  if (b.clinkT > 0) b.clinkT--;
+}
+function fatCotyHurtCheck(b){
+  if (!b || b.dead || b.dying || P.ctrl !== 'normal' || P.dead) return;
+  if (P.inv <= 0 && P.star <= 0 && P.dash <= 0 && P.roll <= 0 && overlap(P, { x: b.x + 4, y: b.y + 8, w: b.w - 8, h: b.h - 8 })){ hurt(); G.fatHaz = (G.fatHaz || 0) + 1; }
+  for (const d of b.drips){
+    if (d.state !== 'fall') continue;
+    const box = d.kind === 'plate' ? { x: d.x, y: d.y, w: 12, h: 10 } : { x: d.x - 2, y: d.y, w: 10, h: 10 };
+    if (P.inv <= 0 && P.star <= 0 && overlap(P, box)){ hurt(); G.fatHaz = (G.fatHaz || 0) + 1; d.state = 'gone'; }
+  }
+}
+function updateFatCoty(){
+  const b = BOSS; if (!b || b.kind !== 'fatcoty') return;
+  if (b.flash > 0) b.flash--;
+  if (!b.carded && (G.dialog || G.dialogDone)){ b.carded = true; G.nameCard = { text: 'FAT COTY', t: 0 }; }
+  if (!G.dialogDone){ const fc = P && P.bro === 'fatcoty'; b.spec.line1 = fc ? b.spec.fcLine1 : b.spec.baseLine1; b.spec.line2 = fc ? b.spec.fcLine2 : b.spec.baseLine2; }
+  if (b.dying){
+    b.dt++; b.face = 'sick';
+    if (b.dt % 4 === 0) burst(b.x + Math.random() * b.w, b.y + Math.random() * b.h, 3, [F8.GOLD, F8.PINK, F8.CREAM], 2);
+    if (b.dt === 80){ startEscape(); }
+    if (b.dt > 140){ b.dead = true; b.active = false; }
+    return;
+  }
+  if (!b.active) return;
+  b.t++;
+  const px = P.x + P.w / 2, cx = b.x + b.w / 2;
+  b.facing = px < cx ? -1 : 1;
+  // state machine
+  if (b.state === 'return'){
+    b.face = b.phase >= 3 ? 'huge' : 'fat';
+    if (b.t === 20) A.sfx('return8');
+    if (b.t > 70){ b.state = 'idle'; b.t = 0; popup(b.x - 10, b.y - 12, 'COTY WILL BE RIGHT BACK. A LITTLE ROUNDER.', F8.PINK); }
+    return;
+  }
+  if (b.state === 'idle'){
+    b.face = b.phase >= 3 ? 'huge' : (b.phase === 2 ? 'fat' : 'idle');
+    if (b.t > 36){ // pick an attack, then open a craving window
+      const roll = (b.t + b.hp + b.phase) % 3;
+      if (roll === 0){ b.state = 'slam'; b.t = 0; b.face = 'slam'; }
+      else if (roll === 1){ b.state = 'toss'; b.t = 0; }
+      else { b.state = 'drip'; b.t = 0; }
+    }
+  } else if (b.state === 'slam'){
+    b.face = 'slam';
+    if (b.t === 1){ G.shake = 2; A.sfx('sizzle8'); } // telegraph
+    if (b.t === 28){ b.vy = -5.2; b.onGround = false; }
+    if (b.t > 28 && !b.onGround){ b.vy = Math.min(b.vy + 0.4, 5); b.y += b.vy; if (b.y >= b.deck - b.h){ b.y = b.deck - b.h; b.vy = 0; b.onGround = true; G.shake = 12; A.sfx('full8'); fatCotySpawnFlop(b, -1, b.phase); if (b.phase >= 3) fatCotySpawnFlop(b, 1, 1); b.state = 'crave'; b.t = 0; G.fatSlams = (G.fatSlams || 0) + 1; } }
+  } else if (b.state === 'toss'){
+    b.face = 'eat';
+    if (b.t === 8 || (b.phase >= 2 && b.t === 28)){
+      const dir = -1;
+      b.drips.push({ kind: 'plate', state: 'warn', t: 0, x: b.x - 4, y: b.deck - 22, dir, vx: 0 });
+      A.sfx('plate8');
+    }
+    if (b.t > 50){ b.state = 'crave'; b.t = 0; }
+  } else if (b.state === 'drip'){
+    b.face = b.phase >= 2 ? 'fat' : 'idle';
+    if (b.t === 6 || (b.phase >= 2 && b.t === 22) || (b.phase >= 3 && b.t === 38)){
+      const ax0 = b.spec.bounds[0] * TS + 16, ax1 = b.x - 10;
+      const x = ax0 + ((b.t * 47 + b.hp * 13) % Math.max(16, ax1 - ax0));
+      b.drips.push({ kind: 'goo', state: 'warn', t: 0, x, y: 32, vy: 0 });
+      A.sfx('sizzle8');
+    }
+    if (b.t > 56){ b.state = 'crave'; b.t = 0; }
+  } else if (b.state === 'crave'){
+    b.face = 'eat';
+    if (b.t === 1){
+      b.open = 100; b.crave = typeof SNACKS !== 'undefined' ? SNACKS[(b.hp + b.phase) % SNACKS.length].id : 'burger';
+      G.craveId = b.crave; A.sfx('crave8'); popup(b.x - 10, b.y - 14, 'CRAVING: ' + (typeof snackById === 'function' ? snackById(b.crave).name : 'SNACK'), F8.GOLD);
+    }
+    if (b.open > 0) b.open--;
+    b.fill = Math.min(100, b.fill + (b.phase * 0.12));
+    if (b.open <= 0 || b.t > 110){
+      if (b.fill >= 100){ b.fill = 0; b.state = 'slam'; b.t = 0; b.face = 'slam'; G.bigText = { text: 'TOO FULL!', t: 0 }; A.sfx('full8'); }
+      else { b.state = 'idle'; b.t = 0; b.open = 0; }
+    }
+  }
+  // keep him in the arena, feet on the deck when grounded
+  const [bx0, bx1] = b.spec.bounds;
+  if (b.x < bx0 * TS) b.x = bx0 * TS;
+  if (b.x + b.w > (bx1 + 1) * TS) b.x = (bx1 + 1) * TS - b.w;
+  if (b.onGround) fatCotyFeet(b);
+}
+function drawFatCoty(){
+  const b = BOSS; if (!b || b.kind !== 'fatcoty') return;
+  const X = Math.round(b.x - camX), Y = Math.round(b.y);
+  if (b.flash > 0 && (G.frame >> 1) % 2) { /* flash */ } else {
+    const left = b.facing < 0, img = (typeof broFrame === 'function') ? broFrame('fatcoty', (b.dying || b.face === 'sick') ? 'jump' : (b.face === 'slam' ? 'jump' : 'stand'), left) : null;
+    if (img){
+      const scx = b.w / 16, scy = b.h / 16;
+      g.save(); g.translate(X, Y); g.scale(scx, scy); g.drawImage(img, 0, 0); g.restore();
+    } else { g.fillStyle = F8.SKIN; g.fillRect(X, Y, b.w, b.h); }
+    // gold-mirror shades flash + silver chains highlight so the scaled bro still reads as Fat Coty at boss size
+    g.fillStyle = F8.SHADE; g.fillRect(X + b.w * 0.28, Y + b.h * 0.22, b.w * 0.44, 3);
+    g.fillStyle = F8.CHAIN; g.fillRect(X + b.w * 0.3, Y + b.h * 0.52, b.w * 0.4, 1);
+  }
+  if (b.open > 0){
+    g.fillStyle = F8.GOLD; g.globalAlpha = 0.35 + Math.sin(G.frame * 0.25) * 0.15; g.fillRect(X + 4, Y - 14, b.w - 8, 10); g.globalAlpha = 1;
+    if (typeof drawFeedSnack === 'function') drawFeedSnack(g, b.crave, X + b.w / 2 - 4, Y - 13, G.frame, true);
+    drawTextC(g, 'OPEN', X + b.w / 2, Y - 22, F8.GOLD);
+  }
+  // drips
+  for (const d of b.drips){
+    const dx = Math.round(d.x - camX), dy = Math.round(d.y);
+    if (d.state === 'warn'){ g.fillStyle = (G.frame >> 2) % 2 ? F8.GOLD : F8.LIME; g.fillRect(dx, 20, 4, 8); }
+    else if (d.kind === 'plate'){ if (S.feed && S.feed.toss) g.drawImage(S.feed.toss, dx, dy); else { g.fillStyle = F8.STEEL3; g.fillRect(dx, dy, 10, 6); } }
+    else { g.fillStyle = F8.LIME; g.fillRect(dx, dy, 8, 8); g.fillStyle = F8.GOO; g.fillRect(dx + 2, dy + 2, 4, 4); }
+  }
+  if (G.nameCard && G.nameCard.text === 'FAT COTY'){ const n = G.nameCard, t = n.t, drop = t < 10 ? -60 + t * 7 : t < 14 ? 10 - (t - 10) * 2 : t > 110 ? (t - 110) * -16 : 0, y = 44 + drop;
+    g.fillStyle = F8.DARK; g.fillRect(68, y, 120, 18); g.fillStyle = F8.NEON; g.fillRect(70, y + 2, 116, 14); drawTextC(g, 'FAT COTY', 128, y + 5, F8.GOLD); }
+}
+function botFeed(b, grounded, feet){
+  const p = P, B = BOSS, px = p.x + p.w / 2, ax0 = B.spec.bounds[0] * TS, ax1 = (B.spec.bounds[1] + 1) * TS;
+  b.right = false; b.left = false; b.run = false;
+  if (B.dead || B.dying){ botJump(b, false); return; }
+  const kind = BROS[p.bro].weapon.kind, range = BOT_RANGE[kind] || 60;
+  const stand = (kind === 'roll') ? (B.open > 0 ? 22 : 64) : Math.min(Math.max(36, range - 8), 80);
+  let goal = Math.max(ax0 + 20, Math.min(B.x - 22, B.x - stand));
+  const liveDrip = d => d.state === 'fall' || d.state === 'warn';
+  const dripHit = d => Math.abs(d.x - px) < (d.kind === 'plate' ? 16 : 18);
+  const dripNear = d => liveDrip(d) && dripHit(d);
+  const okX = x => x > ax0 + 18 && x < B.x - 22 && !B.drips.some(d => liveDrip(d) && Math.abs(d.x - x) < 22);
+  if (B.drips.some(liveDrip)){
+    if (bot.dripEsc == null || !okX(bot.dripEsc)){
+      bot.dripEsc = null; let best = null, bestD = 1e9;
+      for (let x = ax0 + 20; x < B.x - 22; x += 4){ if (!okX(x)) continue; const d = Math.abs(x - px); if (d < bestD){ bestD = d; best = x; } }
+      bot.dripEsc = best;
+    }
+    if (bot.dripEsc != null) goal = bot.dripEsc;
+  } else bot.dripEsc = null;
+  if (px < goal - 3) b.right = true; else if (px > goal + 3) b.left = true;
+  if (Math.abs(px - goal) > 16) b.run = true;
+  if (p.x + p.w > B.x - 6){ b.left = true; b.right = false; b.run = false; }
+  const incoming = bolts.filter(o => !o.mine && o.kind === 'gwave' && !(o.delay > 0) && (o.x + 5) - px < 96 && (o.x + 5) - px > -24);
+  const nearest = incoming.slice().sort((a, b2) => a.x - b2.x).filter(o => (o.x + 5) >= px - 12)[0] || incoming[0];
+  const platesOn = B.drips.some(d => d.kind === 'plate' && liveDrip(d) && dripHit(d));
+  let want = false;
+  if (nearest && !platesOn){ const d = (nearest.x + 5) - px; want = d < (incoming.length >= 2 ? 80 : 52) + Math.abs(nearest.vx) * 4; }
+  else if (nearest && platesOn){ want = Math.abs(nearest.x + 5 - px) < 18; }
+  if (B.state === 'slam' && B.t > 20 && B.t < 50 && Math.abs(px - (B.x + B.w / 2)) < 40) want = true;
+  if (want || (!grounded && incoming.length)){ b.left = false; b.right = false; b.run = false;
+    const wv = nearest; if (wv && Math.sign(p.vx) === Math.sign(wv.vx) && Math.abs(p.vx) > 0.2){ b.left = wv.vx > 0; b.right = wv.vx < 0; } }
+  if (B.open > 0 && !B.drips.some(dripNear) && !incoming.length && !b.left && !b.right && p.facing < 0 && G.frame % 5 === 0) b.right = true;
+  bot.hiveLock = B.drips.some(dripNear) || incoming.length ? { l: b.left, r: b.right } : null;
+  botJump(b, want, incoming.length >= 2 ? 42 : 22);
+  if (want && grounded && nearest && Math.abs(nearest.x + 5 - px) < 22) b.jump = !bot.lastJump;
+  bot.vaultOpen = B.open > 0;
+}
+function drawFeedHazards(){
+  if (!lv) return;
+  if (lv.goo) for (const q of lv.goo){
+    const X = Math.round(q.a * TS - camX), w = (q.b - q.a + 1) * TS, Y = (q.ty || 13) * TS;
+    if (X > W || X + w < 0) continue;
+    g.fillStyle = F8.LIME; g.fillRect(X, Y - 4, w, 6); g.fillStyle = F8.GOO; g.fillRect(X + 2, Y - 6, w - 4, 3);
+    g.fillStyle = '#f4f0a0'; if ((G.frame >> 3) % 2) g.fillRect(X + 4, Y - 5, 3, 1);
+  }
+  if (lv.coolPlates) for (const pl of lv.coolPlates){
+    const st = coolState(pl), X = Math.round(pl.a * TS - camX), w = (pl.b - pl.a + 1) * TS, Y = (pl.ty || 13) * TS;
+    if (X > W || X + w < 0) continue;
+    const col = st.ph === 'cool' ? F8.COOL : st.ph === 'warn' ? (((G.frame >> 2) % 2) ? F8.GOLD : F8.COOL) : F8.WARM;
+    g.fillStyle = F8.STEEL; g.fillRect(X, Y - 3, w, 5); g.fillStyle = col; g.fillRect(X + 1, Y - 2, w - 2, 3);
+  }
+  // combo / craving HUD
+  if (P && (G.comboT > 0 || (BOSS && BOSS.kind === 'fatcoty' && BOSS.open > 0))){
+    const c = G.combo || 0;
+    g.fillStyle = F8.DARK; g.fillRect(6, 226, 80, 9); g.fillStyle = '#4a1020'; g.fillRect(7, 227, 78, 7);
+    if (G.comboT > 0) g.fillStyle = F8.NEON, g.fillRect(7, 227, Math.round(78 * G.comboT / COMBO_TIME), 7);
+    drawTiny(g, c > 0 ? ('COMBO X' + c) : 'CRAVING', 9, 228, F8.GOLD);
+  }
+  // flop waves get a gold/pink tint on top of the default gwave draw
+  for (const o of bolts) if (o.flop && !o.remove){ const X = Math.round(o.x - camX), Y = Math.round(o.y); g.fillStyle = F8.PINK; g.fillRect(X, Y + 6, 10, 3); }
+}
+function drawFeedEnemy(e, X){
+  if (e.type !== 'spest') return false;
+  const img = e.dead === 'squash' ? (S.feed && S.feed.pestSq) : (S.feed && S.feed.pest && S.feed.pest[(e.anim >> 3) & 1]);
+  const Y = Math.round(e.y + e.h - (img ? img.height : 12));
+  if (e.dead === 'flip' && img){ g.save(); g.translate(X + 7, Math.round(e.y + 6)); g.scale(1, -1); g.drawImage(img, -7, -6); g.restore(); }
+  else if (img) g.drawImage(img, X, Y);
+  else { g.fillStyle = F8.CREAM; g.fillRect(X, Y, 12, 11); }
+  return true;
+}
+
 // ---------------- THE GLITCH (World 1 boss) ----------------
 function makeBoss(spec){
   if (spec.kind === 'toaster') return makeToaster(spec);
@@ -3476,6 +3833,7 @@ function makeBoss(spec){
   if (spec.kind === 'hive') return makeHive(spec);
   if (spec.kind === 'quartz') return makeQuartz(spec);
   if (spec.kind === 'vault') return makeVault(spec);
+  if (spec.kind === 'fatcoty') return makeFatCoty(spec);
   return { kind: 'glitch', spec, x: spec.tx * TS, y: spec.bridgeRow * TS - 28, w: 28, h: 28, vx: 0, vy: 0, hp: 5, flash: 0, state: 'dormant', t: 0, dir: -1, shots: 0,
     active: false, dying: false, dead: false, by: null, onGround: true, dt: 0 };
 }
@@ -3486,6 +3844,7 @@ function hitBoss(){
   if (b.kind === 'hive') return hiveDamage('chip');
   if (b.kind === 'quartz') return quartzDamage('chip');
   if (b.kind === 'vault') return vaultDamage('chip');
+  if (b.kind === 'fatcoty') return fatCotyDamage('chip');
   if (b.flash > 0 || b.dying) return;
   b.hp--; b.flash = 36; A.sfx('bosshit'); G.shake = 8;
   burst(b.x + 14, b.y + 14, 14, ['#ffffff', '#00e5ff', '#ff0040', '#8a8a8a'], 2.2);
@@ -3505,6 +3864,7 @@ function updateBoss(){
   if (b.kind === 'hive') return updateHive();
   if (b.kind === 'quartz') return updateQuartz();
   if (b.kind === 'vault') return updateVault();
+  if (b.kind === 'fatcoty') return updateFatCoty();
   if (b.flash > 0) b.flash--;
   const [bx0, bx1] = b.spec.bounds;
   if (b.dying){
@@ -3821,7 +4181,7 @@ function updatePlay(){
   for (const e of enemies){ if (G.freezeT > 0 && !e.dead){ if (e.hitT > 0) e.hitT--; continue; } updateEnemy(e); } // Diner Bell: enemies freeze
   enemyPairs();
   for (const it of items) updateItem(it);
-  pitUpdate(); if (inDiner()) dinerUpdate(); if (inBumbo()) bumboUpdate(); if (inCrypt()) cryptUpdate(); if (inArcade()) arcadeUpdate();
+  pitUpdate(); if (inDiner()) dinerUpdate(); if (inBumbo()) bumboUpdate(); if (inCrypt()) cryptUpdate(); if (inArcade()) arcadeUpdate(); if (inFeed()) feedUpdate();
   for (const r of rockets) updateRocket(r);
   updateShots(); updateTurrets();
   updateBolts(); updateBoss(); updatePatches(); updateCrumbles();
@@ -3947,6 +4307,7 @@ function bgLayers(kind){
   else if (typeof bumboLayers === 'function' && ['hatch', 'drain', 'cutlery', 'chrome'].includes(kind)) bumboLayers(kind, L, tileableLayer);
   else if (typeof cryptLayers === 'function' && ['cryhall', 'cryjam', 'cryframe', 'crycore'].includes(kind)) cryptLayers(kind, L, tileableLayer);
   else if (typeof arcadeLayers === 'function' && ['arclobby', 'arcprize', 'arcstatic', 'arcvault'].includes(kind)) arcadeLayers(kind, L, tileableLayer);
+  else if (typeof feedLayers === 'function' && ['feedfront', 'feedkitchen', 'feedline', 'feedbooth'].includes(kind)) feedLayers(kind, L, tileableLayer);
   else toonLayers(kind, L);
   return (BGL[kind] = L);
 }
@@ -4170,6 +4531,13 @@ function drawPlats(){
     if (pl.axis === 'pusher'){ drawPusher(pl); continue; } // v0.9
     if (pl.axis === 'claw'){ drawClawPlat(pl); continue; }
     if (pl.axis === 'geyser'){ drawGeyser(pl); continue; } // v0.8 jam geyser column
+    if (pl.axis === 'belt'){
+      const X = Math.round(pl.x - camX), Y = Math.round(pl.y); if (X > W || X + pl.w < 0) continue;
+      g.fillStyle = '#140c12'; g.fillRect(X, Y, pl.w, 8); g.fillStyle = '#cbbba8'; g.fillRect(X + 1, Y + 1, pl.w - 2, 6);
+      const off = ((G.frame * (pl.dir || 1)) % 8 + 8) % 8;
+      for (let i = -8 + off; i < pl.w; i += 8){ g.fillStyle = '#ff3d9a'; g.fillRect(X + i, Y + 3, 4, 2); }
+      continue;
+    }
     const X = Math.round(pl.x - camX + (pl.fallT > 0 && pl.vy === 0 ? ((G.frame >> 1) % 2 ? 1 : -1) : 0)), Y = Math.round(pl.y);
     if (X > W || X + pl.w < 0) continue;
     const fall = pl.kind === 'fall';
@@ -4265,6 +4633,7 @@ function drawBoss(){
   if (BOSS && BOSS.kind === 'hive') return drawHive();
   if (BOSS && BOSS.kind === 'quartz') return drawQuartz();
   if (BOSS && BOSS.kind === 'vault') return drawVault();
+  if (BOSS && BOSS.kind === 'fatcoty') return drawFatCoty();
   if (!BOSS || BOSS.dead) { if (BOSS) drawSwitch(); return; }
   drawSwitch();
   const b = BOSS, X = Math.round(b.x - camX), Y = Math.round(b.y);
@@ -4402,6 +4771,7 @@ function drawDecor(){
   for (const d of lv.decor){
     const X = Math.round(d.tx * TS - camX), Y = d.row * TS;
     if (X < -140 || X > W + 8) continue;
+    if (typeof FEED_DECOR !== 'undefined' && FEED_DECOR.has(d.kind)){ drawFeedDecor(g, d, X, Y, G.frame); continue; }
     if (typeof ARCADE_DECOR !== 'undefined' && ARCADE_DECOR.has(d.kind)){ drawArcadeDecor(g, d, X, Y, G.frame); continue; }
     if (typeof CRYPT_DECOR !== 'undefined' && CRYPT_DECOR.has(d.kind)){ drawCryptDecor(g, d, X, Y, G.frame); continue; }
     if (typeof BUMBO_DECOR !== 'undefined' && BUMBO_DECOR.has(d.kind)){ drawBumboDecor(g, d, X, Y, G.frame); continue; }
@@ -4438,6 +4808,7 @@ function drawEnemy(e, X){
   if (BUMBO_TYPES.has(e.type) && drawBumboEnemy(e, X)) return;
   if (CRYPT_TYPES.has(e.type) && drawCryptEnemy(e, X)) return;
   if (ARCADE_TYPES.has(e.type) && drawArcadeEnemy(e, X)) return;
+  if (FEED_TYPES.has(e.type) && drawFeedEnemy(e, X)) return;
   {
     const L = e.facing < 0 ? '_L' : '', Yb = Math.round(e.y + e.h - 16);
     let img;
@@ -4528,6 +4899,7 @@ function drawItems(emerging){
   for (const it of items){
     if (!!it.emerge !== emerging) continue;
     const X = Math.round(it.x - 1 - camX), Y = Math.round(it.y);
+    if (it.type === 'crave' && typeof drawFeedSnack === 'function'){ drawFeedSnack(g, it.kind, X, Y, G.frame, true); continue; }
     let img = S.armor;
     if (it.type === 'launcher') img = S.launcher[(G.frame >> 3) & 1];
     else if (it.type === 'glitch') img = S.glitch[(G.frame >> 2) % 4];
@@ -4782,7 +5154,7 @@ function drawWorld(){
   drawTiles();
   drawPlats();
   drawPoleAndBooth();
-  drawHazards(); drawPitHazards(); drawDinerHazards(); drawBumboHazards(); drawCryptHazards(); drawArcadeHazards();
+  drawHazards(); drawPitHazards(); drawDinerHazards(); drawBumboHazards(); drawCryptHazards(); drawArcadeHazards(); drawFeedHazards();
   drawItems(false);
   drawEnemies();
   drawBoss();
@@ -5082,10 +5454,15 @@ function botJump(b, want, holdMax){
 function botInput(){
   const b = botNav();
   if (G.state === 'play' && P && P.ctrl === 'normal' && !G.dialog && !P.dead) botCombat(b);
-  if (bot.hiveLock && BOSS && (BOSS.kind === 'hive' || BOSS.kind === 'quartz' || BOSS.kind === 'vault') && BOSS.active){ b.left = bot.hiveLock.l; b.right = bot.hiveLock.r; }
+  if (bot.hiveLock && BOSS && (BOSS.kind === 'hive' || BOSS.kind === 'quartz' || BOSS.kind === 'vault' || BOSS.kind === 'fatcoty') && BOSS.active){ b.left = bot.hiveLock.l; b.right = bot.hiveLock.r; }
   // v0.7: a rolling skull only rolls at the Hive while it's sitting on the boards (rolling under a hop means it lands on you)
   if (b.fire && BOSS && BOSS.kind === 'vault' && BOSS.active && P.bro === 'skulrz'){
     if (!(BOSS.open > 0)) b.fire = false; // only roll at the Vault while the payout button glows
+    if (bolts.some(o => !o.mine && o.kind === 'gwave' && !(o.delay > 0) && Math.abs(o.x - P.x) < 90)) b.fire = false;
+    if (BOSS.drips.some(d => Math.abs(d.x - (P.x + P.w / 2)) < 30)) b.fire = false;
+  }
+  if (b.fire && BOSS && BOSS.kind === 'fatcoty' && BOSS.active && P.bro === 'skulrz'){
+    if (!(BOSS.open > 0)) b.fire = false;
     if (bolts.some(o => !o.mine && o.kind === 'gwave' && !(o.delay > 0) && Math.abs(o.x - P.x) < 90)) b.fire = false;
     if (BOSS.drips.some(d => Math.abs(d.x - (P.x + P.w / 2)) < 30)) b.fire = false;
   }
@@ -5142,6 +5519,11 @@ function botCombat(b){
       if (BOSS.open > 0 && gap > -4 && gap < Math.max(range, 28) + 24) target = true;
       if (BOSS.open > 0 && kind === 'roll' && gap < 26 && gap > -2 && !bot.mel) b.melee = true;
     }
+    if (BOSS.kind === 'fatcoty' && dir > 0){
+      const gap = BOSS.x - (p.x + p.w);
+      if (BOSS.open > 0 && gap > -4 && gap < Math.max(range, 28) + 24) target = true;
+      if (BOSS.open > 0 && kind === 'roll' && gap < 26 && gap > -2 && !bot.mel) b.melee = true;
+    }
   }
   // a cage dead ahead: stop and shoot it open instead of hopping over it
   if (firstSolid && firstSolid.c === 'C' && grounded && firstSolid.d < Math.max(40, Math.min(range, 90)) && !nearExplosive){
@@ -5188,7 +5570,11 @@ function botNav(){
   if (BOSS && BOSS.kind === 'breadlord' && G.dialogDone && !(BOSS.dead && G.escape)){ botBread(b, grounded, feet); bot.lastJump = b.jump; return b; }
   if (BOSS && BOSS.kind === 'repairman' && G.dialogDone && !(BOSS.dead && G.escape)){ botCal(b, grounded, feet); bot.lastJump = b.jump; return b; }
   if (BOSS && BOSS.kind === 'vault' && G.dialogDone && !(BOSS.dead && G.escape)){ botVault(b, grounded, feet); bot.lastJump = b.jump; return b; }
+  if (BOSS && BOSS.kind === 'fatcoty' && G.dialogDone && !(BOSS.dead && G.escape)){ botFeed(b, grounded, feet); bot.lastJump = b.jump; return b; }
   if (BOSS && (BOSS.kind === 'hive' || BOSS.kind === 'quartz') && G.dialogDone && !(BOSS.dead && G.escape)){ botHive(b, grounded, feet); bot.lastJump = b.jump; return b; }
+  if (inFeed() && !(BOSS && BOSS.kind === 'fatcoty' && G.dialogDone && !(BOSS.dead && G.escape))){
+    const r = feedBotSauce(b, grounded, feet); if (r){ bot.lastJump = b.jump; return b; }
+  }
   // pipes the route needs (marked botDown in the level data)
   if (grounded){ for (const pp of lv.pipes){ if (pp.botDown && pp.dir === 'up' && Math.abs(feet - pp.y * TS) < 0.5 && p.x >= pp.x * TS + 1 && p.x + p.w <= pp.x * TS + 31){ b.down = true; b.right = false; b.run = false; bot.lastJump = false; return b; } } }
   // steer onto a route pipe ahead and stop there
@@ -5639,6 +6025,10 @@ window.TT = {
   cardState: (c, f) => cardState(c, f), get molds(){ return molds; }, calHit(){ calDamage('test'); }, flickerDark: (f) => flickerDark(f),
   dinerState(){ return { flipped: !!G.flipped, flipWarn: !!G.flipWarn, flips: G.flips || 0, freezeT: G.freezeT || 0, itsYou: !!G.itsYou, fuseBlown: !!G.fuseBlown, cancelled: !!G.rerunCancelled, hudNameMode: G.hudNameMode }; },
   bros(){ return { cur: P ? P.bro : G.curBro, reserve: G.reserve.slice(), rescued: G.rescued, unlocked: save.unlocked.slice(), spec: P ? P.spec : 0 }; },
+  // v1.0 World 8
+  feedHit(){ const b = BOSS; if (b && b.kind === 'fatcoty'){ b.flash = 0; fatCotyDamage('test'); } },
+  coolState: (i, f) => { const q = lv && lv.coolPlates ? lv.coolPlates[i || 0] : null; return q ? Object.assign(coolState(q, f), { a: q.a, b: q.b, ty: q.ty }) : null; },
+  feedState(){ const b = BOSS && BOSS.kind === 'fatcoty' ? BOSS : null; return { snacks: G.snacks || 0, combo: G.combo || 0, comboT: G.comboT || 0, comboMax: G.comboMax || 0, craveHits: G.craveHits || 0, craveId: G.craveId || null, pestStomps: G.pestStomps || 0, coolHits: G.coolHits || 0, gooHits: G.gooHits || 0, beltRides: G.beltRides || 0, feedHits: G.feedHits || 0, fatDown: !!G.fatDown, fatSlams: G.fatSlams || 0, fatWaves: G.fatWaves || 0, fatHaz: G.fatHaz || 0, open: b ? b.open : 0, phase: b ? b.phase : 0, hp: b ? b.hp : null, fill: b ? b.fill : 0, crave: b ? b.crave : null, nameCard: G.nameCard ? G.nameCard.text : null, bigText: G.bigText ? G.bigText.text : null, ctrl: P ? P.ctrl : null, dying: !!(b && b.dying), active: !!(b && b.active), state: b ? b.state : null, face: b ? b.face : null, drips: b ? b.drips.length : 0 }; },
 };
 if (!TEST) requestAnimationFrame(loop); else render();
 })();
