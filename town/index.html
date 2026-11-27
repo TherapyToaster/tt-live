@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Toaster Town — Therapy Toaster</title>
+  <meta name="description" content="A living crumb ecosystem for Therapy Toaster. Toast, Skullz, and Cybertrucks wander Toaster Town." />
+  <style>
+    :root { --yellow: #FFD400; --black: #000000; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; height: 100%; overflow: hidden; background: #000;
+      color: var(--yellow);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      user-select: none; -webkit-tap-highlight-color: transparent;
+    }
+    canvas#town {
+      position: fixed; inset: 0; width: 100%; height: 100%; display: block;
+      touch-action: none; cursor: crosshair;
+    }
+    #hud, #ticker, #hint, #foot, #log, #place-label { position: fixed; z-index: 2; }
+    #hud, #ticker, #hint, #log, #place-label { pointer-events: none; }
+    #hud {
+      top: 0; left: 0; right: 0; padding: 14px 18px 0;
+      display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+      text-transform: uppercase; letter-spacing: 0.08em; font-size: 11px; line-height: 1.45;
+      text-shadow: 0 0 8px rgba(255,212,0,0.45), 0 1px 0 #000;
+    }
+    #hud .brand { font-weight: 700; font-size: 13px; letter-spacing: 0.14em; }
+    #hud .sub { opacity: 0.8; font-size: 10px; letter-spacing: 0.12em; margin-top: 2px; }
+    #hud .right { text-align: right; }
+    #hud .shift { color: var(--yellow); font-weight: 700; }
+    #hud .census { opacity: 0.75; margin-top: 4px; font-size: 10px; }
+    #hint {
+      left: 50%; bottom: 86px; transform: translateX(-50%);
+      font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+      text-align: center; text-shadow: 0 0 10px rgba(255,212,0,0.6), 0 1px 0 #000;
+      opacity: 0.9; transition: opacity 0.8s ease; white-space: nowrap; padding: 0 12px;
+    }
+    #hint.fade { opacity: 0; }
+    #place-label {
+      left: 50%; top: 28%; transform: translateX(-50%);
+      font-size: 13px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 700;
+      text-shadow: 0 0 12px rgba(255,212,0,0.8), 0 1px 0 #000;
+      opacity: 0; transition: opacity 0.15s ease; pointer-events: none;
+    }
+    #place-label.on { opacity: 1; }
+    #log {
+      left: 12px; right: 12px; bottom: 72px;
+      display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
+      max-width: 520px;
+    }
+    #log .msg {
+      background: rgba(0,0,0,0.72); border: 1px solid rgba(255,212,0,0.35);
+      color: var(--yellow); font-size: 10px; letter-spacing: 0.08em;
+      text-transform: uppercase; padding: 5px 8px; border-radius: 2px;
+      text-shadow: 0 1px 0 #000; animation: logIn 0.35s ease;
+    }
+    @keyframes logIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    #ticker {
+      left: 0; right: 0; bottom: 36px; height: 28px; overflow: hidden;
+      border-top: 1px solid rgba(255,212,0,0.28);
+      border-bottom: 1px solid rgba(255,212,0,0.28);
+      background: rgba(0,0,0,0.62);
+    }
+    #ticker-track {
+      display: inline-block; white-space: nowrap; padding-left: 100%;
+      will-change: transform; animation: tick 42s linear infinite;
+      font-size: 12px; letter-spacing: 0.08em; line-height: 28px; color: var(--yellow);
+    }
+    #ticker-track b { color: #fff; font-weight: 700; padding-right: 0.4em; }
+    #ticker-track .dot { opacity: 0.45; padding: 0 1.4em; }
+    @keyframes tick { from { transform: translateX(0); } to { transform: translateX(-100%); } }
+    @media (prefers-reduced-motion: reduce) {
+      #ticker-track { animation-duration: 80s; }
+      #log .msg { animation: none; }
+    }
+    #foot {
+      left: 0; right: 0; bottom: 0; height: 36px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 10px; padding: 0 12px 0 16px;
+      font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--yellow); background: rgba(0,0,0,0.85);
+      text-shadow: 0 0 6px rgba(255,212,0,0.3); pointer-events: none;
+    }
+    #foot .vet { font-weight: 700; flex: 0 0 auto; }
+    #foot .now { opacity: 0.85; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1 1 auto; text-align: center; }
+    #radio-btn {
+      pointer-events: auto; cursor: pointer;
+      background: #000; color: var(--yellow); border: 1px solid var(--yellow);
+      font: inherit; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 4px 8px; flex: 0 0 auto;
+    }
+    #radio-btn:hover, #radio-btn:focus-visible { background: var(--yellow); color: #000; }
+    #radio-btn.on { background: var(--yellow); color: #000; }
+    #visits { opacity: 0.85; flex: 0 0 auto; }
+    @media (max-width: 700px) {
+      #hud { padding: 10px 12px 0; font-size: 10px; }
+      #hud .brand { font-size: 11px; letter-spacing: 0.1em; }
+      #hud .sub, #hud .census { font-size: 9px; }
+      #hint { bottom: 168px; font-size: 10px; letter-spacing: 0.1em; white-space: normal; }
+      #ticker-track { font-size: 11px; }
+      #foot { font-size: 9px; padding: 0 8px; gap: 6px; }
+      #foot .now { display: none; }
+      #log { bottom: 78px; max-width: none; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="town" aria-label="Toaster Town, a living crumb ecosystem"></canvas>
+  <div id="hud">
+    <div>
+      <div class="brand">Toaster Town</div>
+      <div class="sub">Therapy Toaster · Living Page</div>
+    </div>
+    <div class="right">
+      <div id="clock">—</div>
+      <div class="shift" id="shift">—</div>
+      <div class="census" id="census">—</div>
+    </div>
+  </div>
+  <div id="place-label"></div>
+  <div id="log" aria-live="polite"></div>
+  <div id="hint">Tap to sprinkle crumbs · Drag a trail · Tap a place to visit</div>
+  <div id="ticker"><div id="ticker-track">Loading Twitter feed…</div></div>
+  <div id="foot">
+    <span class="vet">Proudly Veteran-Owned</span>
+    <span class="now" id="now-playing"></span>
+    <button id="radio-btn" type="button" aria-pressed="false">▶ Radio</button>
+    <span id="visits">Visit 1</span>
+  </div>
+  <script src="town.js"></script>
+</body>
+</html>
