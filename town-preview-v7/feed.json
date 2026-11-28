@@ -1,0 +1,87 @@
+{
+  "source": "Twitter",
+  "handle": "@TherapyToaster",
+  "note": "Fallback feed from the same TT48 posts.json the Home page uses. Runtime first tries the public GitHub Pages posts.json, then this file.",
+  "posts": [
+    {
+      "id": "2126342143866294422",
+      "created_at": "2026-11-27T15:47:27.000Z",
+      "text": "@Chi_zencrackers @AshleySavvie Ha"
+    },
+    {
+      "id": "2126342068507160890",
+      "created_at": "2026-11-27T15:47:09.000Z",
+      "text": "@AshleySavvie Love this idea"
+    },
+    {
+      "id": "2126341989314572456",
+      "created_at": "2026-11-27T15:46:50.000Z",
+      "text": "Man I miss that Model 3. It was my first new car I ever bought and I bought the cheapest @Tesla. Now I own a 2026 Cyberbeast and Model Y"
+    },
+    {
+      "id": "2126341540767527128",
+      "created_at": "2026-11-27T15:45:03.000Z",
+      "text": "Which hat style looks bette"
+    },
+    {
+      "id": "2126328416689672668",
+      "created_at": "2026-11-27T14:52:54.000Z",
+      "text": "@4FS4N I did! Thanks for checking!!"
+    },
+    {
+      "id": "2126326891325915237",
+      "created_at": "2026-11-27T14:46:50.000Z",
+      "text": "@AshleySavvie @Tesla @cybertruck 😅😅😅"
+    },
+    {
+      "id": "2126325958034727161",
+      "created_at": "2026-11-27T14:43:08.000Z",
+      "text": "@edgemeta nice Unfollowing"
+    },
+    {
+      "id": "2126305688536445390",
+      "created_at": "2026-11-27T13:22:35.000Z",
+      "text": "Anyone else use @manifoldxyz?"
+    },
+    {
+      "id": "2126304050484597204",
+      "created_at": "2026-11-27T13:16:05.000Z",
+      "text": "@owlcean11 @XCOPYART this looks cool. When?"
+    },
+    {
+      "id": "2126300183222792662",
+      "created_at": "2026-11-27T13:00:43.000Z",
+      "text": "@supernoitinere @TransientLabs Morning Homie!"
+    },
+    {
+      "id": "2126300037651329423",
+      "created_at": "2026-11-27T13:00:08.000Z",
+      "text": "@nft_goe @AshleySavvie 😅😅😅"
+    },
+    {
+      "id": "2126297073599553908",
+      "created_at": "2026-11-27T12:48:21.000Z",
+      "text": "@BlackPilledFed @grok LMFAO that respose from grok."
+    },
+    {
+      "id": "2126297006092009883",
+      "created_at": "2026-11-27T12:48:05.000Z",
+      "text": "@grok @BlackPilledFed Lmfao 🤣🤣🤣🤣🤣🤣🤣🤣"
+    },
+    {
+      "id": "2126288809788682420",
+      "created_at": "2026-11-27T12:15:31.000Z",
+      "text": "420, Nice"
+    },
+    {
+      "id": "2126288638409314564",
+      "created_at": "2026-11-27T12:14:50.000Z",
+      "text": "REQUIEM. 420/777 MINTED. word is getting out Thank you for collecting!"
+    },
+    {
+      "id": "2126288603433382145",
+      "created_at": "2026-11-27T12:14:42.000Z",
+      "text": "@Scamart More to come, looking forward to seeing what the next few I mint will be."
+    }
+  ]
+}
