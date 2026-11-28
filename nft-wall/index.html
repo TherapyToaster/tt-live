@@ -60,7 +60,7 @@ html.tt-wall-share #ttwall .tw-note,body.tt-wall-standalone #ttwall .tw-note{mar
   <button type="button" class="tsc-share" id="tt-share-btn">Share</button>
 </header>
 
-<!-- TT NFT WALL v13 START -->
+<!-- TT NFT WALL v14 START -->
 <style>
 #ttwall{--y:#FFD400;--k:#05070d;--r:#ff2a2a;--c:#00e5ff;box-sizing:border-box;position:relative;width:100%;max-width:1100px;margin:40px auto;padding:0 0 6px;color:#fff;font-family:Epilogue,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;text-align:center}
 #ttwall *{box-sizing:border-box}
@@ -143,12 +143,12 @@ var used=(ch?ch.offsetHeight:0)+(lg?lg.offsetHeight:0)+(nt?nt.offsetHeight:0)+28
 vp.style.height=Math.max(280,Math.round((window.innerHeight||document.documentElement.clientHeight)-used))+'px';}
 if(STAND){sizeVp();window.addEventListener('resize',function(){sizeVp();if(typeof fit==='function')fit(false);});}
 /* ===== DATA =====
-   Live thumbs + holdings are at tt-live a/12/ (commit 03f1f62c5b13c558dbadeb6092d9681369b6e976). Sprites at a/12s/.
-   Cache-bust with ?c=03f1f62. Preview pages may set window.TTWALL_BASE / TTWALL_SPRITE / TTWALL_CB to override. */
-var CB=window.TTWALL_CB||'?c=03f1f62';
-var BASE=window.TTWALL_BASE||'https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@03f1f62c5b13c558dbadeb6092d9681369b6e976/a/12/';
+   Live thumbs + holdings are at tt-live a/13/ (commit 52995f907fe90866fc4fa957a254f6693837d9de). Sprites at a/13s/.
+   Cache-bust with ?c=52995f9. Preview pages may set window.TTWALL_BASE / TTWALL_SPRITE / TTWALL_CB to override. */
+var CB=window.TTWALL_CB||'?c=52995f9';
+var BASE=window.TTWALL_BASE||'https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@52995f907fe90866fc4fa957a254f6693837d9de/a/13/';
 if(BASE.slice(-1)!=='/')BASE+='/';
-var SPR=window.TTWALL_SPRITE||'https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@03f1f62c5b13c558dbadeb6092d9681369b6e976/a/12s/';if(SPR.slice(-1)!=='/')SPR+='/';
+var SPR=window.TTWALL_SPRITE||'https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@52995f907fe90866fc4fa957a254f6693837d9de/a/13s/';if(SPR.slice(-1)!=='/')SPR+='/';
 var SPC=24,spCell=0,spDead=false,near=false,DPR=Math.min(3,window.devicePixelRatio||1);
 var G={};
 var CS=72,GAP=4,PI=CS+GAP,COLS=36;
@@ -260,7 +260,7 @@ function ttNear(el,fn,m){var d=0,io,t;function go(){if(d)return;d=1;if(io)io.dis
 ttNear(R,function(){fetch(BASE+'holdings.json'+CB).then(function(r){if(!r.ok)throw 0;return r.json();}).then(boot).catch(function(){boot(null);}).then(goNear);},600);
 })();
 </script>
-<!-- TT NFT WALL v13 END -->
+<!-- TT NFT WALL v14 END -->
 
 <script>
 
