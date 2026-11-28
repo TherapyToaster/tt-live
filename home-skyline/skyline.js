@@ -566,8 +566,13 @@
         /* prefer near layer and wider facades, alternating sides */
         return (c.layer * 10000 + c.w * 80 + c.h) - (a.layer * 10000 + a.w * 80 + a.h);
       });
-      assignList(hosts.filter(function (b) { return b.side < 0; }), leftCatalog);
-      assignList(hosts.filter(function (b) { return b.side > 0; }), rightCatalog);
+      /* v3: on desktop the 8 signs are real clickable tiles now (tt-live/home-tiles/tiles.js hangs them in the
+         page gutters), so the baked-in building copies are off unless a page opts back in. Phones/tablets use
+         the plaza layout and are unchanged. */
+      if (W.ttHsKeepDeskSigns) {
+        assignList(hosts.filter(function (b) { return b.side < 0; }), leftCatalog);
+        assignList(hosts.filter(function (b) { return b.side > 0; }), rightCatalog);
+      }
     } else if (layout === 'plaza') {
       billboards = layoutMobileBillboards(w, opts.topPad || 168);
     }

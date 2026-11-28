@@ -1,4 +1,7 @@
-/*! tt-home-tiles v1 for therapytoaster.com Home (phones/tablets, <1024px).
+/*! tt-home-tiles v2 for therapytoaster.com Home.
+   v2 adds DESKTOP (>=1024px): the 8 tiles hang as individual neon signs in the open side gutters beside
+   sections (measured at runtime, hidden when they do not fit). Phones/tablets (<1024px) are unchanged from v1.
+   --- v1 notes (phones/tablets, <1024px) ---
    1) Wordmark gap: the plaza (tile sign rail) used to start a few px above the bottom of the
       caution-striped "〽️®️ Ƭᴏᴀsᴛʏ🎭" frame and painted over its lower edge (clipping the R, M tail
       and masks). The plaza is pushed down by exactly the measured overlap (+6px). Desktop untouched.
@@ -106,9 +109,50 @@
     '#tt-tiles .fx-logo,#tt-tiles .fx-skull,#tt-tiles .fx-toast,#tt-tiles .fx-emoji,#tt-tiles .fx-puff,#tt-tiles .fx-coin,#tt-tiles .fx-shim:before,#tt-tiles .fx-slices i{animation:none!important;opacity:0!important}' +
     '#tt-tiles .tt-bub,#tt-tiles .tt-bub.glitch{animation:none!important}}';
 
+
+  var DCSS =
+    '#tt-tiles.tt-desk{z-index:4}' +
+    '#tt-tiles.tt-desk .tt-tile{border-radius:.4em;font-family:Anton,Impact,"Arial Narrow Bold",sans-serif;line-height:1.05;text-align:center}' +
+    '#tt-tiles.tt-desk .tt-sw{position:absolute;inset:0;display:block;transform-origin:50% -1.3em;pointer-events:none}' +
+    '#tt-tiles.tt-desk.on .tt-sw{animation:ttSway 6s ease-in-out infinite;animation-delay:var(--d,0s)}' +
+    '@keyframes ttSway{0%,100%{transform:rotate(-1.3deg)}50%{transform:rotate(1.3deg)}}' +
+    '#tt-tiles.tt-desk .tt-wire{position:absolute;top:-1.3em;height:1.3em;width:0;border-left:2px solid #55555e;pointer-events:none}' +
+    '#tt-tiles.tt-desk .tt-wire.l{left:20%}#tt-tiles.tt-desk .tt-wire.r{right:20%}' +
+    '#tt-tiles.tt-desk .tt-wire:before{content:"";position:absolute;left:-.32em;top:-.12em;width:.46em;height:.46em;border-radius:50%;background:#FFD400;box-shadow:0 0 .5em #FFD400}' +
+    '#tt-tiles.tt-desk .tt-face{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;box-sizing:border-box;border-radius:.4em;overflow:hidden;background:linear-gradient(180deg,rgba(14,14,20,.94),rgba(4,4,7,.96));box-shadow:0 .5em 1.2em rgba(0,0,0,.65),inset 0 0 1em rgba(0,0,0,.8);transition:filter .18s,transform .18s}' +
+    '#tt-tiles.tt-desk .tt-face:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.04) 0 1px,transparent 1px 3px);pointer-events:none}' +
+    '#tt-tiles.tt-desk .tt-face.cau{border:.3em solid transparent;background:linear-gradient(180deg,#0b0b10,#050507) padding-box,repeating-linear-gradient(-45deg,#FFD400 0 .55em,#000 .55em 1.1em) border-box}' +
+    '#tt-tiles.tt-desk .tt-face.cyb{border:2px solid #00E5FF;box-shadow:0 .5em 1.2em rgba(0,0,0,.65),0 0 .9em rgba(0,229,255,.55),inset 0 0 .9em rgba(0,229,255,.25)}' +
+    '#tt-tiles.tt-desk .tt-face.rdb{border:2px solid #ff4632;box-shadow:0 .5em 1.2em rgba(0,0,0,.65),0 0 .9em rgba(255,70,50,.5),inset 0 0 .9em rgba(255,70,50,.25)}' +
+    '#tt-tiles.tt-desk .tt-face.yeb{border:2px solid #FFD400;box-shadow:0 .5em 1.2em rgba(0,0,0,.65),0 0 .9em rgba(255,212,0,.5),inset 0 0 .9em rgba(255,212,0,.22)}' +
+    '#tt-tiles.tt-desk .tt-face img{display:block;width:92%;height:auto;max-height:92%;object-fit:contain;filter:drop-shadow(2px 0 0 rgba(255,40,60,.55)) drop-shadow(-2px 0 0 rgba(0,229,255,.45))}' +
+    '#tt-tiles.tt-desk .tt-t{display:block;font-weight:400;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;color:#FFD400;text-shadow:0 0 .12em #FFD400,0 0 .5em rgba(255,212,0,.85),0 0 1em rgba(255,212,0,.45),.09em 0 0 rgba(255,40,60,.5)}' +
+    '#tt-tiles.tt-desk .tt-t.sm{font-size:.82em;letter-spacing:.14em}#tt-tiles.tt-desk .tt-t.md{font-size:1.18em}#tt-tiles.tt-desk .tt-t.lg{font-size:1.45em}#tt-tiles.tt-desk .tt-t.xl{font-size:1.9em}' +
+    '#tt-tiles.tt-desk .tt-t.cy{color:#c9ffff;text-shadow:0 0 .12em #fff,0 0 .5em rgba(0,229,255,.95),0 0 1em rgba(0,229,255,.55),.09em 0 0 rgba(255,40,60,.4)}' +
+    '#tt-tiles.tt-desk .tt-t.rd{color:#ffb7a8;text-shadow:0 0 .12em #fff,0 0 .5em rgba(255,70,50,.95),0 0 1em rgba(255,70,50,.55)}' +
+    '#tt-tiles.tt-desk .tt-t.tw{text-transform:none;letter-spacing:.03em}' +
+    '#tt-tiles.tt-desk .tt-t i{font-style:normal}' +
+    '#tt-tiles.tt-desk .tt-svg{display:block;width:auto;height:62%;filter:drop-shadow(0 0 .35em rgba(255,212,0,.9))}' +
+    '#tt-tiles.tt-desk .tt-svg.sk{height:78%}' +
+    '#tt-tiles.tt-desk .tt-tile:hover .tt-face{filter:brightness(1.3) saturate(1.2);transform:scale(1.04)}' +
+    '#tt-tiles.tt-desk .tt-tile:hover .tt-rim:before{box-shadow:0 0 0 2px rgba(var(--c),.9),0 0 1.6em rgba(var(--c),.8),inset 0 0 1.2em rgba(var(--c),.4);animation:none}' +
+    '#tt-tiles.tt-desk .tt-tile:active .tt-face{transform:scale(.97)}' +
+    '#tt-tiles.tt-desk .tt-rim{border-radius:.4em}' +
+    '#tt-tiles.tt-desk .tt-rim:before,#tt-tiles.tt-desk .tt-rim:after{border-radius:.4em}' +
+    '#tt-tiles.tt-desk .tt-bub{font-size:14px;max-width:260px}' +
+    '@media (prefers-reduced-motion:reduce){#tt-tiles.tt-desk .tt-sw{animation:none!important}#tt-tiles.tt-desk .tt-face{transition:none}}';
+
+
+  /* ---------- bottom gap (>=768px): the Starship section keeps ~35 empty grid rows (11px gap each) ---------- */
+  var BCSS =
+    '@media (min-width:768px){' +
+    'body.homepage .fe-6adc834996252a3a577d77d4{grid-template-rows:repeat(10,minmax(0,auto))!important}' +
+    'body.homepage .fe-block-yui_3_17_2_1_1794554356092_3801{grid-area:10/2/11/6!important;align-self:start!important;height:0!important;min-height:0!important;overflow:visible!important;pointer-events:none!important}' +
+    '}';
+
   function css() {
     if (D.getElementById('tt-tiles-css')) return;
-    var s = D.createElement('style'); s.id = 'tt-tiles-css'; s.textContent = CSS;
+    var s = D.createElement('style'); s.id = 'tt-tiles-css'; s.textContent = CSS + DCSS + BCSS;
     (D.head || D.documentElement).appendChild(s);
   }
 
@@ -164,7 +208,7 @@
     var b = el('div', 'tt-bub glitch' + (kind ? ' ' + kind : ''));
     b.textContent = text;
     layer.appendChild(b);
-    var pl = plaza(), pw = pl ? pl.clientWidth : 360;
+    var host = layer.parentNode, pw = host ? host.clientWidth : 360;
     var tx = parseFloat(tile.style.left), ty = parseFloat(tile.style.top), tw = parseFloat(tile.style.width), th = parseFloat(tile.style.height);
     var bw = Math.min(b.offsetWidth, pw - 12), bh = b.offsetHeight;
     var cx = tx + tw / 2;
@@ -207,6 +251,11 @@
   }
 
   /* ---------- actions ---------- */
+  function shake(t) {
+    var n = (layer && layer.classList.contains('tt-desk')) ? t : layer;
+    if (!n) return;
+    n.classList.add('tt-shake'); later(function () { n.classList.remove('tt-shake'); }, 520);
+  }
   var busy = {};
   function lock(id, ms) { if (busy[id]) return false; busy[id] = 1; later(function () { busy[id] = 0; }, ms); return true; }
 
@@ -217,7 +266,7 @@
       if (!reduced()) {
         var f = fx(t, 'fx-logo', '<img alt="" src="' + LOGO + '">', 1050);
         fx(t, 'fx-slices', '<i style="top:22%"></i><i style="top:48%"></i><i style="top:74%"></i>', 700);
-        layer.classList.add('tt-shake'); later(function () { layer.classList.remove('tt-shake'); }, 520);
+        shake(t);
       } else fx(t, 'fx-flash', '', 650);
     },
     therapy: function (t) {
@@ -258,7 +307,7 @@
       if (!reduced()) {
         fx(t, 'fx-skull', '\uD83D\uDC80', 1050);
         fx(t, 'fx-slices', '<i style="top:15%"></i><i style="top:50%"></i><i style="top:80%"></i>', 700);
-        layer.classList.add('tt-shake'); later(function () { layer.classList.remove('tt-shake'); }, 520);
+        shake(t);
       } else fx(t, 'fx-flash', '', 650);
       bubble(t, 'HA HA HA \uD83D\uDC80', '', 1700);
     },
@@ -322,11 +371,12 @@
   }
   function teardown() {
     if (layer && layer.parentNode) layer.parentNode.removeChild(layer);
-    layer = null; tiles = {}; sig = '';
+    layer = null; tiles = {}; sig = ''; dsig = '';
   }
   function sync() {
     var pl = plaza();
-    if (mqDesk.matches || !pl) { teardown(); fixGap(); return; }
+    if (mqDesk.matches) { deskSync(); fixGap(); return; }
+    if (!pl) { teardown(); fixGap(); return; }
     var list = readSigns();
     if (!list) return;
     var pr = pl.getBoundingClientRect();
@@ -372,6 +422,198 @@
     var plazaTop = pl.getBoundingClientRect().top - cur;
     var need = Math.max(0, Math.ceil(frameBottom - plazaTop + 8));
     if (Math.abs(need - cur) >= 1) pl.style.marginTop = need + 'px';
+  }
+
+
+  /* ---------- DESKTOP (>=1024px): signs hung in the open gutters ---------- */
+  var DSZ = { logo: [188, 80], therapy: [168, 70], veteran: [190, 70], burnt: [170, 70], toasted: [112, 96], skull: [88, 88], twitter: [150, 58], artcade: [170, 58] };
+  var ORDER = ['logo', 'therapy', 'veteran', 'burnt', 'toasted', 'skull', 'twitter', 'artcade'];
+  var ANCH = { word: '#block-ce8c64bf8e02f0133163', crt: '#tt-crt', vcr: '#tt-vcr', ps: '#ttps', arcb: '#ttarcb', nt: '#ttnt', mb: '#ttmb-book', bk: '#ttbk-book', merch: '#ttmerch', art: '#tt-art', wall: '#ttwall', pw: '#ttpw-root', pop: '#ttpop-btn' };
+  var PREF = {
+    logo: ['word:L', 'word:R', 'crt:L'],
+    therapy: ['word:R', 'crt:R', 'vcr:R'],
+    veteran: ['vcr:L', 'crt:L', 'ps:L'],
+    burnt: ['arcb:R', 'vcr:R', 'ps:R'],
+    toasted: ['ps:L', 'arcb:L', 'ps:R'],
+    skull: ['mb:R', 'bk:R', 'nt:R', 'merch:R', 'art:R'],
+    twitter: ['nt:L', 'bk:L', 'mb:L', 'merch:L', 'art:L'],
+    artcade: ['arcb:L', 'arcb:R', 'ps:R', 'ps:L']
+  };
+  var ANCH_ORDER = ['word', 'crt', 'vcr', 'ps', 'arcb', 'nt', 'mb', 'bk', 'merch', 'art', 'wall', 'pw', 'pop'];
+  var GAP = 30, EDGE = 12, PADY = 14, MINS = 0.62, MAXS = 1.15;
+  var dsig = '', dtimer = 0, dboxes = null;
+
+  function dpage() { return D.getElementById('page'); }
+  function docY() { return W.pageYOffset || D.documentElement.scrollTop || 0; }
+
+  /* rectangles (document coords) of everything visible that must not be covered */
+  function scanBoxes(root) {
+    var vw = D.documentElement.clientWidth, sy = docY(), out = [];
+    var all = root.getElementsByTagName('*');
+    var rg = D.createRange();
+    for (var i = 0; i < all.length; i++) {
+      var e = all[i];
+      if (layer && layer.contains(e)) continue;
+      var tag = e.tagName;
+      if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'LINK' || tag === 'NOSCRIPT' || tag === 'SOURCE' || tag === 'PATH' || tag === 'DEFS' || tag === 'BR') continue;
+      var r = e.getBoundingClientRect();
+      if (r.width < 3 || r.height < 3) continue;
+      var cs = W.getComputedStyle(e);
+      if (cs.position === 'fixed' || cs.display === 'none' || cs.visibility === 'hidden' || parseFloat(cs.opacity) < 0.05) continue;
+      var media = (tag === 'IMG' || tag === 'CANVAS' || tag === 'VIDEO' || tag === 'IFRAME' || tag === 'INPUT' || tag === 'BUTTON' || tag === 'SVG' || tag === 'TEXTAREA' || tag === 'SELECT');
+      var hasBg = (cs.backgroundImage !== 'none') || (cs.backgroundColor !== 'rgba(0, 0, 0, 0)' && cs.backgroundColor !== 'transparent') || (parseFloat(cs.borderTopWidth) > 0 && cs.borderTopStyle !== 'none') || (parseFloat(cs.borderLeftWidth) > 0 && cs.borderLeftStyle !== 'none');
+      if (media || hasBg) {
+        if (!media && r.width >= vw * 0.97) { /* full-bleed band, not a card */ }
+        else if (r.height < 4000) out.push([Math.max(0, r.left), r.top + sy, Math.min(vw, r.right), r.bottom + sy]);
+      }
+      /* text: use the real glyph extents, not the (often full-width) block box */
+      for (var n = e.firstChild; n; n = n.nextSibling) {
+        if (n.nodeType === 3 && n.nodeValue.replace(/\s+/g, '').length) {
+          try { rg.selectNodeContents(n); } catch (er) { continue; }
+          var rects = rg.getClientRects();
+          for (var k = 0; k < rects.length; k++) {
+            var t = rects[k]; if (t.width < 2 || t.height < 2) continue;
+            out.push([Math.max(0, t.left), t.top + sy, Math.min(vw, t.right), t.bottom + sy]);
+          }
+        }
+      }
+    }
+    return out;
+  }
+  function anchorRect(key) {
+    var e = D.querySelector(ANCH[key]); if (!e) return null;
+    var r = e.getBoundingClientRect(); if (r.width < 2 || r.height < 20) return null;
+    var cs = W.getComputedStyle(e); if (cs.display === 'none' || cs.visibility === 'hidden') return null;
+    return { top: r.top + docY(), bottom: r.bottom + docY() };
+  }
+  function hits(a, b, pad) { return a[0] < b[2] + pad && a[2] > b[0] - pad && a[1] < b[3] + pad && a[3] > b[1] - pad; }
+
+  function tryStation(id, st, boxes, placed, vw, minY, maxY) {
+    var parts = st.split(':'), key = parts[0], side = parts[1];
+    var ar = anchorRect(key); if (!ar) return null;
+    var base = DSZ[id], mid = (ar.top + ar.bottom) / 2;
+    var ys = [];
+    for (var y = ar.top - 10; y <= ar.bottom - base[1] * MINS + 10; y += 14) ys.push(y);
+    ys.sort(function (a, b) { return Math.abs(a + base[1] / 2 - mid) - Math.abs(b + base[1] / 2 - mid); });
+    for (var yi = 0; yi < ys.length; yi++) {
+      var y0 = Math.round(ys[yi]);
+      if (y0 < minY) continue;
+      /* extent of content in a band as tall as the sign */
+      var lo = vw, hi = 0;
+      var band = [0, y0 - PADY, vw, y0 + base[1] + PADY];
+      for (var b = 0; b < boxes.length; b++) {
+        var bx = boxes[b];
+        if (bx[3] > band[1] && bx[1] < band[3]) { if (bx[0] < lo) lo = bx[0]; if (bx[2] > hi) hi = bx[2]; }
+      }
+      if (lo >= hi) continue; /* nothing to hang beside */
+      var avail = side === 'L' ? lo - GAP - EDGE : vw - hi - GAP - EDGE;
+      var sc = Math.min(MAXS, avail / base[0]);
+      if (sc < MINS) continue;
+      var w = Math.round(base[0] * sc), h = Math.round(base[1] * sc);
+      if (y0 + h > maxY) continue;
+      var x0 = side === 'L' ? Math.round(lo - GAP - w) : Math.round(hi + GAP);
+      var rect = [x0, y0, x0 + w, y0 + h];
+      /* wire + sway headroom above, a little glow room around */
+      var ok = true;
+      var chk = [rect[0] - 6, rect[1] - Math.round(1.4 * 16 * sc), rect[2] + 6, rect[3] + 6];
+      for (var q = 0; q < boxes.length; q++) { if (hits(chk, boxes[q], 4)) { ok = false; break; } }
+      if (!ok) continue;
+      for (var p = 0; p < placed.length; p++) { if (hits(rect, placed[p].r, 18)) { ok = false; break; } }
+      if (!ok) continue;
+      return { id: id, st: st, r: rect, s: sc };
+    }
+    return null;
+  }
+
+  function placeAll(boxes, vw, docH) {
+    var placed = [], used = {};
+    var all = [];
+    ANCH_ORDER.forEach(function (k) { all.push(k + ':L'); all.push(k + ':R'); });
+    ORDER.forEach(function (id) {
+      var tries = PREF[id].concat(all);
+      for (var i = 0; i < tries.length; i++) {
+        if (used[tries[i]] && i >= PREF[id].length) continue;
+        var r = tryStation(id, tries[i], boxes, placed, vw, 1000, docH - 520);
+        if (r) { placed.push(r); used[tries[i]] = 1; return; }
+      }
+    });
+    return placed;
+  }
+
+  function dface(id) {
+    var letters = function (txt) {
+      var cols = ['#ffffff', '#00E5FF', '#FFD400', '#ff5aa0'], o = '';
+      for (var i = 0; i < txt.length; i++) o += '<i style="color:' + cols[i % 4] + ';text-shadow:0 0 .12em currentColor,0 0 .5em currentColor,0 0 1em currentColor">' + txt.charAt(i) + '</i>';
+      return o;
+    };
+    switch (id) {
+      case 'logo': return '<span class="tt-face cau"><img alt="" src="' + LOGO + '"></span>';
+      case 'therapy': return '<span class="tt-face cyb"><b class="tt-t lg">' + letters('THERAPY') + '</b><b class="tt-t lg">' + letters('TOASTER') + '</b></span>';
+      case 'veteran': return '<span class="tt-face cau"><b class="tt-t sm">Proudly</b><b class="tt-t md">Veteran-Owned</b></span>';
+      case 'burnt': return '<span class="tt-face cau"><b class="tt-t sm rd">Burnt</b><b class="tt-t lg">Offerings</b></span>';
+      case 'toasted': return '<span class="tt-face yeb"><svg class="tt-svg" viewBox="0 0 64 44" fill="none" stroke="#FFD400" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="14" width="44" height="26" rx="6"/><path d="M14 14v-5h10v5M32 14v-5h10v5"/><path d="M50 22h7M57 22v8"/><path d="M14 26h28" opacity=".6"/></svg><b class="tt-t sm cy" style="margin-top:.2em">Toasted</b></span>';
+      case 'skull': return '<span class="tt-face rdb"><svg class="tt-svg sk" viewBox="0 0 56 60" fill="none" stroke="#FFD400" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 28C10 12 18 5 28 5s18 7 18 23c0 6-2 9-6 12v8H16v-8c-4-3-6-6-6-12z"/><path d="M19 22l7 7M26 22l-7 7M30 22l7 7M37 22l-7 7"/><path d="M27 36l-2 4h6l-2-4M20 48v-6M28 48v-6M36 48v-6"/></svg></span>';
+      case 'twitter': return '<span class="tt-face cyb"><b class="tt-t tw xl cy">Twitter</b></span>';
+      case 'artcade': return '<span class="tt-face cyb"><b class="tt-t lg cy">ARTCADE</b></span>';
+    }
+    return '';
+  }
+  function makeDesk(id, ix) {
+    var m = META[id]; if (!m) return null;
+    var a = el(m.tag, 'tt-tile tt-d');
+    a.setAttribute('data-id', id); a.setAttribute('data-c', m.c === 'cy' ? 'cy' : m.c === 'rd' ? 'rd' : 'ye');
+    a.setAttribute('aria-label', m.label);
+    a.style.setProperty('--d', (-(ix * 0.9)).toFixed(2) + 's');
+    if (m.tag === 'a') {
+      a.setAttribute('href', m.href);
+      if (m.blank) { a.setAttribute('target', '_blank'); a.setAttribute('rel', 'noopener noreferrer'); }
+    } else a.setAttribute('type', 'button');
+    a.innerHTML = '<span class="tt-sw"><i class="tt-wire l"></i><i class="tt-wire r"></i>' + dface(id) + '<i class="tt-rim"></i>' + (SPR[id] || '') + '</span>';
+    a.addEventListener('click', function (e) {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button) return;
+      if (m.tag === 'a' && !m.blank) e.preventDefault();
+      try { ACT[id](a, e); } catch (err) {}
+    });
+    return a;
+  }
+
+  function deskSignature(page) {
+    var parts = [D.documentElement.clientWidth, Math.round(D.documentElement.scrollHeight), Math.round(page.getBoundingClientRect().height)];
+    for (var k in ANCH) { var r = anchorRect(k); parts.push(r ? Math.round(r.top) + ':' + Math.round(r.bottom) : '-'); }
+    return parts.join('|');
+  }
+  function deskSync() {
+    var page = dpage();
+    if (!page) { teardown(); return; }
+    if (layer && !layer.classList.contains('tt-desk')) teardown(); /* leftover phone layer */
+    var s = deskSignature(page);
+    if (layer && layer.parentNode === page && s === dsig) return;
+    css();
+    var created = false;
+    if (!layer || layer.parentNode !== page) {
+      teardown();
+      layer = el('div'); layer.id = 'tt-tiles'; layer.className = 'tt-desk'; layer.setAttribute('role', 'group'); layer.setAttribute('aria-label', 'Mr. Toasty signs');
+      page.appendChild(layer); created = true;
+    }
+    dsig = s;
+    var vw = D.documentElement.clientWidth, docH = D.documentElement.scrollHeight;
+    var boxes = scanBoxes(page);
+    var placed = placeAll(boxes, vw, docH);
+    var pr = page.getBoundingClientRect(), px = pr.left, py = pr.top + docY();
+    var keep = {};
+    placed.forEach(function (p) {
+      var ix = ORDER.indexOf(p.id);
+      var t = tiles[p.id];
+      if (!t) { t = makeDesk(p.id, ix); if (!t) return; tiles[p.id] = t; layer.appendChild(t); }
+      t.style.left = Math.round(p.r[0] - px) + 'px'; t.style.top = Math.round(p.r[1] - py) + 'px';
+      t.style.width = (p.r[2] - p.r[0]) + 'px'; t.style.height = (p.r[3] - p.r[1]) + 'px';
+      t.style.fontSize = (16 * p.s).toFixed(2) + 'px';
+      t.setAttribute('data-st', p.st);
+      keep[p.id] = 1;
+    });
+    Object.keys(tiles).forEach(function (k) { if (!keep[k]) { if (tiles[k].parentNode) tiles[k].parentNode.removeChild(tiles[k]); delete tiles[k]; } });
+    layer.classList.toggle('on', !reduced());
+    W.ttTilesDesk = placed.map(function (p) { return { id: p.id, st: p.st, x: p.r[0], y: p.r[1], w: p.r[2] - p.r[0], h: p.r[3] - p.r[1], s: +p.s.toFixed(2) }; });
   }
 
   /* ---------- boot ---------- */
