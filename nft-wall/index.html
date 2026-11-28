@@ -144,8 +144,8 @@ vp.style.height=Math.max(280,Math.round((window.innerHeight||document.documentEl
 if(STAND){sizeVp();window.addEventListener('resize',function(){sizeVp();if(typeof fit==='function')fit(false);});}
 /* ===== DATA =====
    Live thumbs + holdings are at tt-live a/14/ (commit 12263a21f25825b4a93860f594c3e852c87d3768). Sprites at a/14s/.
-   Cache-bust with ?c=52995f9. Preview pages may set window.TTWALL_BASE / TTWALL_SPRITE / TTWALL_CB to override. */
-var CB=window.TTWALL_CB||'?c=52995f9';
+   Cache-bust with ?c=12263a2. Preview pages may set window.TTWALL_BASE / TTWALL_SPRITE / TTWALL_CB to override. */
+var CB=window.TTWALL_CB||'?c=12263a2';
 var BASE=window.TTWALL_BASE||'https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@12263a21f25825b4a93860f594c3e852c87d3768/a/14/';
 if(BASE.slice(-1)!=='/')BASE+='/';
 var SPR=window.TTWALL_SPRITE||'https://cdn.jsdelivr.net/gh/TherapyToaster/tt-live@12263a21f25825b4a93860f594c3e852c87d3768/a/14s/';if(SPR.slice(-1)!=='/')SPR+='/';
