@@ -1,5 +1,6 @@
-/* Toaster Town v4 — roads, off-road Cybertrucks and Arcade Stars from Coty's games, on top of the v3 crumb ecosystem.
-   Arcade Stars art: No Signal Skullz v0.21.1 sprite sheets + Toasty Bros pixel bros (both Coty's own games).
+/* Toaster Town v5 — enemies from Coty's games chilling in town, Crypt/Bros/No-Signal feel,
+   glitched TVs, more storefronts, and acid rain that sends everyone inside.
+   Guest art is packed from official game sprites (Skullz, Toasty Bros, the Crypt, Toaster Pit, Crumb Dungeon).
    Official logo is composited from the PNG, never redrawn.
    Visible social label is "Twitter", never "X". No chat features.
 */
@@ -433,7 +434,7 @@
       radio: neonText("TOASTER RADIO", 10), vet: neonText("VET HALL", 11), home: neonText("TOASTY HOME", 8),
       newdrop: neonText("NEW DROP", 7), onair: neonText("ON AIR", 8, { color: "#ff4d4d", core: "#ffd6d6" }),
       party: neonText("SKULL BLOCK PARTY", 14), ooak: neonText("MY ONE OF A KIND", 13, { color: "#ff8cc0", core: "#fff0f6" }),
-      family: neonText("THE TOASTY FAMILY", 9), parade: neonText("CYBERTRUCK PARADE", 13), storm: neonText("GLITCH STORM", 16, { color: "#ff3bd4", core: "#fff" }), rally: neonText("CYBERTRUCK RALLY", 13),
+      family: neonText("THE TOASTY FAMILY", 9), parade: neonText("CYBERTRUCK PARADE", 13), storm: neonText("GLITCH STORM", 16, { color: "#ff3bd4", core: "#fff" }), rally: neonText("CYBERTRUCK RALLY", 13), acid: neonText("ACID RAIN", 16, { color: "#9CFF3A", core: "#E8FFB0" }), cryptn: neonText("THE CRYPT", 11), dinern: neonText("TOASTY DINER", 10), signn: neonText("NO SIGNAL", 10, { color: "#7af0ff", core: "#e8ffff" }),
       fresh: neonText("FRESH TOAST", 9), open: neonText("OPEN 24/7", 7)
     };
     S.scan = bake(4, 4, function (g) { g.fillStyle = "rgba(0,0,0,0.22)"; g.fillRect(0, 2, 4, 1.2); }, 1);
@@ -450,10 +451,13 @@
     const k = m ? clamp(w / 560, 0.55, 0.85) : clamp(w / 1440, 0.62, 1.12);
     const defs = m ? [
       ["hq", 0.16, 0], ["artcade", 0.53, 0], ["radio", 0.885, 0],
-      ["merch", 0.22, 1], ["home", 0.55, 1], ["vet", 0.83, 1]
+      ["merch", 0.18, 1], ["home", 0.46, 1], ["crypt", 0.68, 1], ["vet", 0.88, 1],
+      ["diner", 0.32, 2], ["signal", 0.78, 2]
     ] : [
       ["hq", 0.085, 0], ["artcade", 0.235, 0], ["home", 0.385, 0],
-      ["merch", 0.63, 0], ["vet", 0.765, 0], ["radio", 0.905, 0]
+      ["crypt", 0.505, 0],
+      ["merch", 0.63, 0], ["vet", 0.765, 0], ["radio", 0.905, 0],
+      ["diner", 0.145, 3], ["signal", 0.855, 3]
     ];
     const plaza = m ? { x: w * 0.5, y: by0 + Math.min(62, (by1 - by0) * 0.32) } : { x: w * 0.5, y: by0 + (ry - by0) * 0.38 };
     const regions = m ? [
@@ -475,7 +479,10 @@
     home: { w: 124, h: 96, top: 160, door: 0, label: "TOASTY HOME", tap: "family" },
     merch: { w: 152, h: 132, top: 170, door: 44, label: "MERCH · SHOP", href: "/shop" },
     vet: { w: 112, h: 110, top: 175, door: -14, label: "VET HALL", tap: "salute" },
-    radio: { w: 100, h: 54, top: 265, door: 0, label: "TOASTER RADIO · MUSIC", href: "/music" }
+    radio: { w: 100, h: 54, top: 265, door: 0, label: "TOASTER RADIO · MUSIC", href: "/music" },
+    crypt: { w: 118, h: 108, top: 170, door: 0, label: "THE CRYPT", href: "/arcade" },
+    diner: { w: 128, h: 86, top: 130, door: 0, label: "TOASTY DINER", href: "/arcade" },
+    signal: { w: 108, h: 92, top: 140, door: 0, label: "NO SIGNAL", href: "/skullz" }
   };
   const buildings = [];
   let places = [];
@@ -591,9 +598,10 @@
     buildings.length = 0;
     for (let i = 0; i < L.defs.length; i++) {
       const d = L.defs[i], id = d[0], B = BSPEC[id];
-      const by = d[2] === 0 ? L.by0 : L.by1;
+      const by = d[2] === 0 ? L.by0 : d[2] === 1 ? L.by1 : d[2] === 2 ? (L.plaza.y + 6) : Math.round(L.by0 + Math.max(70, (L.plaza.y - L.by0) * 0.62));
+      const kk = (id === "diner" || id === "signal") ? L.k * (isMobile ? 0.72 : 0.78) : (id === "crypt" ? L.k * (isMobile ? 0.86 : 0.92) : L.k);
       const b = {
-        id: id, spec: B, x: w * d[1], by: by, k: L.k, row: d[2], body: bakeBuilding(id), inside: 0, t: rand(0, 10),
+        id: id, spec: B, x: w * d[1], by: by, k: kk, row: d[2], body: bakeBuilding(id), inside: 0, t: rand(0, 10),
         windows: [], flash: 0, pop: 0
       };
       b.doorX = b.x + B.door * L.k; b.doorY = by + 5;
@@ -615,6 +623,10 @@
     if (me) places.push({ id: "merch", label: "MERCH · SHOP", href: SITE + "/shop", x: me.x0, y: me.by - 160 * me.k, w: me.x1 - me.x0, h: 160 * me.k, b: me });
     const ra = byId("radio");
     if (ra) places.push({ id: "radio", label: "TOASTER RADIO · MUSIC", href: SITE + "/music", x: ra.x - 50 * ra.k, y: ra.by - 265 * ra.k, w: 100 * ra.k, h: 265 * ra.k, b: ra });
+    [["crypt", "THE CRYPT", "/arcade"], ["diner", "TOASTY DINER", "/arcade"], ["signal", "NO SIGNAL", "/skullz"]].forEach(function (row) {
+      const b = byId(row[0]); if (!b) return;
+      places.push({ id: b.id, label: row[1], href: SITE + row[2], x: b.x0, y: b.by - b.spec.top * b.k, w: b.x1 - b.x0, h: b.spec.top * b.k, b: b });
+    });
     /* arcade player spots, merch queue */
     bakeBackdrops();
     initSkyBits();
@@ -629,6 +641,9 @@
     else if (b.id === "vet") { add(-46, -48, 18, 16); add(28, -48, 18, 16); }
     else if (b.id === "merch") { add(31, -62, 28, 62); }
     else if (b.id === "radio") { add(18, -32, 20, 32); }
+    else if (b.id === "crypt") { add(-28, -64, 16, 20); add(12, -64, 16, 20); }
+    else if (b.id === "diner") { add(-48, -58, 36, 28); add(10, -58, 28, 28); }
+    else if (b.id === "signal") { add(-36, -62, 30, 28); add(8, -62, 26, 28); }
     b.windows = W2;
   }
 
@@ -1073,10 +1088,12 @@
   function updateDrawSmoke(dt) {
     for (let i = smoke.length - 1; i >= 0; i--) {
       const p = smoke[i]; p.life -= dt; if (p.life <= 0) { smoke.splice(i, 1); continue; }
+      if (p.vx == null) p.vx = 0; if (p.s == null) p.s = (p.r || 6) / 48;
       p.x += p.vx * dt; p.y += p.vy * dt; p.vy *= 0.995; p.s += dt * 0.55;
-      ctx.globalAlpha = clamp(p.life / p.max, 0, 1) * 0.85;
+      ctx.globalAlpha = clamp(p.life / p.max, 0, 1) * (p.a != null ? p.a : 0.85);
       const sz = 48 * p.s;
-      ctx.drawImage(p.gold ? S.warm : S.puff, p.x - sz / 2, p.y - sz / 2, sz, sz);
+      if (p.col) { ctx.fillStyle = p.col; ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(2, sz * 0.22), 0, TAU); ctx.fill(); }
+      else ctx.drawImage(p.gold ? S.warm : S.puff, p.x - sz / 2, p.y - sz / 2, sz, sz);
     }
     ctx.globalAlpha = 1;
   }
@@ -1164,7 +1181,7 @@
     citizens.push(c);
     return c;
   }
-  function popTarget() { return Math.round((isMobile ? (w > 600 ? 42 : 30) : 58) * (quality >= 2 ? 0.7 : 1)); }
+  function popTarget() { return Math.round((isMobile ? (w > 600 ? 36 : 26) : 54) * (quality >= 2 ? 0.7 : 1)); }
   function populate() {
     citizens.length = 0; crumbs.length = 0; trucks.length = 0; bubbles.length = 0; smoke.length = 0;
     const n = reduced ? Math.round(popTarget() * 0.6) : popTarget();
@@ -1196,6 +1213,7 @@
     if ((radioOn || party > 0.2) && r < (c.skull && party > 0.2 ? 75 : 40)) {
       const p = danceSpot(); walkTo(c, p.x, p.y, "dance"); return;
     }
+    if (weather.kind === "acid") { const b = nearestBuilding(c); if (b) { walkTo(c, b.doorX + rand(-6, 6), b.doorY, "shelter"); c.b = b; c.shelter = true; return; } }
     if (rain && r < 55) { const b = nearestBuilding(c); if (b) { walkTo(c, b.doorX, b.doorY, "door"); c.b = b; if (chance(0.4)) say(c, pick(LINES.rain)); return; } }
     if (r < 22 * busy) { const b = pick(buildings.filter(enterable)); walkTo(c, b.doorX + rand(-3, 3), b.doorY, "door"); c.b = b; return; }
     if (r < 32 && byId("merch") && queue.length < 6) { queue.push(c); const q = queueSpot(queue.length - 1); walkTo(c, q.x, q.y, "queue"); return; }
@@ -1233,6 +1251,7 @@
   function arrive(c) {
     switch (c.goal) {
       case "door":
+      case "shelter":
         c.state = "enter"; c.timer = 0.45; if (chance(0.15)) say(c, pick(LINES.inside), 1.4); break;
       case "queue": c.state = "queue"; c.timer = rand(2, 4); if (chance(0.3)) say(c, pick(LINES.queue)); break;
       case "arcade": c.state = "play"; c.timer = rand(5, 11); break;
@@ -1269,6 +1288,7 @@
       if (c.family) { c.sc = depthScale(c.y) * c.size; continue; }
       if (c.state === "inside") {
         census.inside++; if (c.b) c.b.inside++;
+        if (c.shelter || weather.kind === "acid") { c.timer = Math.max(c.timer, 0.4); continue; }
         c.timer -= dt;
         if (c.timer <= 0) {
           if (c.remove) { citizens.splice(i, 1); continue; }
@@ -1279,7 +1299,7 @@
       }
       c.sc = depthScale(c.y) * c.size;
       c.timer -= dt;
-      const sp = c.speed * c.sc * (weather.kind === "rain" ? 1.35 : 1) * (c.goal === "dance" ? 1.2 : 1);
+      const sp = c.speed * c.sc * (weather.kind === "rain" ? 1.35 : weather.kind === "acid" || c.goal === "shelter" ? 1.7 : 1) * (c.goal === "dance" ? 1.2 : 1);
       switch (c.state) {
         case "walk": {
           const dx = c.tx - c.x, dy = c.ty - c.y, d = Math.sqrt(dx * dx + dy * dy);
@@ -1511,8 +1531,8 @@
      traffic lights, Cybertrucks that charge off-road and jump the dirt
      lots, and Arcade Stars: real sprites from Coty's own games.
      ===================================================================== */
-  const ATLAS_SRC = "assets/arcade-stars.webp?v=1";
-  const ATLAS = {"sk_toasty":{"idle":[0,0,48,116],"walk":[50,0,49,116]},"sk_fat":{"idle":[101,0,81,116],"walk":[184,0,72,116]},"sk_blankey":{"idle":[258,0,98,116],"walk":[358,0,100,116]},"sk_triggered":{"idle":[460,0,54,116],"walk":[516,0,59,116]},"sk_toaster":{"idle":[577,0,93,104],"walk":[672,0,97,104]},"sk_burnt":{"idle":[771,0,113,104],"walk":[886,0,98,104]},"sk_nugget":{"idle":[0,118,70,104],"walk":[72,118,107,104]},"sk_crumbling":{"idle":[181,118,62,104],"walk":[245,118,69,104]},"tb_toasty":{"stand":[316,118,64,64],"walk1":[382,118,64,64],"walk2":[448,118,64,64],"walk3":[514,118,64,64]},"tb_breadlord":{"stand":[580,118,64,64],"walk1":[646,118,64,64],"walk2":[712,118,64,64],"walk3":[778,118,64,64]},"tb_skelly":{"stand":[844,118,64,64],"walk1":[910,118,64,64],"walk2":[0,224,64,64],"walk3":[66,224,64,64]},"tb_screamer":{"stand":[132,224,64,64],"walk1":[198,224,64,64],"walk2":[264,224,64,64],"walk3":[330,224,64,64]},"tb_cal":{"stand":[396,224,64,64],"walk1":[462,224,64,64],"walk2":[528,224,64,64],"walk3":[594,224,64,64]},"tb_skulrz":{"stand":[660,224,64,64],"walk1":[726,224,64,64],"walk2":[792,224,64,64],"walk3":[858,224,64,64]},"tb_acid":{"stand":[924,224,64,64],"walk1":[0,290,64,64],"walk2":[66,290,64,64],"walk3":[132,290,64,64]}};
+  const ATLAS_SRC = "assets/arcade-stars.webp?v=2";
+  const ATLAS = {"sk_glitch":{"idle":[0,0,45,112],"walk":[47,0,45,112]},"sk_pale":{"idle":[94,0,62,112],"walk":[158,0,61,112]},"sk_toasty":{"idle":[221,0,46,112],"walk":[269,0,47,112]},"sk_blankey":{"idle":[318,0,94,112],"walk":[414,0,97,112]},"sk_nit":{"idle":[513,0,41,112],"walk":[556,0,50,112]},"sk_fat":{"idle":[608,0,78,112],"walk":[688,0,70,112]},"sk_triggered":{"idle":[760,0,52,112],"walk":[814,0,57,112]},"sk_gemsilver":{"idle":[873,0,42,100],"walk":[917,0,50,100]},"sk_ember":{"idle":[969,0,47,100],"walk":[1018,0,55,100]},"sk_gembronze":{"idle":[1075,0,43,100],"walk":[1120,0,50,100]},"sk_hive":{"idle":[1172,0,57,100],"walk":[1231,0,69,100]},"sk_watcher":{"idle":[1302,0,63,100],"walk":[1367,0,65,100]},"sk_minion":{"idle":[1434,0,77,100],"walk":[1513,0,80,100]},"sk_winged":{"idle":[1595,0,57,100],"walk":[1654,0,57,100]},"sk_burnt":{"idle":[1713,0,108,100],"walk":[1823,0,94,100]},"sk_rosecrown":{"idle":[1919,0,46,100],"walk":[1967,0,56,100]},"sk_moonling":{"idle":[0,114,49,100],"walk":[51,114,60,100]},"sk_cscream":{"idle":[113,114,47,100],"walk":[162,114,53,100]},"sk_antenna":{"idle":[217,114,45,100],"walk":[264,114,48,100]},"sk_pyrite":{"idle":[314,114,52,100],"walk":[368,114,58,100]},"sk_skull":{"idle":[428,114,46,100],"walk":[476,114,57,100]},"sk_toaster":{"idle":[535,114,89,100],"walk":[626,114,93,100]},"sk_totem":{"idle":[721,114,32,100],"walk":[755,114,37,100]},"sk_bomber":{"idle":[794,114,90,100],"walk":[886,114,90,100]},"sk_crumbling":{"idle":[978,114,60,100],"walk":[1040,114,66,100]},"sk_hivelet":{"idle":[1108,114,81,100],"walk":[1191,114,89,100]},"sk_mimic":{"idle":[1282,114,99,100],"walk":[1383,114,98,100]},"sk_fakecrew":{"idle":[1483,114,48,100],"walk":[1533,114,57,100]},"sk_twoface":{"idle":[1592,114,49,100],"walk":[1643,114,62,100]},"sk_gemcrystal":{"idle":[1707,114,55,100],"walk":[1764,114,54,100]},"sk_nugget":{"idle":[1820,114,68,100],"walk":[1890,114,103,100]},"sk_colacan":{"idle":[1995,114,51,100],"walk":[0,216,80,100]},"sk_clone":{"idle":[82,216,34,100],"walk":[118,216,41,100]},"sk_glitchling":{"idle":[161,216,68,100],"walk":[231,216,73,100]},"sk_hallu":{"idle":[306,216,48,100],"walk":[356,216,57,100]},"sk_gemblack":{"idle":[415,216,46,100],"walk":[463,216,55,100]},"tb_toasty":{"stand":[520,216,56,64],"walk1":[578,216,56,64],"walk2":[636,216,56,64],"walk3":[694,216,56,64]},"tb_breadlord":{"stand":[752,216,52,64],"walk1":[806,216,60,64],"walk2":[868,216,52,64],"walk3":[922,216,52,64]},"tb_skelly":{"stand":[976,216,44,64],"walk1":[1022,216,60,64],"walk2":[1084,216,44,64],"walk3":[1130,216,44,64]},"tb_screamer":{"stand":[1176,216,52,64],"walk1":[1230,216,60,64],"walk2":[1292,216,52,64],"walk3":[1346,216,52,64]},"tb_cal":{"stand":[1400,216,52,64],"walk1":[1454,216,60,64],"walk2":[1516,216,52,64],"walk3":[1570,216,52,64]},"tb_skulrz":{"stand":[1624,216,52,64],"walk1":[1678,216,60,64],"walk2":[1740,216,52,64],"walk3":[1794,216,52,64]},"tb_acid":{"stand":[1848,216,52,64],"walk1":[1902,216,60,64],"walk2":[1964,216,52,64],"walk3":[0,318,52,64]},"tb_toast":{"idle":[54,318,56,64],"walk":[112,318,56,64]},"tb_glitch":{"idle":[170,318,56,56],"walk":[228,318,56,56]},"tb_antenna":{"idle":[286,318,48,64],"walk":[336,318,48,64]},"tb_bomber":{"idle":[386,318,56,64],"walk":[444,318,56,60]},"tb_mimic":{"idle":[502,318,64,56],"walk":[568,318,64,56]},"tb_crumb":{"idle":[634,318,56,52],"walk":[692,318,56,52]},"tb_skel":{"idle":[750,318,49,72],"walk":[801,318,49,72]},"pit_jamskull":{"idle":[852,318,56,52],"walk":[910,318,48,56]},"pit_butterskull":{"idle":[960,318,56,56],"walk":[1018,318,60,56]},"pit_rubber":{"idle":[1080,318,48,56],"walk":[1130,318,64,40]},"pit_goon":{"idle":[1196,318,56,64],"walk":[1254,318,56,64]},"pit_breadlord":{"idle":[1312,318,62,60],"walk":[1376,318,62,60]},"dn_bagel":{"idle":[1440,318,56,52],"walk":[1498,318,56,52]},"dn_cook":{"idle":[1556,318,56,64],"walk":[1614,318,56,64]},"dn_crouton":{"idle":[1672,318,52,52],"walk":[1726,318,52,48]},"dn_crumbit":{"idle":[1780,318,32,32],"walk":[1814,318,32,28]},"dn_ghost":{"idle":[1848,318,56,60],"walk":[1906,318,56,60]},"dn_knight":{"idle":[1964,318,64,68],"walk":[0,392,64,68]},"dn_mold":{"idle":[66,392,72,52],"walk":[140,392,72,48]},"dn_popper":{"idle":[214,392,48,56],"walk":[264,392,48,56]},"dn_rat":{"idle":[314,392,64,40],"walk":[380,392,64,40]},"bb_bat":{"idle":[446,392,72,40],"walk":[520,392,72,48]},"bb_buzz":{"idle":[594,392,40,32],"walk":[636,392,40,32]},"bb_foil":{"idle":[678,392,64,72],"walk":[744,392,64,72]},"bb_ghoul":{"idle":[810,392,80,64],"walk":[892,392,80,64]},"bb_gremlin":{"idle":[974,392,64,56],"walk":[1040,392,64,56]},"bb_slime":{"idle":[1106,392,64,36],"walk":[1172,392,64,40]},"bb_snake":{"idle":[1238,392,88,32],"walk":[1328,392,88,32]},"tc_bblob":{"idle":[1418,392,64,36],"walk":[1484,392,64,40]},"tc_fbun":{"idle":[1550,392,56,52],"walk":[1608,392,56,52]},"tc_glitchl":{"idle":[1666,392,48,48],"walk":[1716,392,48,48]},"tc_rtoast":{"idle":[1766,392,64,56],"walk":[1832,392,64,56]},"tc_shard":{"idle":[1898,392,40,40],"walk":[1940,392,40,40]},"tc_sskull":{"idle":[1982,392,56,56],"walk":[0,466,56,56]},"ar_crab":{"idle":[58,466,64,52],"walk":[124,466,64,52]},"ar_minifig":{"idle":[190,466,32,40],"walk":[224,466,32,40]},"ar_sghost":{"idle":[258,466,48,56],"walk":[308,466,48,56]},"fd_pest":{"idle":[358,466,48,36],"walk":[408,466,40,32]},"bt_punk":{"idle":[450,466,40,64],"walk":[492,466,40,64]},"ms_drone":{"idle":[534,466,56,32],"walk":[592,466,56,32]},"ms_crawl":{"idle":[650,466,44,36],"walk":[696,466,44,36]},"cr_glitchling":{"idle":[742,466,40,44],"walk":[784,466,43,44]},"cr_slop":{"idle":[829,466,56,56],"walk":[887,466,62,54]},"cr_watcher":{"idle":[951,466,84,46],"walk":[1037,466,84,46]},"cr_ragetoaster":{"idle":[1123,466,44,41],"walk":[1169,466,42,41]},"cr_unfollow":{"idle":[1213,466,45,57],"walk":[1260,466,45,57]},"cr_lurker":{"idle":[1307,466,42,42],"walk":[1351,466,42,42]},"cr_nugget":{"idle":[1395,466,32,26],"walk":[1429,466,34,24]},"cr_replyguy":{"idle":[1465,466,53,52],"walk":[1520,466,53,52]},"cr_popup":{"idle":[1575,466,58,46],"walk":[1635,466,58,46]},"cr_lint":{"idle":[1695,466,34,40],"walk":[1731,466,34,36]},"cr_sock":{"idle":[1767,466,40,54],"walk":[1809,466,40,55]},"cr_drone":{"idle":[1851,466,46,42],"walk":[1899,466,50,42]},"cr_fork":{"idle":[1951,466,47,61],"walk":[0,532,47,61]},"cr_bomber":{"idle":[49,532,46,57],"walk":[97,532,46,57]},"cr_heavy":{"idle":[145,532,70,62],"walk":[217,532,70,62]},"cr_bee":{"idle":[289,532,38,30],"walk":[329,532,46,30]},"cr_shardling":{"idle":[377,532,38,33],"walk":[417,532,34,29]},"cr_burntend":{"idle":[453,532,38,34],"walk":[493,532,38,36]},"cr_butterblob":{"idle":[533,532,46,30],"walk":[581,532,50,27]},"cr_staticskull":{"idle":[633,532,42,38],"walk":[677,532,42,38]},"cr_spambot":{"idle":[721,532,50,34],"walk":[773,532,50,38]},"cr_doomscroll":{"idle":[825,532,26,58],"walk":[853,532,26,58]},"cr_jamjar":{"idle":[881,532,30,44],"walk":[913,532,30,44]},"cr_ratiowraith":{"idle":[945,532,54,71],"walk":[1001,532,55,69]},"cr_crumbswarm":{"idle":[1058,532,52,36],"walk":[1112,532,51,36]},"cr_crumbfly":{"idle":[1165,532,42,23],"walk":[1209,532,42,25]},"cr_crumbmini":{"idle":[1253,532,27,26],"walk":[1282,532,27,26]},"cm_cyborg":{"idle":[1311,532,97,100],"walk":[1410,532,97,100]},"cm_stogie":{"idle":[1509,532,95,100],"walk":[1606,532,105,100]},"cm_hive":{"idle":[1713,532,95,100],"walk":[1810,532,95,100]},"cm_facet":{"idle":[1907,532,90,100],"walk":[0,634,90,100]},"cm_flame":{"idle":[92,634,80,100],"walk":[174,634,79,100]},"cm_winged":{"idle":[255,634,157,100],"walk":[414,634,147,100]},"cm_totem":{"idle":[563,634,48,100],"walk":[613,634,48,100]},"cm_mirror":{"idle":[663,634,97,100],"walk":[762,634,97,100]},"cm_scream":{"idle":[861,634,76,100],"walk":[939,634,74,100]},"cm_quartz":{"idle":[1015,634,71,100],"walk":[1088,634,71,100]},"cm_kettle":{"idle":[1161,634,126,100],"walk":[1289,634,104,100]},"cm_notif":{"idle":[1395,634,100,100],"walk":[1497,634,100,100]},"cm_modem":{"idle":[1599,634,120,100],"walk":[1721,634,120,100]},"cm_snow":{"idle":[1843,634,106,100],"walk":[0,736,106,100]},"cm_doppel":{"idle":[108,736,100,100],"walk":[210,736,100,100]},"cm_buffer":{"idle":[312,736,103,100],"walk":[417,736,97,100]},"cm_pyrite":{"idle":[516,736,96,100],"walk":[614,736,96,100]},"cd_crust_gremlin":{"idle":[712,736,69,80],"walk":[783,736,69,80]},"cd_butter_slime":{"idle":[854,736,59,46],"walk":[915,736,59,46]},"cd_fork_ghoul":{"idle":[976,736,36,80],"walk":[1014,736,35,80]},"cd_burnt_bagel_bat":{"idle":[1051,736,72,57],"walk":[1125,736,72,57]},"cd_cord_snake":{"idle":[1199,736,78,73],"walk":[1279,736,78,69]},"cd_chrome_screamer":{"idle":[1359,736,80,80],"walk":[1441,736,80,80]},"cd_hive_skull":{"idle":[1523,736,65,78],"walk":[1590,736,65,78]}};
   const atlas = new Image();
   let atlasReady = false;
   atlas.onload = function () { atlasReady = true; };
@@ -1999,8 +2019,8 @@
       let dir = chance(0.5) ? 1 : -1;
       const probe = { dir: dir, road: road }; let plan = lotPlan(probe, l);
       if (plan.pts[5].x < -60 || plan.pts[5].x > w + 60) { dir = -dir; probe.dir = dir; plan = lotPlan(probe, l); }
-      const x = plan.entryX - dir * rand(30, 70);
-      const tr = newTruck(road, x, dir, false); tr.rally = true; tr.forceOff = true; tr.speed = rand(150, 180); tr.alpha = 0;
+      const x = dir > 0 ? -130 : w + 130;
+      const tr = newTruck(road, x, dir, false); tr.rally = true; tr.forceOff = true; tr.speed = rand(150, 180); tr.alpha = 1;
     }
     setBanner(S.neon.rally, 6); logEvent("Cybertruck rally: the dirt lots are open"); sfx("honk");
   }
@@ -2041,31 +2061,1900 @@
     if (n < want && chance(dt * 0.8)) sky.push(newSky());
   }
 
-  /* ---------- Arcade Stars: real sprites from Coty's games ---------- */
+  /* ---------- Arcade Stars + visiting enemies, all chilling ---------- */
   const ROSTER = [
-    { id: "tb_toasty", name: "MR. TOASTY", game: "Toasty Bros", pix: 1, h: 0.82, lines: ["Stay toasty!", "Free the bros!", "Toast-rocket ready"], haunt: "artcade" },
-    { id: "sk_toasty", name: "TOASTY COTY", game: "No Signal Skullz", h: 1, lines: ["Totality.", "Hooah!", "No signal, no problem"] },
-    { id: "sk_fat", name: "FAT COTY", game: "No Signal Skullz", h: 1.02, lines: ["Feed me!", "Motor mode!", "Snack run"], haunt: "merch" },
-    { id: "sk_blankey", name: "YELLOW BLANKEY", game: "No Signal Skullz", h: 1.0, lines: ["Cozy mode", "Synthwave hours"], haunt: "home" },
-    { id: "sk_triggered", name: "TRIGGERED COTY", game: "No Signal Skullz", h: 1, lines: ["MELTDOWN!", "Who burnt my toast?"] },
-    { id: "sk_toaster", name: "GLITCH TOASTER", game: "No Signal Skullz", h: 0.8, lines: ["*bzzt*", "Toast incoming"], haunt: "hq" },
-    { id: "sk_burnt", name: "BURNT TOAST", game: "No Signal Skullz", h: 0.86, lines: ["BURNT.", "Smells like smoke"] },
-    { id: "sk_nugget", name: "NUGGET", game: "No Signal Skullz", h: 0.66, lines: ["Nug life"] },
-    { id: "sk_crumbling", name: "CRUMBLING", game: "No Signal Skullz", h: 0.74, lines: ["CRUMBS!", "NIBBLE"] },
-    { id: "tb_breadlord", name: "BREADLORD JR.", game: "Toasty Bros", pix: 1, h: 0.82, lines: ["Pay the Breadlord", "IOU one loaf"] },
-    { id: "tb_skelly", name: "TOASTER TRUCK SKELETON", game: "Toasty Bros", pix: 1, h: 0.82, lines: ["Truck-ram dash!"] },
-    { id: "tb_screamer", name: "CHROME SCREAMER", game: "Toasty Bros", pix: 1, h: 0.82, lines: ["AAAAH!"] },
-    { id: "tb_cal", name: "CAL THE REPAIRMAN", game: "Toasty Bros", pix: 1, h: 0.82, lines: ["I can fix that"] },
-    { id: "tb_skulrz", name: "SKULRZ", game: "Toasty Bros", pix: 1, h: 0.82, lines: ["Rattle on"] },
-    { id: "tb_acid", name: "ACID", game: "Toasty Bros", pix: 1, h: 0.82, lines: ["Long shot"] }
-  ];
-  function starTarget() { return (isMobile ? 7 : 12) - (quality >= 2 ? (isMobile ? 2 : 4) : 0); }
+  {
+    "id": "sk_glitch",
+    "name": "THE GLITCH",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 1.0,
+    "role": "enemy",
+    "lines": [
+      "Just chilling",
+      "No signal, no rush",
+      "Off duty"
+    ],
+    "haunt": "signal"
+  },
+  {
+    "id": "sk_pale",
+    "name": "PALE KING",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 1.0,
+    "role": "enemy",
+    "lines": [
+      "Just chilling",
+      "No signal, no rush",
+      "Off duty"
+    ],
+    "haunt": "signal"
+  },
+  {
+    "id": "sk_toasty",
+    "name": "TOASTY COTY",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 1.0,
+    "role": "star",
+    "lines": [
+      "Totality.",
+      "Hooah!",
+      "No signal, no problem"
+    ],
+    "haunt": "signal"
+  },
+  {
+    "id": "sk_blankey",
+    "name": "YELLOW BLANKEY",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 1.0,
+    "role": "star",
+    "lines": [
+      "Cozy mode",
+      "Synthwave hours"
+    ],
+    "haunt": "home"
+  },
+  {
+    "id": "sk_nit",
+    "name": "NIT",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 1.0,
+    "role": "enemy",
+    "lines": [
+      "Just chilling",
+      "No signal, no rush",
+      "Off duty"
+    ],
+    "haunt": "signal"
+  },
+  {
+    "id": "sk_fat",
+    "name": "FAT COTY",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 1.0,
+    "role": "star",
+    "lines": [
+      "Feed me!",
+      "Motor mode!",
+      "Snack run"
+    ],
+    "haunt": "merch"
+  },
+  {
+    "id": "sk_triggered",
+    "name": "TRIGGERED COTY",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 1.0,
+    "role": "star",
+    "lines": [
+      "MELTDOWN!",
+      "Who burnt my toast?"
+    ],
+    "haunt": "signal"
+  },
+  {
+    "id": "sk_gemsilver",
+    "name": "SILVER GEM SKULL",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 1.0,
+    "role": "enemy",
+    "lines": [
+      "Just chilling",
+      "No signal, no rush",
+      "Off duty"
+    ],
+    "haunt": "signal"
+  },
+  {
+    "id": "sk_ember",
+    "name": "HORNED EMBER SKULL",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 1.0,
+    "role": "enemy",
+    "lines": [
+      "Just chilling",
+      "No signal, no rush",
+      "Off duty"
+    ],
+    "haunt": "signal"
+  },
+  {
+    "id": "sk_gembronze",
+    "name": "BRONZE GEM SKULL",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 1.0,
+    "role": "enemy",
+    "lines": [
+      "Just chilling",
+      "No signal, no rush",
+      "Off duty"
+    ],
+    "haunt": "signal"
+  },
+  {
+    "id": "sk_hive",
+    "name": "HIVE SKULL",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 1.0,
+    "role": "enemy",
+    "lines": [
+      "Just chilling",
+      "No signal, no rush",
+      "Off duty"
+    ],
+    "haunt": "signal"
+  },
+  {
+    "id": "sk_watcher",
+    "name": "HATE WATCHER",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 1.0,
+    "role": "enemy",
+    "lines": [
+      "Just chilling",
+      "No signal, no rush",
+      "Off duty"
+    ],
+    "haunt": "signal"
+  },
+  {
+    "id": "sk_minion",
+    "name": "MINION",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 1.0,
+    "role": "enemy",
+    "lines": [
+      "Just chilling",
+      "No signal, no rush",
+      "Off duty"
+    ],
+    "haunt": "signal"
+  },
+  {
+    "id": "sk_winged",
+    "name": "WINGED CHROME",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 1.0,
+    "role": "enemy",
+    "lines": [
+      "Just chilling",
+      "No signal, no rush",
+      "Off duty"
+    ],
+    "haunt": "signal"
+  },
+  {
+    "id": "sk_burnt",
+    "name": "BURNT TOAST",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 0.82,
+    "role": "star",
+    "lines": [
+      "BURNT.",
+      "Smells like smoke"
+    ],
+    "haunt": "signal"
+  },
+  {
+    "id": "sk_rosecrown",
+    "name": "ROSE QUARTZ CROWN",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 1.0,
+    "role": "enemy",
+    "lines": [
+      "Just chilling",
+      "No signal, no rush",
+      "Off duty"
+    ],
+    "haunt": "signal"
+  },
+  {
+    "id": "sk_moonling",
+    "name": "MOONLING",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 1.0,
+    "role": "enemy",
+    "lines": [
+      "Just chilling",
+      "No signal, no rush",
+      "Off duty"
+    ],
+    "haunt": "signal"
+  },
+  {
+    "id": "sk_cscream",
+    "name": "CHROME SCREAMER",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 1.0,
+    "role": "enemy",
+    "lines": [
+      "Just chilling",
+      "No signal, no rush",
+      "Off duty"
+    ],
+    "haunt": "signal"
+  },
+  {
+    "id": "sk_antenna",
+    "name": "ANTENNA SKULL",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 1.0,
+    "role": "enemy",
+    "lines": [
+      "Just chilling",
+      "No signal, no rush",
+      "Off duty"
+    ],
+    "haunt": "signal"
+  },
+  {
+    "id": "sk_pyrite",
+    "name": "PYRITE CLUSTER",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 1.0,
+    "role": "enemy",
+    "lines": [
+      "Just chilling",
+      "No signal, no rush",
+      "Off duty"
+    ],
+    "haunt": "signal"
+  },
+  {
+    "id": "sk_skull",
+    "name": "CORRUPTED SKULL",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 1.0,
+    "role": "enemy",
+    "lines": [
+      "Just chilling",
+      "No signal, no rush",
+      "Off duty"
+    ],
+    "haunt": "signal"
+  },
+  {
+    "id": "sk_toaster",
+    "name": "GLITCH TOASTER",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 0.82,
+    "role": "star",
+    "lines": [
+      "*bzzt*",
+      "Toast incoming"
+    ],
+    "haunt": "hq"
+  },
+  {
+    "id": "sk_totem",
+    "name": "SEE-NO TOTEM",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 1.0,
+    "role": "enemy",
+    "lines": [
+      "Just chilling",
+      "No signal, no rush",
+      "Off duty"
+    ],
+    "haunt": "signal"
+  },
+  {
+    "id": "sk_bomber",
+    "name": "BUTTER BOMBER",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 0.82,
+    "role": "enemy",
+    "lines": [
+      "Just chilling",
+      "No signal, no rush",
+      "Off duty"
+    ],
+    "haunt": "signal"
+  },
+  {
+    "id": "sk_crumbling",
+    "name": "CRUMBLING",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 0.7,
+    "role": "star",
+    "lines": [
+      "CRUMBS!",
+      "NIBBLE"
+    ],
+    "haunt": "signal"
+  },
+  {
+    "id": "sk_hivelet",
+    "name": "HIVELET",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 0.7,
+    "role": "enemy",
+    "lines": [
+      "Just chilling",
+      "No signal, no rush",
+      "Off duty"
+    ],
+    "haunt": "signal"
+  },
+  {
+    "id": "sk_mimic",
+    "name": "MIMIC CHEST",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 0.82,
+    "role": "enemy",
+    "lines": [
+      "Just chilling",
+      "No signal, no rush",
+      "Off duty"
+    ],
+    "haunt": "signal"
+  },
+  {
+    "id": "sk_fakecrew",
+    "name": "FAKE CREW",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 1.0,
+    "role": "enemy",
+    "lines": [
+      "Just chilling",
+      "No signal, no rush",
+      "Off duty"
+    ],
+    "haunt": "signal"
+  },
+  {
+    "id": "sk_twoface",
+    "name": "TWO-FACE CHROME",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 1.0,
+    "role": "enemy",
+    "lines": [
+      "Just chilling",
+      "No signal, no rush",
+      "Off duty"
+    ],
+    "haunt": "signal"
+  },
+  {
+    "id": "sk_gemcrystal",
+    "name": "CRYSTAL GEM SKULL",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 1.0,
+    "role": "enemy",
+    "lines": [
+      "Just chilling",
+      "No signal, no rush",
+      "Off duty"
+    ],
+    "haunt": "signal"
+  },
+  {
+    "id": "sk_nugget",
+    "name": "NUGGET",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 0.7,
+    "role": "star",
+    "lines": [
+      "Nug life"
+    ],
+    "haunt": "signal"
+  },
+  {
+    "id": "sk_colacan",
+    "name": "SHAKEN COLA",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 1.0,
+    "role": "enemy",
+    "lines": [
+      "Just chilling",
+      "No signal, no rush",
+      "Off duty"
+    ],
+    "haunt": "signal"
+  },
+  {
+    "id": "sk_clone",
+    "name": "WHICH ONE IS REAL?",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 1.0,
+    "role": "enemy",
+    "lines": [
+      "Just chilling",
+      "No signal, no rush",
+      "Off duty"
+    ],
+    "haunt": "signal"
+  },
+  {
+    "id": "sk_glitchling",
+    "name": "GLITCHLING",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 1.0,
+    "role": "enemy",
+    "lines": [
+      "Just chilling",
+      "No signal, no rush",
+      "Off duty"
+    ],
+    "haunt": "signal"
+  },
+  {
+    "id": "sk_hallu",
+    "name": "HALLUCINATION",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 1.0,
+    "role": "enemy",
+    "lines": [
+      "Just chilling",
+      "No signal, no rush",
+      "Off duty"
+    ],
+    "haunt": "signal"
+  },
+  {
+    "id": "sk_gemblack",
+    "name": "ONYX GEM SKULL",
+    "game": "No Signal Skullz",
+    "pix": 0,
+    "h": 1.0,
+    "role": "enemy",
+    "lines": [
+      "Just chilling",
+      "No signal, no rush",
+      "Off duty"
+    ],
+    "haunt": "signal"
+  },
+  {
+    "id": "tb_toasty",
+    "name": "MR. TOASTY",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.82,
+    "role": "star",
+    "lines": [
+      "Stay toasty!",
+      "Free the bros!",
+      "Toast-rocket ready"
+    ],
+    "haunt": "artcade"
+  },
+  {
+    "id": "tb_breadlord",
+    "name": "BREADLORD JR.",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.82,
+    "role": "star",
+    "lines": [
+      "Pay the Breadlord",
+      "IOU one loaf"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "tb_skelly",
+    "name": "TOASTER TRUCK SKELETON",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.82,
+    "role": "star",
+    "lines": [
+      "Truck-ram dash!"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "tb_screamer",
+    "name": "CHROME SCREAMER",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.82,
+    "role": "star",
+    "lines": [
+      "AAAAH!"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "tb_cal",
+    "name": "CAL THE REPAIRMAN",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.82,
+    "role": "star",
+    "lines": [
+      "I can fix that"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "tb_skulrz",
+    "name": "SKULRZ",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.82,
+    "role": "star",
+    "lines": [
+      "Rattle on"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "tb_acid",
+    "name": "ACID",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.82,
+    "role": "star",
+    "lines": [
+      "Long shot"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "tb_toast",
+    "name": "TOAST",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.7,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "tb_glitch",
+    "name": "GLITCH",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.7,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "tb_antenna",
+    "name": "ANTENNA",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.78,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "tb_bomber",
+    "name": "BOMBER",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.7,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "tb_mimic",
+    "name": "MIMIC",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.7,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "tb_crumb",
+    "name": "CRUMB",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.55,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "tb_skel",
+    "name": "SKELETON",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.78,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "pit_jamskull",
+    "name": "JAM SKULL",
+    "game": "Toaster Pit",
+    "pix": 1,
+    "h": 0.78,
+    "role": "enemy",
+    "lines": [
+      "Out of the pit",
+      "Breathing room",
+      "Just hanging"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "pit_butterskull",
+    "name": "BUTTER SKULL",
+    "game": "Toaster Pit",
+    "pix": 1,
+    "h": 0.78,
+    "role": "enemy",
+    "lines": [
+      "Out of the pit",
+      "Breathing room",
+      "Just hanging"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "pit_rubber",
+    "name": "RUBBER SKULL",
+    "game": "Toaster Pit",
+    "pix": 1,
+    "h": 0.78,
+    "role": "enemy",
+    "lines": [
+      "Out of the pit",
+      "Breathing room",
+      "Just hanging"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "pit_goon",
+    "name": "CRUST GOON",
+    "game": "Toaster Pit",
+    "pix": 1,
+    "h": 0.82,
+    "role": "enemy",
+    "lines": [
+      "Out of the pit",
+      "Breathing room",
+      "Just hanging"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "pit_breadlord",
+    "name": "BREADLORD",
+    "game": "Toaster Pit",
+    "pix": 0,
+    "h": 0.82,
+    "role": "enemy",
+    "lines": [
+      "Out of the pit",
+      "Breathing room",
+      "Just hanging"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "dn_bagel",
+    "name": "BAGEL",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.7,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "dn_cook",
+    "name": "SHORT-ORDER COOK",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.82,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "dn_crouton",
+    "name": "CROUTON",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.62,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "dn_crumbit",
+    "name": "CRUMBIT",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.55,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "dn_ghost",
+    "name": "DINER GHOST",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.78,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "dn_knight",
+    "name": "FORK KNIGHT",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.85,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "dn_mold",
+    "name": "MOLD",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.62,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "dn_popper",
+    "name": "POPPER",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.7,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "dn_rat",
+    "name": "DINER RAT",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.5,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "bb_bat",
+    "name": "BUTTER BAT",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.62,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "bb_buzz",
+    "name": "BUZZ",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.55,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "bb_foil",
+    "name": "FOIL PUPPET",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.78,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "bb_ghoul",
+    "name": "GHOUL",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.82,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "bb_gremlin",
+    "name": "GREMLIN",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.7,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "bb_slime",
+    "name": "SLIME",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.55,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "bb_snake",
+    "name": "CORD SNAKE",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.55,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "tc_bblob",
+    "name": "BUTTER BLOB",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.62,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "tc_fbun",
+    "name": "FUSE BUN",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.62,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "tc_glitchl",
+    "name": "GLITCHLING",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.62,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "tc_rtoast",
+    "name": "RAGE TOAST",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.7,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "tc_shard",
+    "name": "SHARD CUB",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.55,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "tc_sskull",
+    "name": "STATIC SKULL",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.7,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "ar_crab",
+    "name": "CLAW CRAB",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.62,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "ar_minifig",
+    "name": "MINI-FIG",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.7,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "ar_sghost",
+    "name": "SCREEN GHOST",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.7,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "fd_pest",
+    "name": "PEST",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.5,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "bt_punk",
+    "name": "TOAST PUNK",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.78,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "ms_drone",
+    "name": "TOAST DRONE",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.55,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "ms_crawl",
+    "name": "MOON CRAWLER",
+    "game": "Toasty Bros",
+    "pix": 1,
+    "h": 0.5,
+    "role": "enemy",
+    "lines": [
+      "Taking a break",
+      "Nice bricks",
+      "Off the clock"
+    ],
+    "haunt": "diner"
+  },
+  {
+    "id": "cr_glitchling",
+    "name": "GLITCHLING",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.9,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cr_slop",
+    "name": "SLOP BOT",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.9,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cr_watcher",
+    "name": "HATE WATCHER",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.9,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cr_ragetoaster",
+    "name": "RAGE TOASTER",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.9,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cr_unfollow",
+    "name": "UNFOLLOWER",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.9,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cr_lurker",
+    "name": "LINK LURKER",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.9,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cr_nugget",
+    "name": "NUGGET",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.9,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cr_replyguy",
+    "name": "REPLY GUY",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.9,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cr_popup",
+    "name": "POP-UP AD",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.9,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cr_lint",
+    "name": "LINT BUNNY",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.9,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cr_sock",
+    "name": "SOCK PUPPET",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.9,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cr_drone",
+    "name": "TOAST DRONE",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.9,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cr_fork",
+    "name": "FORK KNIGHT",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.9,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cr_bomber",
+    "name": "FUSE BUN",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.9,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cr_heavy",
+    "name": "HEAVY LOAF",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.9,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cr_bee",
+    "name": "HEX BEE",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.9,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cr_shardling",
+    "name": "SHARD CUB",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.9,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cr_burntend",
+    "name": "BURNT END",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.9,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cr_butterblob",
+    "name": "BUTTER BLOB",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.9,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cr_staticskull",
+    "name": "STATIC SKULL",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.9,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cr_spambot",
+    "name": "SPAM BOT",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.9,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cr_doomscroll",
+    "name": "DOOMSCROLLER",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.9,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cr_jamjar",
+    "name": "JAM JAR",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.9,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cr_ratiowraith",
+    "name": "RATIO WRAITH",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.9,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cr_crumbswarm",
+    "name": "CRUMB SWARM",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.9,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cr_crumbfly",
+    "name": "CRUMB FLY",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.9,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cr_crumbmini",
+    "name": "CRUMB BIT",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.9,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cm_cyborg",
+    "name": "RED-EYE CHROME",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.72,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cm_stogie",
+    "name": "RED STOGIE",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.72,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cm_hive",
+    "name": "HEXCOMB",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.72,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cm_facet",
+    "name": "BLACK CUT",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.72,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cm_flame",
+    "name": "SILVER BLAZE",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.72,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cm_winged",
+    "name": "GILDED WINGS",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.72,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cm_totem",
+    "name": "NO-EVIL TOTEM",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.72,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cm_mirror",
+    "name": "BLACK MIRROR",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.72,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cm_scream",
+    "name": "THE CHROME SCREAMER",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.72,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cm_quartz",
+    "name": "THE QUARTZ KING",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.72,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cm_kettle",
+    "name": "THE WHISTLING KETTLE",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.72,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cm_notif",
+    "name": "PUSH NOTIF",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.72,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cm_modem",
+    "name": "THE HANDSHAKE",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.72,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cm_snow",
+    "name": "DEAD AIR",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.72,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cm_doppel",
+    "name": "YOUR OWN STATIC",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.72,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cm_buffer",
+    "name": "THE BUFFERING WHEEL",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.72,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cm_pyrite",
+    "name": "PYRITE KING",
+    "game": "Mr. Toasty's Crypt",
+    "pix": 0,
+    "h": 0.72,
+    "role": "enemy",
+    "lines": [
+      "Crypt's closed",
+      "Torch is nice",
+      "Wandering peacefully"
+    ],
+    "haunt": "crypt"
+  },
+  {
+    "id": "cd_crust_gremlin",
+    "name": "CRUST GREMLIN",
+    "game": "Crumb Dungeon",
+    "pix": 1,
+    "h": 0.78,
+    "role": "enemy",
+    "lines": [
+      "Dungeon break",
+      "Crumbs on the plaza",
+      "Off the clock"
+    ],
+    "haunt": "merch"
+  },
+  {
+    "id": "cd_butter_slime",
+    "name": "BUTTER SLIME",
+    "game": "Crumb Dungeon",
+    "pix": 1,
+    "h": 0.78,
+    "role": "enemy",
+    "lines": [
+      "Dungeon break",
+      "Crumbs on the plaza",
+      "Off the clock"
+    ],
+    "haunt": "merch"
+  },
+  {
+    "id": "cd_fork_ghoul",
+    "name": "FORK GHOUL",
+    "game": "Crumb Dungeon",
+    "pix": 1,
+    "h": 0.78,
+    "role": "enemy",
+    "lines": [
+      "Dungeon break",
+      "Crumbs on the plaza",
+      "Off the clock"
+    ],
+    "haunt": "merch"
+  },
+  {
+    "id": "cd_burnt_bagel_bat",
+    "name": "BURNT BAGEL BAT",
+    "game": "Crumb Dungeon",
+    "pix": 1,
+    "h": 0.78,
+    "role": "enemy",
+    "lines": [
+      "Dungeon break",
+      "Crumbs on the plaza",
+      "Off the clock"
+    ],
+    "haunt": "merch"
+  },
+  {
+    "id": "cd_cord_snake",
+    "name": "CORD SNAKE",
+    "game": "Crumb Dungeon",
+    "pix": 1,
+    "h": 0.78,
+    "role": "enemy",
+    "lines": [
+      "Dungeon break",
+      "Crumbs on the plaza",
+      "Off the clock"
+    ],
+    "haunt": "merch"
+  },
+  {
+    "id": "cd_chrome_screamer",
+    "name": "CHROME SCREAMER",
+    "game": "Crumb Dungeon",
+    "pix": 1,
+    "h": 0.78,
+    "role": "enemy",
+    "lines": [
+      "Dungeon break",
+      "Crumbs on the plaza",
+      "Off the clock"
+    ],
+    "haunt": "merch"
+  },
+  {
+    "id": "cd_hive_skull",
+    "name": "HIVE SKULL",
+    "game": "Crumb Dungeon",
+    "pix": 1,
+    "h": 0.78,
+    "role": "enemy",
+    "lines": [
+      "Dungeon break",
+      "Crumbs on the plaza",
+      "Off the clock"
+    ],
+    "haunt": "merch"
+  }
+];
+  const CHILL_LINES = {
+    "No Signal Skullz": ["Just chilling", "No signal, no rush", "Off duty"],
+    "Toasty Bros": ["Taking a break", "Nice bricks", "Off the clock"],
+    "Mr. Toasty's Crypt": ["Crypt's closed", "Torch is nice", "Wandering peacefully"],
+    "Toaster Pit": ["Out of the pit", "Breathing room", "Just hanging"],
+    "Crumb Dungeon": ["Dungeon break", "Crumbs on the plaza", "Off the clock"]
+  };
+  function starTarget() {
+    const base = isMobile ? 12 : 26;
+    const cut = quality >= 2 ? (isMobile ? 4 : 8) : quality >= 1 ? (isMobile ? 2 : 4) : 0;
+    return Math.max(isMobile ? 7 : 12, base - cut);
+  }
   function starSpot(st) {
     for (let k = 0; k < 6; k++) {
       let p;
       const r = Math.random();
-      if (st && st.r.haunt && r < 0.3 && byId(st.r.haunt)) { const b = byId(st.r.haunt); p = { x: b.doorX + rand(-40, 40), y: b.doorY + rand(14, 30) }; }
-      else if (r < 0.45 && r > 0.3) { const pl = L.plaza; p = { x: pl.x + rand(-120, 120) * (isMobile ? 0.6 : 1), y: pl.y + rand(-14, 18) }; }
+      const haunt = st && st.r && (st.r.haunt || null);
+      if (haunt && r < 0.35 && byId(haunt)) { const b = byId(haunt); p = { x: b.doorX + rand(-44, 44), y: b.doorY + rand(12, 32) }; }
+      else if (r < 0.5) { const pl = L.plaza; p = { x: pl.x + rand(-140, 140) * (isMobile ? 0.6 : 1), y: pl.y + rand(-16, 20) }; }
       else p = randomSpot();
       p.x = clamp(p.x, 20, w - 20);
       if (!inLot(p.x, p.y, 4) && Math.abs(p.y - L.ry) > L.mainHalf + 6 && Math.abs(p.y - L.backY) > L.backHalf + 4) return p;
@@ -2074,69 +3963,131 @@
   }
   function populateStars() {
     stars.length = 0;
+    const ready = ROSTER.filter(function (r) { return ATLAS[r.id] && ((r.pix && ATLAS[r.id].stand) || ATLAS[r.id].idle); });
     const must = ["tb_toasty", "sk_fat", "sk_toasty", "sk_blankey", "sk_triggered"];
-    const rest = ROSTER.filter(function (r) { return must.indexOf(r.id) < 0; }).sort(function () { return Math.random() - 0.5; });
-    const list = ROSTER.filter(function (r) { return must.indexOf(r.id) >= 0; }).concat(rest).slice(0, starTarget());
+    const byIdR = {}; for (let i = 0; i < ready.length; i++) byIdR[ready[i].id] = ready[i];
+    const list = [];
+    const used = {};
+    function take(r) { if (r && !used[r.id]) { used[r.id] = 1; list.push(r); } }
+    for (let i = 0; i < must.length; i++) take(byIdR[must[i]]);
+    /* at least one enemy from each sourced game */
+    const games = ["No Signal Skullz", "Toasty Bros", "Mr. Toasty's Crypt", "Toaster Pit", "Crumb Dungeon"];
+    for (let g = 0; g < games.length; g++) {
+      const pool = ready.filter(function (r) { return r.role === "enemy" && r.game === games[g] && !used[r.id]; });
+      if (pool.length) take(pick(pool));
+    }
+    const rest = ready.filter(function (r) { return !used[r.id]; }).sort(function () { return Math.random() - 0.5; });
+    /* keep a mix: leftover official stars first, then enemies */
+    const leftoverStars = rest.filter(function (r) { return r.role === "star"; });
+    const leftoverEnemies = rest.filter(function (r) { return r.role !== "star"; });
+    const mixed = leftoverStars.concat(leftoverEnemies);
+    const cap = starTarget();
+    for (let i = 0; i < mixed.length && list.length < cap; i++) take(mixed[i]);
     for (let i = 0; i < list.length; i++) addStar(list[i]);
+    if (Q.has("tags")) for (let i = 0; i < stars.length; i++) stars[i].tag = 20;
   }
   function addStar(r) {
-    const st = { r: r, x: 0, y: 0, tx: 0, ty: 0, state: "idle", timer: rand(0.5, 4), phase: rand(0, 10), face: chance(0.5) ? 1 : -1, z: 0, vz: 0, tag: 0, glitch: 0.5, sc: 1, H: 50, speed: rand(20, 30), bubble: null, isStar: true };
+    if (!r.lines || !r.lines.length) r.lines = CHILL_LINES[r.game] || ["Just chilling"];
+    const st = { r: r, x: 0, y: 0, tx: 0, ty: 0, state: "idle", timer: rand(0.5, 4), phase: rand(0, 10), face: chance(0.5) ? 1 : -1, z: 0, vz: 0, tag: 0, glitch: 0.5, sc: 1, H: 50, speed: rand(20, 30), bubble: null, isStar: true, alpha: 1, shelter: false, b: null, goal: null };
     const p = starSpot(st); st.x = st.tx = p.x; st.y = st.ty = p.y;
+    const chill = Math.random();
+    if (chill < 0.2) { st.state = "sit"; st.timer = rand(6, 14); }
+    else if (chill < 0.35) { st.state = "lounge"; st.timer = rand(6, 16); }
     stars.push(st); return st;
   }
   function trimStars() { while (stars.length > starTarget()) { const st = stars.pop(); if (st.bubble) removeBubble(st.bubble); } }
   function updateStars(dt) {
     autoTagT -= dt;
-    if (autoTagT <= 0 && stars.length) { autoTagT = rand(4, 6.5); const st = pick(stars); st.tag = Math.max(st.tag, 3); }
+    if (autoTagT <= 0 && stars.length) {
+      autoTagT = rand(3.5, 6);
+      const pool = stars.filter(function (s) { return s.state !== "inside"; });
+      if (pool.length) { const st = pick(pool); st.tag = Math.max(st.tag, 3.4); }
+    }
+    census.enemies = 0; census.starsOut = 0;
     for (let i = 0; i < stars.length; i++) {
       const st = stars[i];
+      if (st.r.role === "enemy") census.enemies++; else census.starsOut++;
       const ds = depthScale(st.y);
-      st.H = (isMobile ? 58 : 82) * ds * st.r.h;
+      st.H = (isMobile ? 50 : 70) * ds * (st.r.h || 1);
+      st.H = Math.min(st.H, isMobile ? 54 : 78);
+      const Fsz = ATLAS[st.r.id], fr0 = Fsz && (Fsz.idle || Fsz.stand);
+      if (fr0) { const ww = fr0[2] * st.H / fr0[3], maxW = isMobile ? 56 : 80; if (ww > maxW) st.H *= maxW / ww; }
       st.sc = st.H / 44;
       if (st.vz || st.z > 0) { st.vz -= 900 * dt; st.z += st.vz * dt; if (st.z <= 0) { st.z = 0; st.vz = 0; } }
       if (st.tag > 0) st.tag -= dt;
       if (st.glitch > 0) st.glitch -= dt; else if (chance(dt * 0.025)) st.glitch = 0.28;
       st.timer -= dt;
+      if (st.state === "inside") {
+        census.inside++; if (st.b) st.b.inside++;
+        if (st.shelter || weather.kind === "acid") { st.timer = Math.max(st.timer, 0.4); continue; }
+        if (st.timer <= 0) { st.state = "exit"; st.timer = 0.45; st.alpha = 0; st.x = st.b ? st.b.doorX + rand(-4, 4) : st.x; st.y = st.b ? st.b.doorY + 2 : st.y; }
+        continue;
+      }
+      if (st.state === "enter") {
+        st.alpha = Math.max(0, st.timer / 0.45);
+        if (st.timer <= 0) { st.state = "inside"; st.timer = rand(4, 12); st.alpha = 1; if (st.b) st.b.flash = 0.6; }
+        continue;
+      }
+      if (st.state === "exit") {
+        st.alpha = 1 - Math.max(0, st.timer / 0.45);
+        st.y += dt * 14;
+        if (st.timer <= 0) { st.alpha = 1; st.state = "idle"; st.timer = rand(0.4, 1.6); st.goal = null; }
+        continue;
+      }
       if (st.state === "walk") {
         const dx = st.tx - st.x, dy = st.ty - st.y, d = Math.sqrt(dx * dx + dy * dy);
-        if (d < 2) { st.state = "idle"; st.timer = rand(2, 6); if (chance(0.12)) say(st, pick(st.r.lines), 2); }
-        else { const sp = st.speed * ds; st.x += dx / d * sp * dt; st.y += dy / d * sp * dt * 0.8; st.phase += dt * sp * 0.2; if (Math.abs(dx) > 1) st.face = dx > 0 ? 1 : -1; }
+        const hurry = (st.goal === "shelter" || weather.kind === "acid") ? 1.7 : 1;
+        if (d < 3) {
+          st.x = st.tx; st.y = st.ty;
+          if (st.goal === "shelter") { st.state = "enter"; st.timer = 0.45; }
+          else { st.state = chance(0.35) ? (chance(0.5) ? "sit" : "lounge") : "idle"; st.timer = rand(2, 8); if (chance(0.12)) say(st, pick(st.r.lines), 2); }
+        } else { const sp = st.speed * ds * hurry; st.x += dx / d * sp * dt; st.y += dy / d * sp * dt * 0.8; st.phase += dt * sp * 0.2; if (Math.abs(dx) > 1) st.face = dx > 0 ? 1 : -1; }
       } else if (st.timer <= 0) {
-        const p = starSpot(st); st.tx = p.x; st.ty = p.y; st.state = "walk";
+        if (weather.kind === "acid") continue;
+        const p = starSpot(st); st.tx = p.x; st.ty = p.y; st.state = "walk"; st.goal = "wander";
       }
     }
   }
   function starFrame(st) {
     const F = ATLAS[st.r.id];
-    if (st.r.pix) {
-      if (st.state === "walk") { const k = Math.floor(st.phase * 1.6) % 4; return F[k === 0 ? "walk1" : k === 1 ? "walk2" : k === 2 ? "walk3" : "walk2"]; }
-      return F.stand;
+    if (!F) return [0, 0, 1, 1];
+    const stand = F.stand || F.idle || F.walk || F.walk1;
+    if (st.state === "walk") {
+      if (F.walk1) {
+        const k = Math.floor(st.phase * 1.6) % 4;
+        return F[k === 0 ? "walk1" : k === 1 ? "walk2" : k === 2 ? "walk3" : "walk2"] || stand;
+      }
+      return (Math.floor(st.phase * 1.3) % 2 ? (F.walk || stand) : stand);
     }
-    if (st.state === "walk") return Math.floor(st.phase * 1.3) % 2 ? F.walk : F.idle;
-    return F.idle;
+    return stand;
   }
   function drawStar(st, t) {
-    if (!atlasReady) return;
-    const f = starFrame(st), H = st.H, W = f[2] * H / f[3];
+    if (!atlasReady || st.state === "inside") return;
+    const f = starFrame(st); if (!f) return;
+    const H = st.H, W = f[2] * H / f[3];
     const walking = st.state === "walk";
+    const sit = st.state === "sit" || st.state === "lounge";
+    if (st.alpha < 1) ctx.globalAlpha = st.alpha;
     ctx.drawImage(S.shadow, st.x - W * 0.42, st.y - 3, W * 0.84, 7);
-    /* star marker: glowing ring at the feet */
-    const pr = Math.max(W * 0.48, 12), pulse = 0.55 + 0.25 * Math.sin(t * 3 + st.phase);
+    /* marker ring — stars slightly brighter than visiting enemies */
+    const pr = Math.max(W * 0.48, 11), pulse = 0.5 + 0.25 * Math.sin(t * 3 + st.phase);
+    const isHero = st.r.role !== "enemy";
     ctx.save(); ctx.translate(st.x, st.y); ctx.scale(1, 0.32);
-    ctx.strokeStyle = "rgba(255,212,0," + (st.tag > 0 || st === hoverStar ? 0.95 : pulse * 0.7) + ")"; ctx.lineWidth = 2.2;
+    ctx.strokeStyle = "rgba(255,212,0," + (st.tag > 0 || st === hoverStar ? 0.95 : pulse * (isHero ? 0.7 : 0.4)) + ")"; ctx.lineWidth = isHero ? 2.2 : 1.5;
     ctx.beginPath(); ctx.arc(0, 0, pr, 0, TAU); ctx.stroke();
     ctx.restore();
-    if ((skyNow.lights > 0.4 && !isMobile) || st.tag > 0 || st === hoverStar) {
-      ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = st.tag > 0 || st === hoverStar ? 0.32 : 0.14;
+    if ((skyNow.lights > 0.4 && !isMobile && isHero) || st.tag > 0 || st === hoverStar) {
+      ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = (st.tag > 0 || st === hoverStar ? 0.32 : 0.14) * (st.alpha || 1);
       ctx.drawImage(S.glow, st.x - W * 0.8, st.y - st.z - H * 1.05, W * 1.6, H * 1.15);
-      ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = st.alpha || 1;
     }
-    const bob = walking ? -Math.abs(Math.sin(st.phase * Math.PI * 1.3)) * 2.2 * st.sc : 0;
+    const bob = walking ? -Math.abs(Math.sin(st.phase * Math.PI * 1.3)) * 2.2 * st.sc : (sit ? 3 : 0);
     const breathe = walking ? 1 : 1 + Math.sin(t * 2.4 + st.phase) * 0.022;
     ctx.save();
     ctx.translate(st.x, st.y - st.z + bob);
+    if (st.state === "lounge") ctx.rotate(-0.32 * (st.face || 1));
     if (st.face < 0) ctx.scale(-1, 1);
-    ctx.scale(1, breathe);
+    ctx.scale(1, sit ? breathe * 0.88 : breathe);
     if (st.r.pix) ctx.imageSmoothingEnabled = false;
     if (st.glitch > 0 && !reduced) {
       const bands = 5;
@@ -2144,28 +4095,44 @@
         const sy = f[1] + f[3] * b / bands, sh = f[3] / bands, off = (Math.random() - 0.5) * W * 0.25;
         ctx.drawImage(atlas, f[0], sy, f[2], sh, -W / 2 + off, -H + H * b / bands, W, H / bands + 0.5);
       }
-      ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = 0.35;
+      ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = 0.35 * (st.alpha || 1);
       ctx.drawImage(atlas, f[0], f[1], f[2], f[3], -W / 2 + 3, -H, W, H);
-      ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = st.alpha || 1;
     } else ctx.drawImage(atlas, f[0], f[1], f[2], f[3], -W / 2, -H, W, H);
     ctx.imageSmoothingEnabled = true;
     ctx.restore();
+    ctx.globalAlpha = 1;
   }
   function drawNameplates() {
     if (!atlasReady) return;
+    const plates = [];
     for (let i = 0; i < stars.length; i++) {
       const st = stars[i];
+      if (st.state === "inside") continue;
       if (!(st.tag > 0 || st === hoverStar)) continue;
       if (st.bubble && st.bubble.life > 0) continue;
       const a = st === hoverStar ? 1 : Math.min(1, st.tag * 2);
-      const x0 = st.x, y = st.y - st.z - st.H - 8;
       ctx.font = "800 10px ui-monospace, Menlo, Consolas, monospace";
       const w1 = ctx.measureText(st.r.name).width;
       ctx.font = "700 8px ui-monospace, Menlo, Consolas, monospace";
       const w2 = ctx.measureText(st.r.game.toUpperCase()).width;
       const bw = Math.max(w1, w2) + 14, bh = 27;
-      const x = clamp(x0, bw / 2 + 4, w - bw / 2 - 4);
-      ctx.globalAlpha = a;
+      const x0 = st.x, y0 = st.y - st.z - st.H - 8;
+      plates.push({ st: st, a: a, x: clamp(x0, bw / 2 + 4, w - bw / 2 - 4), y: y0, bw: bw, bh: bh });
+    }
+    plates.sort(function (a, b) { return a.y - b.y || a.x - b.x; });
+    for (let i = 0; i < plates.length; i++) {
+      const p = plates[i];
+      for (let j = 0; j < i; j++) {
+        const o = plates[j];
+        if (Math.abs(p.x - o.x) < (p.bw + o.bw) / 2 + 2 && Math.abs(p.y - o.y) < (p.bh + o.bh) / 2 + 2) {
+          p.y = o.y - o.bh - 3;
+        }
+      }
+    }
+    for (let i = 0; i < plates.length; i++) {
+      const p = plates[i], st = p.st, x = p.x, y = p.y, bw = p.bw, bh = p.bh;
+      ctx.globalAlpha = p.a;
       ctx.fillStyle = "rgba(0,0,0,0.88)"; roundRect(ctx, x - bw / 2, y - bh, bw, bh, 3); ctx.fill();
       ctx.strokeStyle = YELLOW; ctx.lineWidth = 1; ctx.stroke();
       ctx.fillStyle = YELLOW; ctx.fillRect(x - bw / 2, y - bh, 3, bh);
@@ -2178,7 +4145,7 @@
   function starAt(x, y) {
     let best = null, bd = 1e9;
     for (let i = 0; i < stars.length; i++) {
-      const st = stars[i], f = ATLAS[st.r.id][st.r.pix ? "stand" : "idle"], W = f[2] * st.H / f[3];
+      const st = stars[i], F = ATLAS[st.r.id] || {}, f = F.stand || F.idle || F.walk || F.walk1; if (!f) continue; const W = f[2] * st.H / f[3];
       if (x > st.x - W / 2 - 4 && x < st.x + W / 2 + 4 && y > st.y - st.z - st.H - 4 && y < st.y + 4) { const d = Math.abs(y - (st.y - st.H / 2)); if (d < bd) { bd = d; best = st; } }
     }
     return best;
@@ -2205,6 +4172,7 @@
   let weather = { kind: null, t: 0, dur: 0 };
   let storm = 0, flashA = 0, sweep = -1;
   function startWeather(kind, dur) {
+    if (kind === "acid") { startAcid(dur); return; }
     weather = { kind: kind, t: 0, dur: dur || rand(14, 22) };
     drops.length = 0;
     logEvent(kind === "rain" ? "Rain rolling into Toaster Town" : "Crumb snow is falling");
@@ -2214,6 +4182,11 @@
   function updateDrawWeather(dt) {
     if (!weather.kind) return;
     weather.t += dt;
+    if (weather.kind === "acid") {
+      updateDrawAcid(dt);
+      if (weather.t > weather.dur) { weather.kind = null; drops.length = 0; }
+      return;
+    }
     const fade = Math.min(1, weather.t / 2, (weather.dur - weather.t) / 2);
     if (weather.t > weather.dur) { weather.kind = null; drops.length = 0; return; }
     const target = (weather.kind === "rain" ? (isMobile ? 110 : 240) : (isMobile ? 60 : 130)) * Math.max(0, fade) * (reduced ? 0.4 : 1);
@@ -2307,7 +4280,7 @@
     if (nextEvent <= 0) {
       nextEvent = rand(14, 24);
       const pool = [["rally", 3], ["parade", 2.4], ["party", 3], ["storm", 2], ["holo", 2], ["family", 3], ["heart", 1.4], ["shower", skyNow.stars > 0.4 ? 1.5 : 0], ["golden", 1]];
-      if (!weather.kind) { pool.push(["rain", 1.8]); pool.push(["snow", 1.8]); }
+      if (!weather.kind) { pool.push(["rain", 1.6]); pool.push(["snow", 1.5]); pool.push(["acid", 2.4]); }
       let tot = 0; for (let i = 0; i < pool.length; i++) if (pool[i][0] !== lastEventName && !(fam && (pool[i][0] === "family" || pool[i][0] === "heart")) && !(partyT < partyDur && pool[i][0] === "party")) tot += pool[i][1];
       let r = Math.random() * tot;
       for (let i = 0; i < pool.length; i++) {
@@ -2320,7 +4293,7 @@
     if (nextSmall <= 0) {
       nextSmall = rand(2, 5);
       const c = pick(citizens);
-      if (c && c.state !== "inside" && !c.bubble && !c.family) say(c, pick(weather.kind === "rain" ? LINES.rain : weather.kind === "snow" ? LINES.snow : radioOn && chance(0.5) ? LINES.radio : LINES[c.skull ? "skull" : "toast"]));
+      if (c && c.state !== "inside" && !c.bubble && !c.family) say(c, pick(weather.kind === "acid" ? ["Acid rain!", "Get inside!", "It burns!"] : weather.kind === "rain" ? LINES.rain : weather.kind === "snow" ? LINES.snow : radioOn && chance(0.5) ? LINES.radio : LINES[c.skull ? "skull" : "toast"]));
       if (chance(0.25)) dropCrumb(w / 2 + rand(-120, 120), L.plaza.y + rand(-20, 30), rand(160, 260), 0);
     }
   }
@@ -2482,6 +4455,350 @@
       ctx.globalCompositeOperation = "source-over";
     }
   }
+
+  /* =====================================================================
+     v5: Crypt / Diner / No Signal buildings, Bros-and-Crypt street props,
+     glitched TVs, birds, and acid rain that sends everyone inside.
+     Guest art and the roster live in e2-roads.js (extended below in this file).
+     ===================================================================== */
+
+  BDRAW.crypt = function (g, B) {
+    /* stone tomb, yellow ink, arched door, torch sconces */
+    g.fillStyle = "#16141c";
+    g.beginPath(); g.moveTo(-58, 0); g.lineTo(-58, -72); g.lineTo(-22, -112); g.lineTo(22, -112); g.lineTo(58, -72); g.lineTo(58, 0); g.closePath();
+    g.fill(); stroke(g, YELLOW, 1.8);
+    g.fillStyle = "#0c0b10"; g.beginPath(); g.moveTo(-22, -112); g.lineTo(0, -124); g.lineTo(22, -112); g.closePath(); g.fill(); stroke(g, YELLOW, 1.2);
+    /* stained rose window */
+    g.fillStyle = "#0a0810"; g.beginPath(); g.arc(0, -88, 10, 0, TAU); g.fill(); g.strokeStyle = "rgba(255,212,0,0.7)"; g.lineWidth = 1; g.stroke();
+    g.strokeStyle = "rgba(255,80,180,0.45)"; g.beginPath(); g.moveTo(-8, -88); g.lineTo(8, -88); g.moveTo(0, -96); g.lineTo(0, -80); g.stroke();
+    /* arch door */
+    g.fillStyle = "#050407"; g.beginPath(); g.moveTo(-16, 0); g.lineTo(-16, -36); g.quadraticCurveTo(0, -58, 16, -36); g.lineTo(16, 0); g.closePath(); g.fill();
+    g.strokeStyle = YELLOW; g.lineWidth = 1.4; g.stroke();
+    g.strokeStyle = "rgba(255,212,0,0.35)"; g.beginPath(); g.moveTo(-10, 0); g.lineTo(-10, -32); g.quadraticCurveTo(0, -48, 10, -32); g.lineTo(10, 0); g.stroke();
+    /* side stones */
+    g.fillStyle = "#1c1824";
+    for (let i = 0; i < 3; i++) { g.fillRect(-54, -18 - i * 18, 14, 14); g.strokeStyle = "rgba(255,212,0,0.35)"; g.strokeRect(-54, -18 - i * 18, 14, 14); }
+    for (let i = 0; i < 3; i++) { g.fillRect(40, -18 - i * 18, 14, 14); g.strokeStyle = "rgba(255,212,0,0.35)"; g.strokeRect(40, -18 - i * 18, 14, 14); }
+    /* sconces (flames drawn live) */
+    g.fillStyle = "#2a2210"; g.fillRect(-38, -50, 5, 10); g.fillRect(33, -50, 5, 10);
+    g.fillStyle = YELLOW; g.fillRect(-39, -52, 7, 2); g.fillRect(32, -52, 7, 2);
+  };
+  BDRAW.diner = function (g, B) {
+    /* chrome diner car with a neon roof fin */
+    g.fillStyle = "#12141a";
+    roundRect(g, -64, -72, 128, 72, 10); g.fill(); stroke(g, YELLOW, 1.8);
+    g.fillStyle = "#d8dde4";
+    g.fillRect(-64, -18, 128, 6); g.fillStyle = "rgba(255,212,0,0.35)"; g.fillRect(-64, -18, 128, 1);
+    /* checker skirt */
+    for (let i = 0; i < 16; i++) { g.fillStyle = i % 2 ? YELLOW : "#0a0a0a"; g.fillRect(-64 + i * 8, -12, 8, 8); }
+    /* windows */
+    g.fillStyle = "#07080c"; g.fillRect(-52, -58, 40, 30); g.fillRect(8, -58, 32, 30);
+    g.strokeStyle = "rgba(255,212,0,0.55)"; g.lineWidth = 1; g.strokeRect(-52, -58, 40, 30); g.strokeRect(8, -58, 32, 30);
+    g.fillStyle = "rgba(255,180,80,0.12)"; g.fillRect(-52, -58, 40, 30);
+    /* door */
+    g.fillStyle = "#0a0a0c"; g.fillRect(-6, -42, 14, 42); g.strokeStyle = YELLOW; g.lineWidth = 1.2; g.strokeRect(-6, -42, 14, 42);
+    g.fillStyle = YELLOW; g.beginPath(); g.arc(5, -22, 1.4, 0, TAU); g.fill();
+    /* roof fin / neon bar */
+    g.fillStyle = "#1a0c10"; g.fillRect(-40, -82, 80, 10); g.strokeStyle = YELLOW; g.strokeRect(-40, -82, 80, 10);
+    g.fillStyle = "#ff4d6a"; g.globalAlpha = 0.85; g.fillRect(-36, -79, 72, 4); g.globalAlpha = 1;
+  };
+  BDRAW.signal = function (g, B) {
+    /* NO SIGNAL shack: antenna, boarded sides, TV window */
+    g.fillStyle = "#0c0c0e"; g.fillRect(-50, -78, 100, 78); stroke(g, YELLOW, 1.7);
+    g.fillStyle = "#141416"; g.beginPath(); g.moveTo(-56, -78); g.lineTo(0, -98); g.lineTo(56, -78); g.closePath(); g.fill(); stroke(g, YELLOW, 1.3);
+    /* antenna */
+    g.strokeStyle = YELLOW; g.lineWidth = 1.2; g.beginPath(); g.moveTo(0, -98); g.lineTo(0, -118); g.stroke();
+    g.beginPath(); g.moveTo(-10, -112); g.lineTo(10, -112); g.moveTo(-6, -116); g.lineTo(6, -116); g.stroke();
+    /* TV window (static drawn live) */
+    g.fillStyle = "#050505"; g.fillRect(-36, -64, 44, 36); g.strokeStyle = "rgba(122,240,255,0.7)"; g.lineWidth = 1.2; g.strokeRect(-36, -64, 44, 36);
+    g.fillStyle = "#111"; g.fillRect(16, -64, 26, 36); g.strokeStyle = YELLOW; g.strokeRect(16, -64, 26, 36);
+    /* door */
+    g.fillStyle = "#070707"; g.fillRect(20, -40, 18, 40); g.strokeStyle = YELLOW; g.lineWidth = 1; g.strokeRect(20, -40, 18, 40);
+    /* CRT stack silhouette on the side */
+    g.fillStyle = "#1a1a1e"; g.fillRect(-48, -28, 22, 16); g.strokeStyle = "rgba(255,212,0,0.5)"; g.strokeRect(-48, -28, 22, 16);
+    g.fillRect(-46, -42, 18, 14); g.strokeRect(-46, -42, 18, 14);
+  };
+
+  /* ---------- street props (TVs, bricks, pipes, graves, cabinets, billboard) ---------- */
+  const props = [];
+  let birds = [];
+  function bakePropSprites() {
+    S.brick = bake(18, 18, function (g) {
+      g.fillStyle = "#6a2a22"; g.fillRect(0, 0, 18, 18);
+      g.fillStyle = "#8a3a2c"; g.fillRect(1, 1, 16, 7); g.fillRect(1, 10, 16, 7);
+      g.strokeStyle = YELLOW; g.lineWidth = 0.8; g.strokeRect(0.5, 0.5, 17, 17);
+    }, dpr * 1.25);
+    S.qblock = bake(18, 18, function (g) {
+      g.fillStyle = "#c88818"; g.fillRect(0, 0, 18, 18);
+      g.fillStyle = "#ffd24a"; g.fillRect(1, 1, 16, 16);
+      g.strokeStyle = "#6a4a00"; g.lineWidth = 1; g.strokeRect(1, 1, 16, 16);
+      g.fillStyle = "#6a3a00"; g.font = "800 12px monospace"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("?", 9, 10);
+    }, dpr * 1.25);
+    S.pipe = bake(28, 46, function (g) {
+      g.fillStyle = "#1d6a24"; g.fillRect(6, 12, 16, 34);
+      g.fillStyle = "#2a9a34"; g.fillRect(6, 12, 5, 34);
+      g.fillStyle = "#145018"; g.fillRect(0, 0, 28, 14);
+      g.fillStyle = "#2a9a34"; g.fillRect(0, 0, 28, 4);
+      g.strokeStyle = YELLOW; g.lineWidth = 1; g.strokeRect(0.5, 0.5, 27, 13); g.strokeRect(6.5, 12, 15, 33);
+    }, dpr * 1.25);
+    S.grave = bake(18, 24, function (g) {
+      g.fillStyle = "#2a2a30";
+      g.beginPath(); g.moveTo(2, 24); g.lineTo(2, 8); g.quadraticCurveTo(9, 0, 16, 8); g.lineTo(16, 24); g.closePath(); g.fill();
+      g.strokeStyle = YELLOW; g.lineWidth = 1; g.stroke();
+      g.fillStyle = "rgba(255,212,0,0.7)"; g.font = "700 8px monospace"; g.textAlign = "center"; g.fillText("+", 9, 14);
+    }, dpr * 1.25);
+    S.cabinet = bake(28, 36, function (g) {
+      g.fillStyle = "#141416"; g.fillRect(2, 4, 24, 32); g.strokeStyle = YELLOW; g.lineWidth = 1; g.strokeRect(2, 4, 24, 32);
+      g.fillStyle = "#050505"; g.fillRect(5, 7, 18, 14); g.strokeStyle = "rgba(255,80,200,0.6)"; g.strokeRect(5, 7, 18, 14);
+      g.fillStyle = "#222"; g.fillRect(8, 24, 12, 5); g.strokeStyle = "rgba(255,212,0,0.4)"; g.strokeRect(8, 24, 12, 5);
+      /* cracked glass */
+      g.strokeStyle = "rgba(255,255,255,0.35)"; g.beginPath(); g.moveTo(7, 9); g.lineTo(14, 18); g.lineTo(20, 11); g.stroke();
+    }, dpr * 1.25);
+    S.crt = bake(26, 22, function (g) {
+      g.fillStyle = "#1a1a1e"; g.fillRect(0, 0, 26, 20); g.strokeStyle = YELLOW; g.lineWidth = 1; g.strokeRect(0.5, 0.5, 25, 19);
+      g.fillStyle = "#050505"; g.fillRect(3, 3, 20, 12);
+      g.fillStyle = "#222"; g.fillRect(9, 16, 8, 3);
+      g.fillRect(4, 20, 18, 2);
+    }, dpr * 1.25);
+    S.billboard = bake(90, 36, function (g) {
+      g.fillStyle = "#0a0a0c"; g.fillRect(0, 0, 90, 28); g.strokeStyle = YELLOW; g.lineWidth = 1.2; g.strokeRect(0.5, 0.5, 89, 27);
+      g.fillStyle = "#050505"; g.fillRect(6, 5, 78, 18);
+      g.fillStyle = "#1a1a1a"; g.fillRect(12, 28, 4, 8); g.fillRect(74, 28, 4, 8);
+    }, dpr * 1.25);
+  }
+  function placeProps() {
+    props.length = 0;
+    const add = function (type, x, y, opts) { const p = { type: type, x: x, y: y, ph: rand(0, TAU), sortY: y }; if (opts) for (const k in opts) p[k] = opts[k]; props.push(p); };
+    const cr = byId("crypt"), dn = byId("diner"), sg = byId("signal"), ac = byId("artcade"), hm = byId("home");
+    /* Toasty Bros bricks + pipe */
+    if (hm) {
+      add("pipe", hm.x - 70 * hm.k, hm.by + 2);
+      add("qblock", hm.x - 52 * hm.k, hm.by - 8, { stack: 1 });
+      add("brick", hm.x - 36 * hm.k, hm.by - 8);
+      add("brick", hm.x - 20 * hm.k, hm.by - 8);
+    }
+    /* Crypt graves + extra torch posts */
+    if (cr) {
+      add("grave", cr.x - 48 * cr.k, cr.by + 4);
+      add("grave", cr.x + 46 * cr.k, cr.by + 6, { ph: 1 });
+      add("grave", cr.x - 30 * cr.k, cr.by + 10, { ph: 2 });
+      add("torch", cr.x - 38 * cr.k, cr.by - 50 * cr.k);
+      add("torch", cr.x + 38 * cr.k, cr.by - 50 * cr.k);
+    }
+    /* Glitched TVs and a billboard */
+    const px = L.plaza.x, py = L.plaza.y;
+    add("tvstack", px + (isMobile ? 90 : 200), py - 6, { n: isMobile ? 2 : 3, sc: 1.45 });
+    add("tvstack", px - (isMobile ? 100 : 210), py - 4, { n: 2, sc: 1.45 });
+    if (sg) add("tvstack", sg.x - 48 * sg.k, sg.by + 6, { n: 3, sc: 1.3 });
+    if (dn) add("tvstack", dn.x + 58 * dn.k, dn.by + 4, { n: 2, sc: 1.2 });
+    add("billboard", isMobile ? w * 0.50 : w * 0.355, isMobile ? (L.by0 + 18) : (L.by0 - 6), { sc: isMobile ? 1.05 : 1.3 });
+    /* broken cabinets by the ARTCADE */
+    if (ac) {
+      add("cabinet", ac.x + 110 * ac.k, ac.by + 6);
+      add("cabinet", ac.x + 130 * ac.k, ac.by + 8, { dead: 1 });
+    }
+    if (dn) add("steam", dn.x + 50 * dn.k, dn.by - 80 * dn.k);
+    /* a pipe near the plaza for Bros feel */
+    add("pipe", px - (isMobile ? 50 : 90), py + 14);
+    add("qblock", px - (isMobile ? 30 : 70), py + 4);
+  }
+  function initBirds() {
+    birds = [];
+    const n = isMobile ? 3 : 6;
+    for (let i = 0; i < n; i++) birds.push({ x: rand(0, w), y: rand(20, L.hz * 0.7), sp: rand(28, 60) * (chance(0.5) ? 1 : -1), ph: rand(0, TAU), z: rand(0, 1) });
+  }
+  function drawProp(p, t) {
+    const y = p.y;
+    if (p.type === "brick" || p.type === "qblock") {
+      const img = p.type === "qblock" ? S.qblock : S.brick;
+      const bob = p.type === "qblock" ? Math.sin(t * 3 + p.ph) * 1.2 : 0;
+      ctx.drawImage(img, p.x - img.cw / 2, y - img.ch + bob, img.cw, img.ch);
+    } else if (p.type === "pipe") {
+      ctx.drawImage(S.pipe, p.x - S.pipe.cw / 2, y - S.pipe.ch, S.pipe.cw, S.pipe.ch);
+    } else if (p.type === "grave") {
+      const img = S.grave;
+      ctx.drawImage(img, p.x - img.cw / 2, y - img.ch, img.cw, img.ch);
+    } else if (p.type === "cabinet") {
+      ctx.drawImage(S.cabinet, p.x - S.cabinet.cw / 2, y - S.cabinet.ch, S.cabinet.cw, S.cabinet.ch);
+      if (!p.dead) drawStatic(p.x, y - S.cabinet.ch + 14, 16, 10, t + p.ph);
+    } else if (p.type === "tvstack") {
+      const n = p.n || 2, sc0 = p.sc || 1;
+      for (let i = 0; i < n; i++) {
+        const yy = y - i * 16 * sc0, sc = sc0 * (1 - i * 0.08);
+        ctx.drawImage(S.crt, p.x - 13 * sc, yy - 22 * sc, 26 * sc, 22 * sc);
+        drawStatic(p.x, yy - 14 * sc, 18 * sc, 10 * sc, t * (1.4 + i) + p.ph + i);
+      }
+    } else if (p.type === "billboard") {
+      const sc = p.sc || 1, bw = 90 * sc, bh = 36 * sc;
+      ctx.drawImage(S.billboard, p.x - bw / 2, y - bh, bw, bh);
+      drawStatic(p.x, y - 22 * sc, 74 * sc, 16 * sc, t * 2 + p.ph);
+      if (Math.floor(t * 2 + p.ph) % 5 !== 0) {
+        ctx.font = "800 " + (9 * sc) + "px ui-monospace, monospace"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillStyle = "#7af0ff"; ctx.globalAlpha = 0.7 + 0.3 * Math.sin(t * 9);
+        ctx.fillText("NO SIGNAL", p.x, y - 22 * sc);
+        ctx.globalAlpha = 1; ctx.textBaseline = "alphabetic";
+      }
+    } else if (p.type === "torch") {
+      drawTorchFlame(p.x, p.y, t + p.ph);
+    } else if (p.type === "steam") {
+      /* drawn in the steam pass */
+    }
+  }
+  function drawStatic(cx, cy, ww, hh, seed) {
+    const g = ctx;
+    g.save(); g.beginPath(); g.rect(cx - ww / 2, cy - hh / 2, ww, hh); g.clip();
+    const mode = Math.floor(seed * 3) % 3;
+    if (mode === 0) {
+      /* white noise */
+      for (let i = 0; i < (isMobile ? 18 : 40); i++) {
+        g.fillStyle = "rgba(255,255,255," + rand(0.15, 0.7) + ")";
+        g.fillRect(cx - ww / 2 + rand(0, ww), cy - hh / 2 + rand(0, hh), rand(1, 3), 1);
+      }
+    } else if (mode === 1) {
+      const cols = ["#ff2bd6", "#00f0ff", YELLOW, "#ffffff", "#7aff3a"];
+      const bh = hh / 5;
+      for (let i = 0; i < 5; i++) { g.fillStyle = cols[i]; g.fillRect(cx - ww / 2, cy - hh / 2 + i * bh, ww, bh + 0.5); }
+    } else {
+      g.fillStyle = "#0a0a0a"; g.fillRect(cx - ww / 2, cy - hh / 2, ww, hh);
+      g.fillStyle = "rgba(180,180,180,0.8)";
+      for (let y = 0; y < hh; y += 2) g.fillRect(cx - ww / 2, cy - hh / 2 + y, ww, 1);
+    }
+    /* RGB split flicker */
+    if (Math.random() < 0.15) { g.globalCompositeOperation = "lighter"; g.fillStyle = "rgba(255,0,80,0.15)"; g.fillRect(cx - ww / 2 + 1, cy - hh / 2, ww, hh); g.globalCompositeOperation = "source-over"; }
+    g.restore();
+  }
+  function drawTorchFlame(x, y, t) {
+    const flick = 0.8 + 0.2 * Math.sin(t * 14);
+    ctx.globalCompositeOperation = "lighter";
+    ctx.globalAlpha = 0.7 * flick; ctx.drawImage(S.warm, x - 10, y - 16, 20, 22);
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = "source-over";
+    ctx.fillStyle = YELLOW;
+    ctx.beginPath(); ctx.moveTo(x, y - 11 * flick); ctx.lineTo(x + 3, y - 2); ctx.lineTo(x - 3, y - 2); ctx.closePath(); ctx.fill();
+  }
+  function drawBuildingExtras(b, t) {
+    if (b.id === "crypt") {
+      drawTorchFlame(b.x - 36 * b.k, b.by - 52 * b.k, t);
+      drawTorchFlame(b.x + 36 * b.k, b.by - 52 * b.k, t + 1);
+    }
+    if (b.id === "signal") {
+      drawStatic(b.x - 14 * b.k, b.by - 46 * b.k, 36 * b.k, 26 * b.k, t * 2.2 + b.t);
+    }
+    if (b.id === "diner") {
+      const on = 0.65 + 0.35 * Math.sin(t * 6 + b.t);
+      ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = 0.45 * on;
+      ctx.drawImage(S.warm, b.x - 40 * b.k, b.by - 90 * b.k, 80 * b.k, 18);
+      ctx.globalAlpha = 1; ctx.globalCompositeOperation = "source-over";
+    }
+  }
+  function updateDrawBirds(dt, t) {
+    ctx.strokeStyle = YELLOW; ctx.lineWidth = 1.2;
+    for (let i = 0; i < birds.length; i++) {
+      const b = birds[i];
+      b.x += b.sp * dt; b.y += Math.sin(t * 2 + b.ph) * 6 * dt;
+      if (b.x > w + 20) { b.x = -20; b.y = rand(16, L.hz * 0.7); }
+      if (b.x < -20) { b.x = w + 20; b.y = rand(16, L.hz * 0.7); }
+      const flap = Math.sin(t * 10 + b.ph) * 5;
+      ctx.beginPath(); ctx.moveTo(b.x - 6, b.y + flap * 0.2); ctx.lineTo(b.x, b.y - flap * 0.3); ctx.lineTo(b.x + 6, b.y + flap * 0.2); ctx.stroke();
+    }
+  }
+  function updateDrawVents(dt, t) {
+    for (let i = 0; i < props.length; i++) {
+      const p = props[i]; if (p.type !== "steam") continue;
+      if (chance(dt * 3) && smoke.length < (isMobile ? 20 : 40)) smoke.push({ x: p.x + rand(-4, 4), y: p.y, r: rand(4, 8), vy: -rand(12, 24), life: rand(0.8, 1.6), max: 1.6, a: 0.4 });
+    }
+    const dn = byId("diner");
+    if (dn && chance(dt * 2) && smoke.length < (isMobile ? 20 : 40)) smoke.push({ x: dn.x + 48 * dn.k + rand(-3, 3), y: dn.by - 82 * dn.k, r: rand(5, 9), vy: -rand(14, 26), life: 1.2, max: 1.2, a: 0.35 });
+  }
+
+  /* ---------- acid rain ---------- */
+  let acidHold = 0;
+  function startAcid(dur) {
+    weather = { kind: "acid", t: 0, dur: dur || rand(16, 22) };
+    drops.length = 0;
+    setBanner(S.neon.acid, 7);
+    logEvent("Acid rain! Everyone get inside!");
+    sfx("glitch");
+    /* send every outdoor body to the nearest door */
+    const doors = buildings.filter(function (b) { return enterable(b) || b.id === "crypt" || b.id === "diner" || b.id === "signal"; });
+    function send(o, isGuest) {
+      if (!doors.length) return;
+      let best = doors[0], bd = 1e9;
+      for (let i = 0; i < doors.length; i++) { const d = dist(o.x, o.y, doors[i].doorX, doors[i].doorY); if (d < bd) { bd = d; best = doors[i]; } }
+      o.b = best;
+      if (isGuest) { o.tx = best.doorX + rand(-6, 6); o.ty = best.doorY; o.state = "walk"; o.goal = "shelter"; o.shelter = true; }
+      else { leaveQueue(o); releaseArcade(o); walkTo(o, best.doorX + rand(-6, 6), best.doorY, "shelter"); o.shelter = true; }
+    }
+    for (let i = 0; i < citizens.length; i++) { const c = citizens[i]; if (c.state === "inside" || c.family) { if (c.state === "inside") c.shelter = true; continue; } send(c, false); if (chance(0.25)) say(c, pick(["Acid rain!", "Get inside!", "It burns!", "Move!"]), 1.6); }
+    for (let i = 0; i < stars.length; i++) { const st = stars[i]; if (st.state === "inside") { st.shelter = true; continue; } send(st, true); }
+    for (let i = 0; i < trucks.length; i++) { const tr = trucks[i]; if (tr.parade || tr.off) continue; tr.stop = Math.max(tr.stop, 6); tr.pulled = true; }
+    acidHold = weather.dur;
+  }
+  function endAcidExits() {
+    for (let i = 0; i < citizens.length; i++) {
+      const c = citizens[i];
+      if (c.shelter && c.state === "inside") { c.timer = 0.01; c.shelter = false; }
+      c.shelter = false;
+    }
+    for (let i = 0; i < stars.length; i++) {
+      const st = stars[i];
+      if (st.shelter && st.state === "inside") { st.state = "exit"; st.timer = 0.45; st.alpha = 0; st.x = st.b ? st.b.doorX + rand(-4, 4) : st.x; st.y = st.b ? st.b.doorY + 2 : st.y; }
+      st.shelter = false;
+    }
+    for (let i = 0; i < trucks.length; i++) { trucks[i].pulled = false; if (trucks[i].stop > 1) trucks[i].stop = 0.4; }
+    logEvent("The acid rain has passed. Come back out.");
+  }
+  function updateDrawAcid(dt) {
+    if (weather.kind !== "acid") return;
+    const fade = Math.min(1, weather.t / 1.2, (weather.dur - weather.t) / 1.6);
+    if (weather.t > weather.dur - 0.05 && weather.t - dt <= weather.dur - 0.05) endAcidExits();
+    /* green sky wash */
+    ctx.fillStyle = "rgba(20, 60, 10," + (0.18 * fade) + ")"; ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = "rgba(80, 255, 40," + (0.05 * fade) + ")"; ctx.fillRect(0, 0, w, L.hz);
+    const target = (isMobile ? 90 : 200) * Math.max(0, fade) * (reduced ? 0.4 : 1);
+    while (drops.length < target) drops.push({ x: rand(-40, w + 40), y: rand(-h * 0.3, 0), vy: rand(420, 720), gy: rand(L.hz, h - 70), ph: rand(0, TAU) });
+    if (drops.length > target + 4) drops.length = Math.floor(target);
+    ctx.strokeStyle = "rgba(140,255,70,0.55)"; ctx.lineWidth = 1.4; ctx.beginPath();
+    for (let i = 0; i < drops.length; i++) {
+      const d = drops[i]; d.y += d.vy * dt; d.x -= 40 * dt;
+      if (d.y > d.gy) {
+        /* sizzle puff */
+        if (chance(0.35) && smoke.length < (isMobile ? 24 : 50)) smoke.push({ x: d.x, y: d.gy, r: rand(3, 6), vy: -rand(8, 18), life: 0.4, max: 0.4, a: 0.45, col: "rgba(160,255,80,0.4)" });
+        d.y = rand(-60, 0); d.x = rand(-40, w + 40); d.gy = rand(L.hz, h - 70);
+      }
+      ctx.moveTo(d.x, d.y); ctx.lineTo(d.x + 2, d.y - 12);
+    }
+    ctx.stroke();
+  }
+
+  /* hook new buildings + props into the existing world bake */
+  const _buildWorld0 = buildWorld;
+  buildWorld = function () {
+    _buildWorld0();
+    bakePropSprites();
+    placeProps();
+    initBirds();
+  };
+  const _drawBuilding0 = drawBuilding;
+  drawBuilding = function (b, t, dt) {
+    _drawBuilding0(b, t, dt);
+    drawBuildingExtras(b, t);
+  };
+
+  EVENTS.acid = function () { startAcid(); };
+
+  BDYN.crypt = function (b, t, dt, sa, gl) {
+    drawSign(S.neon.cryptn, 0, -116, sa, gl);
+  };
+  BDYN.diner = function (b, t, dt, sa, gl) {
+    drawSign(S.neon.dinern, 0, -100, sa, gl);
+    ctx.globalAlpha = 0.55 + 0.45 * Math.sin(t * 3);
+    ctx.drawImage(S.neon.open, 36 - S.neon.open.cw / 2, -58 - S.neon.open.ch / 2, S.neon.open.cw * 0.85, S.neon.open.ch * 0.85);
+    ctx.globalAlpha = 1;
+  };
+  BDYN.signal = function (b, t, dt, sa, gl) {
+    const flick = Math.sin(t * 11) > -0.4;
+    if (flick) drawSign(S.neon.signn, 0, -104, sa * (0.7 + 0.3 * Math.sin(t * 17)), true);
+  };
 
   /* ---------- audio: radio analyser + ambient synth (off by default) ---------- */
   const FALLBACK_TRACKS = [
@@ -2820,12 +5137,12 @@
   function updateHud(dt, parts) {
     hudAcc += dt; if (hudAcc < 0.25) return; hudAcc = 0;
     elClock.textContent = parts.weekday.toUpperCase() + "  " + parts.hour + ":" + parts.minute + ":" + parts.second + "  NY";
-    const extra = storm > 0 ? " · GLITCH STORM" : weather.kind === "rain" ? " · RAIN" : weather.kind === "snow" ? " · CRUMB SNOW" : party > 0.2 ? " · BLOCK PARTY" : radioOn ? " · ON AIR" : "";
+    const extra = storm > 0 ? " · GLITCH STORM" : weather.kind === "acid" ? " · ACID RAIN" : weather.kind === "rain" ? " · RAIN" : weather.kind === "snow" ? " · CRUMB SNOW" : party > 0.2 ? " · BLOCK PARTY" : radioOn ? " · ON AIR" : "";
     elShift.textContent = shiftNow.name + " · " + skyNow.label + extra;
-    const out = citizens.length - census.inside;
+    const enemies = census.enemies || 0, guestStars = (census.starsOut != null ? census.starsOut : stars.length);
     elCensus.textContent = isMobile
-      ? citizens.length + " CITIZENS · " + stars.length + " ARCADE STARS · " + (trucks.length + sky.length) + " TRUCKS"
-      : citizens.length + " CITIZENS  ·  " + stars.length + " ARCADE STARS  ·  " + census.inside + " INSIDE  ·  " + (trucks.length + sky.length) + " CYBERTRUCKS  ·  " + crumbs.length + " CRUMBS";
+      ? citizens.length + " CITIZENS · " + guestStars + " STARS · " + enemies + " ENEMIES · " + (trucks.length + sky.length) + " TRUCKS"
+      : citizens.length + " CITIZENS  ·  " + guestStars + " ARCADE STARS  ·  " + enemies + " ENEMIES  ·  " + census.inside + " INSIDE  ·  " + (trucks.length + sky.length) + " CYBERTRUCKS  ·  " + crumbs.length + " CRUMBS";
     if (elPlace) { if (hoverPlace) { elPlace.textContent = hoverPlace.label; elPlace.classList.add("on"); } else elPlace.classList.remove("on"); }
     canvas.style.cursor = hoverPlace || hoverStar ? "pointer" : "crosshair";
   }
@@ -2874,13 +5191,16 @@
     for (let i = 0; i < buildings.length; i++) { buildings[i].sortY = buildings[i].by; drawList.push(buildings[i]); }
     for (let i = 0; i < citizens.length; i++) { const c = citizens[i]; if (c.state !== "inside") { c.sortY = c.y; drawList.push(c); } }
     for (let i = 0; i < trucks.length; i++) { trucks[i].sortY = trucks[i].y; trucks[i].isTruck = true; drawList.push(trucks[i]); }
-    for (let i = 0; i < stars.length; i++) { stars[i].sortY = stars[i].y; drawList.push(stars[i]); }
+    for (let i = 0; i < stars.length; i++) { if (stars[i].state !== "inside") { stars[i].sortY = stars[i].y; drawList.push(stars[i]); } }
+    for (let i = 0; i < props.length; i++) { const p = props[i]; if (p.type === "steam") continue; p.isProp = true; p.sortY = p.y; drawList.push(p); }
     signalObjs(drawList);
     drawList.sort(function (a, b) { return a.sortY - b.sortY; });
     for (let i = 0; i < drawList.length; i++) {
       const o = drawList[i];
-      if (o.body) drawBuilding(o, time, dt); else if (o.isTruck) drawTruck(o, time); else if (o.isStar) drawStar(o, time); else if (o.isSignal) drawSignal(o); else drawCitizen(o, time);
+      if (o.body) drawBuilding(o, time, dt); else if (o.isTruck) drawTruck(o, time); else if (o.isStar) drawStar(o, time); else if (o.isSignal) drawSignal(o); else if (o.isProp) drawProp(o, time); else drawCitizen(o, time);
     }
+    updateDrawVents(dt, time);
+    updateDrawBirds(dt, time);
     updateDrawDust(dt);
     drawFamilyExtras(time);
     updateDrawSmoke(dt);
@@ -2951,8 +5271,12 @@
     play: toggleRadio,
     places: function () { return places.map(function (p) { return { id: p.id, href: p.href, x: p.x + p.w / 2, y: p.y + p.h * 0.6 }; }); },
     sound: toggleSound,
-    stats: function () { return { fps: Math.round(fps), quality: quality, citizens: citizens.length, inside: census.inside, trucks: trucks.length, offroad: trucks.filter(function (t) { return !!t.off; }).length, airborne: trucks.filter(function (t) { return t.air; }).length, sky: sky.length, stars: stars.length, dust: dust.length, crumbs: crumbs.length, bubbles: bubbles.length, w: w, h: h, dpr: dpr, mobile: isMobile }; },
-    starList: function () { return stars.map(function (st) { return { id: st.r.id, name: st.r.name, game: st.r.game, x: Math.round(st.x), y: Math.round(st.y), h: Math.round(st.H) }; }); },
+    stats: function () { return { fps: Math.round(fps), quality: quality, citizens: citizens.length, inside: census.inside, trucks: trucks.length, offroad: trucks.filter(function (t) { return !!t.off; }).length, airborne: trucks.filter(function (t) { return t.air; }).length, sky: sky.length, stars: stars.length, enemies: census.enemies || 0, dust: dust.length, crumbs: crumbs.length, bubbles: bubbles.length, weather: weather.kind, w: w, h: h, dpr: dpr, mobile: isMobile }; },
+    starList: function () { return stars.map(function (st) { return { id: st.r.id, name: st.r.name, game: st.r.game, role: st.r.role, state: st.state, x: Math.round(st.x), y: Math.round(st.y), h: Math.round(st.H) }; }); },
+    startAcid: startAcid,
+    tagAll: function (sec) { for (let i = 0; i < stars.length; i++) if (stars[i].state !== "inside") stars[i].tag = sec || 12; },
+    tagEnemies: function (sec) { for (let i = 0; i < stars.length; i++) if (stars[i].state !== "inside" && stars[i].r.role === "enemy") stars[i].tag = sec || 14; },
+    layout: function () { return buildings.map(function (b) { return { id: b.id, x: b.x, by: b.by, k: b.k, cw: b.body && b.body.cw, ch: b.body && b.body.ch, x0: b.x0, x1: b.x1, doorX: b.doorX, doorY: b.doorY }; }); },
     _dbg: function (k) { if (k === "nostars") { stars.length = 0; } if (k === "nosky") { sky.length = 0; } if (k === "notrucks") { trucks.length = 0; } },
     tagStar: function (id) { for (let i = 0; i < stars.length; i++) if (stars[i].r.id === id) stars[i].tag = 4; },
     pause: function () { hidden = true; running = false; if (audio) audio.pause(); },
