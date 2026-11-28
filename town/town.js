@@ -1,5 +1,4 @@
-/* Toaster Town v5 — enemies from Coty's games chilling in town, Crypt/Bros/No-Signal feel,
-   glitched TVs, more storefronts, and acid rain that sends everyone inside.
+/* Toaster Town v6 — Home-like neon skyline and a more alive sky, on top of v5.
    Guest art is packed from official game sprites (Skullz, Toasty Bros, the Crypt, Toaster Pit, Crumb Dungeon).
    Official logo is composited from the PNG, never redrawn.
    Visible social label is "Twitter", never "X". No chat features.
@@ -129,16 +128,16 @@
   }
   /* sky keyframes: [hour, top, bottom, stars, lights, label] */
   const SKY = [
-    [0, [2, 2, 9], [12, 7, 16], 1, 0.85, "NIGHT"],
-    [4.8, [3, 3, 12], [16, 9, 20], 1, 0.8, "NIGHT"],
+    [0, [2, 3, 8], [41, 18, 10], 1, 0.92, "NIGHT"],
+    [4.8, [3, 3, 12], [32, 14, 16], 1, 0.88, "NIGHT"],
     [6.2, [26, 16, 46], [120, 58, 26], 0.45, 0.6, "DAWN"],
     [7.6, [24, 26, 48], [96, 76, 34], 0.08, 0.35, "MORNING"],
     [12, [20, 26, 40], [74, 66, 34], 0.03, 0.25, "DAY"],
     [16.2, [26, 22, 38], [98, 70, 24], 0.05, 0.35, "AFTERNOON"],
-    [18.2, [42, 14, 34], [160, 72, 10], 0.3, 0.6, "DUSK"],
-    [19.6, [12, 6, 24], [52, 22, 14], 0.8, 0.8, "EVENING"],
-    [22, [3, 3, 10], [14, 8, 12], 1, 0.85, "NIGHT"],
-    [24, [2, 2, 9], [12, 7, 16], 1, 0.85, "NIGHT"]
+    [18.2, [42, 14, 34], [160, 72, 10], 0.3, 0.65, "DUSK"],
+    [19.6, [14, 6, 22], [58, 22, 14], 0.82, 0.85, "EVENING"],
+    [22, [2, 3, 10], [32, 14, 12], 1, 0.92, "NIGHT"],
+    [24, [2, 3, 8], [41, 18, 10], 1, 0.92, "NIGHT"]
   ];
   function skyAt(hr) {
     hr = ((hr % 24) + 24) % 24;
@@ -762,16 +761,33 @@
     if (hr > 6 && hr < 19.5) {
       const p = (hr - 6) / 13.5;
       const sx = w * (0.1 + 0.8 * p), sy = hz * (0.9 - Math.sin(p * Math.PI) * 0.75);
-      g.globalCompositeOperation = "lighter";
-      g.globalAlpha = 0.55; g.drawImage(S.warm, sx - 102, sy - 102, 204, 204);
-      g.globalAlpha = 0.9; g.drawImage(S.glow, sx - 29, sy - 29, 58, 58);
-      g.globalCompositeOperation = "source-over"; g.globalAlpha = 1;
-      g.fillStyle = "#FFE680"; g.beginPath(); g.arc(sx, sy, 16, 0, TAU); g.fill();
+      const sunR = isMobile ? 20 : 32;
+      const halo = g.createRadialGradient(sx, sy, sunR * 0.15, sx, sy, sunR * 2.6);
+      halo.addColorStop(0, "rgba(255,212,0,0.62)");
+      halo.addColorStop(0.32, "rgba(255,60,30,0.26)");
+      halo.addColorStop(0.68, "rgba(0,240,255,0.08)");
+      halo.addColorStop(1, "rgba(0,0,0,0)");
+      g.fillStyle = halo; g.fillRect(sx - sunR * 2.6, sy - sunR * 2.6, sunR * 5.2, sunR * 5.2);
+      g.save(); g.beginPath(); g.rect(0, 0, w, hz); g.clip();
+      const sg = g.createLinearGradient(0, sy - sunR, 0, sy + sunR * 0.2);
+      sg.addColorStop(0, "#FFE84D"); sg.addColorStop(0.6, "#FFD400"); sg.addColorStop(1, "#FF3E24");
+      g.fillStyle = sg; g.beginPath(); g.arc(sx, sy, sunR, 0, TAU); g.fill();
+      g.globalCompositeOperation = "screen";
+      g.fillStyle = "rgba(255,30,60,0.32)"; g.beginPath(); g.arc(sx - 2.5, sy, sunR * 0.98, 0, TAU); g.fill();
+      g.fillStyle = "rgba(0,240,255,0.26)"; g.beginPath(); g.arc(sx + 2.5, sy, sunR * 0.98, 0, TAU); g.fill();
+      g.globalCompositeOperation = "source-over";
+      g.fillStyle = "rgba(8,6,14,0.58)";
+      const step = Math.max(3, sunR / 15);
+      for (let ly = sy - sunR; ly < hz; ly += step) g.fillRect(sx - sunR - 4, ly, sunR * 2 + 8, 1.3);
+      g.restore();
     } else {
       const hh = hr < 12 ? hr + 24 : hr;
       const p = clamp((hh - 19.5) / 10.5, 0, 1);
       const mx = w * (0.85 - 0.7 * p), my = hz * (0.75 - Math.sin(p * Math.PI) * 0.55);
-      g.globalCompositeOperation = "lighter"; g.globalAlpha = 0.35; g.drawImage(S.white, mx - 51, my - 51, 102, 102); g.globalAlpha = 1; g.globalCompositeOperation = "source-over";
+      g.globalCompositeOperation = "lighter";
+      g.globalAlpha = 0.28; g.drawImage(S.white, mx - 51, my - 51, 102, 102);
+      g.globalAlpha = 0.22; g.fillStyle = "rgba(0,240,255,0.5)"; g.beginPath(); g.arc(mx, my, 22, 0, TAU); g.fill();
+      g.globalAlpha = 1; g.globalCompositeOperation = "source-over";
       g.fillStyle = "#F5EDCF"; g.beginPath(); g.arc(mx, my, 13, 0, TAU); g.fill();
       g.fillStyle = rgba(sk.top, 1); g.beginPath(); g.arc(mx + 6, my - 3, 11, 0, TAU); g.fill();
     }
@@ -795,7 +811,7 @@
     if (sk.stars > 0.02) {
       for (let i = 0; i < stars2.length; i++) {
         const s = stars2[i]; const a = 0.5 + 0.5 * Math.sin(t * s.sp + s.ph);
-        ctx.globalAlpha = sk.stars * a; ctx.fillStyle = i % 5 ? "#FFF6D8" : YELLOW; ctx.fillRect(s.x, s.y, s.s, s.s);
+        ctx.globalAlpha = sk.stars * a; ctx.fillStyle = s.cyan ? "#00F0FF" : (i % 5 ? "#FFF6D8" : YELLOW); ctx.fillRect(s.x, s.y, s.s, s.s);
       }
       ctx.globalAlpha = 1;
     }
@@ -4798,6 +4814,577 @@
   BDYN.signal = function (b, t, dt, sa, gl) {
     const flick = Math.sin(t * 11) > -0.4;
     if (flick) drawSign(S.neon.signn, 0, -104, sa * (0.7 + 0.3 * Math.sin(t * 17)), true);
+  };
+
+  /* =====================================================================
+     v6: Home-like neon city skyline (parallax layers, lit windows, buzzing
+     neon signs, rooftop billboards, antennas, searchlights, blimps, drones).
+     Palette and sign typography follow the Home page skyline.js:
+     yellow #FFD400, cyan #00F0FF, red #FF1E3C, amber #FF8A00.
+     Visible social label is "Twitter", never "X". Official logo is composited,
+     never redrawn. Detail scales down on phone.
+     ===================================================================== */
+  const CYAN = "#00F0FF", REDN = "#FF1E3C", AMB = "#FF8A00";
+  let cityFlickers = [], citySigns = [], cityBillboards = [];
+  let searchlights = [], blimps = [], drones = [], holotoasts = [];
+  let skyGlitch = { on: 0, x: 0, y: 0, w: 0, h: 0, dx: 0 };
+
+  function seedRng(seed) {
+    let s = seed >>> 0;
+    return function () {
+      s = (s * 1664525 + 1013904223) >>> 0;
+      return s / 4294967296;
+    };
+  }
+
+  function neonStrokeOff(g, drawPath, col, lw, alpha) {
+    g.save();
+    g.lineCap = "round"; g.lineJoin = "round";
+    g.globalCompositeOperation = "screen";
+    g.strokeStyle = col; g.globalAlpha = (alpha || 1) * 0.28; g.lineWidth = lw * 3.6;
+    g.beginPath(); drawPath(g); g.stroke();
+    g.globalAlpha = (alpha || 1) * 0.7; g.lineWidth = lw * 1.7;
+    g.beginPath(); drawPath(g); g.stroke();
+    g.strokeStyle = col === YELLOW ? "#FFF7B8" : (col === CYAN ? "#DFFFFF" : "#FFD4DA");
+    g.globalAlpha = (alpha || 1) * 0.95; g.lineWidth = Math.max(1, lw * 0.7);
+    g.beginPath(); drawPath(g); g.stroke();
+    g.restore();
+  }
+  function drawCautionBar(g, x, y, ww, hh) {
+    g.save(); g.beginPath(); g.rect(x, y, ww, hh); g.clip();
+    g.fillStyle = "#070709"; g.fillRect(x, y, ww, hh);
+    g.fillStyle = YELLOW;
+    const step = 9;
+    for (let sx = x - hh; sx < x + ww + hh; sx += step) {
+      g.beginPath();
+      g.moveTo(sx, y + hh); g.lineTo(sx + 4.5, y + hh); g.lineTo(sx + 4.5 + hh, y); g.lineTo(sx + hh, y);
+      g.closePath(); g.fill();
+    }
+    g.restore();
+  }
+  function neonWord(g, text, cx0, y, size, col, maxW) {
+    g.save();
+    g.textAlign = "center"; g.textBaseline = "middle";
+    g.font = "800 " + size + "px ui-monospace, Menlo, Consolas, monospace";
+    if (maxW) {
+      let s = size;
+      while (s > 6 && g.measureText(text).width > maxW) { s -= 0.5; g.font = "800 " + s + "px ui-monospace, Menlo, Consolas, monospace"; }
+    }
+    g.lineJoin = "round"; g.lineCap = "round";
+    g.strokeStyle = col; g.globalAlpha = 0.35; g.lineWidth = 5; g.strokeText(text, cx0, y);
+    g.globalAlpha = 0.8; g.lineWidth = 2.2; g.strokeText(text, cx0, y);
+    g.fillStyle = col === YELLOW ? "#FFF6C2" : (col === CYAN ? "#E8FFFF" : "#FFE0E6");
+    g.globalAlpha = 1; g.fillText(text, cx0, y);
+    g.restore();
+  }
+  function tubeWord(g, text, cx0, y, size, cols) {
+    g.save();
+    g.textAlign = "left"; g.textBaseline = "middle";
+    g.font = "800 " + size + "px ui-monospace, Menlo, Consolas, monospace";
+    let total = 0;
+    for (let i = 0; i < text.length; i++) total += g.measureText(text[i]).width;
+    let x = cx0 - total / 2;
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i], col = cols[i % cols.length], cw = g.measureText(ch).width;
+      g.strokeStyle = col; g.globalAlpha = 0.45; g.lineWidth = 3.4; g.strokeText(ch, x, y);
+      g.fillStyle = col === YELLOW ? "#FFF6C2" : (col === CYAN ? "#E8FFFF" : "#FFD0D6");
+      g.globalAlpha = 1; g.fillText(ch, x, y);
+      x += cw;
+    }
+    g.restore();
+  }
+  function drawSkullFace(g, cx0, cy, s, col) {
+    g.save();
+    neonStrokeOff(g, function (p) {
+      p.strokeRect(cx0 - s * 0.7, cy - s * 0.45, s * 1.4, s * 0.9);
+    }, col, 1.4, 0.9);
+    g.fillStyle = col; g.font = "800 " + Math.max(8, s * 0.7) + "px ui-monospace, monospace";
+    g.textAlign = "center"; g.textBaseline = "middle";
+    g.fillText("x_x", cx0, cy);
+    g.restore();
+  }
+  function paintSign(g, x, y, ww, hh, spec) {
+    const kind = spec.kind, col = spec.col || YELLOW;
+    if (kind === "caution-card") {
+      g.fillStyle = "#0a0a0c"; g.fillRect(x, y, ww, hh);
+      g.strokeStyle = col; g.lineWidth = 1.4; g.strokeRect(x + 0.5, y + 0.5, ww - 1, hh - 1);
+      drawCautionBar(g, x, y, ww, 5);
+      drawCautionBar(g, x, y + hh - 5, ww, 5);
+      neonWord(g, spec.title || "", x + ww / 2, y + hh * 0.38, Math.min(12, hh * 0.34), col, ww - 8);
+      neonWord(g, spec.sub || "", x + ww / 2, y + hh * 0.68, Math.min(10, hh * 0.28), col, ww - 8);
+    } else if (kind === "therapy-tubes") {
+      g.fillStyle = "#08080c"; g.fillRect(x, y, ww, hh);
+      g.strokeStyle = YELLOW; g.lineWidth = 1.2; g.strokeRect(x + 0.5, y + 0.5, ww - 1, hh - 1);
+      const cols = [CYAN, REDN, YELLOW, CYAN, CYAN, REDN, CYAN];
+      tubeWord(g, "THERAPY", x + ww / 2, y + hh * 0.34, Math.min(13, hh * 0.38), cols);
+      tubeWord(g, "TOASTER", x + ww / 2, y + hh * 0.68, Math.min(13, hh * 0.38), cols);
+    } else if (kind === "toaster-tube") {
+      g.fillStyle = "#08080c"; g.fillRect(x, y, ww, hh);
+      neonStrokeOff(g, function (p) { p.strokeRect(x + 1, y + 1, ww - 2, hh - 2); }, CYAN, 1.2, 0.85);
+      neonWord(g, "TOASTED", x + ww / 2, y + hh / 2, Math.min(13, hh * 0.52), CYAN, ww - 6);
+    } else if (kind === "skull-tube") {
+      g.fillStyle = "#100208"; g.fillRect(x, y, ww, hh);
+      neonStrokeOff(g, function (p) { p.strokeRect(x + 1, y + 1, ww - 2, hh - 2); }, REDN, 1.3, 0.9);
+      drawSkullFace(g, x + ww / 2, y + hh / 2, Math.min(ww, hh) * 0.42, YELLOW);
+    } else if (kind === "logo-card") {
+      g.fillStyle = "#0a0a0c"; g.fillRect(x, y, ww, hh);
+      g.strokeStyle = YELLOW; g.lineWidth = 1.4; g.strokeRect(x + 0.5, y + 0.5, ww - 1, hh - 1);
+      drawCautionBar(g, x, y, ww, 4);
+      drawCautionBar(g, x, y + hh - 4, ww, 4);
+      /* logo is composited live if ready; baked fallback text */
+      neonWord(g, "MR.TOASTY", x + ww / 2, y + hh / 2, Math.min(12, hh * 0.38), YELLOW, ww - 8);
+    } else {
+      /* neon-text */
+      g.fillStyle = "#08080c"; g.fillRect(x, y, ww, hh);
+      neonStrokeOff(g, function (p) { p.strokeRect(x + 1, y + 1, ww - 2, hh - 2); }, col, 1.2, 0.85);
+      const lines = spec.lines || [spec.label || ""];
+      const lh = hh / (lines.length + 0.4);
+      for (let i = 0; i < lines.length; i++) {
+        neonWord(g, lines[i], x + ww / 2, y + lh * (i + 0.75), Math.min(13, lh * 0.75), col, ww - 6);
+      }
+    }
+  }
+
+  const CITY_SIGNS = [
+    { kind: "therapy-tubes", label: "THERAPY TOASTER", col: YELLOW, w: 118, h: 36 },
+    { kind: "caution-card", title: "PROUDLY", sub: "VETERAN-OWNED", col: YELLOW, label: "PROUDLY VETERAN-OWNED", w: 112, h: 32 },
+    { kind: "logo-card", label: "MR.TOASTY", col: YELLOW, w: 96, h: 34, logo: 1 },
+    { kind: "caution-card", title: "BURNT", sub: "OFFERINGS", col: REDN, label: "BURNT OFFERINGS", w: 92, h: 30 },
+    { kind: "neon-text", lines: ["Twitter"], col: CYAN, label: "Twitter", w: 72, h: 20 },
+    { kind: "neon-text", lines: ["ARTCADE"], col: CYAN, label: "ARTCADE", w: 80, h: 20 },
+    { kind: "toaster-tube", label: "TOASTED", col: CYAN, w: 70, h: 20 },
+    { kind: "neon-text", lines: ["THE CRYPT"], col: YELLOW, label: "THE CRYPT", w: 84, h: 20 },
+    { kind: "neon-text", lines: ["TOASTY BROS"], col: YELLOW, label: "TOASTY BROS", w: 96, h: 20 },
+    { kind: "neon-text", lines: ["NO SIGNAL"], col: CYAN, label: "NO SIGNAL", w: 86, h: 20 },
+    { kind: "neon-text", lines: ["SKULLZ"], col: REDN, label: "SKULLZ", w: 70, h: 20 },
+    { kind: "neon-text", lines: ["CRUMB", "DUNGEON"], col: AMB, label: "CRUMB DUNGEON", w: 80, h: 28 },
+    { kind: "neon-text", lines: ["TOASTER PIT"], col: AMB, label: "TOASTER PIT", w: 96, h: 20 },
+    { kind: "skull-tube", label: "x_x", col: YELLOW, w: 44, h: 22 },
+    { kind: "neon-text", lines: ["TOASTER", "KART"], col: CYAN, label: "TOASTER KART", w: 72, h: 28 }
+  ];
+
+  function bakeNeonSkyline() {
+    antennas.length = 0;
+    cityFlickers = [];
+    citySigns = [];
+    cityBillboards = [];
+    const pad = PARALLAX_PAD;
+    const rnd = seedRng(0x544F4132 ^ ((w * 17 + h * 11) >>> 0));
+
+    function makeLayer(layer) {
+      /* canvas reaches from just under the HUD/logo down to the horizon so
+         gutter towers can rise beside the logo, like the Home side-city. */
+      const bandH = layer === 0 ? (isMobile ? 128 : 230) : (isMobile ? 96 : 178);
+      const cw = w + pad * 2;
+      const ch = Math.max(bandH + 36, Math.round(L.hz - (isMobile ? 62 : 70)));
+      return bake(cw, ch, function (g, ww, hh) {
+        const base = hh;
+        let x = -8;
+        const styles = ["glass", "brick", "deco", "brutal"];
+        const minW = layer === 0 ? (isMobile ? 22 : 28) : (isMobile ? 32 : 46);
+        const maxW = layer === 0 ? (isMobile ? 52 : 70) : (isMobile ? 70 : 120);
+        const gap = layer === 0 ? (isMobile ? 3 : 5) : (isMobile ? 6 : 10);
+        let signBudget = layer === 1 ? (isMobile ? 6 : 12) : (isMobile ? 2 : 5);
+        let bIdx = 0;
+        while (x < cw) {
+          const bw = lerp(minW, maxW, rnd() * 0.7 + rnd() * 0.3);
+          const tall = rnd() < (layer === 0 ? 0.18 : 0.28);
+          const bh = lerp(bandH * 0.28, bandH, Math.pow(rnd(), tall ? 0.55 : 0.85));
+          const by = base - bh;
+          const style = styles[(rnd() * styles.length) | 0];
+          const tone = (layer === 0 ? 10 : 16) + (style === "brick" ? 7 : 0) + ((rnd() * 5) | 0);
+          /* body */
+          g.fillStyle = "rgb(" + tone + "," + (tone - 1) + "," + (tone + 3) + ")";
+          g.fillRect(x, by, bw, bh);
+          /* RGB edge fringe like Home */
+          if (layer === 1) {
+            g.fillStyle = "rgba(0,240,255,0.35)"; g.fillRect(x, by, 1.2, bh);
+            g.fillStyle = "rgba(255,30,60,0.28)"; g.fillRect(x + bw - 1.2, by, 1.2, bh);
+          } else {
+            g.strokeStyle = "rgba(255,212,0,0.10)"; g.lineWidth = 1; g.strokeRect(x + 0.5, by + 0.5, bw - 1, bh);
+          }
+          /* roof cap */
+          g.fillStyle = layer === 1 ? "rgba(255,212,0,0.22)" : "rgba(255,212,0,0.10)";
+          g.fillRect(x - 1, by - 3, bw + 2, 3);
+
+          /* windows */
+          const padX = layer === 0 ? 3 : 6, padY = 7;
+          const cell = layer === 0 ? 5.5 : 8;
+          const cols = Math.max(2, Math.floor((bw - padX * 2) / cell));
+          const stepX = (bw - padX * 2) / cols;
+          const cellW = stepX * (style === "glass" ? 0.78 : 0.56);
+          const stepY = layer === 0 ? 6 : 10;
+          const cellH = stepY * 0.52;
+          let floor = 0;
+          for (let wy = by + padY; wy < base - 6; wy += stepY) {
+            floor++;
+            if (layer === 1 && floor % 8 === 3) {
+              g.fillStyle = "rgba(0,0,0,0.35)"; g.fillRect(x + 2, wy, bw - 4, stepY * 0.7);
+              continue;
+            }
+            const clusterLit = rnd() > (layer === 0 ? 0.42 : 0.32);
+            let span = 0, spanCol = YELLOW;
+            for (let ci = 0; ci < cols; ci++) {
+              if (span <= 0) {
+                span = 1 + ((rnd() * 3) | 0);
+                const ck = rnd();
+                spanCol = ck < 0.14 ? CYAN : ck < 0.22 ? REDN : (ck < 0.36 ? AMB : YELLOW);
+              }
+              span--;
+              const lit = clusterLit && rnd() > 0.18;
+              if (!lit) continue;
+              const wx = x + padX + ci * stepX + (stepX - cellW) * 0.5;
+              g.fillStyle = spanCol;
+              g.globalAlpha = 0.35 + rnd() * 0.55;
+              g.fillRect(wx, wy, cellW, cellH);
+              g.globalAlpha = 1;
+              if (layer === 1 && rnd() < 0.12 && cityFlickers.length < (isMobile ? 18 : 40)) {
+                cityFlickers.push({ layer: layer, x: wx, y: wy, w: cellW, h: cellH, col: spanCol, ph: rnd() * TAU, rate: 0.5 + rnd() * 1.6, by: by, bh: bh, base: base });
+              }
+            }
+          }
+
+          /* rooftop gear */
+          if (rnd() < 0.4) {
+            const ah = 8 + rnd() * (layer === 1 ? 22 : 16);
+            const ax = x + bw * (0.3 + rnd() * 0.4);
+            g.strokeStyle = layer === 1 ? "rgba(255,212,0,0.55)" : "rgba(255,212,0,0.22)";
+            g.lineWidth = 1; g.beginPath(); g.moveTo(ax, by); g.lineTo(ax, by - ah); g.stroke();
+            antennas.push({ layer: layer, x: ax, y: by - ah, hh: hh, ph: rnd() * TAU, sp: 1.1 + rnd() * 2.2 });
+          }
+          if (layer === 1 && rnd() < 0.28) {
+            /* water tank / HVAC */
+            const tw = 8 + rnd() * 12, th = 6 + rnd() * 8;
+            const tx = x + 4 + rnd() * Math.max(2, bw - tw - 8);
+            g.fillStyle = "#16161c"; g.fillRect(tx, by - th, tw, th);
+            g.strokeStyle = "rgba(0,240,255,0.35)"; g.strokeRect(tx, by - th, tw, th);
+          }
+
+          /* neon signs / billboards on mid (and a few far) roofs or facades */
+          if (signBudget > 0 && bw > 36 && bh > 50 && rnd() < (layer === 1 ? 0.55 : 0.22)) {
+            const spec = CITY_SIGNS[(bIdx * 3 + (rnd() * CITY_SIGNS.length) | 0) % CITY_SIGNS.length];
+            const sw = Math.min(spec.w, bw + 8), sh = spec.h;
+            const roof = rnd() < 0.7;
+            const sx = x + (bw - sw) * 0.5, sy = roof ? by - sh - 5 : by + 10 + rnd() * Math.max(4, bh * 0.25);
+            paintSign(g, sx, sy, sw, sh, spec);
+            citySigns.push({
+              layer: layer, x: sx, y: sy, w: sw, h: sh, spec: spec,
+              ph: rnd() * TAU, hh: hh, dropout: 0, buzz: 0.6 + rnd() * 1.4
+            });
+            if (spec.logo) cityBillboards.push({ layer: layer, x: sx, y: sy, w: sw, h: sh, hh: hh });
+            signBudget--;
+          }
+          x += bw + gap + rnd() * gap;
+          bIdx++;
+        }
+
+        /* tall gutter towers with large neon — Home composition, center kept open for the logo */
+        if (true) {
+          const ranges = isMobile ? [[0.00, 0.22], [0.78, 1.00]] : [[0.00, 0.26], [0.74, 1.00]];
+          const hero = layer === 1
+            ? CITY_SIGNS.slice()
+            : CITY_SIGNS.filter(function (s) { return s.kind === "neon-text" || s.kind === "toaster-tube"; });
+          let si = layer * 3;
+          for (let r = 0; r < ranges.length; r++) {
+            const x0 = ranges[r][0] * w + pad, x1 = ranges[r][1] * w + pad;
+            let gx = x0 + 4 + rnd() * 8;
+            let n = 0;
+            while (gx < x1 - 36 && n < (isMobile ? 2 : 4)) {
+              const bw = lerp(layer === 1 ? 52 : 36, layer === 1 ? 110 : 72, rnd());
+              const top = lerp(10, hh * 0.22, rnd());
+              const bh = base - top, by = top;
+              const tone = (layer === 0 ? 9 : 15) + ((rnd() * 5) | 0);
+              g.fillStyle = "rgb(" + tone + "," + (tone - 1) + "," + (tone + 4) + ")";
+              g.fillRect(gx, by, bw, bh);
+              if (layer === 1) {
+                g.fillStyle = "rgba(0,240,255,0.4)"; g.fillRect(gx, by, 1.4, bh);
+                g.fillStyle = "rgba(255,30,60,0.32)"; g.fillRect(gx + bw - 1.4, by, 1.4, bh);
+              }
+              g.fillStyle = layer === 1 ? "rgba(255,212,0,0.28)" : "rgba(255,212,0,0.12)";
+              g.fillRect(gx - 2, by - 4, bw + 4, 4);
+              /* windows */
+              const cell = layer === 0 ? 6 : 8, padX = 5, stepY = layer === 0 ? 7 : 10;
+              const cols = Math.max(2, Math.floor((bw - padX * 2) / cell));
+              const stepX = (bw - padX * 2) / cols;
+              const cellW = stepX * 0.6, cellH = stepY * 0.52;
+              for (let wy = by + 10; wy < base - 8; wy += stepY) {
+                if (layer === 1 && ((wy / stepY) | 0) % 8 === 2) continue;
+                const clusterLit = rnd() > 0.28;
+                let spanCol = YELLOW;
+                for (let ci = 0; ci < cols; ci++) {
+                  if (ci % 3 === 0) {
+                    const ck = rnd();
+                    spanCol = ck < 0.16 ? CYAN : ck < 0.24 ? REDN : (ck < 0.38 ? AMB : YELLOW);
+                  }
+                  if (!(clusterLit && rnd() > 0.16)) continue;
+                  const wx = gx + padX + ci * stepX;
+                  g.fillStyle = spanCol; g.globalAlpha = 0.5 + rnd() * 0.5;
+                  g.fillRect(wx, wy, cellW, cellH); g.globalAlpha = 1;
+                }
+              }
+              /* antenna */
+              const ax = gx + bw * 0.5, ah = 10 + rnd() * 18;
+              g.strokeStyle = "rgba(255,212,0,0.55)"; g.beginPath(); g.moveTo(ax, by); g.lineTo(ax, by - ah); g.stroke();
+              antennas.push({ layer: layer, x: ax, y: by - ah, hh: hh, ph: rnd() * TAU, sp: 1.2 + rnd() * 2 });
+              /* 1-2 large signs */
+              if (layer === 1 || rnd() < 0.55) {
+                const spec = hero[si % hero.length]; si++;
+                const sw = Math.min(Math.max(spec.w, isMobile ? 64 : 90) + (isMobile ? 0 : 10), bw + 24);
+                const sh = Math.max(spec.h, isMobile ? 18 : 26) + (isMobile ? 2 : 6);
+                const sx = gx + (bw - sw) * 0.5, sy = by + 8;
+                paintSign(g, sx, sy, sw, sh, spec);
+                citySigns.push({ layer: layer, x: sx, y: sy, w: sw, h: sh, spec: spec, ph: rnd() * TAU, hh: hh, dropout: 0, buzz: 0.6 + rnd() * 1.4 });
+                if (spec.logo) cityBillboards.push({ layer: layer, x: sx, y: sy, w: sw, h: sh, hh: hh });
+                if (layer === 1 && bh > 140 && rnd() < 0.7) {
+                  const spec2 = hero[si % hero.length]; si++;
+                  const sw2 = Math.min(spec2.w, bw - 4), sh2 = spec2.h;
+                  const sy2 = by + sh + 18;
+                  paintSign(g, gx + (bw - sw2) * 0.5, sy2, sw2, sh2, spec2);
+                  citySigns.push({ layer: layer, x: gx + (bw - sw2) * 0.5, y: sy2, w: sw2, h: sh2, spec: spec2, ph: rnd() * TAU, hh: hh, dropout: 0, buzz: 0.7 + rnd() * 1.2 });
+                }
+              }
+              gx += bw + lerp(6, 16, rnd());
+              n++;
+            }
+          }
+        }
+      }, Math.min(dpr, 1.5));
+    }
+    farCanvas = makeLayer(0);
+    midCanvas = makeLayer(1);
+    placeSkyActors();
+  }
+
+  function placeSkyActors() {
+    searchlights = [];
+    blimps = [];
+    drones = [];
+    holotoasts = [];
+    const ns = isMobile ? 1 : 2;
+    for (let i = 0; i < ns; i++) {
+      searchlights.push({
+        x: w * (isMobile ? 0.5 : (i === 0 ? 0.22 : 0.78)),
+        y: L.hz - 4,
+        ang: rand(-0.7, 0.7),
+        sp: rand(0.18, 0.32) * (i ? -1 : 1),
+        col: i ? CYAN : YELLOW,
+        len: (isMobile ? 140 : 220) + rand(0, 40)
+      });
+    }
+    const nb = isMobile ? 1 : 2;
+    for (let i = 0; i < nb; i++) {
+      blimps.push({
+        x: rand(0, w), y: rand(L.hz * 0.12, L.hz * 0.42),
+        sp: rand(8, 16) * (chance(0.5) ? 1 : -1),
+        ph: rand(0, TAU),
+        label: pick(["TOASTED", "ARTCADE", "SKULLZ", "TOASTY"]),
+        col: chance(0.5) ? CYAN : YELLOW,
+        s: isMobile ? 0.75 : 1
+      });
+    }
+    const nd = isMobile ? 0 : 4;
+    for (let i = 0; i < nd; i++) {
+      drones.push({
+        x: rand(0, w), y: rand(20, L.hz * 0.55),
+        vx: rand(18, 36) * (chance(0.5) ? 1 : -1),
+        vy: 0, ph: rand(0, TAU),
+        col: chance(0.5) ? CYAN : REDN
+      });
+    }
+    const nh = isMobile ? 0 : 2;
+    for (let i = 0; i < nh; i++) {
+      holotoasts.push({
+        x: rand(w * 0.15, w * 0.85), y: rand(L.hz * 0.2, L.hz * 0.5),
+        sp: rand(10, 18) * (i ? -1 : 1), ph: rand(0, TAU), s: isMobile ? 10 : 14
+      });
+    }
+  }
+
+  function signCanvasPos(s, o) {
+    const ox = s.layer === 0 ? o.fx : o.mx;
+    const cvs = s.layer === 0 ? farCanvas : midCanvas;
+    return { x: ox + s.x, y: L.hz - cvs.ch + s.y };
+  }
+
+  function drawNeonCityLive(t, dt) {
+    const sk = skyNow, hz = L.hz, o = skylineOffsets(parX);
+    const night = sk.lights;
+    const acid = weather.kind === "acid";
+
+    /* day veil so baked windows don't overpower a bright sky */
+    if (night < 0.45) {
+      const veilH = midCanvas ? midCanvas.ch : (isMobile ? 140 : 250);
+      ctx.fillStyle = "rgba(10,14,24," + ((0.45 - night) * 1.35) + ")";
+      ctx.fillRect(0, Math.max(0, hz - veilH), w, veilH);
+    }
+
+    /* window flickers */
+    if (night > 0.35 && !reduced && !isMobile && quality < 2) {
+      ctx.globalCompositeOperation = "lighter";
+      const cap = isMobile ? 12 : 24;
+      for (let i = 0; i < cityFlickers.length && i < cap; i++) {
+        const f = cityFlickers[i];
+        const on = 0.5 + 0.5 * Math.sin(t * f.rate + f.ph);
+        if (on < 0.15 && Math.sin(t * f.rate * 7 + f.ph) > 0.6) continue;
+        const p = signCanvasPos(f, o);
+        ctx.globalAlpha = night * 0.45 * on;
+        ctx.fillStyle = f.col;
+        ctx.fillRect(p.x, p.y, f.w, f.h);
+      }
+      ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
+    }
+
+    /* neon buzz / dropout + logo composite on reserved billboards */
+    for (let i = 0; i < citySigns.length; i++) {
+      const s = citySigns[i];
+      const p = signCanvasPos(s, o);
+      if (s.dropout > 0) {
+        s.dropout -= dt;
+        ctx.fillStyle = "rgba(6,6,10,0.82)"; ctx.fillRect(p.x, p.y, s.w, s.h);
+        continue;
+      }
+      if (!reduced && Math.random() < 0.0018 * (isMobile ? 0.6 : 1)) s.dropout = rand(0.06, 0.28);
+      if (night > 0.25 && quality < 2) {
+        const pulse = 0.35 + 0.25 * Math.sin(t * s.buzz + s.ph);
+        ctx.globalCompositeOperation = "lighter";
+        ctx.globalAlpha = night * pulse * (acid ? 0.45 : 0.65);
+        ctx.fillStyle = s.spec.col || YELLOW;
+        ctx.fillRect(p.x + 2, p.y + 2, s.w - 4, 2);
+        ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
+      }
+    }
+    if (logoReady) {
+      for (let i = 0; i < cityBillboards.length; i++) {
+        const b = cityBillboards[i], p = signCanvasPos(b, o);
+        const img = logoImg(); if (!img) continue;
+        const iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
+        const pad = 6, availW = b.w - pad * 2, availH = b.h - 12;
+        const sc = Math.min(availW / iw, availH / ih);
+        const lw = iw * sc, lh = ih * sc;
+        ctx.drawImage(img, p.x + (b.w - lw) / 2, p.y + (b.h - lh) / 2, lw, lh);
+      }
+    }
+
+    /* searchlights */
+    if (!reduced && night > 0.35) {
+      ctx.save();
+      ctx.beginPath(); ctx.rect(0, 0, w, hz); ctx.clip();
+      ctx.globalCompositeOperation = "lighter";
+      for (let i = 0; i < searchlights.length; i++) {
+        const Lgt = searchlights[i];
+        Lgt.ang += Lgt.sp * dt;
+        if (Lgt.ang > 0.75 || Lgt.ang < -0.75) Lgt.sp *= -1;
+        const ang = Lgt.ang, len = Lgt.len, spread = 0.18;
+        const tipX = Lgt.x + Math.sin(ang) * len, tipY = Lgt.y - Math.cos(ang) * len;
+        const grd = ctx.createLinearGradient(Lgt.x, Lgt.y, tipX, tipY);
+        const rgbaCol = Lgt.col === CYAN ? "0,240,255" : (acid ? "160,255,80" : "255,212,0");
+        grd.addColorStop(0, "rgba(" + rgbaCol + "," + (0.16 * night) + ")");
+        grd.addColorStop(1, "rgba(" + rgbaCol + ",0)");
+        ctx.fillStyle = grd;
+        ctx.beginPath();
+        ctx.moveTo(Lgt.x, Lgt.y);
+        ctx.lineTo(Lgt.x + Math.sin(ang - spread) * len, Lgt.y - Math.cos(ang - spread) * len);
+        ctx.lineTo(Lgt.x + Math.sin(ang + spread) * len, Lgt.y - Math.cos(ang + spread) * len);
+        ctx.closePath(); ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    /* blimps */
+    for (let i = 0; i < blimps.length; i++) {
+      const b = blimps[i];
+      b.x += b.sp * dt;
+      b.y += Math.sin(t * 0.7 + b.ph) * 4 * dt;
+      if (b.x > w + 80) { b.x = -80; b.y = rand(L.hz * 0.12, L.hz * 0.42); }
+      if (b.x < -80) { b.x = w + 80; b.y = rand(L.hz * 0.12, L.hz * 0.42); }
+      const sc = b.s, bw = 46 * sc, bh = 16 * sc;
+      ctx.save();
+      ctx.translate(b.x, b.y);
+      ctx.fillStyle = "#12141a";
+      ctx.beginPath(); ctx.ellipse(0, 0, bw / 2, bh / 2, 0, 0, TAU); ctx.fill();
+      neonStrokeOff(ctx, function (p) { p.ellipse(0, 0, bw / 2, bh / 2, 0, 0, TAU); }, b.col, 1.2, 0.9);
+      ctx.fillStyle = "#0a0a0c"; ctx.fillRect(-8 * sc, bh / 2 - 1, 16 * sc, 6 * sc);
+      neonWord(ctx, b.label, 0, 0, Math.max(6, 7 * sc), b.col, bw - 8);
+      ctx.restore();
+    }
+
+    /* drones */
+    for (let i = 0; i < drones.length; i++) {
+      const d = drones[i];
+      d.x += d.vx * dt; d.y += Math.sin(t * 2 + d.ph) * 10 * dt;
+      if (d.x > w + 20) d.x = -20;
+      if (d.x < -20) d.x = w + 20;
+      if (d.y < 10) d.y = 10;
+      if (d.y > hz - 20) d.y = hz - 20;
+      const blink = Math.sin(t * 8 + d.ph) > 0;
+      ctx.fillStyle = "#1a1a20";
+      ctx.fillRect(d.x - 5, d.y - 1.5, 10, 3);
+      ctx.strokeStyle = "rgba(255,212,0,0.4)"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(d.x - 7, d.y); ctx.lineTo(d.x - 3, d.y); ctx.moveTo(d.x + 3, d.y); ctx.lineTo(d.x + 7, d.y); ctx.stroke();
+      if (blink) {
+        ctx.globalCompositeOperation = "lighter";
+        ctx.fillStyle = d.col; ctx.globalAlpha = 0.9;
+        ctx.fillRect(d.x - 1.2, d.y - 1.2, 2.4, 2.4);
+        ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
+      }
+    }
+
+    /* holographic toast motes (Home's flying cyan/red pips) */
+    if (night > 0.3) {
+      ctx.globalCompositeOperation = "lighter";
+      for (let i = 0; i < holotoasts.length; i++) {
+        const h = holotoasts[i];
+        h.x += h.sp * dt; h.y += Math.sin(t * 1.4 + h.ph) * 8 * dt;
+        if (h.x > w + 20) h.x = -20;
+        if (h.x < -20) h.x = w + 20;
+        ctx.globalAlpha = 0.45 + 0.3 * Math.sin(t * 3 + h.ph);
+        ctx.fillStyle = i % 2 ? CYAN : REDN;
+        ctx.beginPath(); ctx.ellipse(h.x, h.y, h.s, h.s * 0.38, 0, 0, TAU); ctx.fill();
+      }
+      ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
+    }
+
+    /* slow moving scanline */
+    if (!reduced && !isMobile) {
+      const sy = ((t * 22) % (hz + 40)) - 20;
+      ctx.fillStyle = acid ? "rgba(160,255,80,0.05)" : "rgba(0,240,255,0.04)";
+      ctx.fillRect(0, sy, w, 2);
+    }
+
+    /* brief RGB glitch slice */
+    if (!reduced && !isMobile) {
+      if (skyGlitch.on > 0) {
+        skyGlitch.on -= dt;
+        ctx.save();
+        ctx.globalCompositeOperation = "screen";
+        ctx.fillStyle = "rgba(255,30,60,0.18)";
+        ctx.fillRect(skyGlitch.x + skyGlitch.dx, skyGlitch.y, skyGlitch.w, skyGlitch.h);
+        ctx.fillStyle = "rgba(0,240,255,0.16)";
+        ctx.fillRect(skyGlitch.x - skyGlitch.dx, skyGlitch.y + 2, skyGlitch.w, skyGlitch.h);
+        ctx.restore();
+      } else if (Math.random() < dt * 0.15) {
+        skyGlitch = { on: rand(0.08, 0.22), x: rand(0, w * 0.7), y: rand(0, hz * 0.7), w: rand(40, 160), h: rand(8, 28), dx: rand(2, 6) };
+      }
+    }
+  }
+
+  /* hook baked skyline over the v5 silhouettes, then draw live actors after drawSky */
+  const _bakeBackdropsV6 = bakeBackdrops;
+  bakeBackdrops = function () {
+    _bakeBackdropsV6();
+    bakeNeonSkyline();
+  };
+  const _drawSkyV6 = drawSky;
+  drawSky = function (t, dt) {
+    _drawSkyV6(t, dt);
+    drawNeonCityLive(t, dt);
+  };
+  const _initSkyBitsV6 = initSkyBits;
+  initSkyBits = function () {
+    _initSkyBitsV6();
+    /* a few extra cyan stars, Home-style */
+    const n = isMobile ? 8 : 18;
+    for (let i = 0; i < n; i++) stars2.push({ x: rand(0, w), y: rand(0, L.hz * 0.7), ph: rand(0, TAU), sp: rand(1, 4), s: rand(0.9, 1.8), cyan: 1 });
   };
 
   /* ---------- audio: radio analyser + ambient synth (off by default) ---------- */
