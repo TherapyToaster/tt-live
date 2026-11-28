@@ -133,4 +133,6 @@ var waits=0,waitTimer=setInterval(function(){
     clearInterval(waitTimer);
   }
 },50);
+/* deep link: /arcade#burnt-offerings opens the game overlay (used by the Home "Burnt Offerings" tile) */
+try{if(/^#burnt-offerings$/i.test(location.hash)){var dl=0,dli=setInterval(function(){dl++;var c=document.querySelector("[data-bo-card]");if(c||dl>80){clearInterval(dli);if(c&&!document.getElementById("tt-bo-ov"))open()}},100)}}catch(e){}
 })();
