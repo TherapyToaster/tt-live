@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>PREVIEW: Home header tiles v1 (not live)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;background:#000;color:#FFD400;font-family:sans-serif}
+body{min-height:100vh;padding-bottom:140px;background:#000 radial-gradient(ellipse at 50% 0,#1a1500,#000 60%)}
+.pv-note{margin:0;padding:10px 14px;background:#FFD400;color:#000;font:700 12px/1.3 "Courier New",monospace;text-align:center;letter-spacing:.3px}
+.pv-note a{color:#000;text-decoration:underline;margin:0 6px}
+.pv-pad{height:60px}
+/* stand-ins that reproduce the live layout: caution frame with the wordmark, then the plaza that overlaps it */
+.fe{position:relative;z-index:1;margin:0 25px;padding:14px 14px 8px;border:3px solid #FFD400;border-radius:12px;overflow:hidden;box-sizing:border-box;
+ background:repeating-linear-gradient(-45deg,#FFD400 0 12px,#000 12px 24px) 0 0/100% 12px no-repeat,repeating-linear-gradient(-45deg,#FFD400 0 12px,#000 12px 24px) 0 100%/100% 12px no-repeat,repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 3px),#000;
+ box-shadow:-4px 0 0 rgba(0,255,255,.6),4px 0 0 rgba(255,40,60,.75),0 0 24px rgba(255,212,0,.3);margin-bottom:-18px}
+h1[data-tt-gottem-box]{margin:0;text-align:center;font:400 clamp(30px,10.8vw,44.5px)/1.3 Anton,Impact,sans-serif;color:#FFD400;text-shadow:2px 0 0 rgba(255,40,60,.55);text-transform:uppercase;white-space:pre-wrap}
+.tt-blackr{display:inline-block;text-shadow:none;filter:brightness(0) drop-shadow(0 0 1px #FFD400) drop-shadow(0 0 1px #FFD400) drop-shadow(0 0 4px rgba(255,212,0,.8)) drop-shadow(2px 0 0 rgba(255,40,60,.55))}
+.pv-after{position:relative;z-index:4;margin:0 25px}
+#ttps{position:relative;z-index:2;box-sizing:border-box;margin:0 auto;width:calc(100% - 16px);min-height:380px;border:3px solid #FFD400;border-radius:18px;background:rgba(40,32,0,.85);color:#FFD400;text-align:center;font:400 34px/1.1 Anton,Impact,sans-serif;padding:40px 12px;text-transform:uppercase}
+#ttps small{display:block;margin-top:14px;font:12px/1.3 "Courier New",monospace;text-transform:none;color:#fff}
+</style></head>
+<body>
+<p class="pv-note">PREVIEW ONLY &middot; NOT LIVE &middot; best on a phone &middot;
+<a href="/tt-live/home-tiles-preview-v1/">NEW (tiles + wordmark fix)</a>|<a href="/tt-live/home-tiles-preview-v1/?old=1">OLD (as live today)</a></p>
+<div class="pv-pad"></div>
+<div class="fe"><h1 data-tt-gottem-box="1">〽️<span class="tt-gotr tt-blackr">®️</span> Ƭᴏᴀsᴛʏ🎭</h1></div>
+<div class="pv-after">
+<section id="ttps" aria-label="Choose your path">Choose your path<small>(stand-in for the real Main Event cabinet)</small></section>
+</div>
+<script>
+(function(){
+  var old=/[?&]old=1/.test(location.search);
+  /* The skyline + tiles scripts only run on "/" or "/home". This page is a stand-in, so present "/" to them. */
+  try{history.replaceState(null,'','/');}catch(e){}
+  window.ttHsBase='https://therapytoaster.github.io/tt-live/home-skyline/';
+  window.ttHsFallback=window.ttHsBase;
+  window.ttTilesBoUrl='https://therapytoaster.github.io/tt-live/burnt-offerings/'; /* preview only: open the game page directly */
+  var B='https://therapytoaster.github.io/tt-live/';
+  function add(u){var s=document.createElement('script');s.src=u;document.body.appendChild(s);}
+  add(B+'home-skyline/skyline.js');
+  if(!old)add(B+'home-tiles/tiles.js');
+})();
+</script>
+</body></html>
