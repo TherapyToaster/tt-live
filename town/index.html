@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Toaster Town — Therapy Toaster</title>
-  <!-- v4 preview: roads, off-road Cybertrucks, Arcade Stars -->
+  <!-- v7: phone pinch-zoom / pan camera -->
   <meta name="description" content="A living crumb ecosystem for Therapy Toaster. Toast, Skullz, Arcade Stars and Cybertrucks wander Toaster Town." />
   <style>
     :root { --yellow: #FFD400; --black: #000000; }
@@ -107,6 +107,17 @@
       #foot .now { display: none; }
       #log { top: 58px; bottom: auto; max-width: none; }
     }
+    #zoomctl { position: fixed; right: 10px; bottom: 112px; z-index: 3; display: none; flex-direction: column; gap: 8px; }
+    #zoomctl.on { display: flex; }
+    #zoomctl button {
+      width: 40px; height: 40px; padding: 0; cursor: pointer; touch-action: manipulation;
+      background: rgba(0,0,0,0.78); color: var(--yellow); border: 1px solid var(--yellow); border-radius: 2px;
+      font: inherit; font-size: 22px; font-weight: 700; line-height: 1;
+      text-shadow: 0 0 8px rgba(255,212,0,0.45); -webkit-tap-highlight-color: transparent;
+    }
+    #zoomctl button#zfit { font-size: 15px; }
+    #zoomctl button:active, #zoomctl button:focus-visible { background: var(--yellow); color: #000; text-shadow: none; }
+    @media (max-width: 700px) { #zoomctl { bottom: 118px; } }
   </style>
 </head>
 <body>
@@ -133,6 +144,11 @@
     <button id="sound-btn" type="button" aria-pressed="false" title="Ambient town sounds (off until you tap)">♪ Sound</button>
     <span id="visits">Visit 1</span>
   </div>
-  <script src="town.js?v=7"></script>
+  <div id="zoomctl" aria-label="Zoom controls">
+    <button id="zin" type="button" aria-label="Zoom in">+</button>
+    <button id="zout" type="button" aria-label="Zoom out">&minus;</button>
+    <button id="zfit" type="button" aria-label="Fit whole town or return to default view" title="Whole town / default view">&#x2922;</button>
+  </div>
+  <script src="town.js?v=8"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-/* Toaster Town v6 — Home-like neon skyline and a more alive sky, on top of v5.
+/* Toaster Town v7 — phone pinch-zoom / pan camera on top of v6 (Home-like neon skyline) and v5.
    Guest art is packed from official game sprites (Skullz, Toasty Bros, the Crypt, Toaster Pit, Crumb Dungeon).
    Official logo is composited from the PNG, never redrawn.
    Visible social label is "Twitter", never "X". No chat features.
@@ -32,6 +32,11 @@
   const quiet = Q.get("quiet") === "1"; /* no random events (testing) */
 
   let w = 0, h = 0, dpr = 1, isMobile = false;
+  /* v7 camera: on touch phones the world is a fixed desktop-style layout (w x h) and the
+     canvas is a viewport (vw x vh) onto it. cam.x/y = top-left of the view in world px. */
+  let vw = 0, vh = 0, camMode = false, lite = false;
+  const cam = { z: 1, x: 0, y: 0, vx: 0, vy: 0, anim: null, zMin: 1, zMax: 3, zDef: 1, atDef: true, touchAction: "" };
+  const WORLD_W = 1280, WORLD_H = 800;
   let running = false, hidden = document.hidden, last = 0, time = 0, frame = 0;
   let hintFaded = false;
   let L = null; /* layout */
@@ -806,8 +811,9 @@
   function drawSky(t, dt) {
     const sk = skyNow, hz = L.hz;
     bgAge += dt;
-    if (bgDirty || bgAge > 3 || Math.abs(parX - bgPar) > 0.035) paintBackdrop();
-    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(bgCanvas, 0, 0); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (bgDirty || bgAge > (camMode ? 8 : 3) || (!camMode && Math.abs(parX - bgPar) > 0.035)) paintBackdrop();
+    if (camMode) ctx.drawImage(bgCanvas, 0, 0, w, h);
+    else { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(bgCanvas, 0, 0); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
     if (sk.stars > 0.02) {
       for (let i = 0; i < stars2.length; i++) {
         const s = stars2[i]; const a = 0.5 + 0.5 * Math.sin(t * s.sp + s.ph);
@@ -860,7 +866,7 @@
   function logoRect() {
     const img = logoImg();
     const ratio = img && img.naturalWidth ? img.naturalHeight / img.naturalWidth : (img && img.width ? img.height / img.width : 0.356);
-    const lw = isMobile ? Math.min(w * 0.74, 320) : Math.min(520, w * 0.36);
+    const lw = camMode ? 340 : isMobile ? Math.min(w * 0.74, 320) : Math.min(520, w * 0.36);
     const lh = lw * (ratio || 0.356);
     const lx = (w - lw) / 2, ly = isMobile ? 70 : 62;
     return { x: lx, y: ly, w: lw, h: lh };
@@ -1098,7 +1104,7 @@
   };
 
   function emitSmoke(x, y, k, heavy) {
-    if (smoke.length > (isMobile ? 40 : 80)) return;
+    if (smoke.length > (lite ? 40 : 80)) return;
     smoke.push({ x: x + rand(-2, 2), y: y, vx: rand(4, 14) * (weather.kind === "rain" ? 2 : 1), vy: -rand(14, 26), s: (heavy ? 0.8 : 0.5) * k, life: rand(2.6, 4.2), max: 4.2, gold: heavy });
   }
   function updateDrawSmoke(dt) {
@@ -1135,7 +1141,7 @@
   };
 
   /* ---------- bubbles ---------- */
-  function maxBubbles() { return isMobile ? 5 : 9; }
+  function maxBubbles() { return isMobile ? 5 : (lite ? 7 : 9); }
   function say(c, text, life, force) {
     if (!text) return;
     if (c && c.bubble && c.bubble.life > 0.4 && !force) return;
@@ -1197,7 +1203,7 @@
     citizens.push(c);
     return c;
   }
-  function popTarget() { return Math.round((isMobile ? (w > 600 ? 36 : 26) : 54) * (quality >= 2 ? 0.7 : 1)); }
+  function popTarget() { return Math.round((isMobile ? (w > 600 ? 36 : 26) : (lite ? 34 : 54)) * (quality >= 2 ? 0.7 : 1)); }
   function populate() {
     citizens.length = 0; crumbs.length = 0; trucks.length = 0; bubbles.length = 0; smoke.length = 0;
     const n = reduced ? Math.round(popTarget() * 0.6) : popTarget();
@@ -1379,7 +1385,7 @@
       /* pointer attraction */
       if (pOn && c.state !== "enter" && c.state !== "exit" && !c.family) {
         const d = dist(c.x, c.y, px, py);
-        if (pointer.still > 1.2 && d < 220 && d > 40 && (c.state === "idle" || (c.state === "walk" && c.goal === "wander")) && countFollowers() < (isMobile ? 4 : 7)) {
+        if (pointer.still > 1.2 && d < 220 && d > 40 && (c.state === "idle" || (c.state === "walk" && c.goal === "wander")) && countFollowers() < (lite ? 4 : 7)) {
           walkTo(c, px, py, "follow"); c.follow = 1;
           if (chance(0.35)) say(c, pick(LINES.pointer), 1.8);
         }
@@ -1469,7 +1475,7 @@
 
   /* ---------- crumbs ---------- */
   function dropCrumb(x, y, z, vz) {
-    if (crumbs.length > (isMobile ? 70 : 130)) crumbs.shift();
+    if (crumbs.length > (lite ? 70 : 130)) crumbs.shift();
     crumbs.push({ x: x, y: y, z: z || 0, vz: vz || 0, rot: rand(0, TAU), life: rand(14, 26), eaten: false });
   }
   function nearestCrumb(x, y, maxD) {
@@ -1515,7 +1521,7 @@
 
   /* ---------- particles ---------- */
   function burst(x, y, n, col) {
-    if (sparks.length > (isMobile ? 120 : 260)) return;
+    if (sparks.length > (lite ? 120 : 260)) return;
     for (let i = 0; i < n; i++) { const a = rand(0, TAU), s = rand(40, 160); sparks.push({ x: x, y: y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 60, life: rand(0.4, 0.9), col: col || YELLOW }); }
   }
   function updateDrawSparks(dt) {
@@ -1786,11 +1792,11 @@
   }
   function populateRoads() {
     trucks.length = 0; sky.length = 0; dust.length = 0;
-    const nm = isMobile ? 3 : 5, nb = isMobile ? 2 : 3;
+    const nm = lite ? 3 : 5, nb = lite ? 2 : 3;
     for (let i = 0; i < nm; i++) spawnTruck(false, rand(0, w));
     for (let i = 0; i < nb; i++) newTruck("back", rand(0, w), chance(0.5) ? 1 : -1, false);
     for (let i = 0; i < L.avs.length; i++) spawnAvTruck(L.avs[i], chance(0.5) ? 1 : -1, rand(L.backY + 30, h - 80));
-    const ns = isMobile ? 4 : 7;
+    const ns = lite ? 4 : 7;
     for (let i = 0; i < ns; i++) sky.push(newSky(rand(0, w)));
   }
   function counts() {
@@ -1836,7 +1842,7 @@
   function tryOffroad(tr, prevX) {
     if (tr.parade || tr.off || tr.road === "av") return;
     if (tr.cool > 0 && !tr.forceOff) return;
-    const c = counts(), cap = isMobile ? 1 : 2;
+    const c = counts(), cap = lite ? 1 : 2;
     const overdue = time - lastOffT > 9;
     for (let i = 0; i < L.lots.length; i++) {
       const l = L.lots[i]; if (l.roads.indexOf(tr.road) < 0) continue;
@@ -1853,7 +1859,7 @@
     }
   }
   function puff(x, y, n, spread, up) {
-    const cap = isMobile ? 70 : 150;
+    const cap = lite ? 70 : 150;
     for (let i = 0; i < n && dust.length < cap; i++) {
       dust.push({ x: x + rand(-spread, spread), y: y + rand(-3, 2), vx: rand(-34, 34), vy: -rand(5, up || 30), r: rand(5, 11), gr: rand(18, 38), life: rand(0.7, 1.4), max: 1.4 });
     }
@@ -1867,7 +1873,7 @@
   }
   function landed(tr) {
     const s = tr.s;
-    puff(tr.x, tr.y, isMobile ? 10 : 18, 40 * s, 50);
+    puff(tr.x, tr.y, lite ? 10 : 18, 40 * s, 50);
     rings.push({ x: tr.x, y: tr.y, r: 8, life: 0.6, max: 0.6, sp: 220 });
     burst(tr.x, tr.y - 6, 8, "#E8C15A");
     sfx("kick");
@@ -1899,7 +1905,7 @@
     const tilt = clamp(dy / d, -1, 1) * 0.12 * tr.dir + (p.takeoff && climb > 0 ? -0.28 * tr.dir : 0) + (onDirt ? Math.sin(time * 17 + tr.seed) * 0.035 : 0);
     tr.pitch = lerp(tr.pitch, tilt, Math.min(1, dt * 10));
     if (onDirt) {
-      tr.dustT -= dt; if (tr.dustT <= 0) { tr.dustT = isMobile ? 0.05 : 0.03; puff(tr.x - tr.dir * 36 * s, tr.y, 1, 4, 26); dust[dust.length - 1] && (dust[dust.length - 1].vx = -tr.dir * rand(30, 70)); }
+      tr.dustT -= dt; if (tr.dustT <= 0) { tr.dustT = lite ? 0.05 : 0.03; puff(tr.x - tr.dir * 36 * s, tr.y, 1, 4, 26); dust[dust.length - 1] && (dust[dust.length - 1].vx = -tr.dir * rand(30, 70)); }
       tr.trackT -= dt; if (tr.trackT <= 0) { tr.trackT = 0.04; stampTrack(tr); }
     }
     /* scare walkers in the way */
@@ -1963,7 +1969,7 @@
       if (tr.road === "back" && !tr.off && !tr.parade && tr.cool <= 0) {
         for (let k = 0; k < L.avs.length; k++) {
           const ax = avX(L.avs[k], L.backY);
-          if ((prevX - ax) * tr.dir < 0 && (tr.x - ax) * tr.dir >= 0 && c0.av < (isMobile ? 2 : 3) && chance(0.3)) { trucks.splice(i, 1); spawnAvTruck(L.avs[k], 1, L.backY + 2).alpha = 1; break; }
+          if ((prevX - ax) * tr.dir < 0 && (tr.x - ax) * tr.dir >= 0 && c0.av < (lite ? 2 : 3) && chance(0.3)) { trucks.splice(i, 1); spawnAvTruck(L.avs[k], 1, L.backY + 2).alpha = 1; break; }
         }
         if (trucks[i] === tr && L.ramp && tr.dir < 0 && (prevX - L.ramp.x1) * tr.dir < 0 && (tr.x - L.ramp.x1) * tr.dir >= 0 && chance(0.35)) {
           trucks.splice(i, 1); const sk = newSky(L.ramp.x1); sk.dir = -1; sk.ramp = 1; sk.rampDir = -1; sky.push(sk);
@@ -1973,8 +1979,8 @@
       if ((tr.dir > 0 && tr.x > w + 160) || (tr.dir < 0 && tr.x < -160)) trucks.splice(i, 1);
     }
     const c = counts();
-    if (c.main < (isMobile ? 3 : 5) && chance(dt * 0.9)) spawnTruck(false);
-    if (c.back < (isMobile ? 2 : 3) && chance(dt * 0.7)) { const d = chance(0.5) ? 1 : -1; newTruck("back", d > 0 ? -140 : w + 140, d, false); }
+    if (c.main < (lite ? 3 : 5) && chance(dt * 0.9)) spawnTruck(false);
+    if (c.back < (lite ? 2 : 3) && chance(dt * 0.7)) { const d = chance(0.5) ? 1 : -1; newTruck("back", d > 0 ? -140 : w + 140, d, false); }
     if (c.av < L.avs.length && chance(dt * 0.3)) spawnAvTruck(pick(L.avs), -1);
   }
   function drawTruck(tr, t) {
@@ -2028,7 +2034,7 @@
     else if (tr.off && !tr.air && tr.z < 2) { tr.vz = 160; tr.air = true; tr.airT = 0; tr.airDur = 2 * 160 / G_TRUCK; }
   }
   function startRally() {
-    const n = isMobile ? 1 : 3;
+    const n = lite ? 1 : 3;
     const lots = L.lots.slice().sort(function () { return Math.random() - 0.5; }).slice(0, n);
     for (let i = 0; i < lots.length; i++) {
       const l = lots[i], road = l.roads.length > 1 && chance(0.4) ? "back" : "main";
@@ -2045,7 +2051,7 @@
   function newSky(x) { const dir = chance(0.5) ? 1 : -1; return { x: x !== undefined ? x : (dir > 0 ? -40 : w + 40), dir: dir, sp: rand(45, 85), ramp: 0, rampDir: 0 }; }
   function skyScale() { return isMobile ? 0.17 : 0.24; }
   function updateDrawSky(dt) {
-    const want = isMobile ? 4 : 7, sc0 = skyScale();
+    const want = lite ? 4 : 7, sc0 = skyScale();
     const night = skyNow.lights > 0.45;
     let n = 0;
     for (let i = sky.length - 1; i >= 0; i--) {
@@ -3960,7 +3966,7 @@
     "Crumb Dungeon": ["Dungeon break", "Crumbs on the plaza", "Off the clock"]
   };
   function starTarget() {
-    const base = isMobile ? 12 : 26;
+    const base = isMobile ? 12 : (lite ? 16 : 26);
     const cut = quality >= 2 ? (isMobile ? 4 : 8) : quality >= 1 ? (isMobile ? 2 : 4) : 0;
     return Math.max(isMobile ? 7 : 12, base - cut);
   }
@@ -4205,14 +4211,14 @@
     }
     const fade = Math.min(1, weather.t / 2, (weather.dur - weather.t) / 2);
     if (weather.t > weather.dur) { weather.kind = null; drops.length = 0; return; }
-    const target = (weather.kind === "rain" ? (isMobile ? 110 : 240) : (isMobile ? 60 : 130)) * Math.max(0, fade) * (reduced ? 0.4 : 1);
-    while (drops.length < target) drops.push({ x: rand(-40, w + 40), y: rand(-h * 0.3, 0), vy: weather.kind === "rain" ? rand(520, 820) : rand(40, 80), gy: rand(L.hz, h - 70), ph: rand(0, TAU), rot: rand(0, TAU) });
+    const target = (weather.kind === "rain" ? (lite ? 110 : 240) : (lite ? 60 : 130)) * Math.max(0, fade) * (reduced ? 0.4 : 1);
+    while (drops.length < target) drops.push({ x: dropX(), y: rand(-h * 0.3, 0), vy: weather.kind === "rain" ? rand(520, 820) : rand(40, 80), gy: rand(L.hz, h - 70), ph: rand(0, TAU), rot: rand(0, TAU) });
     if (drops.length > target + 4) drops.length = Math.floor(target);
     if (weather.kind === "rain") {
       ctx.strokeStyle = "rgba(200,210,255,0.35)"; ctx.lineWidth = 1; ctx.beginPath();
       for (let i = 0; i < drops.length; i++) {
         const d = drops[i]; d.y += d.vy * dt; d.x -= 60 * dt;
-        if (d.y > d.gy) { if (chance(0.25)) rings.push({ x: d.x, y: d.gy, r: 1, life: 0.35, max: 0.35, sp: 30, col: "rgba(200,210,255,0.8)" }); d.y = rand(-60, 0); d.x = rand(-40, w + 40); d.gy = rand(L.hz, h - 70); }
+        if (d.y > d.gy) { if (chance(0.25)) rings.push({ x: d.x, y: d.gy, r: 1, life: 0.35, max: 0.35, sp: 30, col: "rgba(200,210,255,0.8)" }); d.y = rand(-60, 0); d.x = dropX(); d.gy = rand(L.hz, h - 70); }
         ctx.moveTo(d.x, d.y); ctx.lineTo(d.x + 3, d.y - 14);
       }
       ctx.stroke();
@@ -4223,7 +4229,7 @@
         const d = drops[i]; d.y += d.vy * dt; d.x += Math.sin(time * 1.5 + d.ph) * 20 * dt; d.rot += dt * 2;
         if (d.y > d.gy) {
           if (d.gy > L.regions[0].y0 && chance(0.35)) dropCrumb(d.x, d.gy, 0, 0);
-          d.y = rand(-40, 0); d.x = rand(-20, w + 20); d.gy = rand(L.hz, h - 70);
+          d.y = rand(-40, 0); d.x = dropX(); d.gy = rand(L.hz, h - 70);
         }
         ctx.save(); ctx.translate(d.x, d.y); ctx.rotate(d.rot); ctx.drawImage(S.crumb, -4, -4, 8, 8); ctx.restore();
       }
@@ -4254,7 +4260,7 @@
     rain: function () { if (!weather.kind) startWeather("rain"); },
     snow: function () { if (!weather.kind) startWeather("snow"); },
     parade: function () {
-      const dir = chance(0.5) ? 1 : -1, n = isMobile ? 5 : 7, s = truckScale();
+      const dir = chance(0.5) ? 1 : -1, n = lite ? 5 : 7, s = truckScale();
       for (let i = 0; i < n; i++) spawnTruck(true, dir > 0 ? -140 - i * 112 * s : w + 140 + i * 112 * s, dir);
       setBanner(S.neon.parade, 8); logEvent("Cybertruck parade on Main Street"); sfx("honk");
       for (let i = 0; i < citizens.length; i++) {
@@ -4270,7 +4276,7 @@
     party: function () {
       partyT = 0; partyDur = rand(16, 22);
       setBanner(S.neon.party, 7); logEvent("Skull block party at the plaza"); 
-      const extra = isMobile ? 4 : 8;
+      const extra = lite ? 4 : 8;
       for (let i = 0; i < extra; i++) {
         const b = pick(buildings.filter(enterable));
         const c = spawnCitizen(chance(0.5) ? "skull" : "skullcap", b.doorX, b.doorY);
@@ -4463,8 +4469,15 @@
     if (storm > 0) {
       const n = (frame % 3) ? 0 : (isMobile || quality > 0 ? 2 : 3);
       for (let i = 0; i < n; i++) {
-        const y = rand(0, h - 40), hh = rand(4, 26), off = rand(-30, 30);
-        try { ctx.drawImage(canvas, 0, Math.floor(y * dpr), canvas.width, Math.floor(hh * dpr), off, y, w, hh); } catch (e) {}
+        const hh = rand(4, 26), off = rand(-30, 30);
+        if (camMode) {
+          /* screen-space strip copied back onto itself, through the camera transform */
+          const sy = rand(0, Math.max(1, vh - 40)), sh = hh * cam.z;
+          try { ctx.drawImage(canvas, 0, Math.floor(sy * dpr), canvas.width, Math.max(1, Math.floor(sh * dpr)), cam.x + off / cam.z, cam.y + sy / cam.z, vw / cam.z, hh); } catch (e) {}
+        } else {
+          const y = rand(0, h - 40);
+          try { ctx.drawImage(canvas, 0, Math.floor(y * dpr), canvas.width, Math.floor(hh * dpr), off, y, w, hh); } catch (e) {}
+        }
       }
       ctx.globalCompositeOperation = "lighter";
       for (let i = 0; i < 3; i++) { ctx.fillStyle = pick(["rgba(255,59,212,0.18)", "rgba(41,231,255,0.16)", "rgba(255,212,0,0.18)"]); ctx.fillRect(0, rand(0, h), w, rand(2, 18)); }
@@ -4620,7 +4633,7 @@
   }
   function initBirds() {
     birds = [];
-    const n = isMobile ? 3 : 6;
+    const n = lite ? 3 : 6;
     for (let i = 0; i < n; i++) birds.push({ x: rand(0, w), y: rand(20, L.hz * 0.7), sp: rand(28, 60) * (chance(0.5) ? 1 : -1), ph: rand(0, TAU), z: rand(0, 1) });
   }
   function drawProp(p, t) {
@@ -4666,7 +4679,7 @@
     const mode = Math.floor(seed * 3) % 3;
     if (mode === 0) {
       /* white noise */
-      for (let i = 0; i < (isMobile ? 18 : 40); i++) {
+      for (let i = 0; i < (lite ? 18 : 40); i++) {
         g.fillStyle = "rgba(255,255,255," + rand(0.15, 0.7) + ")";
         g.fillRect(cx - ww / 2 + rand(0, ww), cy - hh / 2 + rand(0, hh), rand(1, 3), 1);
       }
@@ -4720,10 +4733,10 @@
   function updateDrawVents(dt, t) {
     for (let i = 0; i < props.length; i++) {
       const p = props[i]; if (p.type !== "steam") continue;
-      if (chance(dt * 3) && smoke.length < (isMobile ? 20 : 40)) smoke.push({ x: p.x + rand(-4, 4), y: p.y, r: rand(4, 8), vy: -rand(12, 24), life: rand(0.8, 1.6), max: 1.6, a: 0.4 });
+      if (chance(dt * 3) && smoke.length < (lite ? 20 : 40)) smoke.push({ x: p.x + rand(-4, 4), y: p.y, r: rand(4, 8), vy: -rand(12, 24), life: rand(0.8, 1.6), max: 1.6, a: 0.4 });
     }
     const dn = byId("diner");
-    if (dn && chance(dt * 2) && smoke.length < (isMobile ? 20 : 40)) smoke.push({ x: dn.x + 48 * dn.k + rand(-3, 3), y: dn.by - 82 * dn.k, r: rand(5, 9), vy: -rand(14, 26), life: 1.2, max: 1.2, a: 0.35 });
+    if (dn && chance(dt * 2) && smoke.length < (lite ? 20 : 40)) smoke.push({ x: dn.x + 48 * dn.k + rand(-3, 3), y: dn.by - 82 * dn.k, r: rand(5, 9), vy: -rand(14, 26), life: 1.2, max: 1.2, a: 0.35 });
   }
 
   /* ---------- acid rain ---------- */
@@ -4770,16 +4783,16 @@
     /* green sky wash */
     ctx.fillStyle = "rgba(20, 60, 10," + (0.18 * fade) + ")"; ctx.fillRect(0, 0, w, h);
     ctx.fillStyle = "rgba(80, 255, 40," + (0.05 * fade) + ")"; ctx.fillRect(0, 0, w, L.hz);
-    const target = (isMobile ? 90 : 200) * Math.max(0, fade) * (reduced ? 0.4 : 1);
-    while (drops.length < target) drops.push({ x: rand(-40, w + 40), y: rand(-h * 0.3, 0), vy: rand(420, 720), gy: rand(L.hz, h - 70), ph: rand(0, TAU) });
+    const target = (lite ? 90 : 200) * Math.max(0, fade) * (reduced ? 0.4 : 1);
+    while (drops.length < target) drops.push({ x: dropX(), y: rand(-h * 0.3, 0), vy: rand(420, 720), gy: rand(L.hz, h - 70), ph: rand(0, TAU) });
     if (drops.length > target + 4) drops.length = Math.floor(target);
     ctx.strokeStyle = "rgba(140,255,70,0.55)"; ctx.lineWidth = 1.4; ctx.beginPath();
     for (let i = 0; i < drops.length; i++) {
       const d = drops[i]; d.y += d.vy * dt; d.x -= 40 * dt;
       if (d.y > d.gy) {
         /* sizzle puff */
-        if (chance(0.35) && smoke.length < (isMobile ? 24 : 50)) smoke.push({ x: d.x, y: d.gy, r: rand(3, 6), vy: -rand(8, 18), life: 0.4, max: 0.4, a: 0.45, col: "rgba(160,255,80,0.4)" });
-        d.y = rand(-60, 0); d.x = rand(-40, w + 40); d.gy = rand(L.hz, h - 70);
+        if (chance(0.35) && smoke.length < (lite ? 24 : 50)) smoke.push({ x: d.x, y: d.gy, r: rand(3, 6), vy: -rand(8, 18), life: 0.4, max: 0.4, a: 0.45, col: "rgba(160,255,80,0.4)" });
+        d.y = rand(-60, 0); d.x = dropX(); d.gy = rand(L.hz, h - 70);
       }
       ctx.moveTo(d.x, d.y); ctx.lineTo(d.x + 2, d.y - 12);
     }
@@ -5210,6 +5223,7 @@
     const sk = skyNow, hz = L.hz, o = skylineOffsets(parX);
     const night = sk.lights;
     const acid = weather.kind === "acid";
+    const vx0 = camMode ? cam.x - 160 : -1e9, vx1 = camMode ? cam.x + vw / cam.z + 160 : 1e9;
 
     /* day veil so baked windows don't overpower a bright sky */
     if (night < 0.45) {
@@ -5224,6 +5238,7 @@
       const cap = isMobile ? 12 : 24;
       for (let i = 0; i < cityFlickers.length && i < cap; i++) {
         const f = cityFlickers[i];
+        { const fx = o.mx + f.x; if (fx < vx0 || fx > vx1) continue; }
         const on = 0.5 + 0.5 * Math.sin(t * f.rate + f.ph);
         if (on < 0.15 && Math.sin(t * f.rate * 7 + f.ph) > 0.6) continue;
         const p = signCanvasPos(f, o);
@@ -5238,6 +5253,7 @@
     for (let i = 0; i < citySigns.length; i++) {
       const s = citySigns[i];
       const p = signCanvasPos(s, o);
+      if (p.x + s.w < vx0 || p.x > vx1) continue;
       if (s.dropout > 0) {
         s.dropout -= dt;
         ctx.fillStyle = "rgba(6,6,10,0.82)"; ctx.fillRect(p.x, p.y, s.w, s.h);
@@ -5256,6 +5272,7 @@
     if (logoReady) {
       for (let i = 0; i < cityBillboards.length; i++) {
         const b = cityBillboards[i], p = signCanvasPos(b, o);
+        if (p.x + b.w < vx0 || p.x > vx1) continue;
         const img = logoImg(); if (!img) continue;
         const iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
         const pad = 6, availW = b.w - pad * 2, availH = b.h - 12;
@@ -5386,6 +5403,127 @@
     const n = isMobile ? 8 : 18;
     for (let i = 0; i < n; i++) stars2.push({ x: rand(0, w), y: rand(0, L.hz * 0.7), ph: rand(0, TAU), sp: rand(1, 4), s: rand(0.9, 1.8), cyan: 1 });
   };
+
+  /* =====================================================================
+     v7: phone camera. Touch phones get the full desktop-style town as a
+     fixed world (WORLD_W x WORLD_H) and the canvas is a viewport onto it.
+     Pinch to zoom (centered on the pinch midpoint), one-finger drag to pan,
+     double-tap to toggle zoom, +/- buttons. Desktop is untouched.
+     ===================================================================== */
+  const elZoomCtl = $("zoomctl"), elZin = $("zin"), elZout = $("zout"), elZfit = $("zfit");
+  function dropX() { return camMode ? rand(cam.x - 40, cam.x + vw / cam.z + 40) : rand(-40, w + 40); }
+  function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+
+  function wantCamMode() {
+    const q = Q.get("cam");
+    if (q === "1") return true;
+    if (q === "0") return false;
+    const coarse = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+    const mobUA = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const small = Math.min(window.innerWidth, window.innerHeight) < 820;
+    return (coarse || mobUA) && small;
+  }
+  function camLimits() {
+    const zc = Math.min(vw / w, vh / h), zd = Math.max(vw / w, vh / h);
+    cam.zMin = zc; cam.zDef = zd; cam.zMax = Math.max(3, zd * 2);
+  }
+  function camClamp() {
+    const ww = vw / cam.z, hh = vh / cam.z;
+    cam.x = ww >= w ? (w - ww) / 2 : clamp(cam.x, 0, w - ww);
+    cam.y = hh >= h ? (h - hh) / 2 : clamp(cam.y, 0, h - hh);
+  }
+  /* world point to keep at the viewport centre in the default view */
+  function camHomePoint() {
+    const hx = w * 0.5;
+    const hy = L ? (L.by0 + L.ry) * 0.5 : h * 0.62;
+    return { x: hx, y: hy };
+  }
+  function camGoDefault(animate) {
+    const p = camHomePoint();
+    camTo(cam.zDef, p.x, p.y, vw / 2, vh / 2, animate ? 0.35 : 0);
+  }
+  /* zoom to z with world point (fx,fy) pinned at screen point (sx,sy) */
+  function camTo(z, fx, fy, sx, sy, dur) {
+    z = clamp(z, cam.zMin, cam.zMax);
+    if (!dur) { cam.anim = null; cam.z = z; cam.x = fx - sx / z; cam.y = fy - sy / z; camClamp(); camFlags(); return; }
+    cam.anim = { t: 0, dur: dur, z0: cam.z, z1: z, fx: fx, fy: fy, sx: sx, sy: sy };
+  }
+  function camZoomBy(f, sx, sy) {
+    if (sx === undefined) { sx = vw / 2; sy = vh / 2; }
+    camTo(cam.z * f, cam.x + sx / cam.z, cam.y + sy / cam.z, sx, sy, 0.22);
+  }
+  /* rubber-band back into the allowed zoom range after a pinch */
+  function camSettle() {
+    if (cam.z < cam.zMin - 0.001 || cam.z > cam.zMax + 0.001) camTo(clamp(cam.z, cam.zMin, cam.zMax), cam.x + vw / 2 / cam.z, cam.y + vh / 2 / cam.z, vw / 2, vh / 2, 0.2);
+  }
+  function camToggleFit() {
+    if (cam.z > cam.zMin * 1.08) camTo(cam.zMin, w / 2, h / 2, vw / 2, vh / 2, 0.35);
+    else camGoDefault(true);
+  }
+  function camDoubleTap(sx, sy) {
+    const wx = cam.x + sx / cam.z, wy = cam.y + sy / cam.z;
+    if (cam.z > cam.zDef * 1.3) camGoDefault(true);
+    else camTo(Math.min(cam.zMax, Math.max(2.4, cam.zDef * 2.2)), wx, wy, sx, sy, 0.3);
+  }
+  function camFlags() {
+    cam.atDef = Math.abs(cam.z - cam.zDef) < 0.02;
+    /* touch-action: let the page scroll vertically while the whole world height is visible */
+    const wholeH = vh / cam.z >= h - 0.5;
+    const ta = camMode ? (wholeH ? "pan-y" : "none") : "none";
+    if (ta !== cam.touchAction) { cam.touchAction = ta; canvas.style.touchAction = ta; }
+  }
+  function camStep(dt) {
+    const a = cam.anim;
+    if (a) {
+      a.t += dt;
+      const e = easeOut(Math.min(1, a.t / a.dur));
+      const z = Math.exp(Math.log(a.z0) + (Math.log(a.z1) - Math.log(a.z0)) * e);
+      cam.z = z; cam.x = a.fx - a.sx / z; cam.y = a.fy - a.sy / z;
+      camClamp();
+      if (a.t >= a.dur) cam.anim = null;
+    } else if (cam.vx || cam.vy) {
+      cam.x += cam.vx * dt; cam.y += cam.vy * dt;
+      const k = Math.exp(-dt * 4.2);
+      cam.vx *= k; cam.vy *= k;
+      if (Math.abs(cam.vx) < 6 && Math.abs(cam.vy) < 6) { cam.vx = 0; cam.vy = 0; }
+      camClamp();
+    }
+    camFlags();
+  }
+  /* screen CSS px -> world px */
+  function toWorld(sx, sy) { return { x: cam.x + sx / cam.z, y: cam.y + sy / cam.z }; }
+
+  /* called at the start of every frame */
+  function camApply() {
+    if (!camMode) { ctx.setTransform(dpr, 0, 0, dpr, 0, 0); return; }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const ww = vw / cam.z, hh = vh / cam.z;
+    if (ww > w + 0.5 || hh > h + 0.5 || cam.x < 0 || cam.y < 0) {
+      /* letterbox: sky colour above the world, dark ground below */
+      const t = skyNow ? skyNow.top : [2, 3, 8];
+      ctx.fillStyle = "rgb(" + (t[0] | 0) + "," + (t[1] | 0) + "," + (t[2] | 0) + ")";
+      ctx.fillRect(0, 0, vw, vh);
+      const gy = (h - cam.y) * cam.z;
+      if (gy < vh) { ctx.fillStyle = "#050400"; ctx.fillRect(0, Math.max(0, gy), vw, vh - Math.max(0, gy)); }
+    }
+    const S = dpr * cam.z;
+    ctx.setTransform(S, 0, 0, S, -cam.x * S, -cam.y * S);
+    ctx.save();
+    ctx.beginPath(); ctx.rect(0, 0, w, h); ctx.clip();
+  }
+  function camEnd() { if (camMode) ctx.restore(); }
+
+  /* ---------- buttons ---------- */
+  function bindZoomButtons() {
+    if (!elZoomCtl) return;
+    const stop = function (e) { e.stopPropagation(); };
+    ["touchstart", "mousedown"].forEach(function (ev) { elZoomCtl.addEventListener(ev, stop, { passive: true }); });
+    if (elZin) elZin.addEventListener("click", function (e) { e.stopPropagation(); fadeHint(); camZoomBy(1.55); });
+    if (elZout) elZout.addEventListener("click", function (e) { e.stopPropagation(); fadeHint(); camZoomBy(1 / 1.55); });
+    if (elZfit) elZfit.addEventListener("click", function (e) { e.stopPropagation(); fadeHint(); camToggleFit(); });
+  }
+  bindZoomButtons();
+  function showZoomUi(on) { if (elZoomCtl) elZoomCtl.classList.toggle("on", !!on); }
 
   /* ---------- audio: radio analyser + ambient synth (off by default) ---------- */
   const FALLBACK_TRACKS = [
@@ -5623,7 +5761,7 @@
     if (!elLog) return;
     const el = document.createElement("div"); el.className = "msg"; el.textContent = text;
     elLog.appendChild(el);
-    while (elLog.children.length > (isMobile ? 2 : 3)) elLog.removeChild(elLog.firstChild);
+    while (elLog.children.length > (isMobile || vw < 700 ? 2 : 3)) elLog.removeChild(elLog.firstChild);
     setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 5200);
   }
   function fadeHint() { if (hintFaded) return; hintFaded = true; if (elHint) elHint.classList.add("fade"); }
@@ -5684,12 +5822,13 @@
   function eventPos(e) {
     const r = canvas.getBoundingClientRect();
     const src = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]) || e;
-    return { x: src.clientX - r.left, y: src.clientY - r.top };
+    const sx = src.clientX - r.left, sy = src.clientY - r.top;
+    return camMode ? toWorld(sx, sy) : { x: sx, y: sy };
   }
   function movePointer(p) {
     if (Math.abs(p.x - pointer.x) + Math.abs(p.y - pointer.y) > 6) { pointer.still = 0; pointer.lastMove = time; }
     pointer.x = p.x; pointer.y = p.y; pointer.on = true;
-    parTarget = clamp((p.x / Math.max(1, w)) * 2 - 1, -1, 1);
+    if (!camMode) parTarget = clamp((p.x / Math.max(1, w)) * 2 - 1, -1, 1);
   }
   function onDown(e) {
     e.preventDefault();
@@ -5710,13 +5849,112 @@
     downPlace = null;
     if (e && e.changedTouches) { hoverPlace = null; } else hoverPlace = placeAt(pointer.x, pointer.y);
   }
-  canvas.addEventListener("mousedown", onDown);
-  canvas.addEventListener("mousemove", onMove);
-  window.addEventListener("mouseup", onUp);
-  canvas.addEventListener("touchstart", onDown, { passive: false });
-  canvas.addEventListener("touchmove", function (e) { if (pointerDown) e.preventDefault(); onMove(e); }, { passive: false });
-  canvas.addEventListener("touchend", onUp);
-  canvas.addEventListener("touchcancel", onUp);
+  /* v7 touch camera: 1 finger = tap or pan, 2 fingers = pinch zoom about the midpoint (+pan),
+     double-tap = toggle zoom. Taps still reach tapAt()/places exactly like before. */
+  const TCH = { mode: 0, sx: 0, sy: 0, lx: 0, ly: 0, lt: 0, moved: false, d0: 1, z0: 1, fx: 0, fy: 0, lastTapT: 0, lastTapX: 0, lastTapY: 0, lastMouse: 0 };
+  function scrPos(t) { const r = canvas.getBoundingClientRect(); return { x: t.clientX - r.left, y: t.clientY - r.top }; }
+  function pinchInfo(e) {
+    const a = scrPos(e.touches[0]), b = scrPos(e.touches[1]);
+    return { d: Math.max(8, Math.hypot(a.x - b.x, a.y - b.y)), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 };
+  }
+  function startPinch(e) {
+    const p = pinchInfo(e);
+    cam.anim = null; cam.vx = cam.vy = 0;
+    TCH.mode = 2; TCH.d0 = p.d; TCH.z0 = cam.z;
+    TCH.fx = cam.x + p.mx / cam.z; TCH.fy = cam.y + p.my / cam.z;
+    pointerDown = false; dragged = true; downPlace = null; hoverPlace = null;
+    fadeHint();
+  }
+  function tStart(e) {
+    if (!camMode) { onDown(e); return; }
+    TCH.lastMouse = performance.now();
+    if (e.touches.length >= 2) { startPinch(e); if (e.cancelable) e.preventDefault(); return; }
+    const sp = scrPos(e.touches[0]);
+    cam.anim = null; cam.vx = cam.vy = 0;
+    TCH.mode = 1; TCH.moved = false; TCH.sx = TCH.lx = sp.x; TCH.sy = TCH.ly = sp.y; TCH.lt = performance.now();
+    const p = toWorld(sp.x, sp.y); movePointer(p); pointer.lastMove = time;
+    pointerDown = true; dragged = false; downX = p.x; downY = p.y;
+    downPlace = placeAt(p.x, p.y); hoverPlace = downPlace;
+    /* no preventDefault here: with touch-action:pan-y the page can still scroll vertically */
+    if (cam.touchAction === "none" && e.cancelable) e.preventDefault();
+  }
+  function tMove(e) {
+    if (!camMode) { if (pointerDown) e.preventDefault(); onMove(e); return; }
+    TCH.lastMouse = performance.now();
+    if (TCH.mode === 2 && e.touches.length >= 2) {
+      const p = pinchInfo(e);
+      const z = clamp(TCH.z0 * p.d / TCH.d0, cam.zMin * 0.98, cam.zMax * 1.02);
+      cam.z = z; cam.x = TCH.fx - p.mx / z; cam.y = TCH.fy - p.my / z;
+      camClamp();
+      if (e.cancelable) e.preventDefault();
+      return;
+    }
+    if (e.touches.length >= 2) { startPinch(e); if (e.cancelable) e.preventDefault(); return; }
+    if (TCH.mode !== 1) return;
+    const sp = scrPos(e.touches[0]);
+    const now = performance.now();
+    if (!TCH.moved && Math.hypot(sp.x - TCH.sx, sp.y - TCH.sy) > 10) {
+      /* world fits vertically (touch-action:pan-y): a mostly-vertical swipe belongs to the page, hand it over */
+      if (cam.touchAction === "pan-y" && Math.abs(sp.y - TCH.sy) > Math.abs(sp.x - TCH.sx)) {
+        TCH.mode = 0; pointerDown = false; dragged = true; downPlace = null; hoverPlace = null; return;
+      }
+      TCH.moved = true; dragged = true; downPlace = null; hoverPlace = null;
+    }
+    if (TCH.moved) {
+      const dx = sp.x - TCH.lx, dy = sp.y - TCH.ly, dts = Math.max(0.008, (now - TCH.lt) / 1000);
+      cam.x -= dx / cam.z; cam.y -= dy / cam.z;
+      cam.vx = lerp(cam.vx, -dx / cam.z / dts, 0.5); cam.vy = lerp(cam.vy, -dy / cam.z / dts, 0.5);
+      camClamp();
+      if (e.cancelable) e.preventDefault();
+    }
+    TCH.lx = sp.x; TCH.ly = sp.y; TCH.lt = now;
+    const p = toWorld(sp.x, sp.y); movePointer(p);
+  }
+  function tEnd(e) {
+    if (!camMode) { onUp(e); return; }
+    TCH.lastMouse = performance.now();
+    if (TCH.mode === 2) {
+      if (e.touches.length === 1) {
+        /* one finger left after a pinch: continue as a pan, never as a tap */
+        const sp = scrPos(e.touches[0]);
+        TCH.mode = 1; TCH.moved = true; TCH.sx = TCH.lx = sp.x; TCH.sy = TCH.ly = sp.y; TCH.lt = performance.now(); cam.vx = cam.vy = 0;
+      } else if (e.touches.length === 0) {
+        TCH.mode = 0; pointerDown = false; cam.vx = cam.vy = 0;
+        camSettle();
+      }
+      if (e.cancelable) e.preventDefault();
+      return;
+    }
+    if (TCH.mode !== 1 || e.touches.length > 0) return;
+    TCH.mode = 0;
+    const wasDown = pointerDown; pointerDown = false;
+    if (!wasDown) { camSettle(); cam.vx = cam.vy = 0; if (e.cancelable) e.preventDefault(); return; }
+    if (!TCH.moved) {
+      const now = performance.now();
+      if (downPlace) { const hp = downPlace; downPlace = null; hoverPlace = null; TCH.lastTapT = 0; openPlace(hp.href); }
+      else if (now - TCH.lastTapT < 320 && Math.hypot(TCH.sx - TCH.lastTapX, TCH.sy - TCH.lastTapY) < 40) { TCH.lastTapT = 0; fadeHint(); camDoubleTap(TCH.sx, TCH.sy); }
+      else { TCH.lastTapT = now; TCH.lastTapX = TCH.sx; TCH.lastTapY = TCH.sy; tapAt(downX, downY); }
+      cam.vx = cam.vy = 0;
+    } else {
+      /* fling: only if the finger was still moving at release */
+      if (performance.now() - TCH.lt > 90) { cam.vx = 0; cam.vy = 0; }
+      camSettle();
+    }
+    hoverPlace = null; downPlace = null;
+    if (e.cancelable) e.preventDefault(); /* blocks the emulated mouse events after a tap */
+  }
+  function tCancel(e) {
+    if (!camMode) { onUp(e); return; }
+    TCH.mode = 0; pointerDown = false; downPlace = null; hoverPlace = null; cam.vx = cam.vy = 0;
+  }
+  const mouseOk = function () { return !camMode || performance.now() - TCH.lastMouse > 700; };
+  canvas.addEventListener("mousedown", function (e) { if (mouseOk()) onDown(e); });
+  canvas.addEventListener("mousemove", function (e) { if (mouseOk()) onMove(e); });
+  window.addEventListener("mouseup", function (e) { if (mouseOk()) onUp(e); });
+  canvas.addEventListener("touchstart", tStart, { passive: false });
+  canvas.addEventListener("touchmove", tMove, { passive: false });
+  canvas.addEventListener("touchend", tEnd, { passive: false });
+  canvas.addEventListener("touchcancel", tCancel);
   canvas.addEventListener("mouseleave", function () { if (!pointerDown) { hoverPlace = null; hoverStar = null; pointer.on = false; } });
 
   /* ---------- HUD ---------- */
@@ -5727,7 +5965,7 @@
     const extra = storm > 0 ? " · GLITCH STORM" : weather.kind === "acid" ? " · ACID RAIN" : weather.kind === "rain" ? " · RAIN" : weather.kind === "snow" ? " · CRUMB SNOW" : party > 0.2 ? " · BLOCK PARTY" : radioOn ? " · ON AIR" : "";
     elShift.textContent = shiftNow.name + " · " + skyNow.label + extra;
     const enemies = census.enemies || 0, guestStars = (census.starsOut != null ? census.starsOut : stars.length);
-    elCensus.textContent = isMobile
+    elCensus.textContent = (isMobile || vw < 700)
       ? citizens.length + " CITIZENS · " + guestStars + " STARS · " + enemies + " ENEMIES · " + (trucks.length + sky.length) + " TRUCKS"
       : citizens.length + " CITIZENS  ·  " + guestStars + " ARCADE STARS  ·  " + enemies + " ENEMIES  ·  " + census.inside + " INSIDE  ·  " + (trucks.length + sky.length) + " CYBERTRUCKS  ·  " + crumbs.length + " CRUMBS";
     if (elPlace) { if (hoverPlace) { elPlace.textContent = hoverPlace.label; elPlace.classList.add("on"); } else elPlace.classList.remove("on"); }
@@ -5757,6 +5995,7 @@
     const hr = nyHour(parts);
     skyNow = skyAt(hr); shiftNow = shiftFor(hr);
     if (pointer.on) pointer.still += dt;
+    if (camMode) { camStep(dt); parTarget = 0; }
     parX = lerp(parX, parTarget, Math.min(1, dt * 2));
     if (pointerDown && !downPlace && dragged && now - lastSprinkle > 90) { lastSprinkle = now; sprinkleAt(pointer.x, pointer.y, 2); }
 
@@ -5768,7 +6007,7 @@
     updateTrucks(dt);
     updateStars(dt);
 
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    camApply();
     drawSky(time, dt);
     drawLogoSign(time);
     updateDrawSky(dt);
@@ -5782,8 +6021,10 @@
     for (let i = 0; i < props.length; i++) { const p = props[i]; if (p.type === "steam") continue; p.isProp = true; p.sortY = p.y; drawList.push(p); }
     signalObjs(drawList);
     drawList.sort(function (a, b) { return a.sortY - b.sortY; });
+    const cx0 = camMode ? cam.x - 260 : -1e9, cx1 = camMode ? cam.x + vw / cam.z + 260 : 1e9;
     for (let i = 0; i < drawList.length; i++) {
       const o = drawList[i];
+      if (camMode && (o.x < cx0 || o.x > cx1)) continue;
       if (o.body) drawBuilding(o, time, dt); else if (o.isTruck) drawTruck(o, time); else if (o.isStar) drawStar(o, time); else if (o.isSignal) drawSignal(o); else if (o.isProp) drawProp(o, time); else drawCitizen(o, time);
     }
     updateDrawVents(dt, time);
@@ -5806,24 +6047,36 @@
       ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
       if (sweep > 1) sweep = -1;
     }
+    camEnd();
     updateHud(dt, parts);
     requestAnimationFrame(render);
   }
   function startLoop() { if (running || hidden) return; last = performance.now(); running = true; requestAnimationFrame(render); }
 
   function resize() {
-    isMobile = window.innerWidth < 700 || (window.innerWidth < 1000 && window.innerHeight > window.innerWidth * 1.15);
-    const lowPower = isMobile || /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+    vw = Math.max(2, window.innerWidth); vh = Math.max(2, window.innerHeight);
+    camMode = wantCamMode();
+    isMobile = camMode ? false : (vw < 700 || (vw < 1000 && vh > vw * 1.15));
+    lite = camMode || isMobile;
+    const lowPower = lite || /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
     dpr = Math.min(window.devicePixelRatio || 1, lowPower ? 1.5 : 1.75, quality === 1 ? 1.25 : quality === 2 ? 1 : 9);
-    w = Math.max(2, window.innerWidth); h = Math.max(2, window.innerHeight);
-    canvas.width = Math.floor(w * dpr); canvas.height = Math.floor(h * dpr);
+    if (camMode) { w = WORLD_W; h = WORLD_H; camLimits(); }
+    else { w = vw; h = vh; cam.z = 1; cam.x = cam.y = 0; cam.zMin = cam.zDef = 1; cam.touchAction = ""; canvas.style.touchAction = "none"; }
+    canvas.width = Math.floor(vw * dpr); canvas.height = Math.floor(vh * dpr);
+    showZoomUi(camMode);
   }
-  let resizeT = null, lastMobile = null;
+  let resizeT = null, lastMobile = null, lastCam = null;
   window.addEventListener("resize", function () {
     clearTimeout(resizeT);
     resizeT = setTimeout(function () {
-      const oldW = w, oldH = h;
+      const oldW = w, oldH = h, wasCam = camMode, wasDef = cam.atDef;
       resize();
+      if (lastCam !== camMode) { lastCam = camMode; lastMobile = isMobile; bakeAllSprites(); buildWorld(); populate(); if (camMode) { camGoDefault(false); setCamHint(); } return; }
+      if (camMode) {
+        /* viewport changed (address bar, rotation): world stays put, only the view refits */
+        if (wasDef) camGoDefault(false); else { cam.z = clamp(cam.z, cam.zMin, cam.zMax); camClamp(); }
+        return;
+      }
       if (lastMobile !== isMobile) { lastMobile = isMobile; bakeAllSprites(); buildWorld(); populate(); return; }
       buildWorld();
       for (let i = 0; i < citizens.length; i++) { const c = citizens[i]; c.x = c.x / oldW * w; c.y = c.y / oldH * h; c.tx = c.x; c.ty = c.y; if (c.state === "walk" && !c.family) { c.state = "idle"; c.timer = 0.3; } }
@@ -5838,9 +6091,11 @@
   });
 
   /* ---------- boot ---------- */
-  resize(); lastMobile = isMobile;
+  resize(); lastMobile = isMobile; lastCam = camMode;
+  function setCamHint() { if (elHint && camMode) elHint.textContent = "Pinch to zoom · Drag to pan · Double-tap to zoom · Tap stars & enemies"; }
   bakeAllSprites();
   buildWorld();
+  if (camMode) { camGoDefault(false); setCamHint(); }
   loadVisits();
   populate();
   loadTracks();
@@ -5866,6 +6121,10 @@
     layout: function () { return buildings.map(function (b) { return { id: b.id, x: b.x, by: b.by, k: b.k, cw: b.body && b.body.cw, ch: b.body && b.body.ch, x0: b.x0, x1: b.x1, doorX: b.doorX, doorY: b.doorY }; }); },
     _dbg: function (k) { if (k === "nostars") { stars.length = 0; } if (k === "nosky") { sky.length = 0; } if (k === "notrucks") { trucks.length = 0; } },
     tagStar: function (id) { for (let i = 0; i < stars.length; i++) if (stars[i].r.id === id) stars[i].tag = 4; },
+    cam: function () { return { camMode: camMode, z: cam.z, x: cam.x, y: cam.y, zMin: cam.zMin, zMax: cam.zMax, zDef: cam.zDef, vw: vw, vh: vh, w: w, h: h, touchAction: cam.touchAction, anim: !!cam.anim }; },
+    setCam: function (z, wx, wy, dur) { camTo(z, wx, wy, vw / 2, vh / 2, dur || 0); },
+    camReset: function () { camGoDefault(false); },
+    camFit: function () { camTo(cam.zMin, w / 2, h / 2, vw / 2, vh / 2, 0); },
     pause: function () { hidden = true; running = false; if (audio) audio.pause(); },
     resume: function () { hidden = false; startLoop(); }
   };
