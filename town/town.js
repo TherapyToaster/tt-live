@@ -1,4 +1,5 @@
-/* Toaster Town v3 — a dense, always-busy crumb ecosystem for Therapy Toaster.
+/* Toaster Town v4 — roads, off-road Cybertrucks and Arcade Stars from Coty's games, on top of the v3 crumb ecosystem.
+   Arcade Stars art: No Signal Skullz v0.21.1 sprite sheets + Toasty Bros pixel bros (both Coty's own games).
    Official logo is composited from the PNG, never redrawn.
    Visible social label is "Twitter", never "X". No chat features.
 */
@@ -291,38 +292,91 @@
       g.shadowBlur = 0; g.fillStyle = opts.core || "#FFF6C2"; g.globalAlpha = 0.85; g.fillText(text, tw / 2, th / 2);
     }, dpr * 1.25);
   }
+  /* v4 Cybertruck: angular stainless wedge (side view, 120x56, wheels on y=48) */
   function bakeTruck(dir, parade) {
     return bake(120, 56, function (g) {
       g.save();
       if (dir < 0) { g.translate(120, 0); g.scale(-1, 1); }
       const by = 44;
-      g.fillStyle = "#B9BEC6";
+      g.lineJoin = "miter";
+      /* body silhouette with trapezoid wheel arches */
       g.beginPath();
-      g.moveTo(8, by - 6); g.lineTo(10, by - 20); g.lineTo(58, by - 33); g.lineTo(112, by - 20); g.lineTo(114, by - 6); g.closePath();
-      g.fill();
-      const sh = g.createLinearGradient(0, by - 33, 0, by);
-      sh.addColorStop(0, "rgba(255,255,255,0.35)"); sh.addColorStop(1, "rgba(0,0,0,0.35)");
-      g.fillStyle = sh; g.fill();
-      g.strokeStyle = YELLOW; g.lineWidth = 1.2; g.stroke();
-      g.fillStyle = "rgba(8,10,14,0.92)";
-      g.beginPath(); g.moveTo(52, by - 30); g.lineTo(88, by - 22); g.lineTo(88, by - 16); g.lineTo(50, by - 17); g.closePath(); g.fill();
-      g.strokeStyle = "rgba(255,255,255,0.35)"; g.lineWidth = 0.8;
-      g.beginPath(); g.moveTo(14, by - 12); g.lineTo(110, by - 12); g.stroke();
-      g.fillStyle = "#FFF6C2"; g.shadowColor = YELLOW; g.shadowBlur = 8;
-      g.fillRect(104, by - 20, 9, 2.4);
-      g.fillStyle = "#ff3b3b"; g.shadowColor = "#ff3b3b"; g.fillRect(9, by - 19, 5, 2.4);
+      g.moveTo(5, by - 23); g.lineTo(54, by - 35); g.lineTo(117, by - 18); g.lineTo(115, by - 6);
+      g.lineTo(106, by - 6); g.lineTo(103, by - 14); g.lineTo(85, by - 14); g.lineTo(82, by - 6);
+      g.lineTo(41, by - 6); g.lineTo(38, by - 14); g.lineTo(19, by - 14); g.lineTo(16, by - 6);
+      g.lineTo(5, by - 6); g.closePath();
+      const st = g.createLinearGradient(0, by - 35, 0, by - 6);
+      st.addColorStop(0, "#EEF1F4"); st.addColorStop(0.35, "#C3C8CF"); st.addColorStop(0.62, "#9AA0A8"); st.addColorStop(1, "#6B7078");
+      g.fillStyle = st; g.fill();
+      g.save(); g.clip();
+      g.strokeStyle = "rgba(255,255,255,0.10)"; g.lineWidth = 0.6;
+      for (let yy = by - 34; yy < by - 6; yy += 2.2) { g.beginPath(); g.moveTo(0, yy); g.lineTo(120, yy + 1.2); g.stroke(); }
+      /* dark lower cladding */
+      g.fillStyle = "#2a2d33"; g.fillRect(0, by - 10, 120, 5);
+      g.restore();
+      g.strokeStyle = YELLOW; g.lineWidth = 1.1; g.stroke();
+      /* crease line along the body */
+      g.strokeStyle = "rgba(255,255,255,0.55)"; g.lineWidth = 0.8;
+      g.beginPath(); g.moveTo(6, by - 15); g.lineTo(116, by - 16.5); g.stroke();
+      /* side glass band under the roof line */
+      g.fillStyle = "rgba(6,8,12,0.94)";
+      g.beginPath(); g.moveTo(31, by - 28.4); g.lineTo(54, by - 33.2); g.lineTo(92, by - 23.1); g.lineTo(92, by - 20.4); g.lineTo(31, by - 20.4); g.closePath(); g.fill();
+      g.strokeStyle = "rgba(255,212,0,0.35)"; g.lineWidth = 0.6; g.stroke();
+      g.fillStyle = "rgba(255,255,255,0.18)";
+      g.beginPath(); g.moveTo(58, by - 31.6); g.lineTo(66, by - 29.6); g.lineTo(60, by - 21); g.lineTo(54, by - 21); g.closePath(); g.fill();
+      /* door seams + B pillar */
+      g.strokeStyle = "rgba(30,32,38,0.75)"; g.lineWidth = 0.7;
+      g.beginPath(); g.moveTo(56, by - 33); g.lineTo(56, by - 8); g.moveTo(78, by - 27); g.lineTo(80, by - 8); g.moveTo(34, by - 21); g.lineTo(34, by - 8); g.stroke();
+      /* light bars */
+      g.shadowColor = "#fff"; g.shadowBlur = 7; g.fillStyle = "#FFFFFF";
+      g.beginPath(); g.moveTo(104, by - 21.3); g.lineTo(117.4, by - 18.2); g.lineTo(117, by - 16.6); g.lineTo(104, by - 19.8); g.closePath(); g.fill();
+      g.shadowColor = "#ff2a2a"; g.fillStyle = "#ff3030"; g.fillRect(4, by - 23.4, 3, 6);
+      g.fillRect(4, by - 24.2, 26, 1.4);
       g.shadowBlur = 0;
-      g.fillStyle = "#0a0a0a"; g.strokeStyle = YELLOW; g.lineWidth = 1.2;
-      g.beginPath(); g.arc(30, by - 4, 8, 0, TAU); g.fill(); g.stroke();
-      g.beginPath(); g.arc(92, by - 4, 8, 0, TAU); g.fill(); g.stroke();
-      g.fillStyle = "#444"; g.beginPath(); g.arc(30, by - 4, 3, 0, TAU); g.arc(92, by - 4, 3, 0, TAU); g.fill();
+      /* wheels: dark tires + aero covers */
+      [28.5, 94].forEach(function (wx) {
+        g.fillStyle = "#070708"; g.beginPath(); g.arc(wx, by - 4, 8.6, 0, TAU); g.fill();
+        g.strokeStyle = YELLOW; g.lineWidth = 0.9; g.stroke();
+        g.fillStyle = "#3b3f46"; g.beginPath();
+        for (let i = 0; i < 6; i++) { const a = i / 6 * TAU; g.lineTo(wx + Math.cos(a) * 5.6, by - 4 + Math.sin(a) * 5.6); }
+        g.closePath(); g.fill();
+        g.fillStyle = "#9aa0a8"; g.beginPath(); g.arc(wx, by - 4, 1.6, 0, TAU); g.fill();
+      });
       if (parade) {
         g.strokeStyle = "#ddd"; g.lineWidth = 1.2;
-        g.beginPath(); g.moveTo(40, by - 26); g.lineTo(40, by - 50); g.stroke();
+        g.beginPath(); g.moveTo(40, by - 31); g.lineTo(40, by - 54); g.stroke();
         g.fillStyle = YELLOW;
-        g.beginPath(); g.moveTo(40, by - 50); g.lineTo(66, by - 45); g.lineTo(40, by - 40); g.closePath(); g.fill();
+        g.beginPath(); g.moveTo(40, by - 54); g.lineTo(66, by - 49); g.lineTo(40, by - 44); g.closePath(); g.fill();
       }
       g.restore();
+    });
+  }
+  /* v4 Cybertruck head-on / tail views for the avenues (64x48, wheels on y=46) */
+  function bakeTruckEnd(front) {
+    return bake(64, 48, function (g) {
+      const by = 44;
+      g.lineJoin = "miter";
+      /* upper wedge: windshield (front) or tonneau + small window (rear) */
+      g.beginPath(); g.moveTo(9, by - 21); g.lineTo(55, by - 21); g.lineTo(42, by - 34); g.lineTo(22, by - 34); g.closePath();
+      const up = g.createLinearGradient(0, by - 34, 0, by - 21);
+      if (front) { up.addColorStop(0, "#0b0d12"); up.addColorStop(1, "#1b2029"); } else { up.addColorStop(0, "#E6E9ED"); up.addColorStop(1, "#A9AEB6"); }
+      g.fillStyle = up; g.fill(); g.strokeStyle = YELLOW; g.lineWidth = 1; g.stroke();
+      if (!front) { g.fillStyle = "rgba(6,8,12,0.92)"; g.fillRect(25, by - 32, 14, 4); }
+      else { g.fillStyle = "rgba(255,255,255,0.16)"; g.beginPath(); g.moveTo(25, by - 33); g.lineTo(31, by - 33); g.lineTo(22, by - 22); g.lineTo(15, by - 22); g.closePath(); g.fill(); }
+      /* lower body */
+      g.beginPath(); g.moveTo(3, by - 21); g.lineTo(61, by - 21); g.lineTo(59, by - 6); g.lineTo(5, by - 6); g.closePath();
+      const lo = g.createLinearGradient(0, by - 21, 0, by - 6);
+      lo.addColorStop(0, "#D9DDE2"); lo.addColorStop(1, "#7A8088");
+      g.fillStyle = lo; g.fill(); g.strokeStyle = YELLOW; g.lineWidth = 1; g.stroke();
+      g.fillStyle = "#24272d"; g.fillRect(5, by - 10, 54, 4);
+      /* full-width light bar */
+      g.shadowBlur = 8;
+      if (front) { g.shadowColor = "#fff"; g.fillStyle = "#fff"; } else { g.shadowColor = "#ff2a2a"; g.fillStyle = "#ff3434"; }
+      g.fillRect(4, by - 20.5, 56, 2.2);
+      g.shadowBlur = 0;
+      /* tires */
+      g.fillStyle = "#060607"; g.fillRect(4, by - 7, 10, 9); g.fillRect(50, by - 7, 10, 9);
+      g.strokeStyle = "rgba(255,212,0,0.6)"; g.lineWidth = 0.8; g.strokeRect(4, by - 7, 10, 9); g.strokeRect(50, by - 7, 10, 9);
     });
   }
   function bakeAllSprites() {
@@ -359,6 +413,8 @@
     }, 1);
     S.truckR = bakeTruck(1, false); S.truckL = bakeTruck(-1, false);
     S.paradeR = bakeTruck(1, true); S.paradeL = bakeTruck(-1, true);
+    S.truckFront = bakeTruckEnd(true); S.truckBack = bakeTruckEnd(false);
+    S.dust = radial(48, [[0, "rgba(214,178,112,0.8)"], [0.5, "rgba(170,136,84,0.34)"], [1, "rgba(120,96,60,0)"]]);
     S.heart = bake(40, 40, function (g) {
       g.shadowColor = "#ff5fa2"; g.shadowBlur = 8;
       g.fillStyle = YELLOW; heartPath(g, 20, 6, 28); g.fill();
@@ -377,7 +433,7 @@
       radio: neonText("TOASTER RADIO", 10), vet: neonText("VET HALL", 11), home: neonText("TOASTY HOME", 8),
       newdrop: neonText("NEW DROP", 7), onair: neonText("ON AIR", 8, { color: "#ff4d4d", core: "#ffd6d6" }),
       party: neonText("SKULL BLOCK PARTY", 14), ooak: neonText("MY ONE OF A KIND", 13, { color: "#ff8cc0", core: "#fff0f6" }),
-      family: neonText("THE TOASTY FAMILY", 9), parade: neonText("CYBERTRUCK PARADE", 13), storm: neonText("GLITCH STORM", 16, { color: "#ff3bd4", core: "#fff" }),
+      family: neonText("THE TOASTY FAMILY", 9), parade: neonText("CYBERTRUCK PARADE", 13), storm: neonText("GLITCH STORM", 16, { color: "#ff3bd4", core: "#fff" }), rally: neonText("CYBERTRUCK RALLY", 13),
       fresh: neonText("FRESH TOAST", 9), open: neonText("OPEN 24/7", 7)
     };
     S.scan = bake(4, 4, function (g) { g.fillStyle = "rgba(0,0,0,0.22)"; g.fillRect(0, 2, 4, 1.2); }, 1);
@@ -407,7 +463,9 @@
       { x0: 14, x1: w - 14, y0: by0 + 10, y1: ry - 32 },
       { x0: 14, x1: w - 14, y0: ry + 32, y1: bottom - 12 }
     ];
-    return { hz: hz, by0: by0, by1: by1, ry: ry, bottom: bottom, k: k, defs: defs, plaza: plaza, regions: regions, mobile: m };
+    const LL = { hz: hz, by0: by0, by1: by1, ry: ry, bottom: bottom, k: k, defs: defs, plaza: plaza, regions: regions, mobile: m };
+    roadLayout(LL);
+    return LL;
   }
 
   /* building specs in unit coords: origin bottom-center, up is negative y */
@@ -575,6 +633,7 @@
   }
 
   /* ---------- backdrops: stars, skyline layers, ground ---------- */
+  let skywayCanvas = null;
   let starCanvas = null, farCanvas = null, midCanvas = null, groundCanvas = null, scanCanvas = null;
   let antennas = [];
   const PARALLAX_PAD = 80;
@@ -647,20 +706,11 @@
       g.strokeStyle = "rgba(255,212,0,0.22)"; g.lineWidth = 1; g.beginPath(); g.arc(0, 0, pr * 0.72, 0, TAU); g.stroke();
       g.beginPath(); g.arc(0, 0, pr * 0.2, 0, TAU); g.fillStyle = "rgba(255,212,0,0.1)"; g.fill(); g.stroke();
       g.restore();
-      /* road */
-      const ry = L.ry - hz;
-      g.fillStyle = "#0e0e0c"; g.fillRect(0, ry - 26, ww, 52);
-      g.fillStyle = "rgba(255,212,0,0.28)"; g.fillRect(0, ry - 26, ww, 2); g.fillRect(0, ry + 24, ww, 2);
-      /* crosswalk */
-      const cx = L.plaza.x;
-      g.fillStyle = "rgba(255,255,255,0.12)";
-      for (let i = 0; i < 6; i++) g.fillRect(cx - 40 + i * 14, ry - 22, 8, 44);
-      /* charge pad */
-      const px = isMobile ? w * 0.18 : w * 0.18;
-      g.setLineDash([5, 4]); g.strokeStyle = "rgba(255,212,0,0.6)"; g.lineWidth = 1.2; g.strokeRect(px - 44, ry - 22, 88, 20); g.setLineDash([]);
-      g.fillStyle = YELLOW; g.font = "700 8px ui-monospace, monospace"; g.textAlign = "center"; g.fillText("⚡ CHARGE", px, ry - 30);
+      /* v4 road network, dirt lots, ramps, crosswalk, charge pad */
+      drawRoadsGround(g, ww, hh, hz);
     }, Math.min(dpr, 1.5));
     L.chargeX = w * 0.18;
+    skywayCanvas = bakeSkyway();
     scanCanvas = bake(w, h, function (g, ww, hh) {
       g.fillStyle = "rgba(0,0,0,0.16)";
       for (let y = 0; y < hh; y += 3) g.fillRect(0, y, ww, 1);
@@ -718,8 +768,7 @@
     g.globalCompositeOperation = "source-over"; g.globalAlpha = 1;
     g.drawImage(midCanvas, o.mx, hz - midCanvas.ch, midCanvas.cw, midCanvas.ch);
     g.drawImage(groundCanvas, 0, hz, w, h - hz);
-    g.fillStyle = "rgba(255,212,0,0.5)";
-    for (let x = 0; x < w; x += 34) g.fillRect(x, L.ry - 1, 18, 2);
+    if (skywayCanvas) g.drawImage(skywayCanvas, 0, L.skyY - 14, skywayCanvas.cw, skywayCanvas.ch);
     g.drawImage(scanCanvas, 0, 0, w, h);
     bgAge = 0; bgPar = parX; bgDirty = false;
   }
@@ -1124,8 +1173,8 @@
       if (Math.random() < 0.18) { const b = pick(buildings.filter(enterable)); if (b) { c.state = "inside"; c.b = b; b.inside++; c.timer = rand(1, 12); c.x = b.doorX; c.y = b.doorY; } }
     }
     if (Math.random() < 0.6) spawnCitizen("golden");
-    const nt = isMobile ? 2 : 4;
-    for (let i = 0; i < nt; i++) spawnTruck(false, rand(0, w));
+    populateRoads();
+    populateStars();
     for (let i = 0; i < 14; i++) dropCrumb(rand(30, w - 30), rand(L.regions[0].y0, L.regions[0].y1), 0, 0);
   }
   function enterable(b) { return b.id !== "artcade"; }
@@ -1454,50 +1503,702 @@
     ctx.globalAlpha = 1;
   }
 
-  /* ---------- Cybertrucks ---------- */
-  function laneY(dir) { return dir > 0 ? L.ry + 12 : L.ry - 10; }
-  function spawnTruck(parade, x, dir) {
-    dir = dir || (chance(0.5) ? 1 : -1);
-    const tr = { dir: dir, x: x !== undefined ? x : (dir > 0 ? -140 : w + 140), y: laneY(dir), speed: parade ? 70 : rand(90, 170), parade: !!parade, stop: 0, charged: false, honk: rand(3, 10) };
+  /* Cybertrucks: see e2-roads.js (v4) */
+
+
+  /* =====================================================================
+     v4: road network (Main Street, Back Street, avenues, Skyway + ramp),
+     traffic lights, Cybertrucks that charge off-road and jump the dirt
+     lots, and Arcade Stars: real sprites from Coty's own games.
+     ===================================================================== */
+  const ATLAS_SRC = "assets/arcade-stars.webp?v=1";
+  const ATLAS = {"sk_toasty":{"idle":[0,0,48,116],"walk":[50,0,49,116]},"sk_fat":{"idle":[101,0,81,116],"walk":[184,0,72,116]},"sk_blankey":{"idle":[258,0,98,116],"walk":[358,0,100,116]},"sk_triggered":{"idle":[460,0,54,116],"walk":[516,0,59,116]},"sk_toaster":{"idle":[577,0,93,104],"walk":[672,0,97,104]},"sk_burnt":{"idle":[771,0,113,104],"walk":[886,0,98,104]},"sk_nugget":{"idle":[0,118,70,104],"walk":[72,118,107,104]},"sk_crumbling":{"idle":[181,118,62,104],"walk":[245,118,69,104]},"tb_toasty":{"stand":[316,118,64,64],"walk1":[382,118,64,64],"walk2":[448,118,64,64],"walk3":[514,118,64,64]},"tb_breadlord":{"stand":[580,118,64,64],"walk1":[646,118,64,64],"walk2":[712,118,64,64],"walk3":[778,118,64,64]},"tb_skelly":{"stand":[844,118,64,64],"walk1":[910,118,64,64],"walk2":[0,224,64,64],"walk3":[66,224,64,64]},"tb_screamer":{"stand":[132,224,64,64],"walk1":[198,224,64,64],"walk2":[264,224,64,64],"walk3":[330,224,64,64]},"tb_cal":{"stand":[396,224,64,64],"walk1":[462,224,64,64],"walk2":[528,224,64,64],"walk3":[594,224,64,64]},"tb_skulrz":{"stand":[660,224,64,64],"walk1":[726,224,64,64],"walk2":[792,224,64,64],"walk3":[858,224,64,64]},"tb_acid":{"stand":[924,224,64,64],"walk1":[0,290,64,64],"walk2":[66,290,64,64],"walk3":[132,290,64,64]}};
+  const atlas = new Image();
+  let atlasReady = false;
+  atlas.onload = function () { atlasReady = true; };
+  atlas.src = ATLAS_SRC;
+
+  const dust = [], sky = [], stars = [];
+  let signalT = 0, lastOffT = 0, hoverStar = null, autoTagT = 3;
+  const G_TRUCK = 760; /* truck gravity px/s^2 */
+
+  /* ---------- layout ---------- */
+  function roadLayout(LL) {
+    const m = LL.mobile, hz = LL.hz;
+    LL.vp = { x: w * 0.5, y: hz - 30 };
+    LL.mainHalf = 26;
+    LL.backY = m ? LL.by1 + 27 : LL.by0 + 32;
+    LL.backHalf = m ? 10 : 13;
+    LL.skyY = hz - (m ? 22 : 36);
+    LL.avs = (m ? [0.8] : [0.3, 0.7]).map(function (f, i) { return { ax: w * f, i: i }; });
+    LL.ramp = m ? null : { x0: w * 0.44, y0: LL.skyY, x1: w * 0.565, y1: LL.backY - LL.backHalf * 0.4 };
+    const lots = [];
+    const lot = function (x0, x1, y0, y1, roads, big) {
+      const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+      const d = depthAt(LL, cy);
+      const rw = (big ? 62 : 40) * d * (m ? 0.72 : 1), rh = (big ? 15 : 9) * d * (m ? 0.8 : 1);
+      lots.push({ x0: x0, x1: x1, y0: y0, y1: y1, cx: cx, cy: cy, roads: roads, big: big, ramp: { x: cx, y: cy + (y1 - y0) * 0.12, rw: rw, h: rh } });
+    };
+    if (m) {
+      lot(w * 0.04, w * 0.62, LL.ry + LL.mainHalf + 10, LL.bottom - 8, ["main"], true);
+    } else {
+      const uy0 = LL.backY + LL.backHalf + 12, uy1 = LL.ry - LL.mainHalf - 10;
+      lot(w * 0.025, w * 0.25, uy0, uy1, ["main", "back"], true);
+      lot(w * 0.75, w * 0.975, uy0, uy1, ["main", "back"], true);
+      const ly0 = LL.ry + LL.mainHalf + 8, ly1 = LL.bottom - 6;
+      if (ly1 - ly0 > 40) { lot(w * 0.025, w * 0.215, ly0, ly1, ["main"], false); lot(w * 0.785, w * 0.975, ly0, ly1, ["main"], false); }
+    }
+    LL.lots = lots;
+  }
+  function depthAt(LL, y) {
+    const a = (LL.mobile ? 0.62 : 0.72) + (LL.mobile ? 0.42 : 0.5) * clamp((y - LL.by0) / (h - LL.by0), 0, 1);
+    const b = (LL.mobile ? 0.62 : 0.72) + (LL.mobile ? 0.42 : 0.5) * clamp((LL.ry - LL.by0) / (h - LL.by0), 0, 1);
+    return a / b;
+  }
+  function avX(av, y) { return L.vp.x + (av.ax - L.vp.x) * (y - L.vp.y) / (L.ry - L.vp.y); }
+  function avHalf(y) { return (isMobile ? 30 : 40) * (y - L.vp.y) / (L.ry - L.vp.y); }
+  function inLot(x, y, pad) { pad = pad || 0; for (let i = 0; i < L.lots.length; i++) { const l = L.lots[i]; if (x > l.x0 - pad && x < l.x1 + pad && y > l.y0 - pad && y < l.y1 + pad) return l; } return null; }
+
+  /* ---------- ground: roads, lots, ramps ---------- */
+  function drawRoadsGround(g, ww, hh, hz) {
+    const Y = function (y) { return y - hz; };
+    const bot = hz + hh + 10;
+    /* dirt lots under everything */
+    for (let i = 0; i < L.lots.length; i++) drawLot(g, L.lots[i], hz);
+    /* avenues */
+    for (let i = 0; i < L.avs.length; i++) {
+      const av = L.avs[i], y0 = L.backY;
+      g.beginPath();
+      g.moveTo(avX(av, y0) - avHalf(y0), Y(y0)); g.lineTo(avX(av, y0) + avHalf(y0), Y(y0));
+      g.lineTo(avX(av, bot) + avHalf(bot), Y(bot)); g.lineTo(avX(av, bot) - avHalf(bot), Y(bot)); g.closePath();
+      g.fillStyle = "#0e0e0c"; g.fill();
+      g.strokeStyle = "rgba(255,212,0,0.28)"; g.lineWidth = 1.4;
+      g.beginPath(); g.moveTo(avX(av, y0) - avHalf(y0), Y(y0)); g.lineTo(avX(av, bot) - avHalf(bot), Y(bot));
+      g.moveTo(avX(av, y0) + avHalf(y0), Y(y0)); g.lineTo(avX(av, bot) + avHalf(bot), Y(bot)); g.stroke();
+    }
+    /* horizontal roads */
+    const road = function (y, half) {
+      g.fillStyle = "#0e0e0c"; g.fillRect(0, Y(y - half), ww, half * 2);
+      g.fillStyle = "rgba(255,212,0,0.28)";
+      const spans = avSpans(y - half), spans2 = avSpans(y + half);
+      edgeLine(g, Y(y - half), spans, ww); edgeLine(g, Y(y + half) - 2, spans2, ww);
+    };
+    road(L.backY, L.backHalf);
+    road(L.ry, L.mainHalf);
+    /* center dashes, skipping intersections */
+    const dashes = function (y, step, len, a, th) {
+      const sp = avSpans(y);
+      g.fillStyle = "rgba(255,212,0," + a + ")";
+      for (let x = 0; x < ww; x += step) { let skip = false; for (let k = 0; k < sp.length; k++) if (x + len > sp[k][0] - 6 && x < sp[k][1] + 6) skip = true; if (!skip) g.fillRect(x, Y(y) - th / 2, len, th); }
+    };
+    dashes(L.ry, 34, 18, 0.5, 2);
+    dashes(L.backY, 26, 12, 0.38, 1.4);
+    for (let i = 0; i < L.avs.length; i++) {
+      const av = L.avs[i];
+      g.fillStyle = "rgba(255,212,0,0.45)";
+      let y = L.backY + L.backHalf + 6;
+      while (y < bot) {
+        const d = (y - L.vp.y) / (L.ry - L.vp.y), len = 9 * d, step = 22 * d;
+        const inRoad = Math.abs(y - L.ry) < L.mainHalf + 4 || Math.abs(y + len - L.ry) < L.mainHalf + 4;
+        if (!inRoad) { g.beginPath(); g.moveTo(avX(av, y) - 0.9 * d, Y(y)); g.lineTo(avX(av, y) + 0.9 * d, Y(y)); g.lineTo(avX(av, y + len) + 0.9 * d, Y(y + len)); g.lineTo(avX(av, y + len) - 0.9 * d, Y(y + len)); g.closePath(); g.fill(); }
+        y += step;
+      }
+      /* zebra crossings on the avenue legs + stop bars on Main */
+      g.fillStyle = "rgba(255,255,255,0.13)";
+      [[L.ry - L.mainHalf - 12, L.ry - L.mainHalf - 3], [L.ry + L.mainHalf + 3, L.ry + L.mainHalf + 13]].forEach(function (b) {
+        const yy = (b[0] + b[1]) / 2, hw = avHalf(yy), x0 = avX(av, yy) - hw, n = 7;
+        for (let k = 0; k < n; k++) g.fillRect(x0 + (k + 0.2) * (2 * hw / n), Y(b[0]), (2 * hw / n) * 0.55, b[1] - b[0]);
+      });
+      const hw = avHalf(L.ry);
+      g.fillStyle = "rgba(255,255,255,0.22)";
+      g.fillRect(av.ax - hw - 16, Y(L.ry + 1), 3, L.mainHalf - 3);
+      g.fillRect(av.ax + hw + 13, Y(L.ry - L.mainHalf + 2), 3, L.mainHalf - 3);
+    }
+    /* plaza crosswalk (citizens cross here; trucks stop) */
+    const cx = L.plaza.x;
+    g.fillStyle = "rgba(255,255,255,0.12)";
+    for (let i = 0; i < 6; i++) g.fillRect(cx - 40 + i * 14, Y(L.ry) - 22, 8, 44);
+    /* charge pad */
+    const px = w * 0.18, ry = Y(L.ry);
+    g.setLineDash([5, 4]); g.strokeStyle = "rgba(255,212,0,0.6)"; g.lineWidth = 1.2; g.strokeRect(px - 44, ry - 22, 88, 20); g.setLineDash([]);
+    g.fillStyle = YELLOW; g.font = "700 8px ui-monospace, monospace"; g.textAlign = "center"; g.fillText("⚡ CHARGE", px, ry - 30);
+    /* street names */
+    g.font = "700 7px ui-monospace, monospace"; g.textAlign = "left"; g.fillStyle = "rgba(255,212,0,0.55)";
+    g.fillText("MAIN ST", 8, ry + L.mainHalf - 4);
+    g.fillText("BACK ST", 8, Y(L.backY) + L.backHalf - 3);
+  }
+  function avSpans(y) {
+    const out = [];
+    for (let i = 0; i < L.avs.length; i++) { if (y < L.backY - L.backHalf - 1) continue; const x = avX(L.avs[i], y), hw = avHalf(y); out.push([x - hw, x + hw]); }
+    return out;
+  }
+  function edgeLine(g, y, spans, ww) {
+    let x = 0;
+    spans = spans.slice().sort(function (a, b) { return a[0] - b[0]; });
+    for (let i = 0; i < spans.length; i++) { if (spans[i][0] > x) g.fillRect(x, y, spans[i][0] - x, 2); x = Math.max(x, spans[i][1]); }
+    if (x < ww) g.fillRect(x, y, ww - x, 2);
+  }
+  function drawLot(g, l, hz) {
+    const Y = function (y) { return y - hz; };
+    g.save();
+    /* jittered dirt patch */
+    g.beginPath();
+    const n = 18;
+    for (let i = 0; i <= n; i++) { const t = i / n; g.lineTo(lerp(l.x0, l.x1, t), Y(l.y0) + Math.sin(i * 2.3) * 2.5); }
+    for (let i = 0; i <= n; i++) { const t = i / n; g.lineTo(lerp(l.x1, l.x0, t), Y(l.y1) + Math.sin(i * 1.7) * 2.5); }
+    g.closePath();
+    const gr = g.createLinearGradient(0, Y(l.y0), 0, Y(l.y1));
+    gr.addColorStop(0, "#160f07"); gr.addColorStop(1, "#21160a");
+    g.fillStyle = gr; g.fill();
+    g.clip();
+    const area = (l.x1 - l.x0) * (l.y1 - l.y0), dots = Math.min(900, area / 60);
+    for (let i = 0; i < dots; i++) {
+      g.fillStyle = Math.random() < 0.82 ? "rgba(150,112,60," + rand(0.15, 0.4) + ")" : "rgba(255,212,0," + rand(0.06, 0.18) + ")";
+      g.fillRect(rand(l.x0, l.x1), Y(rand(l.y0, l.y1)), rand(0.8, 2.2), rand(0.6, 1.4));
+    }
+    /* old tire tracks */
+    g.strokeStyle = "rgba(0,0,0,0.35)"; g.lineWidth = 1.6;
+    for (let i = 0; i < 3; i++) {
+      const yy = Y(rand(l.y0 + 6, l.y1 - 6));
+      g.beginPath(); g.moveTo(l.x0, yy); g.bezierCurveTo(lerp(l.x0, l.x1, 0.3), yy + rand(-14, 14), lerp(l.x0, l.x1, 0.7), yy + rand(-14, 14), l.x1, yy + rand(-8, 8)); g.stroke();
+    }
+    g.restore();
+    /* caution-tape border */
+    g.setLineDash([6, 5]); g.strokeStyle = "rgba(255,212,0,0.32)"; g.lineWidth = 1;
+    g.strokeRect(l.x0 + 0.5, Y(l.y0) + 0.5, l.x1 - l.x0 - 1, l.y1 - l.y0 - 1); g.setLineDash([]);
+    /* cones */
+    const cone = function (x, y) { g.fillStyle = YELLOW; g.beginPath(); g.moveTo(x - 3, Y(y)); g.lineTo(x + 3, Y(y)); g.lineTo(x, Y(y) - 8); g.closePath(); g.fill(); g.fillStyle = "#000"; g.fillRect(x - 1.8, Y(y) - 4.5, 3.6, 1.2); };
+    cone(l.x0 + 6, l.y0 + 10); cone(l.x1 - 6, l.y0 + 10); cone(l.x0 + 6, l.y1 - 3); cone(l.x1 - 6, l.y1 - 3);
+    g.font = "700 7px ui-monospace, monospace"; g.textAlign = "left"; g.fillStyle = "rgba(255,212,0,0.7)";
+    g.fillText(l.big ? "DIRT LOT · SEND IT" : "DIRT LOT", l.x0 + 14, Y(l.y0) + 10);
+    /* tabletop jump: two striped ramps + flat top */
+    const r = l.ramp, ry = Y(r.y), a = r.rw, t = r.rw * 0.35, hgt = r.h;
+    g.beginPath(); g.moveTo(r.x - a, ry); g.lineTo(r.x - t, ry - hgt); g.lineTo(r.x + t, ry - hgt); g.lineTo(r.x + a, ry); g.closePath();
+    g.fillStyle = "#3a2810"; g.fill(); g.strokeStyle = YELLOW; g.lineWidth = 1; g.stroke();
+    g.save(); g.clip();
+    for (let k = -12; k < 12; k++) { g.fillStyle = k % 2 ? "rgba(255,212,0,0.85)" : "rgba(0,0,0,0.8)"; g.beginPath(); const x = r.x + k * 6; g.moveTo(x, ry); g.lineTo(x + 6, ry); g.lineTo(x + 6 + hgt, ry - hgt); g.lineTo(x + hgt, ry - hgt); g.closePath(); if (Math.abs(x - r.x) > t - 2) g.fill(); }
+    g.restore();
+    g.fillStyle = "rgba(0,0,0,0.45)"; g.fillRect(r.x - a, ry, a * 2, 2);
+  }
+
+  /* ---------- skyway (baked strip: deck, pillars, lamps, ramp, sign) ---------- */
+  function bakeSkyway() {
+    const top = L.skyY - 14;
+    const bottomY = L.ramp ? L.ramp.y1 + 6 : L.hz + 2;
+    return bake(w, bottomY - top, function (g, ww) {
+      const dy = 14; /* deck top in local px */
+      const ground = L.hz - top;
+      /* pillars */
+      for (let x = 30; x < ww; x += isMobile ? 70 : 110) {
+        g.fillStyle = "#0b0a0e"; g.fillRect(x - 3, dy + 5, 6, ground - dy - 5);
+        g.fillStyle = "rgba(255,212,0,0.18)"; g.fillRect(x - 3, dy + 5, 1, ground - dy - 5);
+      }
+      /* deck */
+      g.fillStyle = "#141318"; g.fillRect(0, dy, ww, 6);
+      g.fillStyle = "rgba(255,212,0,0.55)"; g.fillRect(0, dy, ww, 1);
+      g.fillStyle = "rgba(255,212,0,0.2)"; g.fillRect(0, dy + 5, ww, 1);
+      /* rail ticks */
+      g.fillStyle = "rgba(255,212,0,0.25)";
+      for (let x = 0; x < ww; x += 6) g.fillRect(x, dy - 3, 1, 3);
+      g.fillRect(0, dy - 3, ww, 0.8);
+      /* lamps */
+      for (let x = 60; x < ww; x += isMobile ? 90 : 140) {
+        g.fillStyle = "rgba(255,212,0,0.35)"; g.fillRect(x, dy - 11, 1, 11);
+        g.fillStyle = "#FFF3B0"; g.fillRect(x - 1, dy - 12, 4, 1.6);
+      }
+      /* on/off ramp down to Back Street (desktop) */
+      if (L.ramp) {
+        const R = L.ramp, x0 = R.x0, y0 = dy, x1 = R.x1, y1 = R.y1 - top;
+        g.beginPath(); g.moveTo(x0 - 40, y0); g.lineTo(x0, y0); g.lineTo(x1, y1 - 6); g.lineTo(x1, y1); g.lineTo(x0 - 10, y0 + 6); g.lineTo(x0 - 40, y0 + 6); g.closePath();
+        g.fillStyle = "#121116"; g.fill();
+        g.strokeStyle = "rgba(255,212,0,0.55)"; g.lineWidth = 1;
+        g.beginPath(); g.moveTo(x0 - 40, y0); g.lineTo(x0, y0); g.lineTo(x1, y1 - 6); g.stroke();
+        g.strokeStyle = "rgba(255,212,0,0.2)";
+        g.beginPath(); g.moveTo(x0 - 10, y0 + 6); g.lineTo(x1, y1); g.stroke();
+        for (let k = 1; k < 4; k++) { const t = k / 4, px = lerp(x0, x1, t), py = lerp(y0 + 6, y1, t); g.fillStyle = "#0b0a0e"; g.fillRect(px - 2, py, 4, Math.max(0, lerp(ground, y1, t) - py)); }
+      }
+      /* sign gantry */
+      const sx = isMobile ? ww * 0.5 : ww * 0.62;
+      g.fillStyle = "rgba(255,212,0,0.35)"; g.fillRect(sx - 30, dy - 14, 1, 14); g.fillRect(sx + 30, dy - 14, 1, 14);
+      g.fillStyle = "#050505"; g.fillRect(sx - 34, dy - 24, 68, 11);
+      g.strokeStyle = YELLOW; g.lineWidth = 0.8; g.strokeRect(sx - 34, dy - 24, 68, 11);
+      g.fillStyle = YELLOW; g.font = "700 6.5px ui-monospace, monospace"; g.textAlign = "center"; g.fillText("SKYWAY · TO MARS →", sx, dy - 16.4);
+    }, Math.min(dpr, 1.5));
+  }
+
+  /* ---------- truck helpers ---------- */
+  function truckScale() { return isMobile ? 0.62 : clamp(L.k, 0.7, 1); }
+  function tScaleAt(y) { return truckScale() * depthAt(L, y); }
+  function laneY(dir, road) {
+    if (road === "back") return dir > 0 ? L.backY + L.backHalf * 0.42 : L.backY - L.backHalf * 0.3;
+    return dir > 0 ? L.ry + 12 : L.ry - 10;
+  }
+  function newTruck(road, x, dir, parade) {
+    const tr = { road: road, dir: dir, x: x, y: laneY(dir, road), speed: parade ? 70 : rand(90, 170), parade: !!parade, stop: 0, charged: false, honk: rand(3, 10),
+      off: null, z: 0, vz: 0, pitch: 0, alpha: 1, cool: rand(1, 5), seed: rand(0, 99), s: 1, av: null, air: false, forceOff: false, react: 0, dustT: 0, trackT: 0 };
     trucks.push(tr); return tr;
   }
-  function truckScale() { return isMobile ? 0.62 : clamp(L.k, 0.7, 1); }
+  function spawnTruck(parade, x, dir) {
+    dir = dir || (chance(0.5) ? 1 : -1);
+    return newTruck("main", x !== undefined ? x : (dir > 0 ? -140 : w + 140), dir, parade);
+  }
+  function spawnAvTruck(av, dir, y) {
+    const tr = newTruck("av", 0, dir, false);
+    tr.av = av; tr.y = y !== undefined ? y : (dir > 0 ? L.backY + 2 : h + 50); tr.speed = rand(70, 120);
+    tr.alpha = dir > 0 ? 0 : 1;
+    return tr;
+  }
+  function populateRoads() {
+    trucks.length = 0; sky.length = 0; dust.length = 0;
+    const nm = isMobile ? 3 : 5, nb = isMobile ? 2 : 3;
+    for (let i = 0; i < nm; i++) spawnTruck(false, rand(0, w));
+    for (let i = 0; i < nb; i++) newTruck("back", rand(0, w), chance(0.5) ? 1 : -1, false);
+    for (let i = 0; i < L.avs.length; i++) spawnAvTruck(L.avs[i], chance(0.5) ? 1 : -1, rand(L.backY + 30, h - 80));
+    const ns = isMobile ? 4 : 7;
+    for (let i = 0; i < ns; i++) sky.push(newSky(rand(0, w)));
+  }
+  function counts() {
+    const c = { main: 0, back: 0, av: 0, off: 0 };
+    for (let i = 0; i < trucks.length; i++) { const t = trucks[i]; if (t.parade) continue; if (t.off) c.off++; c[t.road]++; }
+    return c;
+  }
+
+  /* ---------- traffic lights (one per Main/avenue intersection) ---------- */
+  function sigPhase(i) { return (signalT + i * 4.3) % 11; }
+  function mainGo(i) { return sigPhase(i) < 6.5; }
+  function avGo(i) { const p = sigPhase(i); return p >= 7 && p < 10.5; }
+  function sigColor(go, yellow) { return yellow ? YELLOW : go ? "#39ff88" : "#ff3b3b"; }
+  function signalObjs(list) {
+    for (let i = 0; i < L.avs.length; i++) { const av = L.avs[i]; list.push({ isSignal: true, i: i, x: av.ax - avHalf(L.ry) - 10, y: L.ry - L.mainHalf - 3, sortY: L.ry - L.mainHalf - 3 }); }
+  }
+  function drawSignal(o) {
+    const p = sigPhase(o.i), k = isMobile ? 0.75 : clamp(L.k, 0.75, 1);
+    const x = o.x, y = o.y, ph = 30 * k;
+    ctx.fillStyle = "#16161a"; ctx.fillRect(x - 1, y - ph, 2, ph);
+    ctx.strokeStyle = "rgba(255,212,0,0.5)"; ctx.lineWidth = 0.8; ctx.strokeRect(x - 1, y - ph, 2, ph);
+    const head = function (hx, col) {
+      ctx.fillStyle = "#050505"; ctx.fillRect(hx - 3.5 * k, y - ph - 14 * k, 7 * k, 14 * k);
+      ctx.strokeStyle = YELLOW; ctx.lineWidth = 0.8; ctx.strokeRect(hx - 3.5 * k, y - ph - 14 * k, 7 * k, 14 * k);
+      const ly = col === "#ff3b3b" ? -11 : col === YELLOW ? -7 : -3;
+      ctx.fillStyle = col; ctx.beginPath(); ctx.arc(hx, y - ph + ly * k, 1.9 * k, 0, TAU); ctx.fill();
+    };
+    head(x - 4 * k, sigColor(mainGo(o.i), p >= 5.5 && p < 6.5));
+    head(x + 5 * k, sigColor(avGo(o.i), p >= 10 && p < 10.5));
+  }
+
+  /* ---------- off-road runs ---------- */
+  function lotPlan(tr, l) {
+    const dir = tr.dir, s = tScaleAt(l.ramp.y), r = l.ramp;
+    const ly = laneY(dir, tr.road);
+    const p1 = { x: r.x - dir * (r.rw + 40 * s + 10), y: r.y };
+    const entryX = p1.x - dir * (70 + 30 * s);
+    const p3 = { x: r.x + dir * (r.rw + 70 * s), y: r.y };
+    const p4 = { x: p3.x + dir * 40, y: lerp(r.y, ly, 0.55) };
+    const p5 = { x: p4.x + dir * 50, y: ly, rejoin: true };
+    return { entryX: entryX, pts: [{ x: entryX + dir * 34, y: lerp(ly, r.y, 0.35) }, p1, { x: r.x - dir * r.rw * 0.35, y: r.y, takeoff: true }, p3, p4, p5], lot: l };
+  }
+  function tryOffroad(tr, prevX) {
+    if (tr.parade || tr.off || tr.road === "av") return;
+    if (tr.cool > 0 && !tr.forceOff) return;
+    const c = counts(), cap = isMobile ? 1 : 2;
+    const overdue = time - lastOffT > 9;
+    for (let i = 0; i < L.lots.length; i++) {
+      const l = L.lots[i]; if (l.roads.indexOf(tr.road) < 0) continue;
+      const plan = lotPlan(tr, l);
+      if ((prevX - plan.entryX) * tr.dir < 0 && (tr.x - plan.entryX) * tr.dir >= 0) {
+        if (plan.pts[5].x < -60 || plan.pts[5].x > w + 60) continue;
+        const go = tr.forceOff || tr.rally || (c.off < cap && (overdue || chance(0.45)));
+        if (!go) { tr.cool = 2; return; }
+        tr.off = plan; tr.offI = 0; tr.forceOff = false; tr.offSpeed = Math.max(tr.speed, 150) * 1.12; lastOffT = time;
+        if (chance(0.5)) sayAt(tr.x, tr.y - 44 * tr.s, pick(["SEND IT!", "OFF-ROAD!", "HOLD MY TOAST", "4x4 MODE"]), 1.4);
+        sfx("honk");
+        return;
+      }
+    }
+  }
+  function puff(x, y, n, spread, up) {
+    const cap = isMobile ? 70 : 150;
+    for (let i = 0; i < n && dust.length < cap; i++) {
+      dust.push({ x: x + rand(-spread, spread), y: y + rand(-3, 2), vx: rand(-34, 34), vy: -rand(5, up || 30), r: rand(5, 11), gr: rand(18, 38), life: rand(0.7, 1.4), max: 1.4 });
+    }
+  }
+  function stampTrack(tr) {
+    if (!groundCanvas || !inLot(tr.x, tr.y)) return;
+    const g = groundCanvas.getContext("2d"), s = tr.s;
+    g.fillStyle = "rgba(0,0,0,0.28)";
+    g.fillRect(tr.x - tr.dir * 34 * s - 2, tr.y - L.hz - 1.2, 4, 1.6);
+    g.fillRect(tr.x + tr.dir * 30 * s - 2, tr.y - L.hz - 1.2, 4, 1.6);
+  }
+  function landed(tr) {
+    const s = tr.s;
+    puff(tr.x, tr.y, isMobile ? 10 : 18, 40 * s, 50);
+    rings.push({ x: tr.x, y: tr.y, r: 8, life: 0.6, max: 0.6, sp: 220 });
+    burst(tr.x, tr.y - 6, 8, "#E8C15A");
+    sfx("kick");
+    if (chance(0.55)) sayAt(tr.x, tr.y - 50 * s, pick(["STUCK IT!", "AIR TIME!", "CYBER JUMP!", "STAINLESS!"]), 1.2);
+    for (let i = 0; i < citizens.length; i++) { const c = citizens[i]; if (c.state === "inside" || c.family) continue; const d = dist(c.x, c.y, tr.x, tr.y); if (d < 170 && c.z === 0) { c.vz = rand(120, 200) * c.sc; if (d < 120 && chance(0.12)) say(c, pick(["WHOA!", "Send it!", "Cybertruck gang!", "Hooah!"]), 1.4); } }
+    for (let i = 0; i < stars.length; i++) { const st = stars[i]; if (dist(st.x, st.y, tr.x, tr.y) < 220 && st.z === 0) { st.vz = 180; if (chance(0.25)) say(st, pick(["SEND IT!", "Hooah!", "Again!"]), 1.4); } }
+  }
+  function updateOff(tr, dt) {
+    const o = tr.off, p = o.pts[tr.offI], s = tr.s;
+    const v = tr.offSpeed;
+    if (tr.air) {
+      tr.vz -= G_TRUCK * dt; tr.z += tr.vz * dt; tr.airT += dt;
+      tr.pitch = tr.dir * lerp(-0.3, 0.2, clamp(tr.airT / tr.airDur, 0, 1));
+      tr.x += tr.dir * v * dt;
+      if ((tr.x - p.x) * tr.dir > 0 && tr.offI < o.pts.length - 1) tr.offI++;
+      if (tr.z <= 0 && tr.vz < 0) { tr.z = 0; tr.vz = 0; tr.air = false; landed(tr); }
+      return;
+    }
+    const dx = p.x - tr.x, dy = p.y - tr.y, d = Math.sqrt(dx * dx + dy * dy) || 1;
+    const step = Math.min(d, v * dt);
+    tr.x += dx / d * step; tr.y += dy / d * step;
+    /* climbing the ramp */
+    const r = o.lot.ramp;
+    let climb = 0;
+    if (p.takeoff) climb = r.h * clamp(1 - Math.abs(tr.x - p.x) / (r.rw * 0.65), 0, 1);
+    const onDirt = inLot(tr.x, tr.y, 6);
+    const bump = onDirt ? Math.abs(Math.sin(time * 22 + tr.seed)) * 1.6 * s : 0;
+    tr.z = climb + bump;
+    const tilt = clamp(dy / d, -1, 1) * 0.12 * tr.dir + (p.takeoff && climb > 0 ? -0.28 * tr.dir : 0) + (onDirt ? Math.sin(time * 17 + tr.seed) * 0.035 : 0);
+    tr.pitch = lerp(tr.pitch, tilt, Math.min(1, dt * 10));
+    if (onDirt) {
+      tr.dustT -= dt; if (tr.dustT <= 0) { tr.dustT = isMobile ? 0.05 : 0.03; puff(tr.x - tr.dir * 36 * s, tr.y, 1, 4, 26); dust[dust.length - 1] && (dust[dust.length - 1].vx = -tr.dir * rand(30, 70)); }
+      tr.trackT -= dt; if (tr.trackT <= 0) { tr.trackT = 0.04; stampTrack(tr); }
+    }
+    /* scare walkers in the way */
+    tr.react -= dt;
+    if (tr.react <= 0) {
+      tr.react = 0.2;
+      for (let i = 0; i < citizens.length; i++) { const c = citizens[i]; if (c.state === "inside" || c.family || c.z > 0) continue; if (Math.abs(c.x - (tr.x + tr.dir * 30 * s)) < 36 * s && Math.abs(c.y - tr.y) < 18) { c.vz = 210 * c.sc; if (chance(0.2)) say(c, pick(["WHOA!", "Watch the crumbs!", "Beep beep!"]), 1.2); } }
+    }
+    if (step >= d - 0.01) {
+      if (p.takeoff) { tr.air = true; tr.z = r.h; tr.vz = isMobile ? 210 : 260; tr.airT = 0; tr.airDur = 2 * tr.vz / G_TRUCK; }
+      if (p.rejoin) { tr.off = null; tr.y = laneY(tr.dir, tr.road); tr.z = 0; tr.pitch = 0; tr.cool = rand(5, 12); tr.rally = false; return; }
+      tr.offI++;
+    }
+  }
+
+  /* ---------- update all ground trucks ---------- */
   function updateTrucks(dt) {
-    const want = isMobile ? 2 : 4;
-    let normal = 0;
+    signalT += dt;
+    const c0 = counts();
     for (let i = trucks.length - 1; i >= 0; i--) {
       const tr = trucks[i];
-      if (!tr.parade) normal++;
+      tr.cool -= dt;
+      if (tr.alpha < 1) tr.alpha = Math.min(1, tr.alpha + dt * 2.5);
+      tr.s = tScaleAt(tr.y);
+      if (tr.off) { updateOff(tr, dt); continue; }
+      if (tr.pitch) tr.pitch *= Math.max(0, 1 - dt * 8);
       let v = tr.speed;
-      /* stop for crossers */
-      for (let j = 0; j < citizens.length; j++) { const c = citizens[j]; if (c.crossing && Math.abs(c.y - tr.y) < 26 && (c.x - tr.x) * tr.dir > 0 && (c.x - tr.x) * tr.dir < 120) { v = 0; break; } }
-      /* charge pad */
-      if (!tr.parade && tr.dir < 0 && !tr.charged && Math.abs(tr.x - L.chargeX) < 4 && chance(0.6)) { tr.stop = rand(3, 6); tr.charged = true; sayAt(tr.x, tr.y - 40, "CHARGING", 2); }
-      if (!tr.parade && tr.dir < 0 && Math.abs(tr.x - L.chargeX) < 4) tr.charged = true;
+      if (tr.road === "av") {
+        /* avenue: head-on / tail view, perspective speed, obey the light at Main */
+        const av = tr.av, d = depthAt(L, tr.y);
+        const stopY = tr.dir > 0 ? L.ry - L.mainHalf - 8 : L.ry + L.mainHalf + 8;
+        const gap = (stopY - tr.y) * tr.dir;
+        if (!avGo(av.i) && gap > -2 && gap < 34) v = 0;
+        for (let j = 0; j < trucks.length; j++) { const o = trucks[j]; if (o !== tr && o.road === "av" && o.av === av && o.dir === tr.dir && !o.off) { const g2 = (o.y - tr.y) * tr.dir; if (g2 > 0 && g2 < 34 * d) v = Math.min(v, 0); } }
+        tr.y += tr.dir * v * dt * 0.55 * d;
+        tr.x = avX(av, tr.y) - tr.dir * avHalf(tr.y) * 0.5;
+        if (tr.dir < 0 && tr.y <= L.backY + 3) { /* turn onto Back Street */
+          tr.road = "back"; tr.dir = chance(0.5) ? 1 : -1; tr.y = laneY(tr.dir, "back"); tr.av = null; tr.speed = rand(90, 150); tr.cool = 2;
+        } else if (tr.dir > 0 && tr.y > h + 60) trucks.splice(i, 1);
+        continue;
+      }
+      if (tr.road === "main") {
+        for (let j = 0; j < citizens.length; j++) { const c = citizens[j]; if (c.crossing && Math.abs(c.y - tr.y) < 26 && (c.x - tr.x) * tr.dir > 0 && (c.x - tr.x) * tr.dir < 120) { v = 0; break; } }
+        if (!tr.parade && tr.dir < 0 && !tr.charged && Math.abs(tr.x - L.chargeX) < 4 && chance(0.6)) { tr.stop = rand(3, 6); tr.charged = true; sayAt(tr.x, tr.y - 40, "CHARGING", 2); }
+        if (!tr.parade && tr.dir < 0 && Math.abs(tr.x - L.chargeX) < 4) tr.charged = true;
+        if (!tr.parade) for (let k = 0; k < L.avs.length; k++) {
+          const av = L.avs[k]; if (mainGo(k)) continue;
+          const stopX = av.ax - tr.dir * (avHalf(L.ry) + 10 + 60 * tr.s), gap = (stopX - tr.x) * tr.dir;
+          if (gap > -2 && gap < 40) v = 0;
+        }
+      }
       if (tr.stop > 0) { tr.stop -= dt; v = 0; if (chance(dt * 10)) burst(tr.x + rand(-20, 20), tr.y - 20, 2, "#fff"); }
-      /* follow distance */
-      for (let j = 0; j < trucks.length; j++) { const o = trucks[j]; if (o !== tr && o.dir === tr.dir) { const gap = (o.x - tr.x) * tr.dir; if (gap > 0 && gap < 115 * truckScale()) v = Math.min(v, o.stop > 0 ? 0 : o.speed * 0.9); } }
-      tr.x += tr.dir * v * dt;
+      for (let j = 0; j < trucks.length; j++) { const o = trucks[j]; if (o !== tr && o.road === tr.road && o.dir === tr.dir && !o.off) { const gap = (o.x - tr.x) * tr.dir; if (gap > 0 && gap < 118 * tr.s) v = Math.min(v, (o.stop > 0 || o.speed === 0) ? 0 : o.speed * 0.9); } }
+      tr.curV = v;
+      const prevX = tr.x;
+      tr.x += tr.dir * v * dt * (tr.road === "back" ? 0.8 : 1);
       tr.honk -= dt;
-      if (tr.parade && tr.honk <= 0) { tr.honk = rand(1.5, 4); if (tr.x > 20 && tr.x < w - 20) sayAt(tr.x, tr.y - 40 * truckScale(), "HONK", 1); sfx("honk"); }
+      if (tr.parade && tr.honk <= 0) { tr.honk = rand(1.5, 4); if (tr.x > 20 && tr.x < w - 20) sayAt(tr.x, tr.y - 40 * tr.s, "HONK", 1); sfx("honk"); }
+      tryOffroad(tr, prevX);
+      /* Back Street: sometimes turn down an avenue, or take the ramp up to the Skyway */
+      if (tr.road === "back" && !tr.off && !tr.parade && tr.cool <= 0) {
+        for (let k = 0; k < L.avs.length; k++) {
+          const ax = avX(L.avs[k], L.backY);
+          if ((prevX - ax) * tr.dir < 0 && (tr.x - ax) * tr.dir >= 0 && c0.av < (isMobile ? 2 : 3) && chance(0.3)) { trucks.splice(i, 1); spawnAvTruck(L.avs[k], 1, L.backY + 2).alpha = 1; break; }
+        }
+        if (trucks[i] === tr && L.ramp && tr.dir < 0 && (prevX - L.ramp.x1) * tr.dir < 0 && (tr.x - L.ramp.x1) * tr.dir >= 0 && chance(0.35)) {
+          trucks.splice(i, 1); const sk = newSky(L.ramp.x1); sk.dir = -1; sk.ramp = 1; sk.rampDir = -1; sky.push(sk);
+        }
+        if (trucks[i] !== tr) continue;
+      }
       if ((tr.dir > 0 && tr.x > w + 160) || (tr.dir < 0 && tr.x < -160)) trucks.splice(i, 1);
     }
-    if (normal < want && chance(dt * 0.6)) spawnTruck(false);
+    const c = counts();
+    if (c.main < (isMobile ? 3 : 5) && chance(dt * 0.9)) spawnTruck(false);
+    if (c.back < (isMobile ? 2 : 3) && chance(dt * 0.7)) { const d = chance(0.5) ? 1 : -1; newTruck("back", d > 0 ? -140 : w + 140, d, false); }
+    if (c.av < L.avs.length && chance(dt * 0.3)) spawnAvTruck(pick(L.avs), -1);
   }
   function drawTruck(tr, t) {
-    const s = truckScale();
+    const s = tr.s;
+    ctx.globalAlpha = tr.alpha;
+    if (tr.road === "av") {
+      const img = tr.dir > 0 ? S.truckFront : S.truckBack, ww = 64 * s * 0.72, hh = 48 * s * 0.72;
+      ctx.drawImage(S.shadow, tr.x - ww * 0.5, tr.y - 4 * s, ww, 9 * s);
+      ctx.drawImage(img, tr.x - ww / 2, tr.y - hh + 3 * s, ww, hh);
+      if (tr.dir > 0 && (skyNow.lights > 0.45 || weather.kind)) {
+        ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = 0.5 * tr.alpha;
+        ctx.drawImage(S.white, tr.x - ww * 0.6, tr.y - hh * 0.5 + 3 * s - hh * 0.16, ww * 1.2, hh * 0.32);
+        ctx.globalCompositeOperation = "source-over";
+      }
+      ctx.globalAlpha = 1;
+      return;
+    }
     const img = tr.parade ? (tr.dir > 0 ? S.paradeR : S.paradeL) : (tr.dir > 0 ? S.truckR : S.truckL);
     const ww = 120 * s, hh = 56 * s;
-    if (skyNow.lights > 0.45 || weather.kind) {
-      ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = 0.55;
-      if (tr.dir > 0) ctx.drawImage(S.cone, tr.x + ww * 0.45, tr.y - 22 * s, 130 * s, 40 * s);
-      else { ctx.save(); ctx.translate(tr.x - ww * 0.45, tr.y - 22 * s); ctx.scale(-1, 1); ctx.drawImage(S.cone, 0, 0, 130 * s, 40 * s); ctx.restore(); }
+    if ((skyNow.lights > 0.45 || weather.kind) && !tr.air) {
+      ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = 0.5 * tr.alpha;
+      if (tr.dir > 0) ctx.drawImage(S.cone, tr.x + ww * 0.45, tr.y - tr.z - 22 * s, 130 * s, 40 * s);
+      else { ctx.save(); ctx.translate(tr.x - ww * 0.45, tr.y - tr.z - 22 * s); ctx.scale(-1, 1); ctx.drawImage(S.cone, 0, 0, 130 * s, 40 * s); ctx.restore(); }
+      ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = tr.alpha;
+    }
+    const sh = 1 / (1 + tr.z * 0.02);
+    ctx.drawImage(S.shadow, tr.x - ww * 0.45 * sh, tr.y - 4 * s, ww * 0.9 * sh, 10 * s);
+    if (tr.pitch || tr.z) {
+      ctx.save(); ctx.translate(tr.x, tr.y - tr.z); ctx.rotate(tr.pitch); ctx.drawImage(img, -ww / 2, -hh + 4 * s, ww, hh); ctx.restore();
+    } else ctx.drawImage(img, tr.x - ww / 2, tr.y - hh + 4 * s, ww, hh);
+    if (tr.parade) { ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = 0.5 + 0.5 * Math.sin(t * 10 + tr.x * 0.05); ctx.drawImage(S.glow, tr.x - 30 * s, tr.y - 30 * s, 60 * s, 40 * s); ctx.globalCompositeOperation = "source-over"; }
+    ctx.globalAlpha = 1;
+    if (tr.stop > 0) { ctx.strokeStyle = YELLOW; ctx.lineWidth = 1.5; ctx.beginPath(); const bx = tr.x, byy = tr.y - 34 * s; ctx.moveTo(bx - 3, byy - 8); ctx.lineTo(bx + 2, byy - 1); ctx.lineTo(bx - 2, byy - 1); ctx.lineTo(bx + 3, byy + 7); ctx.stroke(); }
+  }
+  function updateDrawDust(dt) {
+    for (let i = dust.length - 1; i >= 0; i--) {
+      const d = dust[i]; d.life -= dt; if (d.life <= 0) { dust.splice(i, 1); continue; }
+      d.x += d.vx * dt; d.y += d.vy * dt; d.vy *= 0.97; d.vx *= 0.97; d.r += d.gr * dt;
+      ctx.globalAlpha = clamp(d.life / d.max, 0, 1);
+      ctx.drawImage(S.dust, d.x - d.r, d.y - d.r, d.r * 2, d.r * 2);
+    }
+    ctx.globalAlpha = 1;
+  }
+  function truckAt(x, y) {
+    for (let i = trucks.length - 1; i >= 0; i--) { const t = trucks[i], s = t.s, hw = (t.road === "av" ? 26 : 58) * s, hh = (t.road === "av" ? 36 : 40) * s; if (x > t.x - hw && x < t.x + hw && y > t.y - t.z - hh && y < t.y + 4) return t; }
+    return null;
+  }
+  function tapTruck(tr) {
+    sayAt(tr.x, tr.y - 46 * tr.s, "HONK!", 1.2); sfx("honk");
+    if (!tr.parade && !tr.off && tr.road !== "av") { tr.forceOff = true; tr.cool = 0; logEvent("That Cybertruck is heading off-road"); }
+    else if (tr.off && !tr.air && tr.z < 2) { tr.vz = 160; tr.air = true; tr.airT = 0; tr.airDur = 2 * 160 / G_TRUCK; }
+  }
+  function startRally() {
+    const n = isMobile ? 1 : 3;
+    const lots = L.lots.slice().sort(function () { return Math.random() - 0.5; }).slice(0, n);
+    for (let i = 0; i < lots.length; i++) {
+      const l = lots[i], road = l.roads.length > 1 && chance(0.4) ? "back" : "main";
+      let dir = chance(0.5) ? 1 : -1;
+      const probe = { dir: dir, road: road }; let plan = lotPlan(probe, l);
+      if (plan.pts[5].x < -60 || plan.pts[5].x > w + 60) { dir = -dir; probe.dir = dir; plan = lotPlan(probe, l); }
+      const x = plan.entryX - dir * rand(30, 70);
+      const tr = newTruck(road, x, dir, false); tr.rally = true; tr.forceOff = true; tr.speed = rand(150, 180); tr.alpha = 0;
+    }
+    setBanner(S.neon.rally, 6); logEvent("Cybertruck rally: the dirt lots are open"); sfx("honk");
+  }
+
+  /* ---------- Skyway traffic (tiny trucks behind the buildings, plus the ramp) ---------- */
+  function newSky(x) { const dir = chance(0.5) ? 1 : -1; return { x: x !== undefined ? x : (dir > 0 ? -40 : w + 40), dir: dir, sp: rand(45, 85), ramp: 0, rampDir: 0 }; }
+  function skyScale() { return isMobile ? 0.17 : 0.24; }
+  function updateDrawSky(dt) {
+    const want = isMobile ? 4 : 7, sc0 = skyScale();
+    const night = skyNow.lights > 0.45;
+    let n = 0;
+    for (let i = sky.length - 1; i >= 0; i--) {
+      const k = sky[i];
+      let x, y, sc, dir = k.dir;
+      if (k.ramp) {
+        /* rampDir +1: Skyway -> Back Street; -1: Back Street -> Skyway */
+        k.ramp += dt / 2.4;
+        const R = L.ramp, t = k.rampDir > 0 ? clamp(k.ramp - 1, 0, 1) : clamp(1 - (k.ramp - 1), 0, 1);
+        x = lerp(R.x0, R.x1, t); y = lerp(R.y0 - 2, R.y1, t); sc = lerp(sc0, tScaleAt(L.backY) * 0.98, t);
+        dir = k.rampDir > 0 ? 1 : -1;
+        if (k.ramp >= 2) {
+          sky.splice(i, 1);
+          if (k.rampDir > 0) { const tr = newTruck("back", R.x1, 1, false); tr.cool = 3; }
+          else { const s2 = newSky(R.x0); s2.dir = -1; sky.push(s2); }
+          continue;
+        }
+      } else {
+        n++;
+        k.x += k.dir * k.sp * dt;
+        x = k.x; y = L.skyY - 1 + (k.dir > 0 ? 2.5 : 0); sc = sc0;
+        if (L.ramp && k.dir > 0 && Math.abs(k.x - L.ramp.x0) < k.sp * dt + 0.5 && counts().back < 4 && chance(0.4)) { k.ramp = 1; k.rampDir = 1; }
+        if (k.x > w + 50 || k.x < -50) { sky.splice(i, 1); continue; }
+      }
+      const img = dir > 0 ? S.truckR : S.truckL, ww = 120 * sc, hh = 56 * sc;
+      ctx.drawImage(img, x - ww / 2, y - hh + 4 * sc, ww, hh);
+      if (night) { ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = 0.8; ctx.drawImage(S.white, x + dir * ww * 0.46 - 5, y - hh * 0.45 - 5, 10, 10); ctx.globalAlpha = 1; ctx.globalCompositeOperation = "source-over"; }
+    }
+    if (n < want && chance(dt * 0.8)) sky.push(newSky());
+  }
+
+  /* ---------- Arcade Stars: real sprites from Coty's games ---------- */
+  const ROSTER = [
+    { id: "tb_toasty", name: "MR. TOASTY", game: "Toasty Bros", pix: 1, h: 0.82, lines: ["Stay toasty!", "Free the bros!", "Toast-rocket ready"], haunt: "artcade" },
+    { id: "sk_toasty", name: "TOASTY COTY", game: "No Signal Skullz", h: 1, lines: ["Totality.", "Hooah!", "No signal, no problem"] },
+    { id: "sk_fat", name: "FAT COTY", game: "No Signal Skullz", h: 1.02, lines: ["Feed me!", "Motor mode!", "Snack run"], haunt: "merch" },
+    { id: "sk_blankey", name: "YELLOW BLANKEY", game: "No Signal Skullz", h: 1.0, lines: ["Cozy mode", "Synthwave hours"], haunt: "home" },
+    { id: "sk_triggered", name: "TRIGGERED COTY", game: "No Signal Skullz", h: 1, lines: ["MELTDOWN!", "Who burnt my toast?"] },
+    { id: "sk_toaster", name: "GLITCH TOASTER", game: "No Signal Skullz", h: 0.8, lines: ["*bzzt*", "Toast incoming"], haunt: "hq" },
+    { id: "sk_burnt", name: "BURNT TOAST", game: "No Signal Skullz", h: 0.86, lines: ["BURNT.", "Smells like smoke"] },
+    { id: "sk_nugget", name: "NUGGET", game: "No Signal Skullz", h: 0.66, lines: ["Nug life"] },
+    { id: "sk_crumbling", name: "CRUMBLING", game: "No Signal Skullz", h: 0.74, lines: ["CRUMBS!", "NIBBLE"] },
+    { id: "tb_breadlord", name: "BREADLORD JR.", game: "Toasty Bros", pix: 1, h: 0.82, lines: ["Pay the Breadlord", "IOU one loaf"] },
+    { id: "tb_skelly", name: "TOASTER TRUCK SKELETON", game: "Toasty Bros", pix: 1, h: 0.82, lines: ["Truck-ram dash!"] },
+    { id: "tb_screamer", name: "CHROME SCREAMER", game: "Toasty Bros", pix: 1, h: 0.82, lines: ["AAAAH!"] },
+    { id: "tb_cal", name: "CAL THE REPAIRMAN", game: "Toasty Bros", pix: 1, h: 0.82, lines: ["I can fix that"] },
+    { id: "tb_skulrz", name: "SKULRZ", game: "Toasty Bros", pix: 1, h: 0.82, lines: ["Rattle on"] },
+    { id: "tb_acid", name: "ACID", game: "Toasty Bros", pix: 1, h: 0.82, lines: ["Long shot"] }
+  ];
+  function starTarget() { return (isMobile ? 7 : 12) - (quality >= 2 ? (isMobile ? 2 : 4) : 0); }
+  function starSpot(st) {
+    for (let k = 0; k < 6; k++) {
+      let p;
+      const r = Math.random();
+      if (st && st.r.haunt && r < 0.3 && byId(st.r.haunt)) { const b = byId(st.r.haunt); p = { x: b.doorX + rand(-40, 40), y: b.doorY + rand(14, 30) }; }
+      else if (r < 0.45 && r > 0.3) { const pl = L.plaza; p = { x: pl.x + rand(-120, 120) * (isMobile ? 0.6 : 1), y: pl.y + rand(-14, 18) }; }
+      else p = randomSpot();
+      p.x = clamp(p.x, 20, w - 20);
+      if (!inLot(p.x, p.y, 4) && Math.abs(p.y - L.ry) > L.mainHalf + 6 && Math.abs(p.y - L.backY) > L.backHalf + 4) return p;
+    }
+    return randomSpot(L.regions[0]);
+  }
+  function populateStars() {
+    stars.length = 0;
+    const must = ["tb_toasty", "sk_fat", "sk_toasty", "sk_blankey", "sk_triggered"];
+    const rest = ROSTER.filter(function (r) { return must.indexOf(r.id) < 0; }).sort(function () { return Math.random() - 0.5; });
+    const list = ROSTER.filter(function (r) { return must.indexOf(r.id) >= 0; }).concat(rest).slice(0, starTarget());
+    for (let i = 0; i < list.length; i++) addStar(list[i]);
+  }
+  function addStar(r) {
+    const st = { r: r, x: 0, y: 0, tx: 0, ty: 0, state: "idle", timer: rand(0.5, 4), phase: rand(0, 10), face: chance(0.5) ? 1 : -1, z: 0, vz: 0, tag: 0, glitch: 0.5, sc: 1, H: 50, speed: rand(20, 30), bubble: null, isStar: true };
+    const p = starSpot(st); st.x = st.tx = p.x; st.y = st.ty = p.y;
+    stars.push(st); return st;
+  }
+  function trimStars() { while (stars.length > starTarget()) { const st = stars.pop(); if (st.bubble) removeBubble(st.bubble); } }
+  function updateStars(dt) {
+    autoTagT -= dt;
+    if (autoTagT <= 0 && stars.length) { autoTagT = rand(4, 6.5); const st = pick(stars); st.tag = Math.max(st.tag, 3); }
+    for (let i = 0; i < stars.length; i++) {
+      const st = stars[i];
+      const ds = depthScale(st.y);
+      st.H = (isMobile ? 58 : 82) * ds * st.r.h;
+      st.sc = st.H / 44;
+      if (st.vz || st.z > 0) { st.vz -= 900 * dt; st.z += st.vz * dt; if (st.z <= 0) { st.z = 0; st.vz = 0; } }
+      if (st.tag > 0) st.tag -= dt;
+      if (st.glitch > 0) st.glitch -= dt; else if (chance(dt * 0.025)) st.glitch = 0.28;
+      st.timer -= dt;
+      if (st.state === "walk") {
+        const dx = st.tx - st.x, dy = st.ty - st.y, d = Math.sqrt(dx * dx + dy * dy);
+        if (d < 2) { st.state = "idle"; st.timer = rand(2, 6); if (chance(0.12)) say(st, pick(st.r.lines), 2); }
+        else { const sp = st.speed * ds; st.x += dx / d * sp * dt; st.y += dy / d * sp * dt * 0.8; st.phase += dt * sp * 0.2; if (Math.abs(dx) > 1) st.face = dx > 0 ? 1 : -1; }
+      } else if (st.timer <= 0) {
+        const p = starSpot(st); st.tx = p.x; st.ty = p.y; st.state = "walk";
+      }
+    }
+  }
+  function starFrame(st) {
+    const F = ATLAS[st.r.id];
+    if (st.r.pix) {
+      if (st.state === "walk") { const k = Math.floor(st.phase * 1.6) % 4; return F[k === 0 ? "walk1" : k === 1 ? "walk2" : k === 2 ? "walk3" : "walk2"]; }
+      return F.stand;
+    }
+    if (st.state === "walk") return Math.floor(st.phase * 1.3) % 2 ? F.walk : F.idle;
+    return F.idle;
+  }
+  function drawStar(st, t) {
+    if (!atlasReady) return;
+    const f = starFrame(st), H = st.H, W = f[2] * H / f[3];
+    const walking = st.state === "walk";
+    ctx.drawImage(S.shadow, st.x - W * 0.42, st.y - 3, W * 0.84, 7);
+    /* star marker: glowing ring at the feet */
+    const pr = Math.max(W * 0.48, 12), pulse = 0.55 + 0.25 * Math.sin(t * 3 + st.phase);
+    ctx.save(); ctx.translate(st.x, st.y); ctx.scale(1, 0.32);
+    ctx.strokeStyle = "rgba(255,212,0," + (st.tag > 0 || st === hoverStar ? 0.95 : pulse * 0.7) + ")"; ctx.lineWidth = 2.2;
+    ctx.beginPath(); ctx.arc(0, 0, pr, 0, TAU); ctx.stroke();
+    ctx.restore();
+    if ((skyNow.lights > 0.4 && !isMobile) || st.tag > 0 || st === hoverStar) {
+      ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = st.tag > 0 || st === hoverStar ? 0.32 : 0.14;
+      ctx.drawImage(S.glow, st.x - W * 0.8, st.y - st.z - H * 1.05, W * 1.6, H * 1.15);
       ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
     }
-    ctx.drawImage(S.shadow, tr.x - ww * 0.45, tr.y - 4 * s, ww * 0.9, 10 * s);
-    ctx.drawImage(img, tr.x - ww / 2, tr.y - hh + 4 * s, ww, hh);
-    if (tr.parade) { ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = 0.5 + 0.5 * Math.sin(t * 10 + tr.x * 0.05); ctx.drawImage(S.glow, tr.x - 30 * s, tr.y - 30 * s, 60 * s, 40 * s); ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1; }
-    if (tr.stop > 0) { ctx.strokeStyle = YELLOW; ctx.lineWidth = 1.5; ctx.beginPath(); const bx = tr.x, byy = tr.y - 34 * s; ctx.moveTo(bx - 3, byy - 8); ctx.lineTo(bx + 2, byy - 1); ctx.lineTo(bx - 2, byy - 1); ctx.lineTo(bx + 3, byy + 7); ctx.stroke(); }
+    const bob = walking ? -Math.abs(Math.sin(st.phase * Math.PI * 1.3)) * 2.2 * st.sc : 0;
+    const breathe = walking ? 1 : 1 + Math.sin(t * 2.4 + st.phase) * 0.022;
+    ctx.save();
+    ctx.translate(st.x, st.y - st.z + bob);
+    if (st.face < 0) ctx.scale(-1, 1);
+    ctx.scale(1, breathe);
+    if (st.r.pix) ctx.imageSmoothingEnabled = false;
+    if (st.glitch > 0 && !reduced) {
+      const bands = 5;
+      for (let b = 0; b < bands; b++) {
+        const sy = f[1] + f[3] * b / bands, sh = f[3] / bands, off = (Math.random() - 0.5) * W * 0.25;
+        ctx.drawImage(atlas, f[0], sy, f[2], sh, -W / 2 + off, -H + H * b / bands, W, H / bands + 0.5);
+      }
+      ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = 0.35;
+      ctx.drawImage(atlas, f[0], f[1], f[2], f[3], -W / 2 + 3, -H, W, H);
+      ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
+    } else ctx.drawImage(atlas, f[0], f[1], f[2], f[3], -W / 2, -H, W, H);
+    ctx.imageSmoothingEnabled = true;
+    ctx.restore();
+  }
+  function drawNameplates() {
+    if (!atlasReady) return;
+    for (let i = 0; i < stars.length; i++) {
+      const st = stars[i];
+      if (!(st.tag > 0 || st === hoverStar)) continue;
+      if (st.bubble && st.bubble.life > 0) continue;
+      const a = st === hoverStar ? 1 : Math.min(1, st.tag * 2);
+      const x0 = st.x, y = st.y - st.z - st.H - 8;
+      ctx.font = "800 10px ui-monospace, Menlo, Consolas, monospace";
+      const w1 = ctx.measureText(st.r.name).width;
+      ctx.font = "700 8px ui-monospace, Menlo, Consolas, monospace";
+      const w2 = ctx.measureText(st.r.game.toUpperCase()).width;
+      const bw = Math.max(w1, w2) + 14, bh = 27;
+      const x = clamp(x0, bw / 2 + 4, w - bw / 2 - 4);
+      ctx.globalAlpha = a;
+      ctx.fillStyle = "rgba(0,0,0,0.88)"; roundRect(ctx, x - bw / 2, y - bh, bw, bh, 3); ctx.fill();
+      ctx.strokeStyle = YELLOW; ctx.lineWidth = 1; ctx.stroke();
+      ctx.fillStyle = YELLOW; ctx.fillRect(x - bw / 2, y - bh, 3, bh);
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.font = "800 10px ui-monospace, Menlo, Consolas, monospace"; ctx.fillStyle = YELLOW; ctx.fillText(st.r.name, x + 1, y - bh + 9);
+      ctx.font = "700 8px ui-monospace, Menlo, Consolas, monospace"; ctx.fillStyle = "rgba(255,255,255,0.75)"; ctx.fillText(st.r.game.toUpperCase(), x + 1, y - bh + 20);
+      ctx.textBaseline = "alphabetic"; ctx.globalAlpha = 1;
+    }
+  }
+  function starAt(x, y) {
+    let best = null, bd = 1e9;
+    for (let i = 0; i < stars.length; i++) {
+      const st = stars[i], f = ATLAS[st.r.id][st.r.pix ? "stand" : "idle"], W = f[2] * st.H / f[3];
+      if (x > st.x - W / 2 - 4 && x < st.x + W / 2 + 4 && y > st.y - st.z - st.H - 4 && y < st.y + 4) { const d = Math.abs(y - (st.y - st.H / 2)); if (d < bd) { bd = d; best = st; } }
+    }
+    return best;
+  }
+  function tapStar(st) {
+    if (st.z === 0) st.vz = 260;
+    st.tag = 4; st.glitch = 0.3;
+    say(st, pick(st.r.lines), 1.6, true);
+    burst(st.x, st.y - st.H * 0.6, 12, YELLOW); sfx("pop");
+  }
+  function relayoutRoads(oldW, oldH) {
+    for (let i = trucks.length - 1; i >= 0; i--) {
+      const tr = trucks[i];
+      tr.x = tr.x / oldW * w;
+      if (tr.off) { tr.off = null; tr.air = false; tr.z = 0; tr.pitch = 0; }
+      if (tr.road === "av") { tr.y = tr.y / oldH * h; if (!L.avs[tr.av.i]) { trucks.splice(i, 1); continue; } tr.av = L.avs[tr.av.i]; }
+      else tr.y = laneY(tr.dir, tr.road);
+    }
+    for (let i = 0; i < sky.length; i++) { sky[i].x = sky[i].x / oldW * w; if (sky[i].ramp && !L.ramp) sky[i].ramp = 0; }
+    for (let i = 0; i < stars.length; i++) { const st = stars[i]; st.x = st.x / oldW * w; st.y = st.y / oldH * h; st.tx = st.x; st.ty = st.y; st.state = "idle"; st.timer = 0.5; }
   }
 
   /* ---------- weather ---------- */
@@ -1576,6 +2277,7 @@
         }
       }
     },
+    rally: function () { startRally(); },
     party: function () {
       partyT = 0; partyDur = rand(16, 22);
       setBanner(S.neon.party, 7); logEvent("Skull block party at the plaza"); 
@@ -1604,7 +2306,7 @@
     nextEvent -= dt * shiftNow.busy;
     if (nextEvent <= 0) {
       nextEvent = rand(14, 24);
-      const pool = [["parade", 3], ["party", 3], ["storm", 2], ["holo", 2], ["family", 3], ["heart", 1.4], ["shower", skyNow.stars > 0.4 ? 1.5 : 0], ["golden", 1]];
+      const pool = [["rally", 3], ["parade", 2.4], ["party", 3], ["storm", 2], ["holo", 2], ["family", 3], ["heart", 1.4], ["shower", skyNow.stars > 0.4 ? 1.5 : 0], ["golden", 1]];
       if (!weather.kind) { pool.push(["rain", 1.8]); pool.push(["snow", 1.8]); }
       let tot = 0; for (let i = 0; i < pool.length; i++) if (pool[i][0] !== lastEventName && !(fam && (pool[i][0] === "family" || pool[i][0] === "heart")) && !(partyT < partyDur && pool[i][0] === "party")) tot += pool[i][1];
       let r = Math.random() * tot;
@@ -2046,6 +2748,10 @@
   let famCool = 0;
   function tapAt(x, y) {
     fadeHint();
+    const st = starAt(x, y);
+    if (st) { tapStar(st); return; }
+    const tk = truckAt(x, y);
+    if (tk) { tapTruck(tk); return; }
     const c = citizenAt(x, y);
     if (c) {
       if (c.z === 0) c.vz = 230 * c.sc; c.spin = 1;
@@ -2089,7 +2795,7 @@
   }
   function onMove(e) {
     const p = eventPos(e); movePointer(p);
-    if (!pointerDown) hoverPlace = placeAt(p.x, p.y);
+    if (!pointerDown) { hoverPlace = placeAt(p.x, p.y); hoverStar = hoverPlace ? null : starAt(p.x, p.y); }
     else if (Math.hypot(p.x - downX, p.y - downY) > 12) dragged = true;
   }
   function onUp(e) {
@@ -2107,7 +2813,7 @@
   canvas.addEventListener("touchmove", function (e) { if (pointerDown) e.preventDefault(); onMove(e); }, { passive: false });
   canvas.addEventListener("touchend", onUp);
   canvas.addEventListener("touchcancel", onUp);
-  canvas.addEventListener("mouseleave", function () { if (!pointerDown) { hoverPlace = null; pointer.on = false; } });
+  canvas.addEventListener("mouseleave", function () { if (!pointerDown) { hoverPlace = null; hoverStar = null; pointer.on = false; } });
 
   /* ---------- HUD ---------- */
   let hudAcc = 0;
@@ -2118,10 +2824,10 @@
     elShift.textContent = shiftNow.name + " · " + skyNow.label + extra;
     const out = citizens.length - census.inside;
     elCensus.textContent = isMobile
-      ? citizens.length + " CITIZENS · " + census.inside + " INSIDE"
-      : citizens.length + " CITIZENS  ·  " + out + " OUT  ·  " + census.inside + " INSIDE  ·  " + trucks.length + " CYBERTRUCKS  ·  " + crumbs.length + " CRUMBS";
+      ? citizens.length + " CITIZENS · " + stars.length + " ARCADE STARS · " + (trucks.length + sky.length) + " TRUCKS"
+      : citizens.length + " CITIZENS  ·  " + stars.length + " ARCADE STARS  ·  " + census.inside + " INSIDE  ·  " + (trucks.length + sky.length) + " CYBERTRUCKS  ·  " + crumbs.length + " CRUMBS";
     if (elPlace) { if (hoverPlace) { elPlace.textContent = hoverPlace.label; elPlace.classList.add("on"); } else elPlace.classList.remove("on"); }
-    canvas.style.cursor = hoverPlace ? "pointer" : "crosshair";
+    canvas.style.cursor = hoverPlace || hoverStar ? "pointer" : "crosshair";
   }
 
   /* ---------- frame ---------- */
@@ -2141,7 +2847,7 @@
     if (fpsAcc >= 2) {
       fps = fpsN / fpsAcc; fpsAcc = 0; fpsN = 0;
       /* adaptive quality: step down resolution / extras if the device struggles */
-      if (time > 5 && fps < 46 && quality < 2 && !Q.has("hq")) { quality++; resize(); buildWorld(); if (quality === 2) trimCitizens(); }
+      if (time > 5 && fps < 46 && quality < 2 && !Q.has("hq")) { quality++; resize(); buildWorld(); if (quality === 2) { trimCitizens(); trimStars(); } }
     }
     const parts = nyParts();
     const hr = nyHour(parts);
@@ -2156,26 +2862,32 @@
     updateEvents(dt, time);
     updateCitizens(dt);
     updateTrucks(dt);
+    updateStars(dt);
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     drawSky(time, dt);
     drawLogoSign(time);
+    updateDrawSky(dt);
     drawPartyFloor(time);
     updateDrawCrumbs(dt);
     drawList.length = 0;
     for (let i = 0; i < buildings.length; i++) { buildings[i].sortY = buildings[i].by; drawList.push(buildings[i]); }
     for (let i = 0; i < citizens.length; i++) { const c = citizens[i]; if (c.state !== "inside") { c.sortY = c.y; drawList.push(c); } }
     for (let i = 0; i < trucks.length; i++) { trucks[i].sortY = trucks[i].y; trucks[i].isTruck = true; drawList.push(trucks[i]); }
+    for (let i = 0; i < stars.length; i++) { stars[i].sortY = stars[i].y; drawList.push(stars[i]); }
+    signalObjs(drawList);
     drawList.sort(function (a, b) { return a.sortY - b.sortY; });
     for (let i = 0; i < drawList.length; i++) {
       const o = drawList[i];
-      if (o.body) drawBuilding(o, time, dt); else if (o.isTruck) drawTruck(o, time); else drawCitizen(o, time);
+      if (o.body) drawBuilding(o, time, dt); else if (o.isTruck) drawTruck(o, time); else if (o.isStar) drawStar(o, time); else if (o.isSignal) drawSignal(o); else drawCitizen(o, time);
     }
+    updateDrawDust(dt);
     drawFamilyExtras(time);
     updateDrawSmoke(dt);
     drawHologram(time);
     updateDrawSparks(dt);
     updateDrawWeather(dt);
+    drawNameplates();
     drawBubbles(dt);
     drawBanner(dt, time);
     drawGlitchFx();
@@ -2208,7 +2920,7 @@
       if (lastMobile !== isMobile) { lastMobile = isMobile; bakeAllSprites(); buildWorld(); populate(); return; }
       buildWorld();
       for (let i = 0; i < citizens.length; i++) { const c = citizens[i]; c.x = c.x / oldW * w; c.y = c.y / oldH * h; c.tx = c.x; c.ty = c.y; if (c.state === "walk" && !c.family) { c.state = "idle"; c.timer = 0.3; } }
-      for (let i = 0; i < trucks.length; i++) trucks[i].y = laneY(trucks[i].dir);
+      relayoutRoads(oldW, oldH);
       queue.length = 0; arcadeBusy[0] = arcadeBusy[1] = arcadeBusy[2] = null;
     }, 120);
   });
@@ -2239,7 +2951,10 @@
     play: toggleRadio,
     places: function () { return places.map(function (p) { return { id: p.id, href: p.href, x: p.x + p.w / 2, y: p.y + p.h * 0.6 }; }); },
     sound: toggleSound,
-    stats: function () { return { fps: Math.round(fps), quality: quality, citizens: citizens.length, inside: census.inside, trucks: trucks.length, crumbs: crumbs.length, bubbles: bubbles.length, w: w, h: h, dpr: dpr, mobile: isMobile }; },
+    stats: function () { return { fps: Math.round(fps), quality: quality, citizens: citizens.length, inside: census.inside, trucks: trucks.length, offroad: trucks.filter(function (t) { return !!t.off; }).length, airborne: trucks.filter(function (t) { return t.air; }).length, sky: sky.length, stars: stars.length, dust: dust.length, crumbs: crumbs.length, bubbles: bubbles.length, w: w, h: h, dpr: dpr, mobile: isMobile }; },
+    starList: function () { return stars.map(function (st) { return { id: st.r.id, name: st.r.name, game: st.r.game, x: Math.round(st.x), y: Math.round(st.y), h: Math.round(st.H) }; }); },
+    _dbg: function (k) { if (k === "nostars") { stars.length = 0; } if (k === "nosky") { sky.length = 0; } if (k === "notrucks") { trucks.length = 0; } },
+    tagStar: function (id) { for (let i = 0; i < stars.length; i++) if (stars[i].r.id === id) stars[i].tag = 4; },
     pause: function () { hidden = true; running = false; if (audio) audio.pause(); },
     resume: function () { hidden = false; startLoop(); }
   };
